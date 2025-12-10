@@ -1,76 +1,108 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
-import 'app_text_styles.dart';
 
-/// 앱 테마 설정
+/// 앱 전체 테마 유틸리티
 class AppTheme {
-  AppTheme._();
+  static const Color primaryColor = Color(0xFF4A90E2);
+  static const Color primaryDark = Color(0xFF3A7BC8);
+  static const Color accentColor = Color(0xFFFF9800);
+  static const Color backgroundColor = Colors.white;
+  static const Color textColor = Color(0xFF333333);
+  static const Color secondaryTextColor = Color(0xFF666666);
+  static const Color dividerColor = Color(0xFFE0E0E0);
+  static const Color errorColor = Color(0xFFFF5252);
+  static const Color successColor = Color(0xFF4CAF50);
 
+  /// 라이트 테마
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
+        seedColor: primaryColor,
         brightness: Brightness.light,
-        primary: AppColors.primary,
-        surface: AppColors.surface,
       ),
-      scaffoldBackgroundColor: AppColors.background,
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.background,
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: AppTextStyles.appBarTitle,
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
       ),
       cardTheme: CardThemeData(
-        color: AppColors.cardBackground,
+        color: backgroundColor,
         elevation: 2,
-        shadowColor: AppColors.primary.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: primaryColor,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          elevation: 2,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
-          textStyle: AppTextStyles.button,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: AppColors.surface,
-        hintStyle: AppTextStyles.hint,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+      textTheme: TextTheme(
+        displayLarge: TextStyle(
+          color: textColor,
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.2)),
+        headlineMedium: TextStyle(
+          color: textColor,
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        titleMedium: TextStyle(
+          color: textColor,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
         ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.error),
+        bodyMedium: TextStyle(
+          color: textColor,
+          fontSize: 14,
         ),
-        contentPadding: const EdgeInsets.all(16),
+        bodySmall: TextStyle(
+          color: secondaryTextColor,
+          fontSize: 12,
+        ),
       ),
-      textTheme: const TextTheme(
-        headlineLarge: AppTextStyles.headline,
-        titleLarge: AppTextStyles.title,
-        bodyLarge: AppTextStyles.body,
-        bodyMedium: AppTextStyles.bodySmall,
-        labelLarge: AppTextStyles.button,
+    );
+  }
+  
+  /// 다크 테마
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryColor,
+        brightness: Brightness.dark,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF1E1E1E),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
+      cardTheme: CardThemeData(
+        color: const Color(0xFF2C2C2C),
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
       ),
     );
   }

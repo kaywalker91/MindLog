@@ -1,12 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!-- 스플래시스크린 배경 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 배경색 -->
     <item android:drawable="@android:color/white" />
-
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+    
+    <!-- MindLog 로고 -->
+    <item android:gravity="center">
+        <shape android:shape="oval">
+            <solid android:color="#4A90E2" />
+            <size android:width="120dp" android:height="120dp" />
+        </shape>
+    </item>
+    
+    <!-- 로고 텍스트 -->
+    <item android:gravity="center">
+        <shape android:shape="rectangle">
+            <solid android:color="#4A90E2" />
+            <corners android:radius="16dp" />
+            <size android:width="120dp" android:height="40dp" />
+        </shape>
+    </item>
+    
+    <!-- 중앙 아이콘 -->
+    <item android:gravity="center" android:top="60dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#4A90E2" />
+            <corners android:radius="20dp" />
+            <size android:width="60dp" android:height="60dp" />
+        </shape>
+    </item>
+    
+    <!-- 하단 텍스트 -->
+    <item android:bottom="100dp" android:gravity="center">
+        <shape android:shape="rectangle">
+            <solid android:color="#4A90E2" />
+            <corners android:radius="12dp" />
+            <size android:width="200dp" android:height="36dp" />
+        </shape>
+    </item>
 </layer-list>

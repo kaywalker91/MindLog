@@ -17,13 +17,13 @@ class ApiException implements Exception {
   String toString() => 'ApiException: $message (status: $statusCode)';
 }
 
-/// 데이터베이스 관련 예외
-class DatabaseException implements Exception {
+/// 캐시(로컬 데이터베이스) 관련 예외
+class CacheException implements Exception {
   final String? message;
-  DatabaseException([this.message]);
+  CacheException([this.message]);
 
   @override
-  String toString() => 'DatabaseException: $message';
+  String toString() => 'CacheException: $message';
 }
 
 /// 안전 필터 관련 예외 (Safety block)

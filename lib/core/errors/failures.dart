@@ -10,8 +10,14 @@ sealed class Failure {
   /// API 호출 실패
   const factory Failure.api({String? message, int? statusCode}) = ApiFailure;
 
-  /// 로컬 데이터베이스 실패
-  const factory Failure.database({String? message}) = DatabaseFailure;
+  /// 캐시(로컬 데이터베이스) 실패
+  const factory Failure.cache({String? message}) = CacheFailure;
+
+  /// 서버 관련 실패
+  const factory Failure.server({String? message}) = ServerFailure;
+
+  /// 데이터를 찾지 못했을 때
+  const factory Failure.dataNotFound({String? message}) = DataNotFoundFailure;
 
   /// 입력 유효성 검사 실패
   const factory Failure.validation({required String message}) = ValidationFailure;
@@ -41,11 +47,25 @@ class ApiFailure extends Failure {
   String get displayMessage => message ?? 'API 호출 중 오류가 발생했습니다.';
 }
 
-class DatabaseFailure extends Failure {
-  const DatabaseFailure({super.message});
+class CacheFailure extends Failure {
+  const CacheFailure({super.message});
 
   @override
   String get displayMessage => message ?? '데이터 저장 중 오류가 발생했습니다.';
+}
+
+class ServerFailure extends Failure {
+  const ServerFailure({super.message});
+
+  @override
+  String get displayMessage => message ?? '서버 오류가 발생했습니다.';
+}
+
+class DataNotFoundFailure extends Failure {
+  const DataNotFoundFailure({super.message});
+
+  @override
+  String get displayMessage => message ?? '데이터를 찾을 수 없습니다.';
 }
 
 class ValidationFailure extends Failure {
@@ -56,10 +76,10 @@ class ValidationFailure extends Failure {
 }
 
 class SafetyBlockedFailure extends Failure {
-  const SafetyBlockedFailure() : super();
+  const SafetyBlockedFailure({super.message});
 
   @override
-  String get displayMessage => '안전상의 이유로 분석이 중단되었습니다.';
+  String get displayMessage => message ?? '안전상의 이유로 분석이 중단되었습니다.';
 }
 
 class UnknownFailure extends Failure {

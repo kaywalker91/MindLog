@@ -1,3 +1,7 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'diary.g.dart';
+
 /// 일기 상태
 enum DiaryStatus {
   /// 분석 대기 중
@@ -14,6 +18,7 @@ enum DiaryStatus {
 }
 
 /// 일기 엔티티
+@JsonSerializable()
 class Diary {
   /// 고유 ID
   final String id;
@@ -53,9 +58,13 @@ class Diary {
       analysisResult: analysisResult ?? this.analysisResult,
     );
   }
+
+  factory Diary.fromJson(Map<String, dynamic> json) => _$DiaryFromJson(json);
+  Map<String, dynamic> toJson() => _$DiaryToJson(this);
 }
 
 /// 감정 분석 결과 엔티티
+@JsonSerializable()
 class AnalysisResult {
   /// 감정 키워드 (3개)
   final List<String> keywords;
@@ -75,14 +84,17 @@ class AnalysisResult {
   /// 추천 행동 완료 여부
   final bool isActionCompleted;
 
-  const AnalysisResult({
-    required this.keywords,
-    required this.sentimentScore,
-    required this.empathyMessage,
-    required this.actionItem,
-    required this.analyzedAt,
+  AnalysisResult({
+    this.keywords = const [],
+    this.sentimentScore = 5,
+    this.empathyMessage = '',
+    this.actionItem = '',
+    DateTime? analyzedAt,
     this.isActionCompleted = false,
-  });
+  }) : analyzedAt = analyzedAt ?? DateTime.now();
+
+  factory AnalysisResult.fromJson(Map<String, dynamic> json) => _$AnalysisResultFromJson(json);
+  Map<String, dynamic> toJson() => _$AnalysisResultToJson(this);
 
   AnalysisResult copyWith({
     List<String>? keywords,

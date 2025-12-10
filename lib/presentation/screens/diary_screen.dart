@@ -9,6 +9,7 @@ import '../providers/diary_analysis_controller.dart';
 import '../widgets/result_card.dart';
 import '../widgets/sos_card.dart';
 import '../widgets/loading_indicator.dart';
+import '../widgets/network_status_overlay.dart';
 
 /// 일기 작성 화면
 class DiaryScreen extends ConsumerStatefulWidget {
@@ -21,6 +22,9 @@ class DiaryScreen extends ConsumerStatefulWidget {
 class _DiaryScreenState extends ConsumerState<DiaryScreen> {
   final _textController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _showNetworkOverlay = false;
+  String _networkOverlayMessage = '';
+  NetworkStatusType _networkStatusType = NetworkStatusType.loading;
 
   @override
   void dispose() {
@@ -30,44 +34,140 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
 
   void _onSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
+      _showNetworkFeedback(
+        statusType: NetworkStatusType.loading,
+        message: 'AI가 당신의 마음을 분석하고 있어요...',
+      );
+      
       ref
           .read(diaryAnalysisControllerProvider.notifier)
-          .analyzeDiary(_textController.text);
+          .analyzeDiary(_textController.text)
+          .catchError((e) {
+        _handleAnalysisError(e);
+      });
     }
   }
 
+  void _handleAnalysisError(Object error) {
+    // 오류 타입에 따른 피드백 표시
+    if (error.toString().contains('네트워크') || 
+        error.toString().contains('연결')) {
+      _showNetworkFeedback(
+        statusType: NetworkStatusType.networkError,
+        message: '인터넷 연결을 확인해주세요.\n자동으로 재시도합니다...',
+      );
+    } else if (error.toString().contains('파싱') ||
+               error.toString().contains('응답')) {
+      _showNetworkFeedback(
+        statusType: NetworkStatusType.apiError,
+        message: '서버 응답 처리 중 문제가 발생했습니다.\n다시 시도해주세요.',
+      );
+    } else {
+      _showNetworkFeedback(
+        statusType: NetworkStatusType.apiError,
+        message: error.toString(),
+      );
+    }
+  }
+
+  void _showNetworkFeedback({
+    required NetworkStatusType statusType,
+    required String message,
+  }) {
+    setState(() {
+      _showNetworkOverlay = true;
+      _networkOverlayMessage = message;
+      _networkStatusType = statusType;
+    });
+  }
+
+  void _hideNetworkFeedback() {
+    setState(() {
+      _showNetworkOverlay = false;
+      _networkOverlayMessage = '';
+    });
+  }
+
+  void _onRetry() {
+    _hideNetworkFeedback();
+    // 잠시 후 다시 시도
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _onSubmit();
+    });
+  }
+
+  void _onDismissNetworkFeedback() {
+    _hideNetworkFeedback();
+  }
+
   void _onReset() {
-    _textController.clear();
-    ref.read(diaryAnalysisControllerProvider.notifier).reset();
+    // 분석 완료 후 '확인'을 누르면 목록 화면으로 돌아감
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      // 혹시 pop할 수 없는 상황이면 초기화 (예외 케이스)
+      _textController.clear();
+      _hideNetworkFeedback();
+      ref.read(diaryAnalysisControllerProvider.notifier).reset();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final analysisState = ref.watch(diaryAnalysisControllerProvider);
 
+    // 분석 상태 변경 감지
+    ref.listen(diaryAnalysisControllerProvider, (previous, next) {
+      if (previous is DiaryAnalysisLoading && next is DiaryAnalysisSuccess) {
+        _showNetworkFeedback(
+          statusType: NetworkStatusType.retrySuccess,
+          message: '성공적으로 분석이 완료되었습니다!',
+        );
+        
+        // 2초 후 자동 숨김
+        Future.delayed(const Duration(seconds: 2), () {
+          _hideNetworkFeedback();
+        });
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.diaryScreenTitle),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 분석 결과 또는 입력 폼 표시
-              switch (analysisState) {
-                DiaryAnalysisInitial() => _buildInputForm(),
-                DiaryAnalysisLoading() => _buildLoadingState(),
-                DiaryAnalysisSuccess(diary: final diary) =>
-                  ResultCard(diary: diary, onNewDiary: _onReset),
-                DiaryAnalysisError(failure: final failure) =>
-                  _buildErrorState(failure.displayMessage),
-                DiaryAnalysisSafetyBlocked() => SosCard(onClose: _onReset),
-              },
-            ],
+      body: Stack(
+        children: [
+          // 메인 컨텐츠
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 분석 결과 또는 입력 폼 표시
+                  switch (analysisState) {
+                    DiaryAnalysisInitial() => _buildInputForm(),
+                    DiaryAnalysisLoading() => _buildLoadingState(),
+                    DiaryAnalysisSuccess(diary: final diary) =>
+                      ResultCard(diary: diary, onNewDiary: _onReset),
+                    DiaryAnalysisError(failure: final failure) =>
+                      _buildErrorState(failure.displayMessage),
+                    DiaryAnalysisSafetyBlocked() => SosCard(onClose: _onReset),
+                  },
+                ],
+              ),
+            ),
           ),
-        ),
+          
+          // 네트워크 상태 오버레이
+          NetworkStatusOverlay(
+            isVisible: _showNetworkOverlay,
+            statusMessage: _networkOverlayMessage,
+            statusType: _networkStatusType,
+            onRetry: _networkStatusType == NetworkStatusType.loading ? null : _onRetry,
+            onDismiss: _networkStatusType == NetworkStatusType.loading ? null : _onDismissNetworkFeedback,
+          ),
+        ],
       ),
     );
   }

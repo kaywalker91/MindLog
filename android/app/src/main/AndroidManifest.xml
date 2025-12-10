@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 인터넷 권한 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    
     <application
-        android:label="mindlog"
+        android:label="MindLog - 마음 케어 다이어리"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -20,6 +23,17 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+              
+            <!-- 스플래시스크린 설정 -->
+            <meta-data
+              android:name="io.flutter.embedding.android.SplashScreenDrawable"
+              android:resource="@drawable/launch_background"
+              />
+            <meta-data
+              android:name="io.flutter.embedding.android.SplashScreenTheme"
+              android:resource="@style/LaunchTheme"
+              />
+              
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -30,6 +44,11 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        
+        <!-- Disable Impeller temporarily due to rendering issues -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

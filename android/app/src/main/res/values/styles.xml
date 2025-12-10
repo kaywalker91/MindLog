@@ -1,18 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
-    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <!-- Show a splash screen on the activity. Automatically removed when
-             the Flutter engine draws its first frame -->
-        <item name="android:windowBackground">@drawable/launch_background</item>
+    <!-- 기본 암션 테마 -->
+    <style name="MainTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- 스테마 색상 -->
+        <item name="colorPrimary">#4A90E2</item>
+        <item name="colorPrimaryDark">#3A7BC8</item>
+        <item name="colorAccent">#FF9800</item>
+        <item name="android:windowBackground">#FFFFFF</item>
+        
+        <!-- 상태바 색상 -->
+        <item name="android:statusBarColor">#4A90E2</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
-    <!-- Theme applied to the Android Window as soon as the process has started.
-         This theme determines the color of the Android Window while your
-         Flutter UI initializes, as well as behind your Flutter UI while its
-         running.
-
-         This Theme is only used starting with V2 of Flutter's Android embedding. -->
-    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
-        <item name="android:windowBackground">?android:colorBackground</item>
+    
+    <!-- 일반 테마 -->
+    <style name="NormalTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+    
+    <!-- 스플래시스크린 테마 -->
+    <style name="LaunchTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowContentOverlay">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
     </style>
 </resources>

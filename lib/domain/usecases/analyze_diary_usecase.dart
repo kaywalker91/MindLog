@@ -1,49 +1,51 @@
 import '../entities/diary.dart';
 import '../repositories/diary_repository.dart';
+import '../../core/errors/failures.dart';
 
-/// 일기 분석 UseCase
-///
-/// 일기 작성 → 저장 → 분석 → 결과 업데이트의 전체 플로우를 담당합니다.
+/// 일기 분석 유스케이스
 class AnalyzeDiaryUseCase {
   final DiaryRepository _repository;
 
   AnalyzeDiaryUseCase(this._repository);
 
   /// 일기 작성 및 분석 실행
-  ///
-  /// 1. 일기를 pending 상태로 즉시 저장 (데이터 유실 방지)
-  /// 2. Gemini API로 분석 요청
-  /// 3. 분석 결과로 일기 업데이트
-  ///
+  /// 
   /// [content] 사용자가 입력한 일기 내용
-  ///
-  /// 반환값: 분석이 완료된 Diary 객체
+  /// 
+  /// 반환값: 분석이 완료된 Diary 엔티티
   Future<Diary> execute(String content) async {
-    // 1. 일기를 pending 상태로 먼저 저장
-    final diary = Diary(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      content: content.trim(),
-      createdAt: DateTime.now(),
-      status: DiaryStatus.pending,
-    );
-
-    final savedDiary = await _repository.saveDiary(diary);
-
     try {
-      // 2. Gemini API로 분석 요청
-      final analysisResult = await _repository.analyzeDiary(content);
+      // 입력 유효성 검사
+      if (content.trim().isEmpty) {
+        throw const ValidationFailure(message: '일기 내용을 입력해주세요.');
+      }
 
-      // 3. 분석 결과로 일기 업데이트
-      final analyzedDiary = await _repository.updateDiaryWithAnalysis(
-        savedDiary.id,
-        analysisResult,
-      );
+      if (content.length < 10) {
+        throw const ValidationFailure(message: '최소 10자 이상 입력해주세요.');
+      }
 
-      return analyzedDiary;
+      if (content.length > 1000) {
+        throw const ValidationFailure(message: '최대 1000자까지 입력 가능합니다.');
+      }
+
+      // 1. 로컬에 일기 저장 (pending 상태)
+      final diary = await _repository.createDiary(content);
+
+      // 2. AI 분석 요청
+      try {
+        // UUID 생성
+        final diaryId = diary.id;
+        final analyzedDiary = await _repository.analyzeDiary(diaryId);
+        return analyzedDiary;
+      } catch (e) {
+        // 분석 실패해도 일기는 저장되어야 함
+        return diary;
+      }
     } catch (e) {
-      // 분석 실패 시 상태 업데이트
-      await _repository.updateDiaryStatus(savedDiary.id, DiaryStatus.failed);
-      rethrow;
+      if (e is Failure) {
+        rethrow;
+      }
+      throw UnknownFailure(message: e.toString());
     }
   }
 }

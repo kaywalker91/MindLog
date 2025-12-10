@@ -3,6 +3,7 @@ class AppStrings {
   AppStrings._();
 
   // 화면 타이틀
+  static const String appName = 'MindLog';
   static const String diaryScreenTitle = '오늘의 마음';
   static const String historyScreenTitle = '기록';
   static const String resultScreenTitle = '분석 결과';
