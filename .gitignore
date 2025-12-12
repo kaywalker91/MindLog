@@ -56,3 +56,9 @@ app.*.map.json
 *.isar
 *.isar.lock
 android/build/
+
+# Android Signing (CI/CD)
+android/key.properties
+*.jks
+*.keystore
+keystore-base64.txt
