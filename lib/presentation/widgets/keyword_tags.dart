@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/theme/app_colors.dart';
 
-/// 키워드 태그 위젯
+/// 키워드 태그 위젯 (하늘색 테마)
 class KeywordTags extends StatelessWidget {
   final Map<String, int> keywordFrequency;
   final int maxTags;
@@ -9,14 +10,11 @@ class KeywordTags extends StatelessWidget {
   const KeywordTags({
     super.key,
     required this.keywordFrequency,
-    this.maxTags = 10,
+    this.maxTags = 5,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     if (keywordFrequency.isEmpty) {
       return _buildEmptyState(context);
     }
@@ -27,57 +25,28 @@ class KeywordTags extends StatelessWidget {
     final topKeywords = sortedKeywords.take(maxTags).toList();
 
     // 최대 빈도 계산 (태그 크기 결정용)
-    final maxFrequency =
-        topKeywords.isEmpty ? 1 : topKeywords.first.value;
+    final maxFrequency = topKeywords.isEmpty ? 1 : topKeywords.first.value;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withOpacity(0.2),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '자주 느낀 감정',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '일기에서 자주 등장한 감정 키워드예요',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: topKeywords.asMap().entries.map((entry) {
-              final index = entry.key;
-              final keyword = entry.value.key;
-              final frequency = entry.value.value;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: topKeywords.asMap().entries.map((entry) {
+        final index = entry.key;
+        final keyword = entry.value.key;
+        final frequency = entry.value.value;
 
-              // 빈도에 따른 스케일 (0.8 ~ 1.2)
-              final scale = 0.8 + (frequency / maxFrequency) * 0.4;
+        // 빈도에 따른 스케일 (1.0 ~ 1.1, 1위만 약간 크게)
+        final scale = index == 0 ? 1.1 : 1.0;
 
-              return _buildTag(
-                context,
-                keyword,
-                frequency,
-                scale,
-                index,
-              );
-            }).toList(),
-          ),
-        ],
-      ),
+        return _buildTag(
+          context,
+          keyword,
+          frequency,
+          scale,
+          index,
+          maxFrequency,
+        );
+      }).toList(),
     );
   }
 
@@ -87,22 +56,25 @@ class KeywordTags extends StatelessWidget {
     int frequency,
     double scale,
     int index,
+    int maxFrequency,
   ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    // 빈도에 따른 색상 강도 결정 (1위가 가장 진함)
+    final intensity = frequency / maxFrequency;
+    final baseColor = AppColors.statsPrimary;
+    final darkColor = AppColors.statsPrimaryDark;
 
-    // 빈도에 따른 색상 결정
-    final color = _getTagColor(frequency, colorScheme);
+    // 1위는 더 진한 색상, 나머지는 기본 하늘색
+    final tagColor = index == 0 ? darkColor : baseColor;
 
     return Transform.scale(
       scale: scale,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+          color: tagColor.withValues(alpha: 0.1 + intensity * 0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: color.withOpacity(0.3),
+            color: tagColor.withValues(alpha: 0.3),
           ),
         ),
         child: Row(
@@ -110,22 +82,24 @@ class KeywordTags extends StatelessWidget {
           children: [
             Text(
               keyword,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w600,
+              style: TextStyle(
+                color: AppColors.statsPrimaryDark,
+                fontSize: 14,
+                fontWeight: index == 0 ? FontWeight.bold : FontWeight.w500,
               ),
             ),
             const SizedBox(width: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: tagColor,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                frequency.toString(),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: color,
+                '$frequency회',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -136,68 +110,39 @@ class KeywordTags extends StatelessWidget {
     )
         .animate(delay: Duration(milliseconds: index * 50))
         .fadeIn(duration: 300.ms)
-        .scale(begin: const Offset(0.8, 0.8), duration: 300.ms);
+        .scale(begin: const Offset(0.9, 0.9), duration: 300.ms);
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withOpacity(0.2),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Column(
+          children: [
+            Icon(
+              Icons.tag,
+              size: 40,
+              color: AppColors.statsTextTertiary,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '아직 키워드가 없어요',
+              style: TextStyle(
+                color: AppColors.statsTextSecondary,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '일기를 작성하면 감정 키워드가 추출돼요',
+              style: TextStyle(
+                color: AppColors.statsTextTertiary,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '자주 느낀 감정',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Center(
-            child: Column(
-              children: [
-                Icon(
-                  Icons.tag,
-                  size: 48,
-                  color: colorScheme.outline,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  '아직 키워드가 없어요',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '일기를 작성하면 감정 키워드가 추출돼요',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.outline,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
     );
-  }
-
-  Color _getTagColor(int frequency, ColorScheme colorScheme) {
-    // 빈도에 따른 색상 팔레트
-    if (frequency >= 10) return colorScheme.primary;
-    if (frequency >= 5) return colorScheme.secondary;
-    if (frequency >= 3) return colorScheme.tertiary;
-    return colorScheme.outline;
   }
 }

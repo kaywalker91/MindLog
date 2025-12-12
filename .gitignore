@@ -55,3 +55,4 @@ app.*.map.json
 # Isar
 *.isar
 *.isar.lock
+android/build/

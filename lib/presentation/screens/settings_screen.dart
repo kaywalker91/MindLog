@@ -18,8 +18,6 @@ class SettingsScreen extends ConsumerWidget {
       backgroundColor: colorScheme.surfaceContainerLowest,
       appBar: AppBar(
         title: const Text('설정'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

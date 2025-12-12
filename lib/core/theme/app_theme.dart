@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// 앱 전체 테마 유틸리티
 class AppTheme {
-  static const Color primaryColor = Color(0xFF4A90E2);
+  // 기본 하늘색 테마 색상 (AppColors.statsPrimary와 동일)
+  static const Color primaryColor = Color(0xFF7EC8E3);
   static const Color primaryDark = Color(0xFF3A7BC8);
   static const Color accentColor = Color(0xFFFF9800);
   static const Color backgroundColor = Colors.white;
@@ -25,6 +27,11 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light, // 하늘색 배경에 밝은 아이콘
+          statusBarBrightness: Brightness.dark,      // iOS용
+        ),
       ),
       cardTheme: CardThemeData(
         color: backgroundColor,
@@ -85,6 +92,11 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light, // 어두운 배경에 밝은 아이콘
+          statusBarBrightness: Brightness.dark,      // iOS용
+        ),
       ),
       cardTheme: CardThemeData(
         color: const Color(0xFF2C2C2C),

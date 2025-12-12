@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../../core/errors/exceptions.dart';
+import '../../core/utils/korean_text_filter.dart';
 
 /// API 응답 파서 - 다양한 포맷 대응
 class AnalysisResponseParser {
@@ -49,7 +50,6 @@ class AnalysisResponseParser {
     }
   }
 
-  /// 순수 JSON 파싱
   /// 순수 JSON 파싱
   static Map<String, dynamic> _parseAsJson(String text) {
     final trimmedText = text.trim();
@@ -175,55 +175,76 @@ class AnalysisResponseParser {
     return sanitized;
   }
 
-  /// JSON 구조 검증
+  /// JSON 구조 검증 및 한글 필터링
   static void _validateJsonStructure(Map<String, dynamic> json) {
     final requiredKeys = ['keywords', 'sentiment_score', 'empathy_message', 'action_item'];
-    
+
     for (final key in requiredKeys) {
       if (!json.containsKey(key)) {
         throw FormatException('Missing required key: $key');
       }
     }
 
-    // 키워드 검증
-    if (json['keywords'] is! List || 
-        (json['keywords'] as List).isEmpty || 
+    // 키워드 검증 및 한글 필터링
+    if (json['keywords'] is! List ||
+        (json['keywords'] as List).isEmpty ||
         !(json['keywords'].every((k) => k is String))) {
       json['keywords'] = ['감정', '일상'];
+    } else {
+      // 한문/일본어 필터링 적용
+      final keywords = (json['keywords'] as List).cast<String>();
+      json['keywords'] = KoreanTextFilter.filterKeywords(keywords);
     }
 
     // 감정 점수 검증
-    if (json['sentiment_score'] is! int || 
-        (json['sentiment_score'] as int) < 1 || 
+    if (json['sentiment_score'] is! int ||
+        (json['sentiment_score'] as int) < 1 ||
         (json['sentiment_score'] as int) > 10) {
       json['sentiment_score'] = 5;
     }
 
-    // 메시지 검증
-    if (json['empathy_message'] is! String || 
+    // 메시지 검증 및 한글 필터링
+    if (json['empathy_message'] is! String ||
         (json['empathy_message'] as String).trim().isEmpty) {
       json['empathy_message'] = '마음의 이야기에 감사드립니다.';
+    } else {
+      // 한문/일본어 필터링 적용
+      json['empathy_message'] = KoreanTextFilter.filterMessage(
+        json['empathy_message'] as String,
+        fallbackText: '마음의 이야기에 감사드립니다.',
+      );
     }
 
-    // 행동 아이템 검증
-    if (json['action_item'] is! String || 
+    // 행동 아이템 검증 및 한글 필터링
+    if (json['action_item'] is! String ||
         (json['action_item'] as String).trim().isEmpty) {
       json['action_item'] = '잠시 쉬어가세요.';
+    } else {
+      // 한문/일본어 필터링 적용
+      json['action_item'] = KoreanTextFilter.filterMessage(
+        json['action_item'] as String,
+        fallbackText: '잠시 쉬어가세요.',
+      );
     }
   }
 
   /// 텍스트에서 키워드 추출
+  /// 한글, 영문, 숫자만 허용 (한문/일본어 제외)
   static List<String> _extractKeywords(String line) {
-    final keywordRegex = RegExp(r'[:：]?\s*([가-힣\w\s,]+)');
+    // 정규식 수정: \w 대신 명시적으로 한글/영문/숫자만 허용
+    final keywordRegex = RegExp(r'[:：]?\s*([가-힣a-zA-Z0-9\s,]+)');
     final match = keywordRegex.firstMatch(line);
     if (match != null) {
       final keywordsStr = match.group(1) ?? '';
-      return keywordsStr
+      final rawKeywords = keywordsStr
           .split(RegExp(r'[,،\s]+'))
           .where((k) => k.trim().isNotEmpty)
           .map((k) => k.trim())
-          .take(3)
+          .take(5) // 여유있게 추출 후 필터링
           .toList();
+
+      // 한글 필터링 적용
+      return KoreanTextFilter.filterKeywords(rawKeywords);
     }
     return [];
   }
