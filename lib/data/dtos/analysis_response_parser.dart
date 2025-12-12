@@ -50,16 +50,23 @@ class AnalysisResponseParser {
   }
 
   /// 순수 JSON 파싱
+  /// 순수 JSON 파싱
   static Map<String, dynamic> _parseAsJson(String text) {
     final trimmedText = text.trim();
     if (!trimmedText.startsWith('{') || !trimmedText.endsWith('}')) {
       throw const FormatException('Not valid JSON format');
     }
 
-    final json = _sanitizeJsonString(trimmedText);
-    final decoded = jsonDecode(json) as Map<String, dynamic>;
-    _validateJsonStructure(decoded);
-    return decoded;
+    try {
+      final decoded = jsonDecode(trimmedText) as Map<String, dynamic>;
+      _validateJsonStructure(decoded);
+      return decoded;
+    } catch (_) {
+      final json = _sanitizeJsonString(trimmedText);
+      final decoded = jsonDecode(json) as Map<String, dynamic>;
+      _validateJsonStructure(decoded);
+      return decoded;
+    }
   }
 
   /// 마크다운드 JSON 파싱
@@ -73,13 +80,19 @@ class AnalysisResponseParser {
         .trim();
 
     // JSON 객체 추출
-    final jsonMatch = RegExp(r'\{.*\}').firstMatch(cleanedText);
+    final jsonMatch = RegExp(r'\{.*\}', dotAll: true).firstMatch(cleanedText);
     if (jsonMatch != null) {
       final jsonStr = jsonMatch.group(0)!;
-      final sanitizedJson = _sanitizeJsonString(jsonStr);
-      final decoded = jsonDecode(sanitizedJson) as Map<String, dynamic>;
-      _validateJsonStructure(decoded);
-      return decoded;
+      try {
+        final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
+        _validateJsonStructure(decoded);
+        return decoded;
+      } catch (_) {
+        final sanitizedJson = _sanitizeJsonString(jsonStr);
+        final decoded = jsonDecode(sanitizedJson) as Map<String, dynamic>;
+        _validateJsonStructure(decoded);
+        return decoded;
+      }
     }
 
     throw const FormatException('No JSON object found in markdown');
@@ -142,6 +155,7 @@ class AnalysisResponseParser {
       'sentiment_score': sentimentScore.clamp(1, 10),
       'empathy_message': empathyMessage.trim(),
       'action_item': actionItem.trim(),
+      'is_emergency': false,
     };
   }
 
@@ -272,6 +286,7 @@ class AnalysisResponseParser {
       'sentiment_score': 5,
       'empathy_message': '마음의 이야기에 감사드립니다.',
       'action_item': '따뜻한 차 한 잔의 여유를 가져보세요.',
+      'is_emergency': false,
     };
   }
 }

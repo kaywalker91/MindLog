@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/diary.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -29,59 +30,59 @@ class _ResultCardState extends State<ResultCard> {
   }
 
   void _onActionCheck(bool? checked) {
-    setState(() {
-      _isActionCompleted = checked ?? false;
-    });
-    
-    if (_isActionCompleted) {
+    if (checked == true && !_isActionCompleted) {
+      // 체크하는 순간 축하 효과
+      setState(() {
+        _isActionCompleted = true;
+      });
       _showSuccessMessage();
+    } else if (checked == false) {
+      setState(() {
+        _isActionCompleted = false;
+      });
     }
   }
 
   void _showSuccessMessage() {
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('🎉 작은 성공! 오늘 하루도 잘 해냈어요!'),
+      SnackBar(
+        content: Row(
+          children: const [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 8),
+            Text('작은 성공을 축하해요! 🎉'),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.success,
-        duration: Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
   Color _getSentimentColor() {
     final score = widget.diary.analysisResult?.sentimentScore ?? 5;
-    
-    if (score <= 3) {
-      return Colors.red.shade300; // 매우 부정
-    } else if (score <= 5) {
-      return Colors.orange.shade300; // 부정
-    } else if (score <= 7) {
-      return Colors.yellow.shade700; // 중간
-    } else if (score <= 8) {
-      return Colors.lightGreen.shade400; // 긍정
-    } else {
-      return Colors.green.shade400; // 매우 긍정
-    }
+    return AppColors.getSentimentColor(score);
   }
 
   String _getSentimentEmoji() {
     final score = widget.diary.analysisResult?.sentimentScore ?? 5;
-    
-    if (score <= 3) return '😢';
-    if (score <= 5) return '😔';
-    if (score <= 7) return '😐';
+    if (score <= 2) return '😭';
+    if (score <= 4) return '😢';
+    if (score <= 6) return '😐';
     if (score <= 8) return '🙂';
-    return '😊';
+    return '🥰';
   }
 
   String _getSentimentText() {
     final score = widget.diary.analysisResult?.sentimentScore ?? 5;
-    
-    if (score <= 3) return '많이 힘드셨네요';
-    if (score <= 5) return '좀 힘드셨군요';
-    if (score <= 7) return '보통이셨네요';
-    if (score <= 8) return '좋은 하루셨네요';
-    return '아주 좋은 하루셨네요';
+    if (score <= 2) return '마음이 많이 아프시군요';
+    if (score <= 4) return '조금 지치신 것 같아요';
+    if (score <= 6) return '평범한 하루였네요';
+    if (score <= 8) return '기분 좋은 하루였군요!';
+    return '정말 행복한 하루였네요!';
   }
 
   @override
@@ -89,210 +90,330 @@ class _ResultCardState extends State<ResultCard> {
     final analysisResult = widget.diary.analysisResult;
     if (analysisResult == null) return const SizedBox.shrink();
 
+    // 응급 상황 처리
+    if (analysisResult.isEmergency) {
+      return _buildSOSCard(analysisResult);
+    }
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 감정 온도계
-        _buildSentimentMeter(),
+        // 1. 감정 대시보드 (온도계 + 이모지)
+        _buildSentimentDashboard(),
         const SizedBox(height: 24),
 
-        // 키워드
+        // 2. 키워드 칩
         _buildKeywords(analysisResult.keywords),
         const SizedBox(height: 24),
 
-        // 공감 메시지
+        // 3. 공감 메시지 (인용구 스타일)
         _buildEmpathyMessage(analysisResult.empathyMessage),
         const SizedBox(height: 24),
 
-        // 추천 행동
+        // 4. 추천 행동 (티켓 스타일)
         _buildActionItem(analysisResult.actionItem),
-        const SizedBox(height: 32),
+        const SizedBox(height: 40),
 
-        // 새 일기 작성 버튼
+        // 5. 버튼
         _buildNewDiaryButton(),
       ],
-    ).animate(delay: const Duration(milliseconds: 100)).slideY(
-      begin: 0.3,
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeOut,
+    ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1, curve: Curves.easeOutQuint);
+  }
+
+  Widget _buildSOSCard(AnalysisResult result) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.red.shade200, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.red.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          )
+        ],
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.warning_amber_rounded, size: 56, color: Colors.red)
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scale(begin: const Offset(1, 1), end: const Offset(1.2, 1.2), duration: 1000.ms),
+          const SizedBox(height: 20),
+          Text(
+            '전문가의 도움이 필요할 수 있어요',
+            style: AppTextStyles.headline.copyWith(color: Colors.red.shade800),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '혼자서 너무 힘들어하지 마세요.\n당신의 이야기를 들어줄 전문가가 기다리고 있습니다.',
+            style: AppTextStyles.body.copyWith(height: 1.5, color: Colors.red.shade900),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          _buildEmergencyButton('24시간 자살예방상담전화', '1393', Icons.phone_in_talk),
+          const SizedBox(height: 12),
+          _buildEmergencyButton('정신건강상담전화', '1577-0199', Icons.support_agent),
+          const SizedBox(height: 24),
+        ],
+      ),
     );
   }
 
-  Widget _buildSentimentMeter() {
+  Widget _buildEmergencyButton(String label, String number, IconData icon) {
+    return ElevatedButton.icon(
+      onPressed: () async {
+        final Uri launchUri = Uri(scheme: 'tel', path: number);
+        if (await canLaunchUrl(launchUri)) await launchUrl(launchUri);
+      },
+      icon: Icon(icon, color: Colors.white),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red.shade400,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        minimumSize: const Size(double.infinity, 50),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 0,
+      ),
+    );
+  }
+
+  Widget _buildSentimentDashboard() {
     final score = widget.diary.analysisResult?.sentimentScore ?? 5;
     final color = _getSentimentColor();
     final emoji = _getSentimentEmoji();
     final text = _getSentimentText();
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Text(
-                  emoji,
-                  style: const TextStyle(fontSize: 32),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        text,
-                        style: AppTextStyles.subtitle.copyWith(
-                          color: color,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '감정 지수: $score/10',
-                        style: AppTextStyles.bodySmall.copyWith(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            emoji,
+            style: const TextStyle(fontSize: 64),
+          ).animate().scale(
+            duration: 600.ms,
+            curve: Curves.elasticOut,
+            begin: const Offset(0.5, 0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            text,
+            style: AppTextStyles.subtitle.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
-            const SizedBox(height: 16),
-        
-            // 게이지 바
-            Container(
-              height: 12,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                color: Colors.grey.shade200,
-              ),
-              child: FractionallySizedBox(
-                widthFactor: score / 10,
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6),
-                    color: color,
-                  ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '오늘의 마음 온도: ${score * 10}°C',
+            style: AppTextStyles.bodySmall.copyWith(color: Colors.grey),
+          ),
+          const SizedBox(height: 24),
+          
+          // 게이지 바
+          Stack(
+            children: [
+              Container(
+                height: 16,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
-            ),
-          ],
-        ),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return Container(
+                    height: 16,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [color.withValues(alpha: 0.5), color],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        )
+                      ]
+                    ),
+                  ).animate().custom(
+                    duration: 1200.ms,
+                    curve: Curves.easeOutCubic,
+                    builder: (context, value, child) => SizedBox(
+                      width: constraints.maxWidth * (score / 10) * value,
+                      child: child,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildKeywords(List<String> keywords) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '오늘의 감정 키워드',
-              style: AppTextStyles.subtitle,
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: WrapAlignment.center,
+      children: keywords.map((keyword) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              )
+            ],
+          ),
+          child: Text(
+            '#$keyword',
+            style: const TextStyle(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
             ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: keywords.map((keyword) {
-                return Chip(
-                  label: Text(keyword),
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  labelStyle: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
+          ),
+        ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.2);
+      }).toList(),
     );
   }
 
   Widget _buildEmpathyMessage(String message) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '마음의 응원',
-              style: AppTextStyles.subtitle,
+    return Stack(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary.withValues(alpha: 0.05),
+                Colors.white,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                ),
-              ),
-              child: Text(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            children: [
+              Text(
                 message,
                 style: AppTextStyles.body.copyWith(
-                  height: 1.5,
+                  height: 1.8,
+                  fontSize: 16,
+                  color: AppColors.textPrimary,
                 ),
+                textAlign: TextAlign.center,
               ),
-            )
-                .animate()
-                .fadeIn(delay: const Duration(milliseconds: 400))
-                .slideX(
-                  begin: -0.1,
-                  duration: const Duration(milliseconds: 800),
-                ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+        Positioned(
+          top: 0,
+          left: 20,
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.format_quote_rounded,
+              color: AppColors.primary,
+              size: 24,
+            ),
+          ),
+        ),
+      ],
+    ).animate().fadeIn(delay: 200.ms, duration: 600.ms).moveY(begin: 10);
   }
 
   Widget _buildActionItem(String actionItem) {
-    return Card(
-      child: Padding(
+    return GestureDetector(
+      onTap: () => _onActionCheck(!_isActionCompleted),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        decoration: BoxDecoration(
+          color: _isActionCompleted 
+              ? AppColors.success.withValues(alpha: 0.1) 
+              : Colors.amber.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _isActionCompleted 
+                ? AppColors.success 
+                : Colors.amber.withValues(alpha: 0.5),
+            width: 2,
+          ),
+        ),
+        child: Row(
           children: [
-            Text(
-              '추천하는 작은 행동',
-              style: AppTextStyles.subtitle,
-            ),
-            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                shape: BoxShape.circle,
+                color: _isActionCompleted ? AppColors.success : Colors.white,
                 border: Border.all(
-                  color: Colors.amber.withValues(alpha: 0.3),
+                  color: _isActionCompleted ? AppColors.success : Colors.amber,
+                  width: 2,
                 ),
               ),
-              child: Row(
+              padding: const EdgeInsets.all(4),
+              child: Icon(
+                Icons.check,
+                size: 16,
+                color: _isActionCompleted ? Colors.white : Colors.transparent,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Checkbox(
-                    value: _isActionCompleted,
-                    onChanged: _onActionCheck,
-                    activeColor: Colors.amber.shade600,
+                  Text(
+                    '오늘의 작은 미션',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: _isActionCompleted ? AppColors.success : Colors.amber.shade800,
+                    ),
                   ),
-                  Expanded(
-                    child: Text(
-                      actionItem,
-                      style: AppTextStyles.body.copyWith(
-                        decoration: _isActionCompleted
-                            ? TextDecoration.lineThrough
-                            : null,
-                        color: _isActionCompleted
-                            ? Colors.grey
-                            : null,
-                      ),
+                  const SizedBox(height: 4),
+                  Text(
+                    actionItem,
+                    style: AppTextStyles.body.copyWith(
+                      fontWeight: FontWeight.w500,
+                      decoration: _isActionCompleted ? TextDecoration.lineThrough : null,
+                      color: _isActionCompleted ? Colors.grey : AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -300,22 +421,26 @@ class _ResultCardState extends State<ResultCard> {
             ),
           ],
         ),
-      ),
+      ).animate(target: _isActionCompleted ? 1 : 0).shimmer(duration: 400.ms, color: Colors.white),
     );
   }
 
   Widget _buildNewDiaryButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: widget.onNewDiary,
-        icon: const Icon(Icons.edit),
-        label: const Text('새 일기 작성하기'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+    return ElevatedButton(
+      onPressed: widget.onNewDiary,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
+        elevation: 8,
+        shadowColor: AppColors.primary.withValues(alpha: 0.4),
+      ),
+      child: const Text(
+        '새로운 다이어리 쓰기',
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );
   }

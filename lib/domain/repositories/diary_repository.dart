@@ -8,6 +8,9 @@ abstract class DiaryRepository {
   /// 일기 분석 요청
   Future<Diary> analyzeDiary(String diaryId);
 
+  /// 일기 전체 업데이트 (상태 및 분석 결과 포함)
+  Future<void> updateDiary(Diary diary);
+
   /// 특정 일기 조회
   Future<Diary?> getDiaryById(String diaryId);
 
@@ -22,4 +25,7 @@ abstract class DiaryRepository {
 
   /// 일기 삭제
   Future<void> deleteDiary(String diaryId);
+
+  /// 모든 일기 삭제
+  Future<void> deleteAllDiaries();
 }

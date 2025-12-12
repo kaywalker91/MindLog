@@ -14,11 +14,15 @@ class AnalysisResponseDto {
   /// 추천 행동
   final String actionItem;
 
+  /// 응급 상황 여부
+  final bool isEmergency;
+
   const AnalysisResponseDto({
     required this.keywords,
     required this.sentimentScore,
     required this.empathyMessage,
     required this.actionItem,
+    this.isEmergency = false,
   });
 
   factory AnalysisResponseDto.fromJson(Map<String, dynamic> json) {
@@ -29,6 +33,7 @@ class AnalysisResponseDto {
       sentimentScore: json['sentiment_score'] as int,
       empathyMessage: json['empathy_message'] as String,
       actionItem: json['action_item'] as String,
+      isEmergency: json['is_emergency'] as bool? ?? false,
     );
   }
 
@@ -38,6 +43,7 @@ class AnalysisResponseDto {
       'sentiment_score': sentimentScore,
       'empathy_message': empathyMessage,
       'action_item': actionItem,
+      'is_emergency': isEmergency,
     };
   }
 
@@ -49,6 +55,7 @@ class AnalysisResponseDto {
       empathyMessage: empathyMessage,
       actionItem: actionItem,
       analyzedAt: DateTime.now(),
+      isEmergency: isEmergency,
     );
   }
 }

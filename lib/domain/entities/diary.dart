@@ -84,6 +84,9 @@ class AnalysisResult {
   /// 추천 행동 완료 여부
   final bool isActionCompleted;
 
+  /// 응급 상황 여부 (자해/자살 위험 등)
+  final bool isEmergency;
+
   AnalysisResult({
     this.keywords = const [],
     this.sentimentScore = 5,
@@ -91,6 +94,7 @@ class AnalysisResult {
     this.actionItem = '',
     DateTime? analyzedAt,
     this.isActionCompleted = false,
+    this.isEmergency = false,
   }) : analyzedAt = analyzedAt ?? DateTime.now();
 
   factory AnalysisResult.fromJson(Map<String, dynamic> json) => _$AnalysisResultFromJson(json);
@@ -103,6 +107,7 @@ class AnalysisResult {
     String? actionItem,
     DateTime? analyzedAt,
     bool? isActionCompleted,
+    bool? isEmergency,
   }) {
     return AnalysisResult(
       keywords: keywords ?? this.keywords,
@@ -111,6 +116,7 @@ class AnalysisResult {
       actionItem: actionItem ?? this.actionItem,
       analyzedAt: analyzedAt ?? this.analyzedAt,
       isActionCompleted: isActionCompleted ?? this.isActionCompleted,
+      isEmergency: isEmergency ?? this.isEmergency,
     );
   }
 }

@@ -74,6 +74,22 @@ class DiaryRepositoryImpl implements DiaryRepository {
   }
 
   @override
+  Future<void> updateDiary(Diary diary) async {
+    try {
+      // 상태와 분석 결과를 모두 업데이트
+      await _localDataSource.updateDiaryStatus(diary.id, diary.status);
+      if (diary.analysisResult != null) {
+        await _localDataSource.updateDiaryWithAnalysis(
+          diary.id,
+          diary.analysisResult!,
+        );
+      }
+    } catch (e) {
+      throw CacheFailure(message: '일기 업데이트 실패: $e');
+    }
+  }
+
+  @override
   Future<Diary?> getDiaryById(String diaryId) async {
     try {
       return await _localDataSource.getDiaryById(diaryId);
@@ -125,6 +141,15 @@ class DiaryRepositoryImpl implements DiaryRepository {
       await _localDataSource.deleteDiary(diaryId);
     } catch (e) {
       throw CacheFailure(message: '일기 삭제 실패: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteAllDiaries() async {
+    try {
+      await _localDataSource.deleteAllDiaries();
+    } catch (e) {
+      throw CacheFailure(message: '모든 일기 삭제 실패: $e');
     }
   }
 

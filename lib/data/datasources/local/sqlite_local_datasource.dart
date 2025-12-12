@@ -160,18 +160,28 @@ class SqliteLocalDataSource {
   Future<void> deleteDiary(String diaryId) async {
     try {
       final db = await _getDatabase();
-      
+
       final deleted = await db.delete(
         'diaries',
         where: 'id = ?',
         whereArgs: [diaryId],
       );
-      
+
       if (deleted == 0) {
         throw Exception('삭제할 일기를 찾을 수 없습니다: $diaryId');
       }
     } catch (e) {
       throw CacheException('일기 삭제 실패: $e');
+    }
+  }
+
+  /// 모든 일기 삭제
+  Future<void> deleteAllDiaries() async {
+    try {
+      final db = await _getDatabase();
+      await db.delete('diaries');
+    } catch (e) {
+      throw CacheException('모든 일기 삭제 실패: $e');
     }
   }
 
