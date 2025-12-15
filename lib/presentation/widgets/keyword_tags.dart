@@ -69,10 +69,12 @@ class KeywordTags extends StatelessWidget {
     return Transform.scale(
       scale: scale,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        // 최소 터치 영역 44x44dp 보장 (Material Design 접근성 가이드라인)
+        constraints: const BoxConstraints(minHeight: 44),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: tagColor.withValues(alpha: 0.1 + intensity * 0.1),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
             color: tagColor.withValues(alpha: 0.3),
           ),
@@ -80,12 +82,16 @@ class KeywordTags extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              keyword,
-              style: TextStyle(
-                color: AppColors.statsPrimaryDark,
-                fontSize: 14,
-                fontWeight: index == 0 ? FontWeight.bold : FontWeight.w500,
+            Flexible(
+              child: Text(
+                keyword,
+                style: TextStyle(
+                  color: AppColors.statsPrimaryDark,
+                  fontSize: 14,
+                  fontWeight: index == 0 ? FontWeight.bold : FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
             const SizedBox(width: 6),

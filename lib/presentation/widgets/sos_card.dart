@@ -42,14 +42,18 @@ class _SosCardState extends State<SosCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: AppColors.error.withValues(alpha: 0.05),
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    // 태블릿에서 카드가 과도하게 넓어지지 않도록 최대 너비 제한
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 600),
+        child: Card(
+          color: AppColors.error.withValues(alpha: 0.05),
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             // 헤더 아이콘과 타이틀
             Row(
               children: [
@@ -76,12 +80,16 @@ class _SosCardState extends State<SosCard> {
                           color: AppColors.error,
                           fontWeight: FontWeight.bold,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       Text(
                         '전문가의 도움을 받아보세요',
                         style: AppTextStyles.bodySmall.copyWith(
                           color: Colors.grey.shade600,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -219,6 +227,8 @@ class _SosCardState extends State<SosCard> {
               ],
             ),
           ],
+            ),
+          ),
         ),
       ),
     );
@@ -267,11 +277,15 @@ class _SosCardState extends State<SosCard> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        title,
-                        style: AppTextStyles.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: isEmergency ? AppColors.error : null,
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: AppTextStyles.body.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: isEmergency ? AppColors.error : null,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                       if (isEmergency) ...[

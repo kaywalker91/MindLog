@@ -235,9 +235,11 @@ class SettingsScreen extends ConsumerWidget {
             const Text('모든 일기 삭제'),
           ],
         ),
-        content: const Text(
-          '정말로 모든 일기를 삭제하시겠습니까?\n\n'
-          '이 작업은 되돌릴 수 없으며, 모든 감정 분석 기록도 함께 삭제됩니다.',
+        content: const SingleChildScrollView(
+          child: Text(
+            '정말로 모든 일기를 삭제하시겠습니까?\n\n'
+            '이 작업은 되돌릴 수 없으며, 모든 감정 분석 기록도 함께 삭제됩니다.',
+          ),
         ),
         actions: [
           TextButton(

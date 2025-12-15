@@ -30,8 +30,8 @@ class ActivityHeatmap extends StatelessWidget {
   }
 
   Widget _buildHeatmap(BuildContext context, DateTime startDate, DateTime endDate) {
-    // 요일 라벨 (월/수/금만 표시)
-    const weekdayLabels = ['월', '', '수', '', '금', '', ''];
+    // 요일 라벨 (월~일 모두 표시)
+    const weekdayLabels = ['월', '화', '수', '목', '금', '토', '일'];
 
     // 시작 날짜를 월요일로 맞춤
     final adjustedStart = startDate.subtract(
@@ -88,18 +88,32 @@ class ActivityHeatmap extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 요일 라벨
+            // 요일 라벨 (주말 색상 구분)
             Column(
               mainAxisSize: MainAxisSize.min,
-              children: weekdayLabels.map((day) {
+              children: weekdayLabels.asMap().entries.map((entry) {
+                final index = entry.key;
+                final day = entry.value;
+                // 토요일(5): 파란색, 일요일(6): 빨간색
+                Color textColor;
+                if (index == 5) {
+                  textColor = AppColors.statsPrimary;
+                } else if (index == 6) {
+                  textColor = AppColors.statsAccentCoral;
+                } else {
+                  textColor = AppColors.statsTextTertiary;
+                }
                 return SizedBox(
                   height: 14,
                   width: 20,
                   child: Text(
                     day,
                     style: TextStyle(
-                      color: AppColors.statsTextTertiary,
+                      color: textColor,
                       fontSize: 9,
+                      fontWeight: (index == 5 || index == 6)
+                          ? FontWeight.w600
+                          : FontWeight.normal,
                     ),
                   ),
                 );

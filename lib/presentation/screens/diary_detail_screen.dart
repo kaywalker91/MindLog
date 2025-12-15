@@ -20,7 +20,7 @@ class DiaryDetailScreen extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -75,7 +75,7 @@ class DiaryDetailScreen extends StatelessWidget {
               ] else if (diary.status == DiaryStatus.pending) ...[
                 const Center(
                   child: Padding(
-                    padding: EdgeInsets.all(20.0),
+                    padding: EdgeInsets.all(20),
                     child: Text('아직 분석되지 않은 일기입니다.'),
                   ),
                 ),

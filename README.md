@@ -56,7 +56,24 @@ flutter run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.2.0 (Current)
+### v1.3.0 (Current)
+*   **반응형 UI 전면 개선:** 320dp~600dp+ 다양한 화면 크기 대응
+    *   RenderFlex 오버플로우 이슈 해결 (통계 화면 헤더)
+    *   Row/Column 안전 패턴 적용 (Flexible, Expanded 활용)
+    *   터치 타겟 44dp 이상 보장 (Material Design 가이드라인 준수)
+    *   텍스트 오버플로우 방어적 처리 (maxLines, ellipsis)
+*   **활동 히트맵 개선:** 요일 표시 확장
+    *   월~일 전체 7일 표시 (기존: 월, 수, 금만 표시)
+    *   주말 색상 구분 (토요일: 파란색, 일요일: 코랄색)
+*   **태블릿 대응:** 대형 화면 레이아웃 최적화
+    *   SOS 카드 최대 너비 제한 (600dp)
+    *   다이얼로그 콘텐츠 스크롤 지원
+*   **UI 가이드라인 문서 추가:** `docs/ui/responsive_guidelines.md`
+    *   브레이크포인트 정의 (Compact/Medium/Expanded)
+    *   Row/Column 안전 패턴 가이드
+    *   테스트 체크리스트
+
+### v1.2.0
 *   **통계 화면 UI 전면 개편:** 하늘색 파스텔 톤 테마로 통일된 디자인
     *   GitHub 스타일 활동 히트맵 (5단계 색상)
     *   요약 + 스트릭 카드 레이아웃

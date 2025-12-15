@@ -267,23 +267,27 @@ class StatisticsScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 헤더: 제목 + 기간 필터
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // 헤더: 제목 + 기간 필터 (Column 분리로 overflow 방지)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 첫 번째 Row: 제목 + 스트릭 배지
               Row(
                 children: [
-                  Text(
-                    '일기 작성 기록',
-                    style: TextStyle(
-                      color: AppColors.statsTextPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Text(
+                      '일기 작성 기록',
+                      style: TextStyle(
+                        color: AppColors.statsTextPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  if (streak > 0) ...[
-                    const SizedBox(width: 8),
+                  if (streak > 0)
                     Container(
+                      margin: const EdgeInsets.only(left: 8),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 2,
@@ -301,10 +305,14 @@ class StatisticsScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  ],
                 ],
               ),
-              _buildPeriodChips(context, ref, selectedPeriod),
+              const SizedBox(height: 8),
+              // 두 번째 Row: 기간 필터 (우측 정렬)
+              Align(
+                alignment: Alignment.centerRight,
+                child: _buildPeriodChips(context, ref, selectedPeriod),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -329,14 +337,16 @@ class StatisticsScreen extends ConsumerWidget {
       children: StatisticsPeriod.values.map((period) {
         final isSelected = period == selectedPeriod;
         return Padding(
-          padding: const EdgeInsets.only(left: 4),
+          padding: const EdgeInsets.only(left: 2),
           child: GestureDetector(
             onTap: () {
               ref.read(selectedStatisticsPeriodProvider.notifier).state = period;
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              // 최소 터치 영역 44dp 보장
+              constraints: const BoxConstraints(minHeight: 36),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppColors.statsPrimary
