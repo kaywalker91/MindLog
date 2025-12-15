@@ -4,6 +4,18 @@
 
 MindLog는 사용자의 일기를 분석하여 감정 상태를 파악하고, 위로의 메시지와 맞춤형 행동 지침을 제공하는 스마트 다이어리 앱입니다.
 
+## 📱 스크린샷
+
+<p align="center">
+  <img src="assets/screenshots/mind_log_main.jpeg" width="250" alt="일기 목록 화면"/>
+  <img src="assets/screenshots/mind_log_stat.jpeg" width="250" alt="감정 통계 화면"/>
+  <img src="assets/screenshots/mind_log_setting.jpeg" width="250" alt="설정 화면"/>
+</p>
+
+| 일기 목록 | 감정 통계 | 설정 |
+|:---:|:---:|:---:|
+| 날짜별 일기 목록과 감정 키워드 태그 | 히트맵, 감정 추이 차트, 연속 작성 스트릭 | 앱 정보, 데이터 관리, 지원 |
+
 ## ✨ 주요 기능
 
 ### 📝 일기 작성 및 저장
