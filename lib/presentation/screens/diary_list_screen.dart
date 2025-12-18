@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
 import '../providers/diary_list_controller.dart';
 import 'diary_screen.dart';
@@ -87,7 +88,13 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
         return ref.read(diaryListControllerProvider.notifier).refresh();
       },
       child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          // FAB와 시스템 바를 고려한 하단 패딩
+          bottom: ResponsiveUtils.bottomSafeAreaPadding(context, extra: 80),
+        ),
         itemCount: diaries.length,
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {

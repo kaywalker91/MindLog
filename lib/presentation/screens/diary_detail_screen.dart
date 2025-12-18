@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../domain/entities/diary.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/responsive_utils.dart';
+import '../../domain/entities/diary.dart';
 import '../widgets/result_card.dart';
 
 /// 일기 상세 조회 화면
@@ -18,9 +19,10 @@ class DiaryDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('일기 상세'),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
+      body: SafeArea(
+        bottom: false, // 하단은 수동으로 처리
+        child: SingleChildScrollView(
+          padding: ResponsiveUtils.scrollPadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

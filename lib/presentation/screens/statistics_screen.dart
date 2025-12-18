@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/statistics.dart';
 import '../providers/providers.dart';
 import '../widgets/emotion_line_chart.dart';
@@ -35,7 +36,13 @@ class StatisticsScreen extends ConsumerWidget {
           color: AppColors.statsPrimary,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 12,
+              // 하단 시스템 바를 고려한 패딩
+              bottom: ResponsiveUtils.bottomSafeAreaPadding(context, extra: 32),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

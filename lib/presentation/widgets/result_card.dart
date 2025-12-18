@@ -439,7 +439,7 @@ class _ResultCardState extends State<ResultCard> {
         shadowColor: AppColors.primary.withValues(alpha: 0.4),
       ),
       child: const Text(
-        '새로운 다이어리 쓰기',
+        '목록으로 돌아가기',
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
     );

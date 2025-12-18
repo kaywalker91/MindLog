@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/utils/responsive_utils.dart';
 import '../providers/diary_list_controller.dart';
 import '../providers/providers.dart';
 
@@ -20,7 +21,13 @@ class SettingsScreen extends ConsumerWidget {
         title: const Text('설정'),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          // 하단 시스템 바를 고려한 패딩
+          bottom: ResponsiveUtils.bottomSafeAreaPadding(context, extra: 32),
+        ),
         children: [
           // 앱 정보 섹션
           _buildSectionHeader(context, '앱 정보'),

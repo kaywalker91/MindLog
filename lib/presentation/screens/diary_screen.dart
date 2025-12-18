@@ -4,6 +4,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/responsive_utils.dart';
 import '../../core/utils/validators.dart';
 import '../providers/diary_analysis_controller.dart';
 import '../widgets/result_card.dart';
@@ -25,6 +26,15 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
   bool _showNetworkOverlay = false;
   String _networkOverlayMessage = '';
   NetworkStatusType _networkStatusType = NetworkStatusType.loading;
+
+  @override
+  void initState() {
+    super.initState();
+    // 화면 진입 시 분석 상태 초기화 (새 일기 작성을 위해)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(diaryAnalysisControllerProvider.notifier).reset();
+    });
+  }
 
   @override
   void dispose() {
@@ -139,8 +149,9 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
         children: [
           // 메인 컨텐츠
           SafeArea(
+            bottom: false, // 하단 SafeArea는 수동으로 처리
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: ResponsiveUtils.scrollPadding(context),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
