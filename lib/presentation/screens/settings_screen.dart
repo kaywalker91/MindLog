@@ -5,6 +5,7 @@ import '../../core/constants/app_strings.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../providers/diary_list_controller.dart';
 import '../providers/providers.dart';
+import 'webview_screen.dart';
 
 /// 설정 화면
 class SettingsScreen extends ConsumerWidget {
@@ -50,15 +51,24 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 icon: Icons.description_outlined,
                 title: '개인정보 처리방침',
-                onTap: () => _launchUrl('https://example.com/privacy'),
+                onTap: () => _openWebView(
+                  context,
+                  url: 'https://sites.google.com/view/mindlogprivacypolicy/%ED%99%88',
+                  title: '개인정보 처리방침',
+                ),
               ),
-              _buildDivider(context),
-              _buildSettingItem(
-                context,
-                icon: Icons.gavel_outlined,
-                title: '이용약관',
-                onTap: () => _launchUrl('https://example.com/terms'),
-              ),
+              // TODO: 이용약관 URL 준비되면 주석 해제
+              // _buildDivider(context),
+              // _buildSettingItem(
+              //   context,
+              //   icon: Icons.gavel_outlined,
+              //   title: '이용약관',
+              //   onTap: () => _openWebView(
+              //     context,
+              //     url: 'https://example.com/terms',
+              //     title: '이용약관',
+              //   ),
+              // ),
             ],
           ),
           const SizedBox(height: 24),
@@ -95,7 +105,7 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 icon: Icons.email_outlined,
                 title: '문의하기',
-                onTap: () => _launchUrl('mailto:support@example.com'),
+                onTap: () => _launchExternalUrl('mailto:rikygak@gmail.com'),
               ),
             ],
           ),
@@ -221,7 +231,13 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _launchUrl(String url) async {
+  /// 웹뷰로 URL 열기 (앱 내에서 표시)
+  void _openWebView(BuildContext context, {required String url, required String title}) {
+    WebViewScreen.navigate(context, url: url, title: title);
+  }
+
+  /// 외부 앱으로 URL 열기 (이메일 등)
+  Future<void> _launchExternalUrl(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);

@@ -1,6 +1,6 @@
 /// 한글 텍스트 필터링 유틸리티
 ///
-/// AI 응답에서 한문(중국어), 일본어 등 비한글 문자를 필터링합니다.
+/// AI 응답에서 한문(중국어), 일본어, 영어 등 비한글 문자를 필터링합니다.
 /// Llama 3.3 70B 모델의 다국어 혼입 문제 해결을 위해 사용됩니다.
 class KoreanTextFilter {
   KoreanTextFilter._();
@@ -17,7 +17,15 @@ class KoreanTextFilter {
   /// 한글 범위: U+AC00 ~ U+D7AF (완성형), U+1100 ~ U+11FF (자모)
   static final RegExp _koreanPattern = RegExp(r'[\uAC00-\uD7AF\u1100-\u11FF]');
 
-  /// 허용되는 문자: 한글, 영문, 숫자, 공백, 기본 구두점
+  /// 영어 단어 패턴 (2글자 이상의 순수 영문 단어)
+  /// 한글 문장 사이에 섞인 영어 단어를 감지
+  static final RegExp _englishWordPattern = RegExp(r'\b[a-zA-Z]{2,}\b');
+
+  /// 허용되는 문자: 한글, 숫자, 공백, 기본 구두점 (영문 제외)
+  static final RegExp _koreanOnlyAllowedPattern =
+      RegExp(r'[\uAC00-\uD7AF\u1100-\u11FF0-9\s.,!?()~\-"\u0027\u00B7:;]');
+
+  /// 허용되는 문자: 한글, 영문, 숫자, 공백, 기본 구두점 (레거시 호환용)
   static final RegExp _allowedPattern =
       RegExp(r'[\uAC00-\uD7AF\u1100-\u11FFa-zA-Z0-9\s.,!?()~\-"\u0027\u00B7:;]');
 
@@ -31,9 +39,14 @@ class KoreanTextFilter {
     return _hiraganaPattern.hasMatch(text) || _katakanaPattern.hasMatch(text);
   }
 
-  /// 텍스트에 비한글 외국어(한문, 일본어)가 포함되어 있는지 확인
+  /// 텍스트에 영어 단어가 포함되어 있는지 확인
+  static bool containsEnglishWord(String text) {
+    return _englishWordPattern.hasMatch(text);
+  }
+
+  /// 텍스트에 비한글 외국어(한문, 일본어, 영어)가 포함되어 있는지 확인
   static bool containsForeignLanguage(String text) {
-    return containsChinese(text) || containsJapanese(text);
+    return containsChinese(text) || containsJapanese(text) || containsEnglishWord(text);
   }
 
   /// 텍스트에 한글이 포함되어 있는지 확인
@@ -41,17 +54,29 @@ class KoreanTextFilter {
     return _koreanPattern.hasMatch(text);
   }
 
-  /// 텍스트에서 한문/일본어 문자를 제거하고 한글만 남김
+  /// 텍스트에서 영어 단어를 제거
+  static String removeEnglishWords(String text) {
+    return text.replaceAll(_englishWordPattern, '').replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  /// 텍스트에서 한문/일본어/영어 문자를 제거하고 한글만 남김
   ///
   /// [text] 필터링할 텍스트
-  /// [preserveEnglish] true면 영문/숫자도 보존 (기본값: true)
-  static String filterToKorean(String text, {bool preserveEnglish = true}) {
+  /// [preserveEnglish] true면 영문/숫자도 보존 (기본값: false로 변경)
+  static String filterToKorean(String text, {bool preserveEnglish = false}) {
     if (text.isEmpty) return text;
 
+    // 먼저 영어 단어 제거
+    String processed = text;
+    if (!preserveEnglish) {
+      processed = removeEnglishWords(processed);
+    }
+
     final buffer = StringBuffer();
-    for (final char in text.runes) {
+    final pattern = preserveEnglish ? _allowedPattern : _koreanOnlyAllowedPattern;
+    for (final char in processed.runes) {
       final charStr = String.fromCharCode(char);
-      if (_allowedPattern.hasMatch(charStr)) {
+      if (pattern.hasMatch(charStr)) {
         buffer.write(charStr);
       }
     }

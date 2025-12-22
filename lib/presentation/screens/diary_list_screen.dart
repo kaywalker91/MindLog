@@ -114,20 +114,20 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
     
     if (diary.status == DiaryStatus.analyzed && diary.analysisResult != null) {
       final score = diary.analysisResult!.sentimentScore;
-      if (score <= 3) {
-        emoji = '😢';
+      if (score <= 2) {
+        emoji = '😭';
         color = Colors.red.withValues(alpha: 0.1);
-      } else if (score <= 5) {
-        emoji = '😔';
+      } else if (score <= 4) {
+        emoji = '😢';
         color = Colors.orange.withValues(alpha: 0.1);
-      } else if (score <= 7) {
-        emoji = '😐';
+      } else if (score <= 6) {
+        emoji = '🙂';
         color = Colors.yellow.withValues(alpha: 0.1);
       } else if (score <= 8) {
-        emoji = '🙂';
+        emoji = '😊';
         color = Colors.green.withValues(alpha: 0.1);
       } else {
-        emoji = '😊';
+        emoji = '🥰';
         color = Colors.blue.withValues(alpha: 0.1);
       }
     }

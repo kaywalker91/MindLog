@@ -499,10 +499,10 @@ class StatisticsScreen extends ConsumerWidget {
   }
 
   String _getEmojiForScore(double score) {
-    if (score <= 2) return '😢';
-    if (score <= 4) return '😔';
-    if (score <= 6) return '😐';
-    if (score <= 8) return '🙂';
-    return '😊';
+    if (score <= 2) return '😭';
+    if (score <= 4) return '😢';
+    if (score <= 6) return '🙂';
+    if (score <= 8) return '😊';
+    return '🥰';
   }
 }
