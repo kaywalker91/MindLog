@@ -5,6 +5,12 @@ import '../../core/theme/app_colors.dart';
 /// 활동 히트맵 위젯 (GitHub 스타일 캘린더)
 /// 하늘색 단일 색조 5단계로 표현
 class ActivityHeatmap extends StatelessWidget {
+  static const double _cellSize = 16;
+  static const double _cellMargin = 2;
+  static const double _cellRadius = 4;
+  static const double _weekdayLabelWidth = 24;
+  static const double _weekdayLabelHeight = 20;
+
   final Map<DateTime, double> activityMap;
   final int weeksToShow;
 
@@ -60,7 +66,7 @@ class ActivityHeatmap extends StatelessWidget {
         // 월 라벨
         Row(
           children: [
-            const SizedBox(width: 24), // 요일 라벨 공간
+            const SizedBox(width: _weekdayLabelWidth), // 요일 라벨 공간
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -68,7 +74,7 @@ class ActivityHeatmap extends StatelessWidget {
                 child: Row(
                   children: monthLabels.map((label) {
                     return SizedBox(
-                      width: label.weekSpan * 16.0, // 셀 너비 * 주 수
+                      width: label.weekSpan * (_cellSize + _cellMargin * 2),
                       child: Text(
                         label.month,
                         style: TextStyle(
@@ -104,13 +110,13 @@ class ActivityHeatmap extends StatelessWidget {
                   textColor = AppColors.statsTextTertiary;
                 }
                 return SizedBox(
-                  height: 14,
-                  width: 20,
+                  height: _weekdayLabelHeight,
+                  width: _weekdayLabelWidth,
                   child: Text(
                     day,
                     style: TextStyle(
                       color: textColor,
-                      fontSize: 9,
+                      fontSize: 10,
                       fontWeight: (index == 5 || index == 6)
                           ? FontWeight.w600
                           : FontWeight.normal,
@@ -149,12 +155,16 @@ class ActivityHeatmap extends StatelessWidget {
     // 미래 날짜는 비활성화
     if (date.isAfter(endDate)) {
       return Container(
-        width: 12,
-        height: 12,
-        margin: const EdgeInsets.all(1),
+        width: _cellSize,
+        height: _cellSize,
+        margin: const EdgeInsets.all(_cellMargin),
         decoration: BoxDecoration(
-          color: AppColors.heatmapLevel0.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(2),
+          color: AppColors.heatmapLevel0.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(_cellRadius),
+          border: Border.all(
+            color: AppColors.statsCardBorder.withValues(alpha: 0.6),
+            width: 0.6,
+          ),
         ),
       );
     }
@@ -174,6 +184,8 @@ class ActivityHeatmap extends StatelessWidget {
     }
 
     final color = AppColors.getHeatmapColor(score);
+    final highlight = Color.lerp(color, Colors.white, 0.35) ?? color;
+    final hasRecord = score != null;
 
     return Tooltip(
       message: _getTooltipMessage(date, score),
@@ -186,17 +198,33 @@ class ActivityHeatmap extends StatelessWidget {
         fontSize: 12,
       ),
       child: Container(
-        width: 12,
-        height: 12,
-        margin: const EdgeInsets.all(1),
+        width: _cellSize,
+        height: _cellSize,
+        margin: const EdgeInsets.all(_cellMargin),
         decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(2),
-          border: score == null
-              ? Border.all(
-                  color: AppColors.statsCardBorder,
-                  width: 0.5,
+          color: hasRecord ? null : color.withValues(alpha: 0.45),
+          gradient: hasRecord
+              ? LinearGradient(
+                  colors: [highlight, color],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 )
+              : null,
+          borderRadius: BorderRadius.circular(_cellRadius),
+          border: Border.all(
+            color: hasRecord
+                ? color.withValues(alpha: 0.35)
+                : AppColors.statsCardBorder,
+            width: 0.6,
+          ),
+          boxShadow: hasRecord
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.35),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
               : null,
         ),
       ),
@@ -208,32 +236,34 @@ class ActivityHeatmap extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Text(
-          '낮음',
+          '기분 온도',
           style: TextStyle(
             color: AppColors.statsTextTertiary,
             fontSize: 10,
           ),
         ),
+        const SizedBox(width: 6),
+        const Text(
+          '🙂',
+          style: TextStyle(fontSize: 11),
+        ),
         const SizedBox(width: 4),
         // 5단계 색상 범례
         ...AppColors.heatmapLegendColors.map((color) {
           return Container(
-            width: 10,
-            height: 10,
+            width: 12,
+            height: 12,
             margin: const EdgeInsets.symmetric(horizontal: 1),
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(3),
             ),
           );
         }),
         const SizedBox(width: 4),
-        Text(
-          '높음',
-          style: TextStyle(
-            color: AppColors.statsTextTertiary,
-            fontSize: 10,
-          ),
+        const Text(
+          '😊',
+          style: TextStyle(fontSize: 11),
         ),
       ],
     );
@@ -242,9 +272,9 @@ class ActivityHeatmap extends StatelessWidget {
   String _getTooltipMessage(DateTime date, double? score) {
     final dateStr = DateFormat('yyyy년 M월 d일').format(date);
     if (score == null) {
-      return '$dateStr\n기록 없음';
+      return '$dateStr\n쉬어간 날이에요';
     }
-    return '$dateStr\n평균 ${score.toStringAsFixed(1)}점';
+    return '$dateStr\n기록한 날이에요 · 평균 ${score.toStringAsFixed(1)}점';
   }
 
   /// 월 라벨 계산

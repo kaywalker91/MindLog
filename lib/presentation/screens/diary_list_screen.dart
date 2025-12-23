@@ -48,7 +48,8 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('오류 발생: $error')),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: _buildWriteFab(
+        context,
         onPressed: () async {
           // 일기 작성 화면으로 이동
           await Navigator.of(context).push(
@@ -57,10 +58,62 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
           // 작성 후 돌아오면 목록 새로고침
           ref.read(diaryListControllerProvider.notifier).refresh();
         },
-        label: const Text('오늘 기록하기'),
-        icon: const Icon(Icons.edit),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildWriteFab(
+    BuildContext context, {
+    required VoidCallback onPressed,
+  }) {
+    const borderRadius = BorderRadius.all(Radius.circular(28));
+
+    return Tooltip(
+      message: '오늘 기록하기',
+      child: Semantics(
+        button: true,
+        label: '오늘 기록하기',
+        child: Material(
+          color: Colors.transparent,
+          elevation: 6,
+          shadowColor: AppColors.statsPrimary.withValues(alpha: 0.35),
+          borderRadius: borderRadius,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: borderRadius,
+            splashColor: Colors.white.withValues(alpha: 0.2),
+            highlightColor: Colors.white.withValues(alpha: 0.1),
+            child: Ink(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.statsPrimary,
+                    AppColors.statsSecondary,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: borderRadius,
+                border: Border.all(
+                  color: AppColors.statsPrimaryDark.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.edit_note_rounded, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text(
+                    '오늘 기록하기',
+                    style: AppTextStyles.button.copyWith(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

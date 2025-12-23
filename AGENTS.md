@@ -1,0 +1,35 @@
+# Repository Guidelines
+
+## Project Structure & Module Organization
+- `lib/` contains the Flutter app code, organized with Clean Architecture: `core/`, `data/`, `domain/`, `presentation/` (providers, screens, widgets).
+- `test/` holds unit and widget tests, generally mirroring `lib/` (e.g., `test/domain/`, `test/widget_test.dart`).
+- `assets/` stores images and static files; update `pubspec.yaml` when adding new assets.
+- Platform targets live in `android/`, `ios/`, `web/`, `macos/`, `linux/`, `windows/`.
+- `docs/` includes design and workflow references.
+
+## Build, Test, and Development Commands
+- `flutter pub get` installs dependencies.
+- `flutter run` launches the app on a device or emulator.
+- `flutter test` runs all tests under `test/`.
+- `flutter analyze` runs static analysis using `analysis_options.yaml`.
+- `dart format .` formats Dart source.
+- `flutter build apk` (or `flutter build ios`) creates a release build.
+
+## Coding Style & Naming Conventions
+- Use Dart defaults: 2-space indentation, trailing commas for multiline widgets, and `const` where possible.
+- File names use `snake_case.dart`; types use `PascalCase`; variables and functions use `lowerCamelCase`.
+- Follow `flutter_lints` (see `analysis_options.yaml`) and keep widgets small and reusable.
+
+## Testing Guidelines
+- Use the standard Flutter test framework (`flutter_test`).
+- Name tests `*_test.dart` and place them under `test/` to mirror the feature area in `lib/`.
+- Add unit tests for `domain/` and widget tests for `presentation/` when behavior changes.
+
+## Commit & Pull Request Guidelines
+- Match the existing Conventional Commit style: `feat: ...`, `docs: ...`, `ci: ...`, etc.
+- PRs should include a brief summary, linked issue (if any), and screenshots for UI changes.
+- Note the tests you ran (e.g., `flutter test`, `flutter analyze`).
+
+## Configuration & Secrets
+- Copy `.env.example` to `.env` and set API keys (Groq or Gemini).
+- Never commit `.env` or secrets to git.

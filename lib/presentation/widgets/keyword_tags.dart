@@ -22,101 +22,305 @@ class KeywordTags extends StatelessWidget {
     // 빈도순 정렬 및 상위 N개 선택
     final sortedKeywords = keywordFrequency.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    final topKeywords = sortedKeywords.take(maxTags).toList();
+    final takeCount = maxTags < 1 ? 1 : maxTags;
+    final topKeywords = sortedKeywords.take(takeCount).toList();
+    final totalCount =
+        keywordFrequency.values.fold<int>(0, (sum, value) => sum + value);
+    final maxCount = topKeywords.isEmpty ? 0 : topKeywords.first.value;
+    final topEntry = topKeywords.first;
+    final remainingKeywords = topKeywords.skip(1).toList();
 
-    // 최대 빈도 계산 (태그 크기 결정용)
-    final maxFrequency = topKeywords.isEmpty ? 1 : topKeywords.first.value;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSummaryRow(totalCount, keywordFrequency.length),
+        const SizedBox(height: 12),
+        _buildTopEmotionCard(topEntry, totalCount)
+            .animate()
+            .fadeIn(duration: 250.ms)
+            .scale(begin: const Offset(0.98, 0.98), duration: 250.ms),
+        if (remainingKeywords.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          Text(
+            '다음으로 많이 느낀 감정',
+            style: TextStyle(
+              color: AppColors.statsTextSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Column(
+            children: remainingKeywords.asMap().entries.map((entry) {
+              final index = entry.key;
+              final keyword = entry.value.key;
+              final frequency = entry.value.value;
+              final rank = index + 2;
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: topKeywords.asMap().entries.map((entry) {
-        final index = entry.key;
-        final keyword = entry.value.key;
-        final frequency = entry.value.value;
-
-        // 빈도에 따른 스케일 (1.0 ~ 1.1, 1위만 약간 크게)
-        final scale = index == 0 ? 1.1 : 1.0;
-
-        return _buildTag(
-          context,
-          keyword,
-          frequency,
-          scale,
-          index,
-          maxFrequency,
-        );
-      }).toList(),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _buildRankRow(
+                  keyword: keyword,
+                  frequency: frequency,
+                  rank: rank,
+                  totalCount: totalCount,
+                  maxCount: maxCount,
+                )
+                    .animate(delay: Duration(milliseconds: 80 * (index + 1)))
+                    .fadeIn(duration: 250.ms)
+                    .slideY(begin: 0.1, end: 0),
+              );
+            }).toList(),
+          ),
+        ],
+      ],
     );
   }
 
-  Widget _buildTag(
-    BuildContext context,
-    String keyword,
-    int frequency,
-    double scale,
-    int index,
-    int maxFrequency,
+  Widget _buildSummaryRow(int totalCount, int uniqueCount) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        _buildSummaryChip(
+          icon: Icons.auto_awesome,
+          label: '키워드 등장 $totalCount회',
+          color: AppColors.statsPrimaryDark,
+        ),
+        _buildSummaryChip(
+          icon: Icons.category_outlined,
+          label: '키워드 종류 $uniqueCount개',
+          color: AppColors.statsAccentMint,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSummaryChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: AppColors.statsTextSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopEmotionCard(
+    MapEntry<String, int> topEntry,
+    int totalCount,
   ) {
-    // 빈도에 따른 색상 강도 결정 (1위가 가장 진함)
-    final intensity = frequency / maxFrequency;
-    final baseColor = AppColors.statsPrimary;
-    final darkColor = AppColors.statsPrimaryDark;
+    final percent = _getPercent(topEntry.value, totalCount);
 
-    // 1위는 더 진한 색상, 나머지는 기본 하늘색
-    final tagColor = index == 0 ? darkColor : baseColor;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.statsPrimary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.statsCardBorder),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.statsPrimary.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.star_rounded,
+              color: AppColors.statsPrimaryDark,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '대표 감정',
+                  style: TextStyle(
+                    color: AppColors.statsTextTertiary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  topEntry.key,
+                  style: TextStyle(
+                    color: AppColors.statsTextPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '키워드 등장 ${topEntry.value}회',
+                  style: TextStyle(
+                    color: AppColors.statsTextSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.statsPrimaryDark,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '$percent%',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    return Transform.scale(
-      scale: scale,
-      child: Container(
-        // 최소 터치 영역 44x44dp 보장 (Material Design 접근성 가이드라인)
-        constraints: const BoxConstraints(minHeight: 44),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: tagColor.withValues(alpha: 0.1 + intensity * 0.1),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: tagColor.withValues(alpha: 0.3),
+  Widget _buildRankRow({
+    required String keyword,
+    required int frequency,
+    required int rank,
+    required int totalCount,
+    required int maxCount,
+  }) {
+    final percent = _getPercent(frequency, totalCount);
+    final fillFactor = maxCount == 0 ? 0 : frequency / maxCount;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.statsCardBackground,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.statsCardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _buildRankBadge(rank),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  keyword,
+                  style: TextStyle(
+                    color: AppColors.statsTextPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                '$frequency회',
+                style: TextStyle(
+                  color: AppColors.statsTextSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: Stack(
+              children: [
+                Container(
+                  height: 6,
+                  color: AppColors.statsPrimary.withValues(alpha: 0.12),
+                ),
+                FractionallySizedBox(
+                  alignment: Alignment.centerLeft,
+                  widthFactor: fillFactor.clamp(0, 1).toDouble(),
+                  child: Container(
+                    height: 6,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.statsPrimary.withValues(alpha: 0.6),
+                          AppColors.statsPrimaryDark,
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '키워드 등장 비율 $percent%',
+            style: TextStyle(
+              color: AppColors.statsTextTertiary,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRankBadge(int rank) {
+    return Container(
+      width: 26,
+      height: 26,
+      decoration: BoxDecoration(
+        color: AppColors.statsPrimary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Text(
+          '#$rank',
+          style: TextStyle(
+            color: AppColors.statsPrimaryDark,
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
           ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Text(
-                keyword,
-                style: TextStyle(
-                  color: AppColors.statsPrimaryDark,
-                  fontSize: 14,
-                  fontWeight: index == 0 ? FontWeight.bold : FontWeight.w500,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: tagColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                '$frequency회',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
-    )
-        .animate(delay: Duration(milliseconds: index * 50))
-        .fadeIn(duration: 300.ms)
-        .scale(begin: const Offset(0.9, 0.9), duration: 300.ms);
+    );
+  }
+
+  int _getPercent(int count, int total) {
+    if (total == 0) return 0;
+    return ((count / total) * 100).round();
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -132,7 +336,7 @@ class KeywordTags extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              '아직 키워드가 없어요',
+              '감정 패턴이 아직 없어요',
               style: TextStyle(
                 color: AppColors.statsTextSecondary,
                 fontSize: 14,
@@ -140,7 +344,7 @@ class KeywordTags extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '일기를 작성하면 감정 키워드가 추출돼요',
+              '분석된 일기가 쌓이면 대표 감정과 비율을 알려드려요',
               style: TextStyle(
                 color: AppColors.statsTextTertiary,
                 fontSize: 12,

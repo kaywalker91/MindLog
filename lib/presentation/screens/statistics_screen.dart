@@ -59,7 +59,7 @@ class StatisticsScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
 
                 // [D] 자주 느낀 감정
-                _buildKeywordCard(context, statistics),
+                _buildKeywordCard(context, statistics, selectedPeriod),
                 const SizedBox(height: 32),
               ],
             ),
@@ -263,71 +263,92 @@ class StatisticsScreen extends ConsumerWidget {
     StatisticsPeriod selectedPeriod,
   ) {
     final streak = _calculateStreak(statistics.activityMap);
+    final recordedDays = statistics.activityMap.length;
+    final totalDays = _getPeriodDayCount(statistics, selectedPeriod);
+    final completionRate =
+        totalDays > 0 ? ((recordedDays / totalDays) * 100).round() : 0;
+    final hasRecords = recordedDays > 0;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.statsCardBackground,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.statsCardBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.statsPrimary.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 헤더: 제목 + 기간 필터 (Column 분리로 overflow 방지)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 첫 번째 Row: 제목 + 스트릭 배지
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '일기 작성 기록',
-                      style: TextStyle(
-                        color: AppColors.statsTextPrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+          Text(
+            '마음 달력',
+            style: TextStyle(
+              color: AppColors.statsTextPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            hasRecords
+                ? '✨ ${_getPeriodLabel(selectedPeriod)} 동안 $recordedDays일 기록했어요 · '
+                    '${statistics.totalDiaries}편의 일기'
+                : '아직 기록이 없어요. 오늘의 마음을 남겨볼까요?',
+            style: TextStyle(
+              color: AppColors.statsTextSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (hasRecords) ...[
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                _buildProudBadge(
+                  label: '기록 $recordedDays일',
+                  emoji: '🗓️',
+                  backgroundColor:
+                      AppColors.statsPrimary.withValues(alpha: 0.15),
+                  textColor: AppColors.statsPrimaryDark,
+                ),
+                if (totalDays > 0)
+                  _buildProudBadge(
+                    label: '기록률 $completionRate%',
+                    emoji: '✨',
+                    backgroundColor:
+                        AppColors.statsAccentMint.withValues(alpha: 0.2),
+                    textColor: AppColors.statsPrimaryDark,
                   ),
-                  if (streak > 0)
-                    Container(
-                      margin: const EdgeInsets.only(left: 8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.statsAccentCoral.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '🔥 $streak일 연속',
-                        style: TextStyle(
-                          color: AppColors.statsAccentCoral,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // 두 번째 Row: 기간 필터 (우측 정렬)
-              Align(
-                alignment: Alignment.centerRight,
-                child: _buildPeriodChips(context, ref, selectedPeriod),
-              ),
-            ],
+                if (streak > 0)
+                  _buildProudBadge(
+                    label: '$streak일 연속',
+                    emoji: '🔥',
+                    backgroundColor:
+                        AppColors.statsAccentCoral.withValues(alpha: 0.15),
+                    textColor: AppColors.statsAccentCoral,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+          ],
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _buildPeriodChips(context, ref, selectedPeriod),
           ),
           const SizedBox(height: 16),
 
           // 히트맵
           ActivityHeatmap(
             activityMap: statistics.activityMap,
-            weeksToShow: _getWeeksForPeriod(selectedPeriod),
+            weeksToShow: _getWeeksForPeriod(statistics, selectedPeriod),
           ),
         ],
       ),
@@ -352,21 +373,31 @@ class StatisticsScreen extends ConsumerWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               // 최소 터치 영역 44dp 보장
-              constraints: const BoxConstraints(minHeight: 36),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              constraints: const BoxConstraints(minHeight: 38),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppColors.statsPrimary
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
+                    : AppColors.statsPrimary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected
-                      ? AppColors.statsPrimary
+                      ? AppColors.statsPrimaryDark
                       : AppColors.statsCardBorder,
                 ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color:
+                              AppColors.statsPrimary.withValues(alpha: 0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
               child: Text(
-                _getPeriodShortName(period),
+                period.displayName,
                 style: TextStyle(
                   color: isSelected
                       ? Colors.white
@@ -379,6 +410,41 @@ class StatisticsScreen extends ConsumerWidget {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildProudBadge({
+    required String label,
+    required Color backgroundColor,
+    required Color textColor,
+    String? emoji,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (emoji != null) ...[
+            Text(
+              emoji,
+              style: const TextStyle(fontSize: 12),
+            ),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -425,7 +491,11 @@ class StatisticsScreen extends ConsumerWidget {
   }
 
   /// [D] 키워드 카드
-  Widget _buildKeywordCard(BuildContext context, EmotionStatistics statistics) {
+  Widget _buildKeywordCard(
+    BuildContext context,
+    EmotionStatistics statistics,
+    StatisticsPeriod selectedPeriod,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -442,6 +512,14 @@ class StatisticsScreen extends ConsumerWidget {
               color: AppColors.statsTextPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${selectedPeriod.displayName} 감정 패턴 요약',
+            style: TextStyle(
+              color: AppColors.statsTextTertiary,
+              fontSize: 12,
             ),
           ),
           const SizedBox(height: 12),
@@ -476,26 +554,63 @@ class StatisticsScreen extends ConsumerWidget {
     return streak;
   }
 
-  int _getWeeksForPeriod(StatisticsPeriod period) {
-    switch (period) {
-      case StatisticsPeriod.week:
-        return 4;
-      case StatisticsPeriod.month:
-        return 8;
-      case StatisticsPeriod.all:
-        return 12;
+  int _getWeeksForPeriod(
+    EmotionStatistics statistics,
+    StatisticsPeriod period,
+  ) {
+    final today = DateTime.now();
+    DateTime? startDate = statistics.periodStart;
+
+    if (startDate == null && statistics.activityMap.isNotEmpty) {
+      final earliest = _getEarliestActivityDate(statistics.activityMap);
+      startDate = DateTime(earliest.year, earliest.month, earliest.day);
     }
+
+    if (startDate == null) {
+      return 4;
+    }
+
+    final normalizedToday = DateTime(today.year, today.month, today.day);
+    final normalizedStart =
+        DateTime(startDate.year, startDate.month, startDate.day);
+    final days = normalizedToday.difference(normalizedStart).inDays + 1;
+
+    if (days <= 0) {
+      return 1;
+    }
+
+    return (days / 7).ceil();
   }
 
-  String _getPeriodShortName(StatisticsPeriod period) {
-    switch (period) {
-      case StatisticsPeriod.week:
-        return '7일';
-      case StatisticsPeriod.month:
-        return '30일';
-      case StatisticsPeriod.all:
-        return '전체';
+  int _getPeriodDayCount(
+    EmotionStatistics statistics,
+    StatisticsPeriod period,
+  ) {
+    if (period.days != null) {
+      return period.days!;
     }
+
+    if (statistics.activityMap.isEmpty) {
+      return 0;
+    }
+
+    final today = DateTime.now();
+    final earliest = _getEarliestActivityDate(statistics.activityMap);
+    final normalizedToday = DateTime(today.year, today.month, today.day);
+    final normalizedStart =
+        DateTime(earliest.year, earliest.month, earliest.day);
+    return normalizedToday.difference(normalizedStart).inDays + 1;
+  }
+
+  DateTime _getEarliestActivityDate(Map<DateTime, double> activityMap) {
+    return activityMap.keys.reduce((a, b) => a.isBefore(b) ? a : b);
+  }
+
+  String _getPeriodLabel(StatisticsPeriod period) {
+    if (period == StatisticsPeriod.all) {
+      return '전체 기간';
+    }
+    return period.displayName;
   }
 
   String _getEmojiForScore(double score) {

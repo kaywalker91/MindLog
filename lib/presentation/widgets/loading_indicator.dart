@@ -6,14 +6,26 @@ import '../../core/theme/app_text_styles.dart';
 /// 로딩 인디케이터 위젯
 class LoadingIndicator extends StatelessWidget {
   final String message;
+  final String subMessage;
+  final Color? accentColor;
+  final Color? cardColor;
+  final Color? subTextColor;
 
   const LoadingIndicator({
     super.key,
     this.message = '처리 중...',
+    this.subMessage = 'AI가 당신의 마음을 분석하고 있어요...',
+    this.accentColor,
+    this.cardColor,
+    this.subTextColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final accent = accentColor ?? AppColors.primary;
+    final surface = cardColor ?? Colors.white;
+    final subText = subTextColor ?? Colors.grey.shade600;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -30,7 +42,7 @@ class LoadingIndicator extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
+                    color: accent.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(40),
                   ),
                 ),
@@ -38,7 +50,7 @@ class LoadingIndicator extends StatelessWidget {
                 Icon(
                   Icons.psychology,
                   size: 40,
-                  color: AppColors.primary,
+                  color: accent,
                 )
                     .animate(
                       onPlay: (controller) => WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -70,7 +82,7 @@ class LoadingIndicator extends StatelessWidget {
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
+                            color: accent,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         )
@@ -106,7 +118,7 @@ class LoadingIndicator extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: surface,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -121,7 +133,7 @@ class LoadingIndicator extends StatelessWidget {
                 Text(
                   message,
                   style: AppTextStyles.subtitle.copyWith(
-                    color: AppColors.primary,
+                    color: accent,
                     fontWeight: FontWeight.w600,
                   ),
                   textAlign: TextAlign.center,
@@ -130,9 +142,9 @@ class LoadingIndicator extends StatelessWidget {
                 
                 // 타이핑 효과 서브메시지
                 Text(
-                  'AI가 당신의 마음을 분석하고 있어요...',
+                  subMessage,
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: Colors.grey.shade600,
+                    color: subText,
                   ),
                 )
                     .animate(delay: const Duration(milliseconds: 100))
@@ -152,7 +164,7 @@ class LoadingIndicator extends StatelessWidget {
                 width: 8,
                 height: 8,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  color: accent,
                   borderRadius: BorderRadius.circular(4),
                 ),
               )
