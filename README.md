@@ -7,14 +7,22 @@ MindLog는 사용자의 일기를 분석하여 감정 상태를 파악하고, �
 ## 📱 스크린샷
 
 <p align="center">
-  <img src="assets/screenshots/mind_log_main.jpeg" width="250" alt="일기 목록 화면"/>
-  <img src="assets/screenshots/mind_log_stat.jpeg" width="250" alt="감정 통계 화면"/>
-  <img src="assets/screenshots/mind_log_setting.jpeg" width="250" alt="설정 화면"/>
+  <img src="assets/screenshots/v2/mindlog_main.jpeg" width="250" alt="일기 목록 화면"/>
+  <img src="assets/screenshots/v2/mindlog_write.jpeg" width="250" alt="일기 작성 화면"/>
+  <img src="assets/screenshots/v2/mindlog_stat.jpeg" width="250" alt="감정 통계 화면"/>
+  <br/>
+  <img src="assets/screenshots/v2/mindlog_stat_2.jpeg" width="250" alt="감정 통계 상세 화면"/>
+  <img src="assets/screenshots/v2/mindlog_setting.jpeg" width="250" alt="설정 화면"/>
+  <img src="assets/screenshots/v2/mindlog_guide.jpeg" width="250" alt="사용 가이드 화면"/>
 </p>
 
-| 일기 목록 | 감정 통계 | 설정 |
+| 일기 목록 | 일기 작성 | 감정 통계 |
 |:---:|:---:|:---:|
-| 날짜별 일기 목록과 감정 키워드 태그 | 히트맵, 감정 추이 차트, 연속 작성 스트릭 | 앱 정보, 데이터 관리, 지원 |
+| 날짜별 일기 목록과 감정 키워드 태그 | 오늘의 마음을 기록하는 작성 화면 | 히트맵, 감정 추이 차트, 연속 작성 스트릭 |
+
+| 통계 상세 | 설정 | 사용 가이드 |
+|:---:|:---:|:---:|
+| 기간별 통계 요약과 인사이트 | 앱 정보, 데이터 관리, 지원 | 시작 안내 및 사용 흐름 안내 |
 
 ## ✨ 주요 기능
 
