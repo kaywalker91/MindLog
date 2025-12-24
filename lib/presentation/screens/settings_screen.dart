@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/services/update_service.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../providers/diary_list_controller.dart';
 import '../providers/providers.dart';
+import '../providers/app_info_provider.dart';
+import '../providers/update_provider.dart';
+import '../widgets/help_dialog.dart';
 import '../widgets/mindlog_app_bar.dart';
+import 'changelog_screen.dart';
 import 'webview_screen.dart';
 
 /// 설정 화면
@@ -16,6 +21,11 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final appInfoAsync = ref.watch(appInfoProvider);
+    final appInfo = appInfoAsync.asData?.value;
+    final versionLabel = appInfo == null
+        ? (appInfoAsync.hasError ? '버전 확인 실패' : '불러오는 중...')
+        : _formatVersionLabel(appInfo);
 
     return Scaffold(
       backgroundColor: colorScheme.surfaceContainerLowest,
@@ -40,12 +50,25 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 icon: Icons.info_outline,
                 title: '앱 버전',
-                trailing: Text(
-                  '1.0.0',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                trailing: _buildVersionTrailing(
+                  context,
+                  label: versionLabel,
+                  isReady: appInfo != null,
                 ),
+                onTap: appInfo == null
+                    ? null
+                    : () => ChangelogScreen.navigate(
+                          context,
+                          version: appInfo.version,
+                          buildNumber: appInfo.buildNumber,
+                        ),
+              ),
+              _buildDivider(context),
+              _buildSettingItem(
+                context,
+                icon: Icons.system_update,
+                title: '업데이트 확인',
+                onTap: () => _checkForUpdates(context, ref, appInfo),
               ),
               _buildDivider(context),
               _buildSettingItem(
@@ -222,6 +245,255 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  String _formatVersionLabel(AppVersionInfo info) {
+    final build = info.buildNumber.trim();
+    if (build.isEmpty) {
+      return 'v${info.version}';
+    }
+    return 'v${info.version} ($build)';
+  }
+
+  Widget _buildVersionTrailing(
+    BuildContext context, {
+    required String label,
+    required bool isReady,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    if (!isReady) {
+      return Text(
+        label,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Icon(
+          Icons.chevron_right,
+          color: colorScheme.outline,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _checkForUpdates(
+    BuildContext context,
+    WidgetRef ref,
+    AppVersionInfo? appInfo,
+  ) async {
+    if (appInfo == null) {
+      _showSnackBar(context, '버전 정보를 불러오는 중입니다.');
+      return;
+    }
+
+    final updateService = ref.read(updateServiceProvider);
+    _showUpdateProgressDialog(context);
+
+    late final UpdateCheckResult result;
+    try {
+      result = await updateService.checkForUpdate(
+        currentVersion: appInfo.version,
+      );
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        _showSnackBar(context, '업데이트 정보를 가져오지 못했습니다.');
+      }
+      return;
+    }
+
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+    await _showUpdateResultDialog(context, result);
+  }
+
+  void _showUpdateProgressDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(height: 12),
+            Text('업데이트 확인 중...'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showUpdateResultDialog(
+    BuildContext context,
+    UpdateCheckResult result,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final canUpdate = result.storeUrl != null && result.storeUrl!.isNotEmpty;
+
+    String title;
+    String message;
+    if (result.availability == UpdateAvailability.upToDate) {
+      title = '최신 버전입니다';
+      message = '현재 버전은 v${result.currentVersion}입니다.';
+    } else if (result.isRequired) {
+      title = '업데이트가 필요합니다';
+      message = '현재 버전이 지원 범위를 벗어났습니다. 업데이트 후 이용해주세요.';
+    } else {
+      title = '새 버전이 있어요';
+      message = 'v${result.latestVersion} 업데이트를 확인해주세요.';
+    }
+
+    return showDialog(
+      context: context,
+      barrierDismissible: !(result.isRequired && canUpdate),
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                message,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              if (result.availability != UpdateAvailability.upToDate) ...[
+                const SizedBox(height: 12),
+                _buildUpdateNotes(context, result.notes),
+              ],
+            ],
+          ),
+        ),
+        actions: _buildUpdateActions(context, result, canUpdate),
+      ),
+    );
+  }
+
+  List<Widget> _buildUpdateActions(
+    BuildContext context,
+    UpdateCheckResult result,
+    bool canUpdate,
+  ) {
+    if (!canUpdate) {
+      return [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('확인'),
+        ),
+      ];
+    }
+
+    if (result.isRequired) {
+      return [
+        FilledButton(
+          onPressed: () async {
+            Navigator.of(context).pop();
+            await _launchExternalUrl(result.storeUrl!);
+          },
+          child: const Text('업데이트'),
+        ),
+      ];
+    }
+
+    if (result.availability == UpdateAvailability.updateAvailable) {
+      return [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('나중에'),
+        ),
+        FilledButton(
+          onPressed: () async {
+            Navigator.of(context).pop();
+            await _launchExternalUrl(result.storeUrl!);
+          },
+          child: const Text('스토어로 이동'),
+        ),
+      ];
+    }
+
+    return [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('확인'),
+      ),
+    ];
+  }
+
+  Widget _buildUpdateNotes(BuildContext context, List<String> notes) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    if (notes.isEmpty) {
+      return Text(
+        '변경사항 정보가 없습니다.',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: notes
+          .map(
+            (note) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 7),
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      note,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Widget _buildDivider(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -312,52 +584,7 @@ class SettingsScreen extends ConsumerWidget {
   void _showHelpDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('도움말'),
-        content: const SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '📝 일기 작성',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 4),
-              Text('하단의 "오늘 기록하기" 버튼을 눌러 오늘의 감정을 기록해보세요.'),
-              SizedBox(height: 16),
-              Text(
-                '🤖 AI 분석',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 4),
-              Text('작성한 일기를 AI가 분석하여 감정 키워드, 공감 메시지, '
-                  '추천 행동을 제공합니다.'),
-              SizedBox(height: 16),
-              Text(
-                '📊 감정 통계',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 4),
-              Text('통계 탭에서 감정 변화 추이와 자주 느낀 감정을 확인할 수 있습니다.'),
-              SizedBox(height: 16),
-              Text(
-                '🆘 긴급 상황',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 4),
-              Text('힘든 상황에서는 자살예방상담전화 1393으로 연락해주세요. '
-                  '전문 상담사가 24시간 도움을 드립니다.'),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('확인'),
-          ),
-        ],
-      ),
+      builder: (context) => const HelpDialog(),
     );
   }
 }

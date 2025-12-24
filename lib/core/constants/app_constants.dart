@@ -8,6 +8,7 @@ class AppConstants {
   static const String _appName = 'MindLog';
   static const String _appVersion = '1.0.0';
   static const String _appNameLong = 'MindLog - 마음 케어 다이어리';
+  static const String _updateConfigUrl = 'https://kaywalker91.github.io/MindLog/update.json';
 
   // 일기 입력 제한
   static const int _diaryMinLength = 10;
@@ -32,6 +33,9 @@ class AppConstants {
   
   /// 앱 상세 이름 (표시용)
   static String get appNameLong => _appNameLong;
+
+  /// 업데이트 설정 JSON URL
+  static String get updateConfigUrl => _updateConfigUrl;
   
   /// 일기 최소 길이
   static int get diaryMinLength => _diaryMinLength;
