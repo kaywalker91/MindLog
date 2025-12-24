@@ -2,7 +2,7 @@ name: mindlog
 description: "AI 기반 감정 케어 다이어리 - 사용자의 일기를 분석하여 위로와 행동 지침을 제공합니다."
 publish_to: "none"
 
-version: 1.4.0+4
+version: 1.4.1+5
 
 environment:
   sdk: ^3.10.1
