@@ -10,6 +10,8 @@ import '../providers/app_info_provider.dart';
 import '../providers/update_provider.dart';
 import '../widgets/help_dialog.dart';
 import '../widgets/mindlog_app_bar.dart';
+import '../widgets/update_up_to_date_dialog.dart';
+import '../widgets/update_prompt_dialog.dart';
 import 'changelog_screen.dart';
 import 'webview_screen.dart';
 
@@ -344,16 +346,20 @@ class SettingsScreen extends ConsumerWidget {
     BuildContext context,
     UpdateCheckResult result,
   ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final canUpdate = result.storeUrl != null && result.storeUrl!.isNotEmpty;
+
+    if (result.availability == UpdateAvailability.upToDate) {
+      return showDialog(
+        context: context,
+        builder: (context) => UpdateUpToDateDialog(
+          currentVersion: result.currentVersion,
+        ),
+      );
+    }
 
     String title;
     String message;
-    if (result.availability == UpdateAvailability.upToDate) {
-      title = '최신 버전입니다';
-      message = '현재 버전은 v${result.currentVersion}입니다.';
-    } else if (result.isRequired) {
+    if (result.isRequired) {
       title = '업데이트가 필요합니다';
       message = '현재 버전이 지원 범위를 벗어났습니다. 업데이트 후 이용해주세요.';
     } else {
@@ -361,130 +367,27 @@ class SettingsScreen extends ConsumerWidget {
       message = 'v${result.latestVersion} 업데이트를 확인해주세요.';
     }
 
+    final primaryLabel = canUpdate ? (result.isRequired ? '업데이트' : '스토어로 이동') : '확인';
+    final secondaryLabel = canUpdate && !result.isRequired ? '나중에' : null;
+
     return showDialog(
       context: context,
       barrierDismissible: !(result.isRequired && canUpdate),
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                message,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              if (result.availability != UpdateAvailability.upToDate) ...[
-                const SizedBox(height: 12),
-                _buildUpdateNotes(context, result.notes),
-              ],
-            ],
-          ),
-        ),
-        actions: _buildUpdateActions(context, result, canUpdate),
-      ),
-    );
-  }
-
-  List<Widget> _buildUpdateActions(
-    BuildContext context,
-    UpdateCheckResult result,
-    bool canUpdate,
-  ) {
-    if (!canUpdate) {
-      return [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('확인'),
-        ),
-      ];
-    }
-
-    if (result.isRequired) {
-      return [
-        FilledButton(
-          onPressed: () async {
-            Navigator.of(context).pop();
+      builder: (context) => UpdatePromptDialog(
+        isRequired: result.isRequired,
+        title: title,
+        message: message,
+        notes: result.notes,
+        primaryLabel: primaryLabel,
+        secondaryLabel: secondaryLabel,
+        onSecondary: secondaryLabel == null ? null : () => Navigator.of(context).pop(),
+        onPrimary: () async {
+          Navigator.of(context).pop();
+          if (canUpdate) {
             await _launchExternalUrl(result.storeUrl!);
-          },
-          child: const Text('업데이트'),
-        ),
-      ];
-    }
-
-    if (result.availability == UpdateAvailability.updateAvailable) {
-      return [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('나중에'),
-        ),
-        FilledButton(
-          onPressed: () async {
-            Navigator.of(context).pop();
-            await _launchExternalUrl(result.storeUrl!);
-          },
-          child: const Text('스토어로 이동'),
-        ),
-      ];
-    }
-
-    return [
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: const Text('확인'),
+          }
+        },
       ),
-    ];
-  }
-
-  Widget _buildUpdateNotes(BuildContext context, List<String> notes) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    if (notes.isEmpty) {
-      return Text(
-        '변경사항 정보가 없습니다.',
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: colorScheme.onSurfaceVariant,
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: notes
-          .map(
-            (note) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 7),
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      note,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-          .toList(),
     );
   }
 
