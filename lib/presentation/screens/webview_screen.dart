@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../widgets/mindlog_app_bar.dart';
 
 /// 앱 내에서 URL을 볼 수 있는 웹뷰 화면
 class WebViewScreen extends StatefulWidget {
@@ -81,11 +82,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Scaffold(
-      appBar: AppBar(
+      appBar: MindlogAppBar(
         title: Text(widget.title),
         actions: [
           // 새로고침 버튼
@@ -100,8 +98,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 preferredSize: const Size.fromHeight(2),
                 child: LinearProgressIndicator(
                   value: _loadingProgress > 0 ? _loadingProgress : null,
-                  backgroundColor: colorScheme.surfaceContainerHighest,
-                  color: colorScheme.primary,
+                  backgroundColor: Colors.white.withValues(alpha: 0.35),
+                  color: Colors.white,
                 ),
               )
             : null,

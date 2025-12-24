@@ -5,6 +5,7 @@ import '../../core/constants/app_strings.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../providers/diary_list_controller.dart';
 import '../providers/providers.dart';
+import '../widgets/mindlog_app_bar.dart';
 import 'webview_screen.dart';
 
 /// 설정 화면
@@ -18,8 +19,8 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surfaceContainerLowest,
-      appBar: AppBar(
-        title: const Text('설정'),
+      appBar: const MindlogAppBar(
+        title: Text('설정'),
       ),
       body: ListView(
         padding: EdgeInsets.only(

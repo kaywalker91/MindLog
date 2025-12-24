@@ -7,6 +7,7 @@ import '../providers/providers.dart';
 import '../widgets/emotion_line_chart.dart';
 import '../widgets/keyword_tags.dart';
 import '../widgets/activity_heatmap.dart';
+import '../widgets/mindlog_app_bar.dart';
 
 /// 감정 통계 화면 (레이아웃 B: 요약+잔디 우선형)
 class StatisticsScreen extends ConsumerWidget {
@@ -19,8 +20,8 @@ class StatisticsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.statsBackground,
-      appBar: AppBar(
-        title: const Text('감정 통계'),
+      appBar: const MindlogAppBar(
+        title: Text('감정 통계'),
       ),
       body: statisticsAsync.when(
         loading: () => Center(

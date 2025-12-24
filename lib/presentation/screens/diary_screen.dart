@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
@@ -10,6 +11,7 @@ import '../providers/diary_analysis_controller.dart';
 import '../widgets/result_card.dart';
 import '../widgets/sos_card.dart';
 import '../widgets/loading_indicator.dart';
+import '../widgets/mindlog_app_bar.dart';
 import '../widgets/network_status_overlay.dart';
 
 /// 일기 작성 화면
@@ -125,6 +127,7 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
   @override
   Widget build(BuildContext context) {
     final analysisState = ref.watch(diaryAnalysisControllerProvider);
+    final isLoading = analysisState is DiaryAnalysisLoading;
 
     // 분석 상태 변경 감지
     ref.listen(diaryAnalysisControllerProvider, (previous, next) {
@@ -142,33 +145,15 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: MindlogAppBar(
         title: const Text(AppStrings.diaryScreenTitle),
       ),
       body: Stack(
         children: [
-          // 메인 컨텐츠
-          SafeArea(
-            bottom: false, // 하단 SafeArea는 수동으로 처리
-            child: SingleChildScrollView(
-              padding: ResponsiveUtils.scrollPadding(context),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // 분석 결과 또는 입력 폼 표시
-                  switch (analysisState) {
-                    DiaryAnalysisInitial() => _buildInputForm(),
-                    DiaryAnalysisLoading() => _buildLoadingState(),
-                    DiaryAnalysisSuccess(diary: final diary) =>
-                      ResultCard(diary: diary, onNewDiary: _onReset),
-                    DiaryAnalysisError(failure: final failure) =>
-                      _buildErrorState(failure.displayMessage),
-                    DiaryAnalysisSafetyBlocked() => SosCard(onClose: _onReset),
-                  },
-                ],
-              ),
-            ),
-          ),
+          if (isLoading)
+            _buildLoadingBody(context)
+          else
+            _buildContentBody(context, analysisState),
           
           // 네트워크 상태 오버레이
           NetworkStatusOverlay(
@@ -177,6 +162,87 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
             statusType: _networkStatusType,
             onRetry: _networkStatusType == NetworkStatusType.loading ? null : _onRetry,
             onDismiss: _networkStatusType == NetworkStatusType.loading ? null : _onDismissNetworkFeedback,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContentBody(
+    BuildContext context,
+    DiaryAnalysisState analysisState,
+  ) {
+    return SafeArea(
+      bottom: false, // 하단 SafeArea는 수동으로 처리
+      child: SingleChildScrollView(
+        padding: ResponsiveUtils.scrollPadding(context),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 분석 결과 또는 입력 폼 표시
+            switch (analysisState) {
+              DiaryAnalysisInitial() => _buildInputForm(),
+              DiaryAnalysisLoading() => _buildLoadingState(),
+              DiaryAnalysisSuccess(diary: final diary) =>
+                ResultCard(diary: diary, onNewDiary: _onReset),
+              DiaryAnalysisError(failure: final failure) =>
+                _buildErrorState(failure.displayMessage),
+              DiaryAnalysisSafetyBlocked() => SosCard(onClose: _onReset),
+            },
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingBody(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final horizontalPadding = ResponsiveUtils.horizontalPadding(context);
+
+    return SizedBox.expand(
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    colorScheme.surface,
+                    AppColors.statsBackground,
+                    AppColors.statsSecondary.withValues(alpha: 0.25),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          ),
+          _buildAccentCircle(
+            bottom: -120,
+            right: -40,
+            size: 220,
+            color: AppColors.statsPrimary.withValues(alpha: 0.18),
+            duration: const Duration(milliseconds: 4200),
+          ),
+          _buildAccentCircle(
+            bottom: -170,
+            left: -60,
+            size: 260,
+            color: AppColors.statsSecondary.withValues(alpha: 0.22),
+            duration: const Duration(milliseconds: 4600),
+            delay: const Duration(milliseconds: 600),
+          ),
+          SafeArea(
+            child: Align(
+              alignment: const Alignment(0, -0.2),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: const LoadingIndicator(
+                  message: '마음을 읽고 있어요...',
+                  centerContent: false,
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -266,6 +332,42 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
           child: const Text(AppStrings.tryAgainButton),
         ),
       ],
+    );
+  }
+
+  Widget _buildAccentCircle({
+    double? top,
+    double? right,
+    double? bottom,
+    double? left,
+    required double size,
+    required Color color,
+    Duration duration = const Duration(milliseconds: 4200),
+    Duration delay = Duration.zero,
+  }) {
+    return Positioned(
+      top: top,
+      right: right,
+      bottom: bottom,
+      left: left,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color,
+        ),
+      )
+          .animate(
+            onPlay: (controller) => controller.repeat(reverse: true),
+            delay: delay,
+          )
+          .scale(
+            begin: const Offset(0.96, 0.96),
+            end: const Offset(1.04, 1.04),
+            duration: duration,
+            curve: Curves.easeInOut,
+          ),
     );
   }
 }

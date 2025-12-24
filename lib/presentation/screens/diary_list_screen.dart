@@ -7,6 +7,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
 import '../providers/diary_list_controller.dart';
+import '../widgets/mindlog_app_bar.dart';
 import 'diary_screen.dart';
 import 'diary_detail_screen.dart';
 
@@ -31,7 +32,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
     final diaryListState = ref.watch(diaryListControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: MindlogAppBar(
         title: const Text(AppStrings.appName),
         centerTitle: false,
         actions: [

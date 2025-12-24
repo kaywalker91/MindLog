@@ -94,7 +94,7 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
       margin: const EdgeInsets.all(24),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -136,18 +136,20 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
   }
 
   Widget _buildStatusIcon() {
+    final primary = Theme.of(context).colorScheme.primary;
+
     switch (widget.statusType) {
       case NetworkStatusType.loading:
         return Container(
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
+            color: primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(32),
           ),
-          child: const Center(
+          child: Center(
             child: CircularProgressIndicator(
-              color: AppColors.primary,
+              color: primary,
               strokeWidth: 3,
             ),
           ),
@@ -231,12 +233,12 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
+            color: primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(32),
           ),
           child: Icon(
             _getStatusIcon(),
-            color: AppColors.primary,
+            color: primary,
             size: 32,
           ),
         );
@@ -244,13 +246,17 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
   }
 
   Widget _buildActionButtons() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final primary = colorScheme.primary;
+    final muted = colorScheme.onSurface.withValues(alpha: 0.6);
+
     if (widget.statusType == NetworkStatusType.loading) {
       return Column(
         children: [
           const SizedBox(height: 16),
           Text(
             '잠시만 기다려주세요...',
-            style: AppTextStyles.bodySmall.copyWith(color: Colors.grey),
+            style: AppTextStyles.bodySmall.copyWith(color: muted),
           ),
         ],
       );
@@ -277,7 +283,7 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
               onPressed: widget.onDismiss,
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                side: const BorderSide(color: AppColors.primary),
+                side: BorderSide(color: primary),
               ),
               child: const Text('취소'),
             ),
@@ -322,6 +328,7 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
   }
 
   Color _getStatusColor() {
+    final primary = Theme.of(context).colorScheme.primary;
     switch (widget.statusType) {
       case NetworkStatusType.networkError:
         return AppColors.error;
@@ -330,9 +337,9 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
       case NetworkStatusType.retrySuccess:
         return AppColors.success;
       case NetworkStatusType.loading:
-        return AppColors.primary;
+        return primary;
       default:
-        return Theme.of(context).primaryColor;
+        return primary;
     }
   }
 

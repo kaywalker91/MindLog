@@ -4,6 +4,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
 import '../widgets/result_card.dart';
+import '../widgets/mindlog_app_bar.dart';
 
 /// 일기 상세 조회 화면
 class DiaryDetailScreen extends StatelessWidget {
@@ -16,8 +17,8 @@ class DiaryDetailScreen extends StatelessWidget {
     final dateFormatter = DateFormat('yyyy년 MM월 dd일 (E) a hh:mm', 'ko_KR');
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('일기 상세'),
+      appBar: const MindlogAppBar(
+        title: Text('일기 상세'),
       ),
       body: SafeArea(
         bottom: false, // 하단은 수동으로 처리
