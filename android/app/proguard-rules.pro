@@ -6,6 +6,10 @@
 -keep class io.flutter.** { *; }
 -keep class io.flutter.plugins.** { *; }
 
+# Google Play Core (Deferred Components) - 사용하지 않지만 Flutter에서 참조함
+# R8에서 missing class 경고를 무시하도록 설정
+-dontwarn com.google.android.play.core.**
+
 # Google Generative AI (Gemini)
 -keep class com.google.ai.** { *; }
 -keepclassmembers class com.google.ai.** { *; }
