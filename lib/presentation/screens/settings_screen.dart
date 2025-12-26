@@ -13,7 +13,7 @@ import '../widgets/mindlog_app_bar.dart';
 import '../widgets/update_up_to_date_dialog.dart';
 import '../widgets/update_prompt_dialog.dart';
 import 'changelog_screen.dart';
-import 'webview_screen.dart';
+import 'privacy_policy_screen.dart';
 
 /// 설정 화면
 class SettingsScreen extends ConsumerWidget {
@@ -77,11 +77,7 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 icon: Icons.description_outlined,
                 title: '개인정보 처리방침',
-                onTap: () => _openWebView(
-                  context,
-                  url: 'https://sites.google.com/view/mindlogprivacypolicy/%ED%99%88',
-                  title: '개인정보 처리방침',
-                ),
+                onTap: () => PrivacyPolicyScreen.navigate(context),
               ),
               // TODO: 이용약관 URL 준비되면 주석 해제
               // _buildDivider(context),
@@ -405,11 +401,6 @@ class SettingsScreen extends ConsumerWidget {
       indent: 56,
       color: colorScheme.outline.withAlpha(51),
     );
-  }
-
-  /// 웹뷰로 URL 열기 (앱 내에서 표시)
-  void _openWebView(BuildContext context, {required String url, required String title}) {
-    WebViewScreen.navigate(context, url: url, title: title);
   }
 
   /// 외부 앱으로 URL 열기 (이메일 등)

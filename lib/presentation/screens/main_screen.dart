@@ -91,8 +91,8 @@ class MainScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(24),
         child: NavigationBarTheme(
           data: NavigationBarThemeData(
-            labelTextStyle: MaterialStateProperty.resolveWith((states) {
-              final isSelected = states.contains(MaterialState.selected);
+            labelTextStyle: WidgetStateProperty.resolveWith((states) {
+              final isSelected = states.contains(WidgetState.selected);
               return AppTextStyles.label.copyWith(
                 color: isSelected
                     ? AppColors.statsPrimaryDark
@@ -101,8 +101,8 @@ class MainScreen extends ConsumerWidget {
                 letterSpacing: 0.2,
               );
             }),
-            iconTheme: MaterialStateProperty.resolveWith((states) {
-              final isSelected = states.contains(MaterialState.selected);
+            iconTheme: WidgetStateProperty.resolveWith((states) {
+              final isSelected = states.contains(WidgetState.selected);
               return IconThemeData(
                 color: isSelected
                     ? AppColors.statsPrimaryDark

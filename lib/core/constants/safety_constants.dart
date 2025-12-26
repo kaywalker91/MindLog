@@ -69,12 +69,20 @@ class SafetyConstants {
       '지금 많이 힘드시죠. 혼자 감당하지 않으셔도 됩니다.\n'
       '전문 상담사와 이야기를 나눠보시는 건 어떨까요?';
 
+  /// 모든 공백 문자를 제거하는 정규식 (유니코드 공백, 탭, 줄바꿈 포함)
+  static final RegExp _whitespacePattern = RegExp(r'[\s\u00A0\u2000-\u200B\u3000]+');
+
+  /// 텍스트 정규화 (모든 공백 제거, 소문자 변환)
+  static String _normalizeText(String text) {
+    return text.replaceAll(_whitespacePattern, '').toLowerCase();
+  }
+
   /// 텍스트에서 응급 키워드가 포함되어 있는지 확인
   static bool containsEmergencyKeyword(String text) {
-    final normalizedText = text.replaceAll(' ', '').toLowerCase();
+    final normalizedText = _normalizeText(text);
 
     for (final keyword in emergencyKeywords) {
-      final normalizedKeyword = keyword.replaceAll(' ', '').toLowerCase();
+      final normalizedKeyword = _normalizeText(keyword);
       if (normalizedText.contains(normalizedKeyword)) {
         return true;
       }
@@ -84,11 +92,11 @@ class SafetyConstants {
 
   /// 감지된 응급 키워드 목록 반환 (디버깅/로깅용)
   static List<String> getDetectedKeywords(String text) {
-    final normalizedText = text.replaceAll(' ', '').toLowerCase();
+    final normalizedText = _normalizeText(text);
     final detected = <String>[];
 
     for (final keyword in emergencyKeywords) {
-      final normalizedKeyword = keyword.replaceAll(' ', '').toLowerCase();
+      final normalizedKeyword = _normalizeText(keyword);
       if (normalizedText.contains(normalizedKeyword)) {
         detected.add(keyword);
       }

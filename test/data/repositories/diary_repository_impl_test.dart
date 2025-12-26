@@ -80,6 +80,22 @@ class MockSqliteLocalDataSource implements SqliteLocalDataSource {
   @override
   Future<void> close() async {}
 
+  @override
+  Future<List<Diary>> getAnalyzedDiariesInRange({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    return _diaries.values
+        .where((d) =>
+            d.status == DiaryStatus.analyzed ||
+            d.status == DiaryStatus.safetyBlocked)
+        .where((d) =>
+            startDate == null || d.createdAt.isAfter(startDate.subtract(const Duration(days: 1))))
+        .where((d) =>
+            endDate == null || d.createdAt.isBefore(endDate.add(const Duration(days: 1))))
+        .toList();
+  }
+
   // Helper method for testing
   void addDiary(Diary diary) {
     _diaries[diary.id] = diary;

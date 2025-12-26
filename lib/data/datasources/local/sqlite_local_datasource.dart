@@ -7,7 +7,16 @@ import '../../../core/errors/exceptions.dart';
 
 /// SQLite 로컬 데이터 소스
 class SqliteLocalDataSource {
+  static const int _currentVersion = 1;
   static Database? _database;
+
+  /// 테스트용 데이터베이스 초기화 (기존 연결 종료 후 재설정)
+  static Future<void> resetForTesting() async {
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
+  }
 
   /// 데이터베이스 인스턴스 초기화
   static Future<Database> _getDatabase() async {
@@ -15,19 +24,20 @@ class SqliteLocalDataSource {
 
     final documentsDirectory = await getApplicationDocumentsDirectory();
     final path = join(documentsDirectory.path, 'mindlog.db');
-    
+
     _database = await openDatabase(
       path,
-      version: 1,
+      version: _currentVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
     return _database!;
   }
 
   /// 데이터베이스 테이블 생성
   static Future<void> _onCreate(Database db, int version) async {
-    final idType = 'TEXT PRIMARY KEY';
-    
+    const idType = 'TEXT PRIMARY KEY';
+
     await db.execute('''
       CREATE TABLE diaries (
         id $idType,
@@ -37,6 +47,17 @@ class SqliteLocalDataSource {
         analysis_result TEXT
       )
     ''');
+
+    // 인덱스 생성 (성능 최적화)
+    await db.execute('CREATE INDEX idx_diaries_created_at ON diaries(created_at)');
+    await db.execute('CREATE INDEX idx_diaries_status ON diaries(status)');
+  }
+
+  /// 데이터베이스 마이그레이션
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // 버전별 마이그레이션 로직
+    // 예: if (oldVersion < 2) { ... }
+    // 현재는 버전 1만 존재하므로 빈 구현
   }
 
   /// 일기 저장
@@ -190,6 +211,39 @@ class SqliteLocalDataSource {
     if (_database != null) {
       await _database!.close();
       _database = null;
+    }
+  }
+
+  /// 날짜 범위로 분석된 일기 조회 (통계용 최적화 쿼리)
+  Future<List<Diary>> getAnalyzedDiariesInRange({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final db = await _getDatabase();
+
+      String whereClause = "(status = 'analyzed' OR status = 'safetyBlocked')";
+      final List<String> whereArgs = [];
+
+      if (startDate != null) {
+        whereClause += ' AND created_at >= ?';
+        whereArgs.add(startDate.toIso8601String());
+      }
+      if (endDate != null) {
+        whereClause += ' AND created_at <= ?';
+        whereArgs.add(endDate.toIso8601String());
+      }
+
+      final maps = await db.query(
+        'diaries',
+        where: whereClause,
+        whereArgs: whereArgs.isEmpty ? null : whereArgs,
+        orderBy: 'created_at DESC',
+      );
+
+      return maps.map(_mapToDiary).toList();
+    } catch (e) {
+      throw CacheException('날짜 범위 일기 조회 실패: $e');
     }
   }
 

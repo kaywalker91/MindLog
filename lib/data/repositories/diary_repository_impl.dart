@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../../../domain/entities/diary.dart';
 import '../../../domain/repositories/diary_repository.dart';
@@ -55,21 +55,22 @@ class DiaryRepositoryImpl implements DiaryRepository {
         analysisResult: analysisResult,
       );
     } on NetworkException catch (e) {
-      debugPrint('NetworkException in analyzeDiary: ${e.message}');
       await _localDataSource.updateDiaryStatus(diaryId, DiaryStatus.failed);
       throw NetworkFailure(message: e.message ?? '네트워크 오류');
     } on ApiException catch (e) {
-      debugPrint('ApiException in analyzeDiary: ${e.message}');
       await _localDataSource.updateDiaryStatus(diaryId, DiaryStatus.failed);
       throw ServerFailure(message: e.message ?? 'API 오류');
     } on SafetyBlockException catch (e) {
-      debugPrint('SafetyBlockException in analyzeDiary: ${e.message}');
       await _localDataSource.updateDiaryStatus(diaryId, DiaryStatus.safetyBlocked);
       throw ServerFailure(message: e.message ?? '안전 필터에 의해 차단됨');
     } catch (e, stackTrace) {
-      debugPrint('Unknown Exception in analyzeDiary: $e');
-      debugPrint('Stack Trace: $stackTrace');
-      throw CacheFailure(message: '일기 분석 실패: $e');
+      // 디버그 모드에서만 로깅
+      assert(() {
+        debugPrint('Unknown Exception in analyzeDiary: $e');
+        debugPrint('Stack Trace: $stackTrace');
+        return true;
+      }());
+      throw CacheFailure(message: '일기 분석 실패');
     }
   }
 

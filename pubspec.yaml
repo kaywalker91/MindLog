@@ -47,11 +47,11 @@ dependencies:
   # Charts
   fl_chart: ^0.68.0
 
-  # WebView (for in-app URL viewing)
-  webview_flutter: ^4.10.0
-
   # App Info
   package_info_plus: ^8.0.0
+
+  # Markdown Rendering
+  flutter_markdown: ^0.7.3+2
 
 dev_dependencies:
   flutter_test:
@@ -71,6 +71,7 @@ flutter:
 
   assets:
     - .env
+    - docs/mindlog_privacy.md
 
 flutter_launcher_icons:
   android: "ic_launcher"

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../dto/analysis_response_dto.dart';
 import '../../dtos/analysis_response_parser.dart';
@@ -68,6 +68,13 @@ class GroqRemoteDataSource {
 
   /// 단일 분석 실행
   Future<AnalysisResponseDto> _analyzeDiaryOnce(String content) async {
+    // API 키 유효성 검증
+    if (_apiKey.isEmpty) {
+      throw ApiException(
+        message: 'API 키가 설정되지 않았습니다. .env 파일에 GROQ_API_KEY를 설정해주세요.',
+      );
+    }
+
     try {
       final prompt = PromptConstants.createAnalysisPrompt(content);
       
@@ -111,18 +118,11 @@ class GroqRemoteDataSource {
       final messageContent = choice['message']['content'] as String;
       
       try {
-        // 기존 파서의 로직을 재사용하기 위해 텍스트 파싱 메서드를 호출
-        // AnalysisResponseParser에 문자열 파싱 메서드를 추가하거나, 
-        // 여기서 직접 파싱 로직을 수행해야 함.
-        // 현재 AnalysisResponseParser 수정이 필요함.
-        // 임시로 AnalysisResponseParser._parseAsJson 등을 공개(public)으로 변경하거나
-        // 파서에 `parseString` 메서드를 추가한다고 가정하고 호출.
-        // 실제로는 AnalysisResponseParser를 수정해야 함.
         final jsonResult = AnalysisResponseParser.parseString(messageContent);
         return AnalysisResponseDto.fromJson(jsonResult);
       } catch (e) {
-        debugPrint('Parsing error: $messageContent');
-        throw ApiException(message: '응답 파싱 실패: $e');
+        // 파싱 실패 시 민감한 응답 내용은 로깅하지 않음
+        throw ApiException(message: '응답 파싱 실패');
       }
 
     } catch (e) {
@@ -136,6 +136,10 @@ class GroqRemoteDataSource {
   }
 
   void _printRetryMessage(int attempt, String errorType, Duration delay) {
-    debugPrint('🔄 Groq API 요청 재시도 $attempt/$_maxRetries: $errorType, ${delay.inSeconds}초 후 재시도...');
+    // 프로덕션에서는 로깅하지 않음 (필요시 구조화된 로깅 라이브러리 사용)
+    assert(() {
+      debugPrint('🔄 Groq API 요청 재시도 $attempt/$_maxRetries: $errorType, ${delay.inSeconds}초 후 재시도...');
+      return true;
+    }());
   }
 }

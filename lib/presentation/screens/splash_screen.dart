@@ -1,7 +1,5 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
@@ -29,8 +27,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
-    
-    _loadEnvironment();
+
+    // 환경 변수는 main.dart에서 이미 로드됨
     _startAnimations();
     _loadContent();
   }
@@ -39,17 +37,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   void dispose() {
     _animationController.dispose();
     super.dispose();
-  }
-
-  void _loadEnvironment() async {
-    try {
-      // 환경 변수 로드
-      await dotenv.load(fileName: '.env');
-      
-      // 앱 초기화 데이터 로드 (최종 SQLite DB, 기초 데이터 등)
-    } catch (e) {
-      debugPrint('환경 변수 로드 실패: $e');
-    }
   }
 
   void _startAnimations() {

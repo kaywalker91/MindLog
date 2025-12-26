@@ -22,18 +22,11 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
           .subtract(Duration(days: period.days! - 1));
     }
 
-    // 모든 일기 조회
-    final allDiaries = await _localDataSource.getAllDiaries();
-
-    // 분석 완료된 일기만 필터링
-    final analyzedDiaries = allDiaries
-        .where((d) =>
-            d.status == DiaryStatus.analyzed ||
-            d.status == DiaryStatus.safetyBlocked)
-        .where((d) =>
-            startDate == null ||
-            d.createdAt.isAfter(startDate.subtract(const Duration(days: 1))))
-        .toList();
+    // SQL 레벨에서 필터링된 일기 조회 (성능 최적화)
+    final analyzedDiaries = await _localDataSource.getAnalyzedDiariesInRange(
+      startDate: startDate,
+      endDate: now,
+    );
 
     if (analyzedDiaries.isEmpty) {
       return EmotionStatistics.empty();
@@ -74,32 +67,21 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    final allDiaries = await _localDataSource.getAllDiaries();
-
-    final filteredDiaries = allDiaries
-        .where((d) =>
-            d.status == DiaryStatus.analyzed ||
-            d.status == DiaryStatus.safetyBlocked)
-        .where((d) =>
-            startDate == null ||
-            d.createdAt.isAfter(startDate.subtract(const Duration(days: 1))))
-        .where((d) =>
-            endDate == null ||
-            d.createdAt.isBefore(endDate.add(const Duration(days: 1))))
-        .toList();
+    // SQL 레벨에서 필터링 (성능 최적화)
+    final filteredDiaries = await _localDataSource.getAnalyzedDiariesInRange(
+      startDate: startDate,
+      endDate: endDate,
+    );
 
     return _calculateDailyEmotions(filteredDiaries);
   }
 
   @override
   Future<Map<String, int>> getKeywordFrequency({int? limit}) async {
-    final allDiaries = await _localDataSource.getAllDiaries();
+    // SQL 레벨에서 필터링 (성능 최적화)
+    final analyzedDiaries = await _localDataSource.getAnalyzedDiariesInRange();
 
-    final analyzedDiaries = allDiaries.where((d) =>
-        d.status == DiaryStatus.analyzed ||
-        d.status == DiaryStatus.safetyBlocked);
-
-    final frequency = _calculateKeywordFrequency(analyzedDiaries.toList());
+    final frequency = _calculateKeywordFrequency(analyzedDiaries);
 
     if (limit == null) return frequency;
 
@@ -115,19 +97,11 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    final allDiaries = await _localDataSource.getAllDiaries();
-
-    final filteredDiaries = allDiaries
-        .where((d) =>
-            d.status == DiaryStatus.analyzed ||
-            d.status == DiaryStatus.safetyBlocked)
-        .where((d) =>
-            startDate == null ||
-            d.createdAt.isAfter(startDate.subtract(const Duration(days: 1))))
-        .where((d) =>
-            endDate == null ||
-            d.createdAt.isBefore(endDate.add(const Duration(days: 1))))
-        .toList();
+    // SQL 레벨에서 필터링 (성능 최적화)
+    final filteredDiaries = await _localDataSource.getAnalyzedDiariesInRange(
+      startDate: startDate,
+      endDate: endDate,
+    );
 
     return _calculateActivityMap(filteredDiaries);
   }

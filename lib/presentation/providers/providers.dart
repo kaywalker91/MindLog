@@ -16,11 +16,9 @@ final sqliteLocalDataSourceProvider = Provider<SqliteLocalDataSource>((ref) {
 });
 
 /// Groq 원격 데이터 소스 Provider
+/// API 키가 없으면 빈 문자열로 인스턴스 생성 (실제 API 호출 시점에 에러 발생)
 final groqRemoteDataSourceProvider = Provider<GroqRemoteDataSource>((ref) {
-  final apiKey = dotenv.env['GROQ_API_KEY'];
-  if (apiKey == null || apiKey.isEmpty) {
-    throw Exception('GROQ_API_KEY is not set in .env file');
-  }
+  final apiKey = dotenv.env['GROQ_API_KEY'] ?? '';
   return GroqRemoteDataSource(apiKey);
 });
 
