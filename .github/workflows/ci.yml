@@ -39,6 +39,9 @@ jobs:
           echo "GEMINI_API_KEY=dummy_key_for_ci" > .env
           echo "GROQ_API_KEY=dummy_key_for_ci" >> .env
 
+      - name: Generate Code
+        run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Verify Formatting
         run: dart format --output=none --set-exit-if-changed .
 
@@ -66,6 +69,9 @@ jobs:
         run: |
           echo "GEMINI_API_KEY=test_key_for_ci" > .env
           echo "GROQ_API_KEY=test_key_for_ci" >> .env
+
+      - name: Generate Code
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Run Tests with Coverage
         run: flutter test --coverage
@@ -104,6 +110,9 @@ jobs:
         run: |
           echo "GEMINI_API_KEY=build_check_key" > .env
           echo "GROQ_API_KEY=build_check_key" >> .env
+
+      - name: Generate Code
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build APK (Debug)
         run: flutter build apk --debug
