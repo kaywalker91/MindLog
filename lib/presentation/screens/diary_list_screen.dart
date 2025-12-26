@@ -20,6 +20,9 @@ class DiaryListScreen extends ConsumerStatefulWidget {
 }
 
 class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
+  // DateFormat 인스턴스 재사용 (생성 비용 최적화)
+  static final DateFormat _dateFormatter = DateFormat('MM월 dd일 (E)', 'ko_KR');
+
   @override
   void initState() {
     super.initState();
@@ -153,15 +156,16 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final diary = diaries[index];
-          return _buildDiaryItem(diary);
+          return KeyedSubtree(
+            key: ValueKey(diary.id),
+            child: _buildDiaryItem(diary),
+          );
         },
       ),
     );
   }
 
   Widget _buildDiaryItem(Diary diary) {
-    final dateFormatter = DateFormat('MM월 dd일 (E)', 'ko_KR');
-    
     // 감정 점수에 따른 이모지 및 색상
     String emoji = '📝';
     Color color = Colors.grey.shade100;
@@ -236,7 +240,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    dateFormatter.format(diary.createdAt),
+                    _dateFormatter.format(diary.createdAt),
                     style: AppTextStyles.bodySmall.copyWith(
                       color: Colors.grey,
                       fontWeight: FontWeight.bold,

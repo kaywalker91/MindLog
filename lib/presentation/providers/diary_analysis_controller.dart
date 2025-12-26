@@ -68,18 +68,18 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
 
 /// 일기 분석 컨트롤러 Provider
 final diaryAnalysisControllerProvider =
-    StateNotifierProvider<DiaryAnalysisNotifier, DiaryAnalysisState>((ref) {
+    StateNotifierProvider.autoDispose<DiaryAnalysisNotifier, DiaryAnalysisState>((ref) {
   return DiaryAnalysisNotifier(ref);
 });
 
 /// 일기 목록 Provider
-final diaryListProvider = FutureProvider<List<Diary>>((ref) async {
+final diaryListProvider = FutureProvider.autoDispose<List<Diary>>((ref) async {
   final repository = ref.watch(diaryRepositoryProvider);
   return repository.getAllDiaries();
 });
 
 /// 오늘 일기 목록 Provider
-final todayDiariesProvider = FutureProvider<List<Diary>>((ref) async {
+final todayDiariesProvider = FutureProvider.autoDispose<List<Diary>>((ref) async {
   final repository = ref.watch(diaryRepositoryProvider);
   return repository.getTodayDiaries();
 });

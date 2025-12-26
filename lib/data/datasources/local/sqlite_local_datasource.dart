@@ -7,7 +7,7 @@ import '../../../core/errors/exceptions.dart';
 
 /// SQLite 로컬 데이터 소스
 class SqliteLocalDataSource {
-  static const int _currentVersion = 1;
+  static const int _currentVersion = 2;
   static Database? _database;
 
   /// 테스트용 데이터베이스 초기화 (기존 연결 종료 후 재설정)
@@ -51,13 +51,18 @@ class SqliteLocalDataSource {
     // 인덱스 생성 (성능 최적화)
     await db.execute('CREATE INDEX idx_diaries_created_at ON diaries(created_at)');
     await db.execute('CREATE INDEX idx_diaries_status ON diaries(status)');
+    // 복합 인덱스: 통계 쿼리 최적화 (status + created_at 동시 조건)
+    await db.execute('CREATE INDEX idx_diaries_status_created_at ON diaries(status, created_at)');
   }
 
   /// 데이터베이스 마이그레이션
   static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    // 버전별 마이그레이션 로직
-    // 예: if (oldVersion < 2) { ... }
-    // 현재는 버전 1만 존재하므로 빈 구현
+    // 버전 1 → 2: 복합 인덱스 추가 (통계 쿼리 최적화)
+    if (oldVersion < 2) {
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_diaries_status_created_at ON diaries(status, created_at)',
+      );
+    }
   }
 
   /// 일기 저장

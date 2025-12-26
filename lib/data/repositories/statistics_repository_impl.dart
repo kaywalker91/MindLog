@@ -32,24 +32,12 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
       return EmotionStatistics.empty();
     }
 
-    // 일별 감정 데이터 계산
-    final dailyEmotions = _calculateDailyEmotions(analyzedDiaries);
+    // 단일 패스로 일별 감정 + 활동 맵 + 평균 점수 계산 (성능 최적화)
+    final (dailyEmotions, activityMap, overallAverage) =
+        _calculateDailyStats(analyzedDiaries);
 
     // 키워드 빈도 계산
     final keywordFrequency = _calculateKeywordFrequency(analyzedDiaries);
-
-    // 활동 맵 계산
-    final activityMap = _calculateActivityMap(analyzedDiaries);
-
-    // 전체 평균 점수 계산
-    final scores = analyzedDiaries
-        .where((d) => d.analysisResult != null)
-        .map((d) => d.analysisResult!.sentimentScore)
-        .toList();
-
-    final overallAverage = scores.isEmpty
-        ? 0.0
-        : scores.reduce((a, b) => a + b) / scores.length;
 
     return EmotionStatistics(
       dailyEmotions: dailyEmotions,
@@ -106,48 +94,64 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
     return _calculateActivityMap(filteredDiaries);
   }
 
-  /// 일별 감정 데이터 계산
-  List<DailyEmotion> _calculateDailyEmotions(List<Diary> diaries) {
-    // 날짜별로 그룹핑
-    final Map<String, List<Diary>> grouped = {};
+  /// 단일 패스로 일별 통계 계산 (dailyEmotions, activityMap, overallAverage)
+  /// 성능 최적화: 기존 4-pass → 1-pass
+  (List<DailyEmotion>, Map<DateTime, double>, double) _calculateDailyStats(
+    List<Diary> diaries,
+  ) {
+    // 날짜별로 점수 그룹핑
+    final Map<DateTime, List<int>> grouped = {};
+    final Map<DateTime, int> diaryCountPerDay = {};
+    int totalScore = 0;
+    int scoreCount = 0;
 
     for (final diary in diaries) {
-      final dateKey = _dateToKey(diary.createdAt);
-      grouped[dateKey] ??= [];
-      grouped[dateKey]!.add(diary);
-    }
+      if (diary.analysisResult == null) continue;
 
-    // 일별 평균 계산
-    final List<DailyEmotion> result = [];
-
-    for (final entry in grouped.entries) {
-      final dateParts = entry.key.split('-');
       final date = DateTime(
-        int.parse(dateParts[0]),
-        int.parse(dateParts[1]),
-        int.parse(dateParts[2]),
+        diary.createdAt.year,
+        diary.createdAt.month,
+        diary.createdAt.day,
       );
 
-      final scores = entry.value
-          .where((d) => d.analysisResult != null)
-          .map((d) => d.analysisResult!.sentimentScore)
-          .toList();
+      grouped[date] ??= [];
+      grouped[date]!.add(diary.analysisResult!.sentimentScore);
+      diaryCountPerDay[date] = (diaryCountPerDay[date] ?? 0) + 1;
 
-      if (scores.isEmpty) continue;
+      totalScore += diary.analysisResult!.sentimentScore;
+      scoreCount++;
+    }
 
+    // 일별 감정 리스트 + 활동 맵 동시 생성
+    final List<DailyEmotion> dailyEmotions = [];
+    final Map<DateTime, double> activityMap = {};
+
+    for (final entry in grouped.entries) {
+      final date = entry.key;
+      final scores = entry.value;
       final averageScore = scores.reduce((a, b) => a + b) / scores.length;
 
-      result.add(DailyEmotion(
+      dailyEmotions.add(DailyEmotion(
         date: date,
         averageScore: averageScore,
-        diaryCount: entry.value.length,
+        diaryCount: diaryCountPerDay[date] ?? scores.length,
       ));
+
+      activityMap[date] = averageScore;
     }
 
     // 날짜순 정렬 (최신순)
-    result.sort((a, b) => b.date.compareTo(a.date));
+    dailyEmotions.sort((a, b) => b.date.compareTo(a.date));
 
-    return result;
+    final overallAverage = scoreCount == 0 ? 0.0 : totalScore / scoreCount;
+
+    return (dailyEmotions, activityMap, overallAverage);
+  }
+
+  /// 일별 감정 데이터 계산 (단독 호출용)
+  List<DailyEmotion> _calculateDailyEmotions(List<Diary> diaries) {
+    final (dailyEmotions, _, _) = _calculateDailyStats(diaries);
+    return dailyEmotions;
   }
 
   /// 키워드 빈도 계산
@@ -168,37 +172,9 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
     return frequency;
   }
 
-  /// 활동 맵 계산 (날짜별 평균 감정 점수)
+  /// 활동 맵 계산 (단독 호출용)
   Map<DateTime, double> _calculateActivityMap(List<Diary> diaries) {
-    final Map<String, List<int>> grouped = {};
-
-    for (final diary in diaries) {
-      if (diary.analysisResult == null) continue;
-
-      final dateKey = _dateToKey(diary.createdAt);
-      grouped[dateKey] ??= [];
-      grouped[dateKey]!.add(diary.analysisResult!.sentimentScore);
-    }
-
-    final Map<DateTime, double> result = {};
-
-    for (final entry in grouped.entries) {
-      final dateParts = entry.key.split('-');
-      final date = DateTime(
-        int.parse(dateParts[0]),
-        int.parse(dateParts[1]),
-        int.parse(dateParts[2]),
-      );
-
-      final averageScore = entry.value.reduce((a, b) => a + b) / entry.value.length;
-      result[date] = averageScore;
-    }
-
-    return result;
-  }
-
-  /// DateTime을 "yyyy-MM-dd" 형식의 키로 변환
-  String _dateToKey(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final (_, activityMap, _) = _calculateDailyStats(diaries);
+    return activityMap;
   }
 }

@@ -11,7 +11,7 @@ class AppVersionInfo {
   });
 }
 
-final appInfoProvider = FutureProvider<AppVersionInfo>((ref) async {
+final appInfoProvider = FutureProvider.autoDispose<AppVersionInfo>((ref) async {
   final info = await PackageInfo.fromPlatform();
   return AppVersionInfo(
     version: info.version,

@@ -11,6 +11,9 @@ class ActivityHeatmap extends StatelessWidget {
   static const double _weekdayLabelWidth = 24;
   static const double _weekdayLabelHeight = 20;
 
+  // DateFormat 인스턴스 재사용 (생성 비용 최적화)
+  static final DateFormat _tooltipFormatter = DateFormat('yyyy년 M월 d일');
+
   final Map<DateTime, double> activityMap;
   final int weeksToShow;
 
@@ -25,17 +28,39 @@ class ActivityHeatmap extends StatelessWidget {
     final now = DateTime.now();
     final startDate = now.subtract(Duration(days: weeksToShow * 7 - 1));
 
+    // activityMap 키 정규화 (O(n) 전처리로 O(n²) → O(n) 최적화)
+    final normalizedActivityMap = _normalizeActivityMap();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildHeatmap(context, startDate, now),
+        _buildHeatmap(context, startDate, now, normalizedActivityMap),
         const SizedBox(height: 12),
         _buildLegend(context),
       ],
     );
   }
 
-  Widget _buildHeatmap(BuildContext context, DateTime startDate, DateTime endDate) {
+  /// activityMap 키를 날짜만으로 정규화하여 O(1) 조회 가능하게 함
+  Map<DateTime, double> _normalizeActivityMap() {
+    final normalized = <DateTime, double>{};
+    for (final entry in activityMap.entries) {
+      final normalizedKey = DateTime(
+        entry.key.year,
+        entry.key.month,
+        entry.key.day,
+      );
+      normalized[normalizedKey] = entry.value;
+    }
+    return normalized;
+  }
+
+  Widget _buildHeatmap(
+    BuildContext context,
+    DateTime startDate,
+    DateTime endDate,
+    Map<DateTime, double> normalizedActivityMap,
+  ) {
     // 요일 라벨 (월~일 모두 표시)
     const weekdayLabels = ['월', '화', '수', '목', '금', '토', '일'];
 
@@ -136,7 +161,7 @@ class ActivityHeatmap extends StatelessWidget {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: week.map((date) {
-                        return _buildCell(context, date, endDate);
+                        return _buildCell(context, date, endDate, normalizedActivityMap);
                       }).toList(),
                     );
                   }).toList(),
@@ -149,7 +174,12 @@ class ActivityHeatmap extends StatelessWidget {
     );
   }
 
-  Widget _buildCell(BuildContext context, DateTime date, DateTime endDate) {
+  Widget _buildCell(
+    BuildContext context,
+    DateTime date,
+    DateTime endDate,
+    Map<DateTime, double> normalizedActivityMap,
+  ) {
     final normalizedDate = DateTime(date.year, date.month, date.day);
 
     // 미래 날짜는 비활성화
@@ -169,19 +199,8 @@ class ActivityHeatmap extends StatelessWidget {
       );
     }
 
-    // 해당 날짜의 감정 점수 찾기
-    double? score;
-    for (final entry in activityMap.entries) {
-      final entryDate = DateTime(
-        entry.key.year,
-        entry.key.month,
-        entry.key.day,
-      );
-      if (entryDate == normalizedDate) {
-        score = entry.value;
-        break;
-      }
-    }
+    // 해당 날짜의 감정 점수 찾기 (O(1) 조회)
+    final score = normalizedActivityMap[normalizedDate];
 
     final color = AppColors.getHeatmapColor(score);
     final highlight = Color.lerp(color, Colors.white, 0.35) ?? color;
@@ -270,7 +289,7 @@ class ActivityHeatmap extends StatelessWidget {
   }
 
   String _getTooltipMessage(DateTime date, double? score) {
-    final dateStr = DateFormat('yyyy년 M월 d일').format(date);
+    final dateStr = _tooltipFormatter.format(date);
     if (score == null) {
       return '$dateStr\n쉬어간 날이에요';
     }

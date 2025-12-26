@@ -8,13 +8,16 @@ import '../widgets/mindlog_app_bar.dart';
 
 /// 일기 상세 조회 화면
 class DiaryDetailScreen extends StatelessWidget {
+  // DateFormat 인스턴스 재사용 (생성 비용 최적화)
+  static final DateFormat _dateFormatter =
+      DateFormat('yyyy년 MM월 dd일 (E) a hh:mm', 'ko_KR');
+
   final Diary diary;
 
   const DiaryDetailScreen({super.key, required this.diary});
 
   @override
   Widget build(BuildContext context) {
-    final dateFormatter = DateFormat('yyyy년 MM월 dd일 (E) a hh:mm', 'ko_KR');
 
     return Scaffold(
       appBar: const MindlogAppBar(
@@ -29,7 +32,7 @@ class DiaryDetailScreen extends StatelessWidget {
             children: [
               // 날짜 표시
               Text(
-                dateFormatter.format(diary.createdAt),
+                _dateFormatter.format(diary.createdAt),
                 style: AppTextStyles.bodySmall.copyWith(color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
