@@ -9,7 +9,7 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
 
 env:
-  FLUTTER_VERSION: '3.32.x'
+  FLUTTER_VERSION: '3.38.x'
   JAVA_VERSION: '17'
 
 jobs:
