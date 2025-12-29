@@ -87,6 +87,9 @@ class AnalysisResult {
   /// 응급 상황 여부 (자해/자살 위험 등)
   final bool isEmergency;
 
+  /// AI 캐릭터 ID (설정 시점 기준)
+  final String? aiCharacterId;
+
   AnalysisResult({
     this.keywords = const [],
     this.sentimentScore = 5,
@@ -95,6 +98,7 @@ class AnalysisResult {
     DateTime? analyzedAt,
     this.isActionCompleted = false,
     this.isEmergency = false,
+    this.aiCharacterId,
   }) : analyzedAt = analyzedAt ?? DateTime.now();
 
   factory AnalysisResult.fromJson(Map<String, dynamic> json) => _$AnalysisResultFromJson(json);
@@ -108,6 +112,7 @@ class AnalysisResult {
     DateTime? analyzedAt,
     bool? isActionCompleted,
     bool? isEmergency,
+    String? aiCharacterId,
   }) {
     return AnalysisResult(
       keywords: keywords ?? this.keywords,
@@ -117,6 +122,7 @@ class AnalysisResult {
       analyzedAt: analyzedAt ?? this.analyzedAt,
       isActionCompleted: isActionCompleted ?? this.isActionCompleted,
       isEmergency: isEmergency ?? this.isEmergency,
+      aiCharacterId: aiCharacterId ?? this.aiCharacterId,
     );
   }
 }

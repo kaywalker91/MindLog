@@ -6,7 +6,7 @@ class AppConstants {
 
   // 앱 정보
   static const String _appName = 'MindLog';
-  static const String _appVersion = '1.4.1';
+  static const String _appVersion = '1.4.3';
   static const String _appNameLong = 'MindLog - 마음 케어 다이어리';
   static const String _updateConfigUrl = 'https://kaywalker91.github.io/MindLog/update.json';
 

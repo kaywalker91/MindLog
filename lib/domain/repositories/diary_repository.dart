@@ -1,3 +1,4 @@
+import '../../core/constants/ai_character.dart';
 import '../entities/diary.dart';
 
 /// 일기 저장소 인터페이스 (Domain Layer)
@@ -6,7 +7,10 @@ abstract class DiaryRepository {
   Future<Diary> createDiary(String content);
 
   /// 일기 분석 요청
-  Future<Diary> analyzeDiary(String diaryId);
+  Future<Diary> analyzeDiary(
+    String diaryId, {
+    required AiCharacter character,
+  });
 
   /// 일기 전체 업데이트 (상태 및 분석 결과 포함)
   Future<void> updateDiary(Diary diary);

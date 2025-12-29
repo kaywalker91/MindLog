@@ -1,13 +1,16 @@
 import '../entities/diary.dart';
 import '../repositories/diary_repository.dart';
+import '../repositories/settings_repository.dart';
+import '../../core/constants/ai_character.dart';
 import '../../core/errors/failures.dart';
 import '../../core/constants/safety_constants.dart';
 
 /// 일기 분석 유스케이스
 class AnalyzeDiaryUseCase {
   final DiaryRepository _repository;
+  final SettingsRepository _settingsRepository;
 
-  AnalyzeDiaryUseCase(this._repository);
+  AnalyzeDiaryUseCase(this._repository, this._settingsRepository);
 
   /// 일기 작성 및 분석 실행
   ///
@@ -31,6 +34,7 @@ class AnalyzeDiaryUseCase {
 
       // 1. 로컬에 일기 저장 (pending 상태)
       final diary = await _repository.createDiary(content);
+      final character = await _settingsRepository.getSelectedAiCharacter();
 
       // 2. 사전 안전 필터링 - 응급 키워드 감지 시 즉시 SOS 분기
       if (SafetyConstants.containsEmergencyKeyword(content)) {
@@ -42,6 +46,7 @@ class AnalyzeDiaryUseCase {
           actionItem: '전문 상담사와 대화해 보세요. 1393(자살예방상담전화)으로 연락할 수 있습니다.',
           analyzedAt: DateTime.now(),
           isEmergency: true,
+          aiCharacterId: character.id,
         );
 
         // 로컬 DB 업데이트 (safetyBlocked 상태)
@@ -59,7 +64,10 @@ class AnalyzeDiaryUseCase {
       // 3. AI 분석 요청 (응급 상황이 아닌 경우)
       try {
         final diaryId = diary.id;
-        final analyzedDiary = await _repository.analyzeDiary(diaryId);
+        final analyzedDiary = await _repository.analyzeDiary(
+          diaryId,
+          character: character,
+        );
 
         // AI 응답에서도 응급 상황 체크 (이중 안전망)
         if (analyzedDiary.analysisResult?.isEmergency == true) {

@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 import 'package:mindlog/domain/repositories/diary_repository.dart';
+import 'package:mindlog/domain/repositories/settings_repository.dart';
 import 'package:mindlog/domain/usecases/analyze_diary_usecase.dart';
 
 /// Mock DiaryRepository for testing
@@ -26,7 +28,10 @@ class MockDiaryRepository implements DiaryRepository {
   }
 
   @override
-  Future<Diary> analyzeDiary(String diaryId) async {
+  Future<Diary> analyzeDiary(
+    String diaryId, {
+    required AiCharacter character,
+  }) async {
     if (shouldThrowOnAnalyze) {
       throw Exception(analyzeError ?? 'Analysis failed');
     }
@@ -67,13 +72,29 @@ class MockDiaryRepository implements DiaryRepository {
   Future<void> deleteAllDiaries() async {}
 }
 
+class MockSettingsRepository implements SettingsRepository {
+  AiCharacter selectedCharacter = AiCharacter.warmCounselor;
+
+  @override
+  Future<AiCharacter> getSelectedAiCharacter() async {
+    return selectedCharacter;
+  }
+
+  @override
+  Future<void> setSelectedAiCharacter(AiCharacter character) async {
+    selectedCharacter = character;
+  }
+}
+
 void main() {
   late AnalyzeDiaryUseCase useCase;
   late MockDiaryRepository mockRepository;
+  late MockSettingsRepository mockSettingsRepository;
 
   setUp(() {
     mockRepository = MockDiaryRepository();
-    useCase = AnalyzeDiaryUseCase(mockRepository);
+    mockSettingsRepository = MockSettingsRepository();
+    useCase = AnalyzeDiaryUseCase(mockRepository, mockSettingsRepository);
   });
 
   group('AnalyzeDiaryUseCase', () {

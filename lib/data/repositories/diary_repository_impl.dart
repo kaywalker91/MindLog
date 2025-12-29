@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/constants/ai_character.dart';
 import '../../../domain/entities/diary.dart';
 import '../../../domain/repositories/diary_repository.dart';
 import '../../core/errors/failures.dart';
@@ -36,7 +37,10 @@ class DiaryRepositoryImpl implements DiaryRepository {
   }
 
   @override
-  Future<Diary> analyzeDiary(String diaryId) async {
+  Future<Diary> analyzeDiary(
+    String diaryId, {
+    required AiCharacter character,
+  }) async {
     try {
       final diary = await _localDataSource.getDiaryById(diaryId);
       if (diary == null) {
@@ -44,8 +48,11 @@ class DiaryRepositoryImpl implements DiaryRepository {
       }
 
       // 원격 API 호출
-      final analysisDto = await _remoteDataSource.analyzeDiary(diary.content);
-      final analysisResult = analysisDto.toEntity();
+      final analysisDto =
+          await _remoteDataSource.analyzeDiary(diary.content, character: character);
+      final analysisResult = analysisDto.toEntity().copyWith(
+        aiCharacterId: character.id,
+      );
 
       // 분석 결과를 로컬에 저장
       await _localDataSource.updateDiaryWithAnalysis(diaryId, analysisResult);

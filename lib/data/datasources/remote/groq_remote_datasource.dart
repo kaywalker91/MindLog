@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import '../../../core/constants/ai_character.dart';
 import '../../dto/analysis_response_dto.dart';
 import '../../dtos/analysis_response_parser.dart';
 import '../../../core/constants/app_constants.dart';
@@ -23,18 +24,24 @@ class GroqRemoteDataSource {
       : _client = client ?? http.Client();
 
   /// 일기 내용 분석 (공용 인터페이스)
-  Future<AnalysisResponseDto> analyzeDiary(String content) async {
-    return analyzeDiaryWithRetry(content);
+  Future<AnalysisResponseDto> analyzeDiary(
+    String content, {
+    required AiCharacter character,
+  }) async {
+    return analyzeDiaryWithRetry(content, character: character);
   }
 
   /// 일기 내용 분석 (재시도 로직 포함)
-  Future<AnalysisResponseDto> analyzeDiaryWithRetry(String content) async {
+  Future<AnalysisResponseDto> analyzeDiaryWithRetry(
+    String content, {
+    required AiCharacter character,
+  }) async {
     int attempt = 0;
     Duration currentDelay = _initialDelay;
 
     while (attempt < _maxRetries) {
       try {
-        return await _analyzeDiaryOnce(content);
+        return await _analyzeDiaryOnce(content, character: character);
       } on SocketException catch (e) {
         attempt++;
         if (attempt >= _maxRetries) {
@@ -67,7 +74,10 @@ class GroqRemoteDataSource {
   }
 
   /// 단일 분석 실행
-  Future<AnalysisResponseDto> _analyzeDiaryOnce(String content) async {
+  Future<AnalysisResponseDto> _analyzeDiaryOnce(
+    String content, {
+    required AiCharacter character,
+  }) async {
     // API 키 유효성 검증
     if (_apiKey.isEmpty) {
       throw ApiException(
@@ -76,7 +86,10 @@ class GroqRemoteDataSource {
     }
 
     try {
-      final prompt = PromptConstants.createAnalysisPrompt(content);
+      final prompt = PromptConstants.createAnalysisPrompt(
+        content,
+        character: character,
+      );
       
       final response = await _client.post(
         Uri.parse(_baseUrl),
@@ -89,7 +102,7 @@ class GroqRemoteDataSource {
           'messages': [
             {
               'role': 'system',
-              'content': PromptConstants.systemInstruction
+              'content': PromptConstants.systemInstructionFor(character)
             },
             {
               'role': 'user',

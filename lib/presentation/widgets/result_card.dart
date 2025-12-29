@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/constants/ai_character.dart';
 import '../../domain/entities/diary.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -89,6 +90,7 @@ class _ResultCardState extends State<ResultCard> {
   Widget build(BuildContext context) {
     final analysisResult = widget.diary.analysisResult;
     if (analysisResult == null) return const SizedBox.shrink();
+    final character = aiCharacterFromId(analysisResult.aiCharacterId);
 
     // 응급 상황 처리
     if (analysisResult.isEmergency) {
@@ -98,6 +100,10 @@ class _ResultCardState extends State<ResultCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // 0. AI 캐릭터 배지
+        _buildCharacterBanner(character),
+        const SizedBox(height: 16),
+
         // 1. 감정 대시보드 (온도계 + 이모지)
         _buildSentimentDashboard(),
         const SizedBox(height: 24),
@@ -118,6 +124,73 @@ class _ResultCardState extends State<ResultCard> {
         _buildNewDiaryButton(),
       ],
     ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1, curve: Curves.easeOutQuint);
+  }
+
+  Widget _buildCharacterBanner(AiCharacter character) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.statsPrimary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.statsPrimary.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              character.imagePath,
+              width: 44,
+              height: 44,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 44,
+                  height: 44,
+                  color: Colors.white,
+                  child: Icon(
+                    Icons.auto_awesome,
+                    color: AppColors.statsPrimaryDark,
+                    size: 20,
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'AI 캐릭터',
+                  style: AppTextStyles.label.copyWith(
+                    color: AppColors.statsPrimaryDark,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  character.displayName,
+                  style: AppTextStyles.subtitle.copyWith(
+                    color: AppColors.statsTextPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  character.description,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.statsTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSOSCard(AnalysisResult result) {

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/data/datasources/local/sqlite_local_datasource.dart';
 import 'package:mindlog/data/datasources/remote/groq_remote_datasource.dart';
@@ -109,7 +110,10 @@ class MockGroqRemoteDataSource implements GroqRemoteDataSource {
   AnalysisResponseDto? mockResponse;
 
   @override
-  Future<AnalysisResponseDto> analyzeDiary(String content) async {
+  Future<AnalysisResponseDto> analyzeDiary(
+    String content, {
+    required AiCharacter character,
+  }) async {
     if (shouldThrow) {
       throw Exception(errorMessage ?? 'API Error');
     }
@@ -124,8 +128,11 @@ class MockGroqRemoteDataSource implements GroqRemoteDataSource {
   }
 
   @override
-  Future<AnalysisResponseDto> analyzeDiaryWithRetry(String content) async {
-    return analyzeDiary(content);
+  Future<AnalysisResponseDto> analyzeDiaryWithRetry(
+    String content, {
+    required AiCharacter character,
+  }) async {
+    return analyzeDiary(content, character: character);
   }
 }
 
@@ -243,7 +250,10 @@ void main() {
         );
         mockLocalDataSource.addDiary(testDiary);
 
-        final result = await repository.analyzeDiary('test-analyze');
+        final result = await repository.analyzeDiary(
+          'test-analyze',
+          character: AiCharacter.warmCounselor,
+        );
 
         expect(result.status, DiaryStatus.analyzed);
         expect(result.analysisResult, isNotNull);
@@ -259,14 +269,20 @@ void main() {
         );
         mockLocalDataSource.addDiary(testDiary);
 
-        final result = await repository.analyzeDiary('test-keywords');
+        final result = await repository.analyzeDiary(
+          'test-keywords',
+          character: AiCharacter.warmCounselor,
+        );
 
         expect(result.analysisResult?.keywords, contains('테스트'));
       });
 
       test('존재하지 않는 일기 분석 시 CacheFailure를 던져야 한다', () async {
         expect(
-          () => repository.analyzeDiary('non-existent'),
+          () => repository.analyzeDiary(
+            'non-existent',
+            character: AiCharacter.warmCounselor,
+          ),
           throwsA(isA<CacheFailure>()),
         );
       });

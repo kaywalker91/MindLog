@@ -49,6 +49,11 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
       final useCase = _ref.read(analyzeDiaryUseCaseProvider);
       final diary = await useCase.execute(content);
       state = DiaryAnalysisSuccess(diary);
+      if (diary.status == DiaryStatus.analyzed ||
+          diary.status == DiaryStatus.safetyBlocked) {
+        _ref.invalidate(statisticsProvider);
+        _ref.invalidate(topKeywordsProvider);
+      }
     } on Failure catch (failure) {
       if (failure is SafetyBlockedFailure) {
         state = const DiaryAnalysisSafetyBlocked();
