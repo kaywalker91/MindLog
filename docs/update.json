@@ -1,10 +1,14 @@
 {
-  "latestVersion": "1.4.3",
+  "latestVersion": "1.4.4",
   "minSupportedVersion": "1.3.0",
   "forceUpdate": false,
   "androidUrl": "https://play.google.com/store/apps/details?id=com.mindlog.mindlog",
   "iosUrl": "",
   "changelog": {
+    "1.4.4": [
+      "AI 캐릭터에 친근한 이름이 생겼어요.",
+      "온이(따뜻한 상담사), 콕이(현실적 코치), 웃음이(유쾌한 친구)를 만나보세요."
+    ],
     "1.4.3": [
       "AI 캐릭터 3종을 선택할 수 있어요.",
       "캐릭터별 공감 메시지 톤이 더 뚜렷해졌어요.",
@@ -23,5 +27,5 @@
       "설정 화면에서 앱 버전을 바로 확인할 수 있어요."
     ]
   },
-  "updatedAt": "2025-12-29"
+  "updatedAt": "2025-12-30"
 }

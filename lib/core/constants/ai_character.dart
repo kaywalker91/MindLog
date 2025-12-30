@@ -13,11 +13,19 @@ extension AiCharacterMetadata on AiCharacter {
     };
   }
 
+  String get name {
+    return switch (this) {
+      AiCharacter.warmCounselor => '온이',
+      AiCharacter.realisticCoach => '콕이',
+      AiCharacter.cheerfulFriend => '웃음이',
+    };
+  }
+
   String get displayName {
     return switch (this) {
-      AiCharacter.warmCounselor => '따뜻한 상담사',
-      AiCharacter.realisticCoach => '현실적 코치',
-      AiCharacter.cheerfulFriend => '유쾌한 친구',
+      AiCharacter.warmCounselor => '온이 (따뜻한 상담사)',
+      AiCharacter.realisticCoach => '콕이 (현실적 코치)',
+      AiCharacter.cheerfulFriend => '웃음이 (유쾌한 친구)',
     };
   }
 
