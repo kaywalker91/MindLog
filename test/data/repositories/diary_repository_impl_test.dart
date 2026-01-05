@@ -118,7 +118,7 @@ class MockGroqRemoteDataSource implements GroqRemoteDataSource {
       throw Exception(errorMessage ?? 'API Error');
     }
     return mockResponse ??
-        AnalysisResponseDto(
+        const AnalysisResponseDto(
           keywords: ['테스트', '키워드', '분석'],
           sentimentScore: 7,
           empathyMessage: '테스트 공감 메시지입니다.',
@@ -165,9 +165,9 @@ void main() {
         final diary = await repository.createDiary('테스트 일기');
         final after = DateTime.now();
 
-        expect(diary.createdAt.isAfter(before.subtract(Duration(seconds: 1))),
+        expect(diary.createdAt.isAfter(before.subtract(const Duration(seconds: 1))),
             true);
-        expect(diary.createdAt.isBefore(after.add(Duration(seconds: 1))), true);
+        expect(diary.createdAt.isBefore(after.add(const Duration(seconds: 1))), true);
       });
 
       test('저장 실패 시 CacheFailure를 던져야 한다', () async {

@@ -48,8 +48,8 @@ class _ResultCardState extends State<ResultCard> {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: const [
+        content: const Row(
+          children: [
             Icon(Icons.check_circle, color: Colors.white),
             SizedBox(width: 8),
             Text('작은 성공을 축하해요! 🎉'),
@@ -150,7 +150,7 @@ class _ResultCardState extends State<ResultCard> {
                   width: 44,
                   height: 44,
                   color: Colors.white,
-                  child: Icon(
+                  child: const Icon(
                     Icons.auto_awesome,
                     color: AppColors.statsPrimaryDark,
                     size: 20,

@@ -6,7 +6,7 @@ class AppConstants {
 
   // 앱 정보
   static const String _appName = 'MindLog';
-  static const String _appVersion = '1.4.3';
+  static const String _appVersion = '1.4.6';
   static const String _appNameLong = 'MindLog - 마음 케어 다이어리';
   static const String _updateConfigUrl = 'https://kaywalker91.github.io/MindLog/update.json';
 
@@ -14,10 +14,6 @@ class AppConstants {
   static const int _diaryMinLength = 10;
   static const int _diaryMaxLength = 5000;
 
-  // Gemini API 설정
-  // 최신 Gemini 1.5 Flash Stable 버전 (alias 문제 해결)
-  static const String _geminiModel = 'gemini-1.5-flash-002';
-  
   // Groq Model (최신 안정 버전)
   static const String _groqModel = 'llama-3.3-70b-versatile';
   
@@ -43,9 +39,6 @@ class AppConstants {
   /// 일기 최대 길이
   static int get diaryMaxLength => _diaryMaxLength;
   
-  /// Gemini API 모델
-  static String get geminiModel => _geminiModel;
-
   /// Groq Model
   static String get groqModel => _groqModel;
   

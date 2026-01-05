@@ -24,7 +24,7 @@ class StatisticsScreen extends ConsumerWidget {
         title: Text('감정 통계'),
       ),
       body: statisticsAsync.when(
-        loading: () => Center(
+        loading: () => const Center(
           child: CircularProgressIndicator(
             color: AppColors.statsPrimary,
           ),
@@ -75,13 +75,13 @@ class StatisticsScreen extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.error_outline,
             size: 48,
             color: AppColors.error,
           ),
           const SizedBox(height: 16),
-          Text(
+          const Text(
             '통계를 불러올 수 없어요',
             style: TextStyle(
               color: AppColors.statsTextPrimary,
@@ -91,8 +91,8 @@ class StatisticsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           TextButton.icon(
             onPressed: () => ref.refresh(statisticsProvider),
-            icon: Icon(Icons.refresh, color: AppColors.statsPrimary),
-            label: Text(
+            icon: const Icon(Icons.refresh, color: AppColors.statsPrimary),
+            label: const Text(
               '다시 시도',
               style: TextStyle(color: AppColors.statsPrimary),
             ),
@@ -159,7 +159,7 @@ class StatisticsScreen extends ConsumerWidget {
           const SizedBox(height: 2),
           Text(
             '평균 ${statistics.overallAverageScore.toStringAsFixed(1)}점',
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.statsPrimaryDark,
               fontSize: 14,
               fontWeight: FontWeight.bold,
@@ -167,7 +167,7 @@ class StatisticsScreen extends ConsumerWidget {
           ),
           Text(
             '${statistics.totalDiaries}개의 일기',
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.statsTextSecondary,
               fontSize: 11,
             ),
@@ -192,20 +192,20 @@ class StatisticsScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          const Text(
             '🔥',
-            style: const TextStyle(fontSize: 24),
+            style: TextStyle(fontSize: 24),
           ),
           const SizedBox(height: 2),
           Text(
             '$streak일',
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.statsAccentCoral,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          Text(
+          const Text(
             '연속 작성!',
             style: TextStyle(
               color: AppColors.statsTextSecondary,
@@ -238,7 +238,7 @@ class StatisticsScreen extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.statsTextSecondary,
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -246,7 +246,7 @@ class StatisticsScreen extends ConsumerWidget {
           ),
           Text(
             subtitle,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.statsTextTertiary,
               fontSize: 11,
             ),
@@ -287,7 +287,7 @@ class StatisticsScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             '마음 달력',
             style: TextStyle(
               color: AppColors.statsTextPrimary,
@@ -301,7 +301,7 @@ class StatisticsScreen extends ConsumerWidget {
                 ? '✨ ${_getPeriodLabel(selectedPeriod)} 동안 $recordedDays일 기록했어요 · '
                     '${statistics.totalDiaries}편의 일기'
                 : '아직 기록이 없어요. 오늘의 마음을 남겨볼까요?',
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.statsTextSecondary,
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -465,7 +465,7 @@ class StatisticsScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             '감정 추이',
             style: TextStyle(
               color: AppColors.statsTextPrimary,
@@ -476,7 +476,7 @@ class StatisticsScreen extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             selectedPeriod.displayName,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.statsTextTertiary,
               fontSize: 12,
             ),
@@ -507,7 +507,7 @@ class StatisticsScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             '자주 느낀 감정',
             style: TextStyle(
               color: AppColors.statsTextPrimary,
@@ -518,7 +518,7 @@ class StatisticsScreen extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             '${selectedPeriod.displayName} 감정 패턴 요약',
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.statsTextTertiary,
               fontSize: 12,
             ),
@@ -539,7 +539,7 @@ class StatisticsScreen extends ConsumerWidget {
 
   int _calculateStreak(Map<DateTime, double> activityMap) {
     int streak = 0;
-    DateTime today = DateTime.now();
+    final DateTime today = DateTime.now();
     DateTime checkDate = DateTime(today.year, today.month, today.day);
 
     // 오늘 또는 어제부터 시작 (오늘 아직 안썼을 수 있으므로)

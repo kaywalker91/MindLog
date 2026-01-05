@@ -1,6 +1,6 @@
 import '../../domain/entities/diary.dart';
 
-/// Gemini API 응답 DTO
+/// AI 분석 응답 DTO
 class AnalysisResponseDto {
   /// 감정 키워드 (3개)
   final List<String> keywords;

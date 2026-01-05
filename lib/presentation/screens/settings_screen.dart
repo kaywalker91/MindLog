@@ -36,7 +36,7 @@ class SettingsScreen extends ConsumerWidget {
     final characterLabel = characterAsync.when(
       data: (character) => character.displayName,
       loading: () => '불러오는 중...',
-      error: (_, __) => AiCharacter.warmCounselor.displayName,
+      error: (_, _) => AiCharacter.warmCounselor.displayName,
     );
 
     return Scaffold(
@@ -353,34 +353,40 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                ...AiCharacter.values.map(
-                  (character) => RadioListTile<AiCharacter>(
-                    value: character,
-                    groupValue: selected,
-                    onChanged: (value) async {
-                      if (value == null) return;
-                      await ref
-                          .read(aiCharacterProvider.notifier)
-                          .setCharacter(value);
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    secondary: _buildCharacterThumbnail(character),
-                    controlAffinity: ListTileControlAffinity.trailing,
-                    title: Text(
-                      character.displayName,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurface,
+                // RadioGroup으로 감싸서 groupValue/onChanged 대체 (Flutter 3.32+)
+                RadioGroup<AiCharacter>(
+                  groupValue: selected,
+                  onChanged: (value) async {
+                    if (value == null) return;
+                    await ref
+                        .read(aiCharacterProvider.notifier)
+                        .setCharacter(value);
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: AiCharacter.values.map(
+                      (character) => RadioListTile<AiCharacter>(
+                        value: character,
+                        secondary: _buildCharacterThumbnail(character),
+                        controlAffinity: ListTileControlAffinity.trailing,
+                        title: Text(
+                          character.displayName,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        subtitle: Text(
+                          character.description,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        activeColor: theme.colorScheme.primary,
                       ),
-                    ),
-                    subtitle: Text(
-                      character.description,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    activeColor: theme.colorScheme.primary,
+                    ).toList(),
                   ),
                 ),
               ],
@@ -605,7 +611,7 @@ class SettingsScreen extends ConsumerWidget {
       await repository.deleteAllDiaries();
 
       // 목록 새로고침
-      ref.read(diaryListControllerProvider.notifier).refresh();
+      await ref.read(diaryListControllerProvider.notifier).refresh();
       // 통계 새로고침
       ref.invalidate(statisticsProvider);
 

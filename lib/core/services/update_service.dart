@@ -25,7 +25,7 @@ class UpdateConfig {
   factory UpdateConfig.fromJson(Map<String, dynamic> json) {
     final latestRaw = json['latestVersion'];
     if (latestRaw is! String || latestRaw.trim().isEmpty) {
-      throw FormatException('latestVersion is missing');
+      throw const FormatException('latestVersion is missing');
     }
     final latestVersion = latestRaw.trim();
 
@@ -120,7 +120,7 @@ class UpdateService {
       }
       final decoded = jsonDecode(response.body);
       if (decoded is! Map<String, dynamic>) {
-        throw FormatException('Update config JSON is invalid');
+        throw const FormatException('Update config JSON is invalid');
       }
       return UpdateConfig.fromJson(decoded);
     } finally {

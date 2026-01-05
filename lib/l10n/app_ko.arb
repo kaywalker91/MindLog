@@ -1,0 +1,33 @@
+{
+  "@@locale": "ko",
+  "appName": "MindLog",
+  "ok": "확인",
+  "cancel": "취소",
+  "error": "오류",
+  "loading": "로딩 중...",
+  "save": "저장",
+  "delete": "삭제",
+  "edit": "수정",
+  "settings": "설정",
+  "version": "버전",
+  "privacyPolicy": "개인정보 처리방침",
+  "opensourceLicense": "오픈소스 라이선스",
+  
+  "diaryListTitle": "일기 목록",
+  "diaryListEmpty": "작성된 일기가 없습니다.\n오늘의 마음을 기록해보세요!",
+  "diaryWriteToday": "오늘 기록하기",
+  
+  "analysisWaitMessage": "AI가 일기를 분석하고 있습니다...",
+  "analysisComplete": "분석 완료",
+  "analysisFailed": "분석 실패",
+  
+  "emotionScore": "감정 점수",
+  "keywords": "키워드",
+  "empathyMessage": "공감 메시지",
+  "actionItem": "추천 행동",
+  
+  "alertDeleteTitle": "일기 삭제",
+  "alertDeleteMessage": "정말로 이 일기를 삭제하시겠습니까?",
+  "alertDeleteAllTitle": "모든 일기 삭제",
+  "alertDeleteAllMessage": "정말로 모든 일기를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다."
+}

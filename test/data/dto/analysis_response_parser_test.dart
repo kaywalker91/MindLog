@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mindlog/data/dtos/analysis_response_parser.dart';
+import 'package:mindlog/data/dto/analysis_response_parser.dart';
 
 void main() {
   group('AnalysisResponseParser', () {

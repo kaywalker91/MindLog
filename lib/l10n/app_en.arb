@@ -1,0 +1,33 @@
+{
+  "@@locale": "en",
+  "appName": "MindLog",
+  "ok": "OK",
+  "cancel": "Cancel",
+  "error": "Error",
+  "loading": "Loading...",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "settings": "Settings",
+  "version": "Version",
+  "privacyPolicy": "Privacy Policy",
+  "opensourceLicense": "Open Source License",
+  
+  "diaryListTitle": "Diary List",
+  "diaryListEmpty": "No diaries yet.\nRecord your mind today!",
+  "diaryWriteToday": "Write Today",
+  
+  "analysisWaitMessage": "AI is analyzing your diary...",
+  "analysisComplete": "Analysis Complete",
+  "analysisFailed": "Analysis Failed",
+  
+  "emotionScore": "Emotion Score",
+  "keywords": "Keywords",
+  "empathyMessage": "Empathy Message",
+  "actionItem": "Action Item",
+  
+  "alertDeleteTitle": "Delete Diary",
+  "alertDeleteMessage": "Are you sure you want to delete this diary?",
+  "alertDeleteAllTitle": "Delete All Diaries",
+  "alertDeleteAllMessage": "Are you sure you want to delete all diaries?\nThis action cannot be undone."
+}

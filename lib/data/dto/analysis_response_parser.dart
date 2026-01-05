@@ -1,29 +1,9 @@
 import 'dart:convert';
-import 'package:google_generative_ai/google_generative_ai.dart';
 import '../../core/errors/exceptions.dart';
 import '../../core/utils/korean_text_filter.dart';
 
 /// API 응답 파서 - 다양한 포맷 대응
 class AnalysisResponseParser {
-  /// AI 응답을 안전하게 파싱하고 유효한 분석 결과로 변환
-  static Map<String, dynamic> parseResponse(GenerateContentResponse response) {
-    // GenerateContentResponse에서 텍스트 추출
-    String? text;
-    
-    if (response.candidates.isNotEmpty) {
-      final content = response.candidates.first.content;
-      if (content.parts.isNotEmpty) {
-        final part = content.parts.first;
-        // TextPart는 .text 속성을 가짐
-        if (part is TextPart) {
-          text = part.text;
-        }
-      }
-    }
-    
-    return parseString(text);
-  }
-
   /// 문자열 기반 파싱 (Groq 등 타 API용)
   static Map<String, dynamic> parseString(String? text) {
     if (text == null || text.trim().isEmpty) {
@@ -72,7 +52,7 @@ class AnalysisResponseParser {
   /// 마크다운드 JSON 파싱
   static Map<String, dynamic> _parseAsMarkdownJson(String text) {
     // 다양한 마크다운드 형식 제거
-    String cleanedText = text
+    final String cleanedText = text
         .replaceAll(RegExp(r'```json\s*'), '')
         .replaceAll(RegExp(r'```\s*$'), '')
         .replaceAll(RegExp(r'```\s*'), '')
@@ -186,9 +166,10 @@ class AnalysisResponseParser {
     }
 
     // 키워드 검증 및 한글 필터링
-    if (json['keywords'] is! List ||
-        (json['keywords'] as List).isEmpty ||
-        !(json['keywords'].every((k) => k is String))) {
+    final keywordsRaw = json['keywords'];
+    if (keywordsRaw is! List ||
+        keywordsRaw.isEmpty ||
+        !keywordsRaw.every((k) => k is String)) {
       json['keywords'] = ['감정', '일상'];
     } else {
       // 한문/일본어 필터링 적용

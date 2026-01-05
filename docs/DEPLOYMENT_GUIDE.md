@@ -100,7 +100,6 @@ base64 upload-keystore.jks | xclip -selection clipboard
 | `KEYSTORE_PASSWORD` | 키스토어 비밀번호 | 1.2단계에서 설정한 값 |
 | `KEY_PASSWORD` | 키 비밀번호 | 1.2단계에서 설정한 값 |
 | `KEY_ALIAS` | `upload` | 1.1단계에서 설정한 alias |
-| `GEMINI_API_KEY` | Gemini API 키 | [Google AI Studio](https://aistudio.google.com/apikey) |
 | `GROQ_API_KEY` | Groq API 키 | [Groq Console](https://console.groq.com/keys) |
 | `PLAY_STORE_SERVICE_ACCOUNT_JSON` | Google Play API JSON | 3단계에서 생성 |
 

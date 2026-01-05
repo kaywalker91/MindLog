@@ -70,8 +70,8 @@ class UpdateUpToDateDialog extends StatelessWidget {
   Widget _buildHeader(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
           colors: [
             AppColors.statsPrimary,
             AppColors.statsSecondary,

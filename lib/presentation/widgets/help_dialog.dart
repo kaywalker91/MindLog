@@ -207,7 +207,7 @@ class _HelpSosCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accent = AppColors.sosBorder;
+    const accent = AppColors.sosBorder;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -227,7 +227,7 @@ class _HelpSosCard extends StatelessWidget {
               color: accent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.warning_amber_rounded,
               color: accent,
               size: 22,

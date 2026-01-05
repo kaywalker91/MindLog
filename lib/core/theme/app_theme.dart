@@ -33,7 +33,7 @@ class AppTheme {
           statusBarBrightness: Brightness.dark,      // iOS용
         ),
       ),
-      cardTheme: CardThemeData(
+      cardTheme: const CardThemeData(
         color: backgroundColor,
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -45,13 +45,13 @@ class AppTheme {
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           elevation: 2,
-          shape: RoundedRectangleBorder(
+          shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
         displayLarge: TextStyle(
           color: textColor,
           fontSize: 32,
@@ -98,8 +98,8 @@ class AppTheme {
           statusBarBrightness: Brightness.dark,      // iOS용
         ),
       ),
-      cardTheme: CardThemeData(
-        color: const Color(0xFF2C2C2C),
+      cardTheme: const CardThemeData(
+        color: Color(0xFF2C2C2C),
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -110,7 +110,7 @@ class AppTheme {
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           elevation: 2,
-          shape: RoundedRectangleBorder(
+          shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(8)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

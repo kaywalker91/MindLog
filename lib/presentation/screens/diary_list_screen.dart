@@ -59,8 +59,8 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
           await Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const DiaryScreen()),
           );
-          // 작성 후 돌아오면 목록 새로고침
-          ref.read(diaryListControllerProvider.notifier).refresh();
+        // 작성 후 돌아오면 목록 새로고침
+        await ref.read(diaryListControllerProvider.notifier).refresh();
         },
       ),
     );
@@ -91,7 +91,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
             child: Ink(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [
                     AppColors.statsPrimary,
                     AppColors.statsSecondary,

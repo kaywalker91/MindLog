@@ -5,6 +5,7 @@ import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
 import '../widgets/result_card.dart';
 import '../widgets/mindlog_app_bar.dart';
+import '../widgets/sos_card.dart';
 
 /// 일기 상세 조회 화면
 class DiaryDetailScreen extends StatelessWidget {
@@ -18,7 +19,6 @@ class DiaryDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: const MindlogAppBar(
         title: Text('일기 상세'),
@@ -64,7 +64,7 @@ class DiaryDetailScreen extends StatelessWidget {
                   diary.analysisResult != null) ...[
                 const Divider(),
                 const SizedBox(height: 16),
-                Text(
+                const Text(
                   'AI 마음 분석 리포트',
                   style: AppTextStyles.headline,
                   textAlign: TextAlign.center,
@@ -83,6 +83,17 @@ class DiaryDetailScreen extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: Text('아직 분석되지 않은 일기입니다.'),
+                  ),
+                ),
+              ] else if (diary.status == DiaryStatus.safetyBlocked) ...[
+                const Divider(),
+                const SizedBox(height: 16),
+                SosCard(onClose: () => Navigator.of(context).pop()),
+              ] else if (diary.status == DiaryStatus.failed) ...[
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Text('분석에 실패한 일기입니다.\n네트워크 상태를 확인해주세요.'),
                   ),
                 ),
               ],

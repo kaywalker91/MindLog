@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/constants/ai_character.dart';
+import 'package:mindlog/core/constants/app_constants.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 import 'package:mindlog/domain/repositories/diary_repository.dart';
@@ -120,15 +121,15 @@ void main() {
         );
       });
 
-      test('1000자 초과는 ValidationFailure를 던져야 한다', () async {
-        final longContent = 'a' * 1001;
+      test('최대 길이 초과는 ValidationFailure를 던져야 한다', () async {
+        final longContent = 'a' * (AppConstants.diaryMaxLength + 1);
         expect(
           () => useCase.execute(longContent),
           throwsA(isA<ValidationFailure>()),
         );
       });
 
-      test('10자 이상 1000자 이하는 정상 처리되어야 한다', () async {
+      test('최소 길이 이상이면 정상 처리되어야 한다', () async {
         final result = await useCase.execute('오늘 하루도 열심히 보냈다. 피곤하지만 뿌듯하다.');
         expect(result, isNotNull);
         expect(result.content, contains('오늘'));
@@ -201,10 +202,10 @@ void main() {
         mockRepository.shouldThrowOnAnalyze = true;
         mockRepository.analyzeError = 'API Error';
 
-        final result = await useCase.execute('오늘 하루는 평범하게 지나갔다.');
-
-        expect(result, isNotNull);
-        expect(result.status, DiaryStatus.pending); // 분석 실패 시 pending 상태 유지
+        await expectLater(
+          useCase.execute('오늘 하루는 평범하게 지나갔다.'),
+          throwsA(isA<Failure>()),
+        );
         expect(mockRepository.savedDiaries, isNotEmpty);
       });
     });

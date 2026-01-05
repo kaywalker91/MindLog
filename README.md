@@ -50,17 +50,30 @@ MindLog는 사용자의 일기를 분석하여 감정 상태를 파악하고, �
 
 ## 🚀 시작하기 (Setup)
 
-### 1. 환경 변수 설정 (.env)
+### 1. 환경 변수 설정 (dart-define)
 
-프로젝트 루트 경로에 `.env` 파일을 생성하고 아래와 같이 API 키를 설정해야 합니다.
+보안상 `.env` 파일은 로드하지 않습니다. `--dart-define` 또는 제공된 스크립트로 키를 주입하세요.
 
-```env
-# Groq API Key (권장 - 속도 빠름)
-# 키 발급: https://console.groq.com/keys
-GROQ_API_KEY=your_groq_api_key_here
+#### 방법 A: dart-define 🔐
 
-# (선택 사항) Gemini API Key (구버전 호환용)
-GEMINI_API_KEY=your_gemini_api_key_here
+```bash
+# 개발 실행
+flutter run --dart-define=GROQ_API_KEY=your_key
+
+# 릴리즈 APK 빌드
+flutter build apk --release --dart-define=GROQ_API_KEY=your_key
+
+# 릴리즈 App Bundle 빌드
+flutter build appbundle --release --dart-define=GROQ_API_KEY=your_key
+```
+
+#### 방법 B: 스크립트 사용
+
+```bash
+# 키를 환경 변수로 전달
+GROQ_API_KEY=your_key ./scripts/run.sh run
+GROQ_API_KEY=your_key ./scripts/run.sh build-apk
+GROQ_API_KEY=your_key ./scripts/run.sh build-appbundle
 ```
 
 ### 2. 패키지 설치
@@ -72,12 +85,21 @@ flutter pub get
 ### 3. 앱 실행
 
 ```bash
-flutter run
+flutter run --dart-define=GROQ_API_KEY=your_key
+# 또는
+GROQ_API_KEY=your_key ./scripts/run.sh run
 ```
+
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.5 (Current)
+### v1.4.6 (Current)
+*   **분석 안정성 강화:** 실패/차단 상태 처리가 명확해지고 재시도 흐름이 정리됐어요.
+*   **로딩 애니메이션 안정화:** dispose 이후 컨트롤러 호출을 방지해 런타임 오류를 줄였어요.
+*   **Groq 전용 파이프라인 정리:** Gemini 폴백과 dotenv 의존성을 제거하고 dart-define 실행으로 통일했어요.
+*   **네트워크 보호 로직 추가:** 서킷 브레이커로 반복 실패를 제어해요.
+
+### v1.4.5
 *   **원격 변경사항 연동:** 변경사항 화면이 GitHub Pages JSON에서 실시간 데이터를 가져오도록 개선
 *   **이전 버전 변경사항 표시:** 최신 버전 외에 이전 버전들의 변경사항도 접이식으로 확인 가능
 *   **네트워크 오류 처리 개선:** 변경사항 로딩 실패 시 재시도 버튼 제공
@@ -185,9 +207,9 @@ flutter run
 *   **테스트 추가:** 핵심 로직 단위 테스트 구현
 
 ### v1.0.1
-*   **AI 모델 변경:** Google Gemini (`gemini-1.5-flash`)의 속도 제한 및 응답 지연 문제를 해결하기 위해 **Groq (`llama-3.3-70b-versatile`)** 로 전면 교체하였습니다.
+*   **AI 모델 변경:** Groq (`llama-3.3-70b-versatile`)로 전면 교체하였습니다.
 *   **응답 속도 개선:** 분석 대기 시간이 획기적으로 단축되었습니다.
-*   **보안 강화:** API Key를 소스 코드에서 분리하여 `.env` 파일로 관리하도록 수정하였습니다.
+*   **보안 강화:** API Key를 `--dart-define`으로 주입하도록 변경했습니다.
 
 ## 🏗 프로젝트 구조
 

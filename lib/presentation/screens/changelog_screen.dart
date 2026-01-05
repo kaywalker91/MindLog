@@ -43,7 +43,7 @@ class ChangelogScreen extends ConsumerWidget {
       ),
       body: configAsync.when(
         loading: () => _buildLoadingState(context),
-        error: (_, __) => _buildErrorState(context, ref),
+        error: (_, _) => _buildErrorState(context, ref),
         data: (config) => _buildContent(context, config),
       ),
     );

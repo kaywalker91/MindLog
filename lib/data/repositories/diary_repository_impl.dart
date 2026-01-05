@@ -77,7 +77,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
         debugPrint('Stack Trace: $stackTrace');
         return true;
       }());
-      throw CacheFailure(message: '일기 분석 실패');
+      throw const CacheFailure(message: '일기 분석 실패');
     }
   }
 

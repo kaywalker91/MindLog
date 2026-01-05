@@ -41,7 +41,7 @@ class KeywordTags extends StatelessWidget {
             .scale(begin: const Offset(0.98, 0.98), duration: 250.ms),
         if (remainingKeywords.isNotEmpty) ...[
           const SizedBox(height: 14),
-          Text(
+          const Text(
             '다음으로 많이 느낀 감정',
             style: TextStyle(
               color: AppColors.statsTextSecondary,
@@ -115,7 +115,7 @@ class KeywordTags extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.statsTextSecondary,
               fontSize: 11,
               fontWeight: FontWeight.w600,
@@ -148,7 +148,7 @@ class KeywordTags extends StatelessWidget {
               color: AppColors.statsPrimary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.star_rounded,
               color: AppColors.statsPrimaryDark,
               size: 24,
@@ -159,7 +159,7 @@ class KeywordTags extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   '대표 감정',
                   style: TextStyle(
                     color: AppColors.statsTextTertiary,
@@ -170,7 +170,7 @@ class KeywordTags extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   topEntry.key,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.statsTextPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -181,7 +181,7 @@ class KeywordTags extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   '키워드 등장 ${topEntry.value}회',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.statsTextSecondary,
                     fontSize: 12,
                   ),
@@ -236,7 +236,7 @@ class KeywordTags extends StatelessWidget {
               Expanded(
                 child: Text(
                   keyword,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppColors.statsTextPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -247,7 +247,7 @@ class KeywordTags extends StatelessWidget {
               ),
               Text(
                 '$frequency회',
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.statsTextSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -287,7 +287,7 @@ class KeywordTags extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '키워드 등장 비율 $percent%',
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.statsTextTertiary,
               fontSize: 11,
             ),
@@ -308,7 +308,7 @@ class KeywordTags extends StatelessWidget {
       child: Center(
         child: Text(
           '#$rank',
-          style: TextStyle(
+          style: const TextStyle(
             color: AppColors.statsPrimaryDark,
             fontSize: 11,
             fontWeight: FontWeight.w700,
@@ -324,9 +324,9 @@ class KeywordTags extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    return Center(
+    return const Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
+        padding: EdgeInsets.symmetric(vertical: 24),
         child: Column(
           children: [
             Icon(
@@ -334,7 +334,7 @@ class KeywordTags extends StatelessWidget {
               size: 40,
               color: AppColors.statsTextTertiary,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(
               '감정 패턴이 아직 없어요',
               style: TextStyle(
@@ -342,7 +342,7 @@ class KeywordTags extends StatelessWidget {
                 fontSize: 14,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               '분석된 일기가 쌓이면 대표 감정과 비율을 알려드려요',
               style: TextStyle(

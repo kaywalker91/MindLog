@@ -141,7 +141,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                     const SizedBox(height: 20),
 
                     // 애니메이션 로딩
-                    LoadingIndicator(
+                    const LoadingIndicator(
                       message: '마음 기록을 준비 중이에요',
                       subMessage: '따뜻한 마음 케어를 준비하고 있어요',
                       accentColor: AppColors.statsPrimaryDark,
@@ -183,7 +183,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
         child: Ink(
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [
                 AppColors.statsPrimary,
                 AppColors.statsSecondary,

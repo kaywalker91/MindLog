@@ -18,7 +18,7 @@ class AppStrings {
 
   // 에러 메시지
   static const String errorMinLength = '최소 10자 이상 입력해주세요.';
-  static const String errorMaxLength = '최대 1,000자까지 입력 가능합니다.';
+  static const String errorMaxLength = '최대 5,000자까지 입력 가능합니다.';
   static const String errorNetworkFailed = '네트워크 연결을 확인해주세요.';
   static const String errorApiKeyMissing = 'API 키가 설정되지 않았습니다.';
   static const String errorAnalysisFailed = '분석 중 오류가 발생했습니다.';

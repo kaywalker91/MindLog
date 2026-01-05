@@ -1,7 +1,7 @@
 # [PRD] AI 기반 감정 케어 다이어리 "MindLog" MVP (Revised)
 
 ## 1. 프로젝트 개요
-* **목표:** 사용자의 텍스트 일기를 Google Gemini API(1.5 Flash)로 분석하여, 즉각적인 위로와 행동 지침을 제공하는 핵심 루프(Core Loop) 검증.
+* **목표:** 사용자의 텍스트 일기를 Groq API로 분석하여, 즉각적인 위로와 행동 지침을 제공하는 핵심 루프(Core Loop) 검증.
 * **타겟:** 번아웃을 겪는 직장인 및 개발자 (초기 Niche 타겟).
 * **플랫폼:** Flutter (Android / iOS).
 * **일정:** 1주 (핵심 기능 구현 및 배포 기준).
@@ -11,12 +11,12 @@
 
 * **Framework:** Flutter (Latest Stable)
 * **Language:** Dart
-* **AI Model:** Gemini 1.5 Flash (속도 최우선, JSON Mode 지원)
-* **AI Client:** `google_generative_ai`
+* **AI Model:** Groq Llama 3.3 70B (JSON Mode 지원)
+* **AI Client:** `http` (OpenAI 호환 API)
 * **State Management:** `flutter_riverpod` (v2.x, Code Generation 권장)
 * **Data Class & Serialization:** `freezed`, `json_serializable` (불변성 및 JSON 파싱 안정성 확보)
 * **Local Database:** `isar` (NoSQL, 비동기 처리 우수, Full-text Search 지원)
-* **Environment:** `flutter_dotenv` (API Key 보안)
+* **Environment:** `--dart-define` (API Key 보안)
 * **UI Utils:** `flutter_animate` (결과 카드 등장 효과), `intl` (날짜 포맷팅)
 
 ## 3. 주요 기능 명세 (Feature Specifications)
@@ -27,11 +27,11 @@
     * 감성적인 배경 혹은 깔끔한 텍스트 필드.
     * "마음 털어놓기" 버튼 (Action Trigger).
 * **로직:**
-    * 최소 10자 ~ 최대 1,000자 유효성 검사.
+* 최소 10자 ~ 최대 5,000자 유효성 검사.
     * 작성 완료 시 즉시 Isar DB에 `status: pending` 상태로 우선 저장 (데이터 유실 방지).
 
 ### F2. AI 감정 분석 및 코칭 (AI Analysis) [Core]
-* **기능:** Gemini API를 호출하여 정형화된 JSON 데이터 수신.
+* **기능:** Groq API를 호출하여 정형화된 JSON 데이터 수신.
 * **설정(Config):**
     * `generationConfig` 내 `responseMimeType: 'application/json'` 설정 필수.
 * **데이터 스키마 (JSON):**
@@ -66,7 +66,7 @@
     * `UseCase` (Optional): `AnalyzeDiaryUseCase` (비즈니스 로직이 복잡해질 경우 추가).
 3.  **Data Layer (Implementation)**
     * `DataSource`:
-        * `GeminiRemoteDataSource`: API 통신 (`google_generative_ai`).
+        * `GroqRemoteDataSource`: API 통신 (`http`).
         * `IsarLocalDataSource`: DB CRUD.
     * `Repository Implementation`: `DiaryRepositoryImpl` (Data Source를 조율하여 Domain Entity 반환).
     * `DTO`: `DiaryDto`, `AnalysisResponseDto` (JSON/DB 모델 변환).

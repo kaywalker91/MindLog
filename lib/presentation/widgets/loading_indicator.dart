@@ -44,7 +44,7 @@ class LoadingIndicator extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // AI 로딩 애니메이션 (개선된 스타일)
-          _buildLoadingIcon(accent, surface, iconSize, innerIconSize),
+          _buildLoadingIcon(context, accent, surface, iconSize, innerIconSize),
           const SizedBox(height: 28),
 
           // 메시지 카드 (개선된 스타일)
@@ -52,7 +52,7 @@ class LoadingIndicator extends StatelessWidget {
           const SizedBox(height: 20),
 
           // 점 애니메이션 (개선된 스타일)
-          _buildDotsAnimation(accent),
+          _buildDotsAnimation(context, accent),
         ],
       ),
     );
@@ -66,6 +66,7 @@ class LoadingIndicator extends StatelessWidget {
 
   /// 로딩 아이콘 위젯 (그라데이션 링 + 뇌 아이콘)
   Widget _buildLoadingIcon(
+    BuildContext context,
     Color accent,
     Color surface,
     double size,
@@ -101,9 +102,7 @@ class LoadingIndicator extends StatelessWidget {
             ),
           )
               .animate(
-                onPlay: (controller) => WidgetsBinding.instance.addPostFrameCallback((_) {
-                  controller.repeat();
-                }),
+                onPlay: (controller) => _repeatIfMounted(context, controller),
               )
               .scale(
                 begin: const Offset(0.95, 0.95),
@@ -143,9 +142,7 @@ class LoadingIndicator extends StatelessWidget {
             color: accent,
           )
               .animate(
-                onPlay: (controller) => WidgetsBinding.instance.addPostFrameCallback((_) {
-                  controller.repeat();
-                }),
+                onPlay: (controller) => _repeatIfMounted(context, controller),
               )
               .scale(
                 begin: const Offset(0.85, 0.85),
@@ -184,9 +181,7 @@ class LoadingIndicator extends StatelessWidget {
                     ),
                   )
                       .animate(
-                        onPlay: (controller) => WidgetsBinding.instance.addPostFrameCallback((_) {
-                          controller.repeat();
-                        }),
+                        onPlay: (controller) => _repeatIfMounted(context, controller),
                         delay: Duration(milliseconds: 150 * index),
                       )
                       .fadeIn(duration: const Duration(milliseconds: 400))
@@ -291,7 +286,7 @@ class LoadingIndicator extends StatelessWidget {
   }
 
   /// 점 애니메이션 위젯 (물결 효과)
-  Widget _buildDotsAnimation(Color accent) {
+  Widget _buildDotsAnimation(BuildContext context, Color accent) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
@@ -320,9 +315,7 @@ class LoadingIndicator extends StatelessWidget {
           ),
         )
             .animate(
-              onPlay: (controller) => WidgetsBinding.instance.addPostFrameCallback((_) {
-                controller.repeat();
-              }),
+              onPlay: (controller) => _repeatIfMounted(context, controller),
               delay: Duration(milliseconds: 200 * index),
             )
             .scaleXY(
@@ -351,5 +344,14 @@ class LoadingIndicator extends StatelessWidget {
             );
       }),
     );
+  }
+
+  void _repeatIfMounted(BuildContext context, AnimationController controller) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) {
+        return;
+      }
+      controller.repeat();
+    });
   }
 }

@@ -5,24 +5,72 @@
 # IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
 # invoked from the command line by running `flutter analyze`.
 
-# The following line activates a set of recommended lints for Flutter apps,
-# packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
-linter:
-  # The lint rules applied to this project can be customized in the
-  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
-  # included above or to enable additional rules. A list of all available lints
-  # and their documentation is published at https://dart.dev/lints.
-  #
-  # Instead of disabling a lint rule for the entire project in the
-  # section below, it can also be suppressed for a single line of code
-  # or a specific dart file by using the `// ignore: name_of_lint` and
-  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
-  # producing the lint.
-  rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+analyzer:
+  errors:
+    # 에러로 처리할 린트
+    missing_return: error
+    missing_required_param: error
+    must_be_immutable: error
 
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "build/**"
+    - ".dart_tool/**"
+
+linter:
+  rules:
+    # ===== 성능 관련 =====
+    prefer_const_constructors: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_final_locals: true
+    prefer_final_in_for_each: true
+
+    # ===== 코드 품질 =====
+    avoid_print: true # debugPrint 사용 권장
+    avoid_empty_else: true
+    avoid_unnecessary_containers: true
+    avoid_web_libraries_in_flutter: true
+    prefer_is_empty: true
+    prefer_is_not_empty: true
+    prefer_single_quotes: true
+    use_key_in_widget_constructors: true
+
+    # ===== null 안전성 =====
+    avoid_null_checks_in_equality_operators: true
+    prefer_null_aware_operators: true
+    prefer_null_aware_method_calls: true
+
+    # ===== 타입 안전성 =====
+    always_declare_return_types: true
+    avoid_dynamic_calls: true
+    prefer_typing_uninitialized_variables: true
+
+    # ===== 가독성 =====
+    curly_braces_in_flow_control_structures: true
+    prefer_adjacent_string_concatenation: true
+    prefer_interpolation_to_compose_strings: true
+    unnecessary_brace_in_string_interps: true
+    unnecessary_string_escapes: true
+    unnecessary_string_interpolations: true
+
+    # ===== 유지보수성 =====
+    avoid_function_literals_in_foreach_calls: true
+    avoid_returning_null_for_void: true
+    prefer_expression_function_bodies: false # 복잡한 로직에서는 블록 바디가 더 명확
+    sort_child_properties_last: true
+    unawaited_futures: true
+
+    # ===== 문서화 =====
+    # public_member_api_docs: true  # 나중에 활성화
+    slash_for_doc_comments: true
+
+    # ===== 비활성화 규칙 =====
+    # 아래 규칙들은 프로젝트 특성상 비활성화
+    # library_private_types_in_public_api: false
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+

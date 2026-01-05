@@ -31,5 +31,5 @@
 - Note the tests you ran (e.g., `flutter test`, `flutter analyze`).
 
 ## Configuration & Secrets
-- Copy `.env.example` to `.env` and set API keys (Groq or Gemini).
-- Never commit `.env` or secrets to git.
+- Use `--dart-define` or `scripts/run.sh` to inject the Groq API key; `.env` is not loaded.
+- Never commit secrets to git.

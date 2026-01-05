@@ -46,40 +46,26 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
 
   void _onSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
-      _showNetworkFeedback(
-        statusType: NetworkStatusType.loading,
-        message: 'AI가 당신의 마음을 분석하고 있어요...',
-      );
-      
-      ref
-          .read(diaryAnalysisControllerProvider.notifier)
-          .analyzeDiary(_textController.text)
-          .catchError((e) {
-        _handleAnalysisError(e);
-      });
+      _startAnalysis();
     }
   }
 
-  void _handleAnalysisError(Object error) {
-    // 오류 타입에 따른 피드백 표시
-    if (error.toString().contains('네트워크') || 
-        error.toString().contains('연결')) {
-      _showNetworkFeedback(
-        statusType: NetworkStatusType.networkError,
-        message: '인터넷 연결을 확인해주세요.\n자동으로 재시도합니다...',
-      );
-    } else if (error.toString().contains('파싱') ||
-               error.toString().contains('응답')) {
-      _showNetworkFeedback(
-        statusType: NetworkStatusType.apiError,
-        message: '서버 응답 처리 중 문제가 발생했습니다.\n다시 시도해주세요.',
-      );
-    } else {
-      _showNetworkFeedback(
-        statusType: NetworkStatusType.apiError,
-        message: error.toString(),
-      );
+  void _onRetryAnalysis() {
+    _startAnalysis();
+  }
+
+  void _startAnalysis() {
+    if (!mounted) {
+      return;
     }
+    _showNetworkFeedback(
+      statusType: NetworkStatusType.loading,
+      message: 'AI가 당신의 마음을 분석하고 있어요...',
+    );
+
+    ref.read(diaryAnalysisControllerProvider.notifier).analyzeDiary(
+          _textController.text,
+        );
   }
 
   void _showNetworkFeedback({
@@ -104,7 +90,7 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
     _hideNetworkFeedback();
     // 잠시 후 다시 시도
     Future.delayed(const Duration(milliseconds: 500), () {
-      _onSubmit();
+      _startAnalysis();
     });
   }
 
@@ -131,22 +117,33 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
 
     // 분석 상태 변경 감지
     ref.listen(diaryAnalysisControllerProvider, (previous, next) {
+      if (!mounted) {
+        return;
+      }
+
+      if (next is DiaryAnalysisError || next is DiaryAnalysisSafetyBlocked) {
+        _hideNetworkFeedback();
+      }
+
       if (previous is DiaryAnalysisLoading && next is DiaryAnalysisSuccess) {
         _showNetworkFeedback(
           statusType: NetworkStatusType.retrySuccess,
           message: '성공적으로 분석이 완료되었습니다!',
         );
-        
+
         // 2초 후 자동 숨김
         Future.delayed(const Duration(seconds: 2), () {
+          if (!mounted) {
+            return;
+          }
           _hideNetworkFeedback();
         });
       }
     });
 
     return Scaffold(
-      appBar: MindlogAppBar(
-        title: const Text(AppStrings.diaryScreenTitle),
+      appBar: const MindlogAppBar(
+        title: Text(AppStrings.diaryScreenTitle),
       ),
       body: Stack(
         children: [
@@ -256,13 +253,13 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // 인트로 텍스트
-          Text(
+          const Text(
             '오늘 하루는 어떠셨나요?',
             style: AppTextStyles.headline,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             '마음 속 이야기를 자유롭게 적어보세요.',
             style: AppTextStyles.bodySmall,
             textAlign: TextAlign.center,
@@ -327,9 +324,22 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: _onReset,
-          child: const Text(AppStrings.tryAgainButton),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _onReset,
+                child: const Text('목록으로'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _onRetryAnalysis,
+                child: const Text(AppStrings.tryAgainButton),
+              ),
+            ),
+          ],
         ),
       ],
     );

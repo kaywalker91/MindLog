@@ -102,7 +102,7 @@ class ActivityHeatmap extends StatelessWidget {
                       width: label.weekSpan * (_cellSize + _cellMargin * 2),
                       child: Text(
                         label.month,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppColors.statsTextTertiary,
                           fontSize: 10,
                         ),
@@ -254,7 +254,7 @@ class ActivityHeatmap extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Text(
+        const Text(
           '기분 온도',
           style: TextStyle(
             color: AppColors.statsTextTertiary,

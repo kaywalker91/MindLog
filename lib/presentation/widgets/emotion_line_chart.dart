@@ -37,7 +37,7 @@ class EmotionLineChart extends StatelessWidget {
             drawVerticalLine: false,
             horizontalInterval: 2,
             getDrawingHorizontalLine: (value) {
-              return FlLine(
+              return const FlLine(
                 color: AppColors.statsCardBorder,
                 strokeWidth: 1,
               );
@@ -64,7 +64,7 @@ class EmotionLineChart extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         _shortDateFormatter.format(date),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppColors.statsTextTertiary,
                           fontSize: 10,
                         ),
@@ -86,7 +86,7 @@ class EmotionLineChart extends StatelessWidget {
                   }
                   return Text(
                     value.toInt().toString(),
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColors.statsTextTertiary,
                       fontSize: 10,
                     ),
@@ -168,7 +168,7 @@ class EmotionLineChart extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    return SizedBox(
+    return const SizedBox(
       height: 200,
       child: Center(
         child: Column(
@@ -179,7 +179,7 @@ class EmotionLineChart extends StatelessWidget {
               size: 48,
               color: AppColors.statsTextTertiary,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(
               '아직 분석된 일기가 없어요',
               style: TextStyle(
@@ -190,7 +190,7 @@ class EmotionLineChart extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               '일기를 작성하면 감정 추이를 볼 수 있어요',
               style: TextStyle(

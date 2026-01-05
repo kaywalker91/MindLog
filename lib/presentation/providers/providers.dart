@@ -1,5 +1,5 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/config/environment_service.dart';
 import '../../data/datasources/local/sqlite_local_datasource.dart';
 import '../../data/datasources/local/preferences_local_datasource.dart';
 import '../../data/datasources/remote/groq_remote_datasource.dart';
@@ -14,6 +14,7 @@ import '../../domain/usecases/analyze_diary_usecase.dart';
 import '../../domain/usecases/get_selected_ai_character_usecase.dart';
 import '../../domain/usecases/get_statistics_usecase.dart';
 import '../../domain/usecases/set_selected_ai_character_usecase.dart';
+import '../../core/network/circuit_breaker.dart';
 
 /// SQLite 로컬 데이터 소스 Provider
 final sqliteLocalDataSourceProvider = Provider<SqliteLocalDataSource>((ref) {
@@ -26,11 +27,23 @@ final preferencesLocalDataSourceProvider =
   return PreferencesLocalDataSource();
 });
 
+/// 서킷 브레이커 Provider
+final circuitBreakerProvider = Provider<CircuitBreaker>((ref) {
+  return CircuitBreaker(
+    config: const CircuitBreakerConfig(
+      failureThreshold: 3,
+      resetTimeout: Duration(minutes: 1),
+    ),
+  );
+});
+
 /// Groq 원격 데이터 소스 Provider
-/// API 키가 없으면 빈 문자열로 인스턴스 생성 (실제 API 호출 시점에 에러 발생)
 final groqRemoteDataSourceProvider = Provider<GroqRemoteDataSource>((ref) {
-  final apiKey = dotenv.env['GROQ_API_KEY'] ?? '';
-  return GroqRemoteDataSource(apiKey);
+  final apiKey = EnvironmentService.groqApiKey;
+  return GroqRemoteDataSource(
+    apiKey,
+    circuitBreaker: ref.watch(circuitBreakerProvider),
+  );
 });
 
 /// DiaryRepository Provider

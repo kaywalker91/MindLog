@@ -5,10 +5,12 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/constants/ai_character.dart';
 import '../../dto/analysis_response_dto.dart';
-import '../../dtos/analysis_response_parser.dart';
+import '../../dto/analysis_response_parser.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/prompt_constants.dart';
 import '../../../core/errors/exceptions.dart';
+
+import '../../../core/network/circuit_breaker.dart';
 
 /// Groq API 원격 데이터 소스
 class GroqRemoteDataSource {
@@ -19,15 +21,20 @@ class GroqRemoteDataSource {
   final String _apiKey;
   final String _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
   final http.Client _client;
+  final CircuitBreaker? _circuitBreaker;
 
-  GroqRemoteDataSource(this._apiKey, {http.Client? client}) 
-      : _client = client ?? http.Client();
+  GroqRemoteDataSource(this._apiKey, {http.Client? client, CircuitBreaker? circuitBreaker}) 
+      : _client = client ?? http.Client(),
+        _circuitBreaker = circuitBreaker;
 
   /// 일기 내용 분석 (공용 인터페이스)
   Future<AnalysisResponseDto> analyzeDiary(
     String content, {
     required AiCharacter character,
   }) async {
+    if (_circuitBreaker != null) {
+      return _circuitBreaker.run(() => analyzeDiaryWithRetry(content, character: character));
+    }
     return analyzeDiaryWithRetry(content, character: character);
   }
 
@@ -81,7 +88,8 @@ class GroqRemoteDataSource {
     // API 키 유효성 검증
     if (_apiKey.isEmpty) {
       throw ApiException(
-        message: 'API 키가 설정되지 않았습니다. .env 파일에 GROQ_API_KEY를 설정해주세요.',
+        message: 'API 키가 설정되지 않았습니다. '
+            '--dart-define=GROQ_API_KEY=... 또는 ./scripts/run.sh로 주입해주세요.',
       );
     }
 
@@ -122,13 +130,15 @@ class GroqRemoteDataSource {
         );
       }
 
-      final data = jsonDecode(utf8.decode(response.bodyBytes));
-      if (data['choices'] == null || (data['choices'] as List).isEmpty) {
+      final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      final choices = data['choices'] as List<dynamic>?;
+      if (choices == null || choices.isEmpty) {
         throw ApiException(message: 'Groq API 응답이 비어있습니다.');
       }
 
-      final choice = data['choices'][0];
-      final messageContent = choice['message']['content'] as String;
+      final choice = choices[0] as Map<String, dynamic>;
+      final message = choice['message'] as Map<String, dynamic>;
+      final messageContent = message['content'] as String;
       
       try {
         final jsonResult = AnalysisResponseParser.parseString(messageContent);
