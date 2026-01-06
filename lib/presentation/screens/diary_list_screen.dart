@@ -7,6 +7,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
 import '../providers/diary_list_controller.dart';
+import '../widgets/delete_diary_dialog.dart';
 import '../widgets/mindlog_app_bar.dart';
 import 'diary_screen.dart';
 import 'diary_detail_screen.dart';
@@ -158,10 +159,34 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
           final diary = diaries[index];
           return KeyedSubtree(
             key: ValueKey(diary.id),
-            child: _buildDiaryItem(diary),
+            child: _buildSwipeableDiaryItem(diary),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildSwipeableDiaryItem(Diary diary) {
+    return Dismissible(
+      key: ValueKey('dismissible_${diary.id}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(Icons.delete, color: Colors.white, size: 28),
+      ),
+      confirmDismiss: (direction) async {
+        return await DeleteDiaryDialog.show(
+          context,
+          diary: diary,
+          popAfterDelete: false,
+        );
+      },
+      child: _buildDiaryItem(diary),
     );
   }
 

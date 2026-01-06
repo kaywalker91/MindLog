@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
+import '../widgets/delete_diary_dialog.dart';
 import '../widgets/result_card.dart';
 import '../widgets/mindlog_app_bar.dart';
 import '../widgets/sos_card.dart';
 
 /// 일기 상세 조회 화면
-class DiaryDetailScreen extends StatelessWidget {
+class DiaryDetailScreen extends ConsumerWidget {
   // DateFormat 인스턴스 재사용 (생성 비용 최적화)
   static final DateFormat _dateFormatter =
       DateFormat('yyyy년 MM월 dd일 (E) a hh:mm', 'ko_KR');
@@ -18,10 +20,23 @@ class DiaryDetailScreen extends StatelessWidget {
   const DiaryDetailScreen({super.key, required this.diary});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: const MindlogAppBar(
-        title: Text('일기 상세'),
+      appBar: MindlogAppBar(
+        title: const Text('일기 상세'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.delete_outline, color: colorScheme.error),
+            tooltip: '일기 삭제',
+            onPressed: () => DeleteDiaryDialog.show(
+              context,
+              diary: diary,
+              popAfterDelete: true,
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         bottom: false, // 하단은 수동으로 처리

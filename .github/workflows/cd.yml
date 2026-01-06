@@ -92,11 +92,17 @@ jobs:
 
       # AAB 빌드
       - name: Build App Bundle (Release)
-        run: flutter build appbundle --release
+        run: |
+          flutter build appbundle --release \
+            --dart-define=GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
+            --dart-define=ENVIRONMENT=production
 
       # APK도 함께 빌드 (테스트 배포용)
       - name: Build APK (Release)
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release \
+            --dart-define=GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
+            --dart-define=ENVIRONMENT=production
 
       # Play Store 배포
       - name: Deploy to Play Store (Internal Track)
