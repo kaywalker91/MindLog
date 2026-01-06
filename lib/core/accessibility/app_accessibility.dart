@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:characters/characters.dart';
 
 /// 앱 전역 접근성 설정 및 유틸리티
 /// 
@@ -67,8 +68,8 @@ class AppAccessibility {
     final keywordStr = keywords.isNotEmpty 
         ? '키워드: ${keywords.join(', ')}' 
         : '';
-    final preview = contentPreview.length > 50 
-        ? '${contentPreview.substring(0, 50)}...' 
+    final preview = contentPreview.characters.length > 50 
+        ? '${contentPreview.characters.take(50)}...' 
         : contentPreview;
 
     return '$dateStr 작성된 일기. $emotionStr. $preview. $keywordStr';

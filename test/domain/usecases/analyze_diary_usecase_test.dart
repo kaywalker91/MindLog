@@ -70,6 +70,13 @@ class MockDiaryRepository implements DiaryRepository {
   Future<void> markActionCompleted(String diaryId) async {}
 
   @override
+  Future<void> toggleDiaryPin(String diaryId, bool isPinned) async {
+    if (mockDiary != null && mockDiary!.id == diaryId) {
+      mockDiary = mockDiary!.copyWith(isPinned: isPinned);
+    }
+  }
+
+  @override
   Future<void> deleteAllDiaries() async {}
 }
 

@@ -7,7 +7,7 @@ import '../../../core/errors/exceptions.dart';
 
 /// SQLite 로컬 데이터 소스
 class SqliteLocalDataSource {
-  static const int _currentVersion = 2;
+  static const int _currentVersion = 3;
   static Database? _database;
 
   /// 테스트용 데이터베이스 초기화 (기존 연결 종료 후 재설정)
@@ -44,7 +44,8 @@ class SqliteLocalDataSource {
         content TEXT NOT NULL,
         created_at TEXT NOT NULL,
         status TEXT NOT NULL,
-        analysis_result TEXT
+        analysis_result TEXT,
+        is_pinned INTEGER DEFAULT 0
       )
     ''');
 
@@ -62,6 +63,12 @@ class SqliteLocalDataSource {
       await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_diaries_status_created_at ON diaries(status, created_at)',
       );
+    }
+    
+    // 버전 2 → 3: is_pinned 컬럼 추가 (일기 고정 기능)
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE diaries ADD COLUMN is_pinned INTEGER DEFAULT 0');
+      await db.execute('CREATE INDEX IF NOT EXISTS idx_diaries_is_pinned ON diaries(is_pinned)');
     }
   }
 
@@ -82,6 +89,7 @@ class SqliteLocalDataSource {
           'analysis_result': analysisResultJson != null 
               ? jsonEncode(analysisResultJson)
               : null,
+          'is_pinned': diary.isPinned ? 1 : 0,
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
@@ -117,7 +125,7 @@ class SqliteLocalDataSource {
       
       final maps = await db.query(
         'diaries',
-        orderBy: 'created_at DESC',
+        orderBy: 'is_pinned DESC, created_at DESC',
       );
 
       return maps.map(_mapToDiary).toList();
@@ -138,7 +146,7 @@ class SqliteLocalDataSource {
         'diaries',
         where: 'created_at >= ?',
         whereArgs: [todayStart.toIso8601String()],
-        orderBy: 'created_at DESC',
+        orderBy: 'is_pinned DESC, created_at DESC',
       );
 
       return maps.map(_mapToDiary).toList();
@@ -179,6 +187,22 @@ class SqliteLocalDataSource {
       );
     } catch (e) {
       throw CacheException('일기 상태 업데이트 실패: $e');
+    }
+  }
+
+  /// 일기 상단 고정 상태 업데이트
+  Future<void> updateDiaryPin(String diaryId, bool isPinned) async {
+    try {
+      final db = await _getDatabase();
+      
+      await db.update(
+        'diaries',
+        {'is_pinned': isPinned ? 1 : 0},
+        where: 'id = ?',
+        whereArgs: [diaryId],
+      );
+    } catch (e) {
+      throw CacheException('일기 고정 상태 업데이트 실패: $e');
     }
   }
 
@@ -275,6 +299,7 @@ class SqliteLocalDataSource {
         (status) => status.name == map['status'] as String,
       ),
       analysisResult: analysisResult,
+      isPinned: (map['is_pinned'] as int?) == 1,
     );
   }
 

@@ -174,7 +174,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: Colors.red,
+          color: const Color(0xFFFF5252).withOpacity(0.9), // 부드러운 빨간색
           borderRadius: BorderRadius.circular(16),
         ),
         child: const Icon(Icons.delete, color: Colors.white, size: 28),
@@ -225,7 +225,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(16),
+
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -237,70 +237,95 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
             ),
           ],
         ),
-        child: Row(
+        child: Stack(
           children: [
-            // 날짜 및 감정 아이콘
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
                 children: [
-                  Text(
-                    emoji,
-                    style: const TextStyle(fontSize: 24),
+                  // 날짜 및 감정 아이콘
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          emoji,
+                          style: const TextStyle(fontSize: 24),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 16),
+                  
+                  // 내용 요약
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _dateFormatter.format(diary.createdAt),
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          diary.content,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.body,
+                        ),
+                        if (diary.analysisResult?.keywords.isNotEmpty ?? false) ...[
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 4,
+                            children: diary.analysisResult!.keywords.take(2).map((k) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '#$k',
+                                  style: AppTextStyles.bodySmall.copyWith(fontSize: 10),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  // 핀 아이콘을 위해 cheveron 제거하거나 위치 조정 필요할 수 있음. 
+                  // 현재 디자인에서는 핀이 상단에 뜨므로, cheveron은 유지.
+                  const SizedBox(width: 32), // 핀 아이콘 공간 확보
+                  const Icon(Icons.chevron_right, color: Colors.grey),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
-            
-            // 내용 요약
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _dateFormatter.format(diary.createdAt),
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    diary.content,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.body,
-                  ),
-                  if (diary.analysisResult?.keywords.isNotEmpty ?? false) ...[
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 4,
-                      children: diary.analysisResult!.keywords.take(2).map((k) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            '#$k',
-                            style: AppTextStyles.bodySmall.copyWith(fontSize: 10),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ],
+            Positioned(
+              top: 4,
+              right: 4,
+              child: IconButton(
+                icon: Icon(
+                  diary.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                  color: diary.isPinned ? AppColors.statsPrimary : Colors.grey.shade300,
+                  size: 20,
+                ),
+                onPressed: () {
+                  ref.read(diaryListControllerProvider.notifier)
+                     .togglePin(diary.id, !diary.isPinned);
+                },
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
           ],
         ),
       ),

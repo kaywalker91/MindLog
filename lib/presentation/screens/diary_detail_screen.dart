@@ -28,7 +28,7 @@ class DiaryDetailScreen extends ConsumerWidget {
         title: const Text('일기 상세'),
         actions: [
           IconButton(
-            icon: Icon(Icons.delete_outline, color: colorScheme.error),
+            icon: const Icon(Icons.delete_outline, color: Colors.white),
             tooltip: '일기 삭제',
             onPressed: () => DeleteDiaryDialog.show(
               context,

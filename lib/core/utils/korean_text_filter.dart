@@ -1,3 +1,5 @@
+import 'package:characters/characters.dart';
+
 /// 한글 텍스트 필터링 유틸리티
 ///
 /// AI 응답에서 한문(중국어), 일본어, 영어 등 비한글 문자를 필터링합니다.
@@ -59,11 +61,18 @@ class KoreanTextFilter {
     return text.replaceAll(_englishWordPattern, '').replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
+  /// 이모지 패턴 (기본 이모지 범위)
+  static final RegExp _emojiPattern = RegExp(
+    r'[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{1F600}-\u{1F64F}]',
+    unicode: true,
+  );
+
   /// 텍스트에서 한문/일본어/영어 문자를 제거하고 한글만 남김
   ///
   /// [text] 필터링할 텍스트
   /// [preserveEnglish] true면 영문/숫자도 보존 (기본값: false로 변경)
-  static String filterToKorean(String text, {bool preserveEnglish = false}) {
+  /// [preserveEmoji] true면 이모지도 보존 (기본값: true)
+  static String filterToKorean(String text, {bool preserveEnglish = false, bool preserveEmoji = true}) {
     if (text.isEmpty) return text;
 
     // 먼저 영어 단어 제거
@@ -74,10 +83,26 @@ class KoreanTextFilter {
 
     final buffer = StringBuffer();
     final pattern = preserveEnglish ? _allowedPattern : _koreanOnlyAllowedPattern;
-    for (final char in processed.runes) {
-      final charStr = String.fromCharCode(char);
-      if (pattern.hasMatch(charStr)) {
-        buffer.write(charStr);
+    
+    // 문자열을 grapheme cluster 단위로 처리 (이모지 안전)
+    final characters = processed.characters;
+    for (final char in characters) {
+      // 이모지인 경우 보존
+      if (preserveEmoji && _emojiPattern.hasMatch(char)) {
+        buffer.write(char);
+        continue;
+      }
+      
+      // 한문/일본어 제거
+      if (_chinesePattern.hasMatch(char) || 
+          _hiraganaPattern.hasMatch(char) || 
+          _katakanaPattern.hasMatch(char)) {
+        continue;
+      }
+      
+      // 허용된 문자인지 확인
+      if (pattern.hasMatch(char)) {
+        buffer.write(char);
       }
     }
 

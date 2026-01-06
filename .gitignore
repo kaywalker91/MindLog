@@ -48,6 +48,10 @@ app.*.map.json
 .env
 !.env.example
 
+# Development API Keys (never commit!)
+lib/core/config/dev_api_keys.dart
+!lib/core/config/dev_api_keys.example.dart
+
 # Generated files
 *.g.dart
 *.freezed.dart

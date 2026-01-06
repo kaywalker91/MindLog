@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_text_styles.dart';
 import '../../domain/entities/diary.dart';
 import '../providers/diary_list_controller.dart';
 import '../providers/providers.dart';
@@ -32,39 +34,93 @@ class DeleteDiaryDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return AlertDialog(
-      title: Row(
-        children: [
-          Icon(Icons.delete_outline, color: colorScheme.error),
-          const SizedBox(width: 8),
-          const Text('일기 삭제'),
-        ],
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
       ),
-      content: const SingleChildScrollView(
-        child: Text(
-          '이 일기를 삭제하시겠습니까?\n\n'
-          '삭제된 일기는 복구할 수 없습니다.',
+      backgroundColor: Colors.white,
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // 아이콘
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.delete_outline_rounded,
+                size: 32,
+                color: AppColors.error,
+              ),
+            ),
+            const SizedBox(height: 20),
+            
+            // 제목
+            const Text(
+              '소중한 기록을 지우시겠어요?',
+              style: AppTextStyles.title,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            
+            // 내용
+            Text(
+              '삭제 후에는 되돌릴 수 없어요.\n정말로 삭제하시겠습니까?',
+              style: AppTextStyles.bodySmall.copyWith(fontSize: 15),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 28),
+            
+            // 버튼 영역
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: Colors.grey.shade100,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      '취소',
+                      style: AppTextStyles.button.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () async {
+                      Navigator.of(context).pop(true);
+                      await _deleteDiary(context, ref);
+                    },
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: AppColors.error,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text('삭제'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('취소'),
-        ),
-        FilledButton(
-          onPressed: () async {
-            Navigator.of(context).pop(true);
-            await _deleteDiary(context, ref);
-          },
-          style: FilledButton.styleFrom(
-            backgroundColor: colorScheme.error,
-          ),
-          child: const Text('삭제'),
-        ),
-      ],
     );
   }
 

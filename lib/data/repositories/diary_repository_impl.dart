@@ -144,6 +144,15 @@ class DiaryRepositoryImpl implements DiaryRepository {
   }
 
   @override
+  Future<void> toggleDiaryPin(String diaryId, bool isPinned) async {
+    try {
+      await _localDataSource.updateDiaryPin(diaryId, isPinned);
+    } catch (e) {
+      throw CacheFailure(message: '일기 고정 상태 업데이트 실패: $e');
+    }
+  }
+
+  @override
   Future<void> deleteDiary(String diaryId) async {
     try {
       await _localDataSource.deleteDiary(diaryId);

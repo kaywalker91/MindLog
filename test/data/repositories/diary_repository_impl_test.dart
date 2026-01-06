@@ -66,6 +66,14 @@ class MockSqliteLocalDataSource implements SqliteLocalDataSource {
   }
 
   @override
+  Future<void> updateDiaryPin(String diaryId, bool isPinned) async {
+    final diary = _diaries[diaryId];
+    if (diary != null) {
+      _diaries[diaryId] = diary.copyWith(isPinned: isPinned);
+    }
+  }
+
+  @override
   Future<void> deleteDiary(String diaryId) async {
     if (!_diaries.containsKey(diaryId)) {
       throw Exception('Diary not found');

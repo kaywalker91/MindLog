@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../../core/errors/exceptions.dart';
 import '../../core/utils/korean_text_filter.dart';
 
@@ -39,9 +40,25 @@ class AnalysisResponseParser {
 
     try {
       final decoded = jsonDecode(trimmedText) as Map<String, dynamic>;
+      
+      // 디버그: 파싱 직후 action_items 확인
+      assert(() {
+        debugPrint('🔍 [PARSER] After jsonDecode, action_items: ${decoded['action_items']}');
+        debugPrint('🔍 [PARSER] action_items type: ${decoded['action_items']?.runtimeType}');
+        return true;
+      }());
+      
       _validateJsonStructure(decoded);
+      
+      // 디버그: 검증 후 action_items 확인
+      assert(() {
+        debugPrint('🔍 [PARSER] After validation, action_items: ${decoded['action_items']}');
+        return true;
+      }());
+      
       return decoded;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('⚠️ [PARSER] First parse failed: $e, trying sanitize...');
       final json = _sanitizeJsonString(trimmedText);
       final decoded = jsonDecode(json) as Map<String, dynamic>;
       _validateJsonStructure(decoded);
@@ -85,7 +102,7 @@ class AnalysisResponseParser {
     List<String> keywords = [];
     int sentimentScore = 5;
     String empathyMessage = '';
-    String actionItem = '';
+    List<String> actionItems = [];
 
     try {
       for (final line in lines) {
@@ -111,7 +128,8 @@ class AnalysisResponseParser {
         // 추천 행동 추출
         if (lowerLine.contains('추천') || lowerLine.contains('행동') ||
             lowerLine.contains('action') || lowerLine.contains('제안')) {
-          actionItem = _extractMessage(line);
+          final action = _extractMessage(line);
+          if (action.isNotEmpty) actionItems.add(action);
         }
       }
     } catch (e) {
@@ -126,15 +144,25 @@ class AnalysisResponseParser {
     if (empathyMessage.isEmpty) {
       empathyMessage = '마음의 이야기를 들어주셔서 감사합니다.';
     }
-    if (actionItem.isEmpty) {
-      actionItem = '잠시 휴식을 취해보세요.';
+    if (actionItems.isEmpty) {
+      actionItems = ['잠시 휴식을 취해보세요.'];
     }
 
     return {
-      'keywords': keywords.take(3).toList(),
+      'keywords': keywords.take(5).toList(),
       'sentiment_score': sentimentScore.clamp(1, 10),
       'empathy_message': empathyMessage.trim(),
-      'action_item': actionItem.trim(),
+      'action_items': actionItems.take(3).toList(),
+      'action_item': actionItems.isNotEmpty ? actionItems.first : '잠시 휴식을 취해보세요.',
+      'emotion_category': {
+        'primary': '평온',
+        'secondary': '일상',
+      },
+      'emotion_trigger': {
+        'category': '기타',
+        'description': '일기 내용에서 파악',
+      },
+      'energy_level': 5,
       'is_emergency': false,
     };
   }
@@ -157,11 +185,36 @@ class AnalysisResponseParser {
 
   /// JSON 구조 검증 및 한글 필터링
   static void _validateJsonStructure(Map<String, dynamic> json) {
-    final requiredKeys = ['keywords', 'sentiment_score', 'empathy_message', 'action_item'];
+    // action_item은 더 이상 필수가 아님 (action_items 배열을 대신 사용)
+    final requiredKeys = ['keywords', 'sentiment_score', 'empathy_message'];
 
     for (final key in requiredKeys) {
       if (!json.containsKey(key)) {
         throw FormatException('Missing required key: $key');
+      }
+    }
+
+    // action_items가 있고 action_item이 없는 경우, 첫 번째 항목으로 action_item 생성
+    if (json['action_items'] != null && json['action_item'] == null) {
+      final actionItems = json['action_items'];
+      if (actionItems is List && actionItems.isNotEmpty) {
+        json['action_item'] = actionItems.first.toString();
+      } else if (actionItems is String && actionItems.isNotEmpty) {
+        // action_items가 문자열인 경우 (JSON 문자열 또는 단일 값)
+        if (actionItems.startsWith('[')) {
+          try {
+            final decoded = jsonDecode(actionItems);
+            if (decoded is List && decoded.isNotEmpty) {
+              json['action_item'] = decoded.first.toString();
+            } else {
+              json['action_item'] = actionItems;
+            }
+          } catch (_) {
+            json['action_item'] = actionItems;
+          }
+        } else {
+          json['action_item'] = actionItems;
+        }
       }
     }
 
@@ -206,6 +259,41 @@ class AnalysisResponseParser {
         json['action_item'] as String,
         fallbackText: '잠시 쉬어가세요.',
       );
+    }
+
+    // action_items 배열 검증 및 정규화
+    final rawActionItems = json['action_items'];
+    if (rawActionItems != null) {
+      List<String> actionItemsList = [];
+      
+      if (rawActionItems is List) {
+        // 정상적인 배열
+        actionItemsList = rawActionItems.map((e) => e.toString()).toList();
+      } else if (rawActionItems is String && rawActionItems.isNotEmpty) {
+        // 문자열인 경우 JSON 파싱 시도
+        try {
+          if (rawActionItems.startsWith('[')) {
+            final decoded = jsonDecode(rawActionItems);
+            if (decoded is List) {
+              actionItemsList = decoded.map((e) => e.toString()).toList();
+            } else {
+              actionItemsList = [rawActionItems];
+            }
+          } else {
+            actionItemsList = [rawActionItems];
+          }
+        } catch (_) {
+          actionItemsList = [rawActionItems];
+        }
+      }
+      
+      // 각 항목에 한글 필터링 적용
+      json['action_items'] = actionItemsList.map((item) {
+        return KoreanTextFilter.filterMessage(
+          item,
+          fallbackText: '작은 휴식을 취해보세요.',
+        );
+      }).toList();
     }
   }
 
@@ -284,10 +372,24 @@ class AnalysisResponseParser {
   /// 대체 응답 생성
   static Map<String, dynamic> _createFallbackResponse(String originalText) {
     return {
-      'keywords': ['일상', '감정'],
+      'keywords': ['일상', '감정', '하루', '생각', '마음'],
       'sentiment_score': 5,
       'empathy_message': '마음의 이야기에 감사드립니다.',
+      'action_items': [
+        '🚀 잠시 눈을 감고 심호흡 해보세요',
+        '☀️ 따뜻한 차 한 잔의 여유를 가져보세요',
+        '📅 이번 주에 좋아하는 일 하나 해보세요',
+      ],
       'action_item': '따뜻한 차 한 잔의 여유를 가져보세요.',
+      'emotion_category': {
+        'primary': '평온',
+        'secondary': '일상',
+      },
+      'emotion_trigger': {
+        'category': '기타',
+        'description': '일상적인 하루',
+      },
+      'energy_level': 5,
       'is_emergency': false,
     };
   }

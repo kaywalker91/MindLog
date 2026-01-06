@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:characters/characters.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/ai_character.dart';
 import '../../domain/entities/diary.dart';
@@ -104,23 +105,31 @@ class _ResultCardState extends State<ResultCard> {
         _buildCharacterBanner(character),
         const SizedBox(height: 16),
 
-        // 1. 감정 대시보드 (온도계 + 이모지)
+        // 1. 감정 대시보드 (온도계 + 이모지 + 에너지 레벨)
         _buildSentimentDashboard(),
         const SizedBox(height: 24),
 
-        // 2. 키워드 칩
+        // 2. 감정 범주 + 유발 요인 (새 섹션)
+        if (analysisResult.emotionCategory != null ||
+            analysisResult.emotionTrigger != null)
+          ...[
+            _buildEmotionInsightCard(analysisResult),
+            const SizedBox(height: 24),
+          ],
+
+        // 3. 키워드 칩
         _buildKeywords(analysisResult.keywords),
         const SizedBox(height: 24),
 
-        // 3. 공감 메시지 (인용구 스타일)
+        // 4. 공감 메시지 (인용구 스타일)
         _buildEmpathyMessage(analysisResult.empathyMessage),
         const SizedBox(height: 24),
 
-        // 4. 추천 행동 (티켓 스타일)
-        _buildActionItem(analysisResult.actionItem),
+        // 5. 단계별 추천 행동 (새 섹션)
+        _buildActionItemsSection(analysisResult),
         const SizedBox(height: 40),
 
-        // 5. 버튼
+        // 6. 버튼
         _buildNewDiaryButton(),
       ],
     ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1, curve: Curves.easeOutQuint);
@@ -341,9 +350,256 @@ class _ResultCardState extends State<ResultCard> {
               ),
             ],
           ),
+
+          // 에너지 레벨 표시
+          if (widget.diary.analysisResult?.energyLevel != null) ...[
+            const SizedBox(height: 16),
+            _buildEnergyLevel(widget.diary.analysisResult!.energyLevel!),
+          ],
         ],
       ),
     );
+  }
+
+  Widget _buildEnergyLevel(int level) {
+    final emoji = level <= 3 ? '🔋' : (level <= 6 ? '⚡' : '💪');
+    final label = level <= 3 ? '에너지 부족' : (level <= 6 ? '보통' : '활력 넘침');
+    final color = level <= 3
+        ? Colors.orange
+        : (level <= 6 ? Colors.blue : Colors.green);
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(emoji, style: const TextStyle(fontSize: 16)),
+        const SizedBox(width: 8),
+        Text(
+          '에너지 레벨: $level/10 ($label)',
+          style: TextStyle(
+            fontSize: 12,
+            color: color,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 감정 인사이트 카드 (감정 범주 + 유발 요인)
+  Widget _buildEmotionInsightCard(AnalysisResult result) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.statsPrimary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.statsPrimary.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 감정 범주
+          if (result.emotionCategory != null) ...[
+            Row(
+              children: [
+                Text(
+                  result.emotionCategory!.primaryEmoji,
+                  style: const TextStyle(fontSize: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '감정 분류',
+                        style: AppTextStyles.label.copyWith(
+                          color: AppColors.statsTextSecondary,
+                        ),
+                      ),
+                      Text(
+                        '${result.emotionCategory!.primary} → ${result.emotionCategory!.secondary}',
+                        style: AppTextStyles.subtitle.copyWith(
+                          color: AppColors.statsTextPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          // 감정 유발 요인
+          if (result.emotionTrigger != null) ...[
+            if (result.emotionCategory != null) const SizedBox(height: 16),
+            Row(
+              children: [
+                Text(
+                  result.emotionTrigger!.categoryEmoji,
+                  style: const TextStyle(fontSize: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '감정 원인 · ${result.emotionTrigger!.category}',
+                        style: AppTextStyles.label.copyWith(
+                          color: AppColors.statsTextSecondary,
+                        ),
+                      ),
+                      Text(
+                        result.emotionTrigger!.description,
+                        style: AppTextStyles.body.copyWith(
+                          color: AppColors.statsTextPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    ).animate().fadeIn(delay: 100.ms, duration: 500.ms).slideX(begin: 0.1);
+  }
+
+  /// 단계별 추천 행동 섹션
+  Widget _buildActionItemsSection(AnalysisResult result) {
+    final actions = result.displayActionItems;
+    
+    if (actions.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // 단일 행동인 경우 기존 스타일 사용
+    if (actions.length == 1) {
+      return _buildActionItem(actions.first);
+    }
+
+    // 다단계 행동인 경우 새 스타일 사용
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.amber.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.lightbulb_outline, color: Colors.amber, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                '오늘의 마음 챙김 미션',
+                style: AppTextStyles.subtitle.copyWith(
+                  color: Colors.amber.shade800,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...actions.asMap().entries.map((entry) {
+            final index = entry.key;
+            final action = entry.value;
+            return _buildSteppedActionItem(action, index);
+          }),
+        ],
+      ),
+    ).animate().fadeIn(delay: 200.ms, duration: 500.ms);
+  }
+
+  Widget _buildSteppedActionItem(String action, int index) {
+    // characters 패키지를 사용하여 안전하게 이모지 처리
+    final chars = action.characters;
+    final hasEmoji = chars.isNotEmpty && ['🚀', '☀️', '📅'].contains(chars.first);
+    
+    // 이모지가 있다면 제거하고 남은 텍스트만 추출
+    final textContent = hasEmoji 
+        ? chars.skip(1).toString().trim() 
+        : action;
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: _getStepColor(index).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                '${index + 1}',
+                style: TextStyle(
+                  color: _getStepColor(index),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _getStepLabel(index),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: _getStepColor(index),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  textContent,
+                  style: AppTextStyles.body.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStepColor(int index) {
+    switch (index) {
+      case 0:
+        return Colors.green;
+      case 1:
+        return Colors.orange;
+      case 2:
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getStepLabel(int index) {
+    switch (index) {
+      case 0:
+        return '🚀 지금 바로';
+      case 1:
+        return '☀️ 오늘 중으로';
+      case 2:
+        return '📅 이번 주';
+      default:
+        return '';
+    }
   }
 
   Widget _buildKeywords(List<String> keywords) {

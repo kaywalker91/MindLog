@@ -27,6 +27,9 @@ abstract class DiaryRepository {
   /// 추천 행동 완료 상태 표시
   Future<void> markActionCompleted(String diaryId);
 
+  /// 일기 상단 고정 토글
+  Future<void> toggleDiaryPin(String diaryId, bool isPinned);
+
   /// 일기 삭제
   Future<void> deleteDiary(String diaryId);
 

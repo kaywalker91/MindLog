@@ -142,9 +142,29 @@ class GroqRemoteDataSource {
       
       try {
         final jsonResult = AnalysisResponseParser.parseString(messageContent);
-        return AnalysisResponseDto.fromJson(jsonResult);
+        
+        // 디버그 로그 - action_items 확인
+        assert(() {
+          debugPrint('🔍 [DEBUG] Raw AI response content:');
+          debugPrint(messageContent);
+          debugPrint('🔍 [DEBUG] Parsed JSON action_items: ${jsonResult['action_items']}');
+          debugPrint('🔍 [DEBUG] action_items type: ${jsonResult['action_items']?.runtimeType}');
+          return true;
+        }());
+        
+        final dto = AnalysisResponseDto.fromJson(jsonResult);
+        
+        // 디버그 로그 - DTO 확인
+        assert(() {
+          debugPrint('🔍 [DEBUG] DTO actionItems: ${dto.actionItems}');
+          debugPrint('🔍 [DEBUG] DTO actionItem: ${dto.actionItem}');
+          return true;
+        }());
+        
+        return dto;
       } catch (e) {
         // 파싱 실패 시 민감한 응답 내용은 로깅하지 않음
+        debugPrint('❌ [DEBUG] Parse error: $e');
         throw ApiException(message: '응답 파싱 실패');
       }
 

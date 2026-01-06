@@ -44,13 +44,27 @@ class AnalyzeDiaryUseCase {
       if (SafetyConstants.containsEmergencyKeyword(content)) {
         // 응급 상황 분석 결과 생성
         final emergencyResult = AnalysisResult(
-          keywords: SafetyConstants.getDetectedKeywords(content).take(3).toList(),
+          keywords: SafetyConstants.getDetectedKeywords(content).take(5).toList(),
           sentimentScore: 1,
           empathyMessage: SafetyConstants.emergencyMessage,
           actionItem: '전문 상담사와 대화해 보세요. 1393(자살예방상담전화)으로 연락할 수 있습니다.',
+          actionItems: [
+            '🚀 지금 바로 1393에 전화해보세요',
+            '☀️ 가까운 사람에게 연락해보세요',
+            '📅 전문 상담 예약을 고려해보세요',
+          ],
           analyzedAt: DateTime.now(),
           isEmergency: true,
           aiCharacterId: character.id,
+          emotionCategory: const EmotionCategory(
+            primary: '공포',
+            secondary: '절망',
+          ),
+          emotionTrigger: const EmotionTrigger(
+            category: '자아',
+            description: '심리적으로 힘든 상황',
+          ),
+          energyLevel: 1,
         );
 
         // 로컬 DB 업데이트 (safetyBlocked 상태)
