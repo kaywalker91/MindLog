@@ -31,5 +31,21 @@ flutter build appbundle --release \
 
 프로젝트 맞춤형 스킬 참조:
 
+### P0 - 핵심 개발 스킬
 @docs/skills/test-unit-gen.md
 @docs/skills/feature-scaffold.md
+
+### P1 - 릴리스 자동화
+@docs/skills/version-bump.md
+@docs/skills/changelog-update.md
+@docs/skills/release-notes.md
+
+### P1 - 코드 품질
+@docs/skills/lint-fix.md
+@docs/skills/pre-commit-setup.md
+@docs/skills/test-coverage-report.md
+
+### P1 - 개발 생산성
+@docs/skills/usecase-gen.md
+@docs/skills/mock-gen.md
+@docs/skills/analytics-event-add.md
