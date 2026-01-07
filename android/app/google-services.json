@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "274694888964",
+    "project_id": "mindlog-7e235",
+    "storage_bucket": "mindlog-7e235.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:274694888964:android:0d38372910eb25c6dedf51",
+        "android_client_info": {
+          "package_name": "com.mindlog.mindlog"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBAMOTJLSYfYkF1ozwx4vSLoy54D-3xUIw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

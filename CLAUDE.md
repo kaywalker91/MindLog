@@ -26,3 +26,10 @@ flutter build appbundle --release \
 ## 프로젝트 구조
 - Clean Architecture + Riverpod 기반
 - AI 분석: Groq API (llama-3.3-70b-versatile)
+
+## Claude Skills
+
+프로젝트 맞춤형 스킬 참조:
+
+@docs/skills/test-unit-gen.md
+@docs/skills/feature-scaffold.md
