@@ -49,3 +49,14 @@ flutter build appbundle --release \
 @docs/skills/usecase-gen.md
 @docs/skills/mock-gen.md
 @docs/skills/analytics-event-add.md
+
+### P2 - Testing
+@docs/skills/widget-test-gen.md
+
+### P2 - Documentation
+@docs/skills/api-doc-gen.md
+@docs/skills/architecture-doc-gen.md
+
+### P2 - Firebase
+@docs/skills/crashlytics-setup.md
+@docs/skills/fcm-setup.md
