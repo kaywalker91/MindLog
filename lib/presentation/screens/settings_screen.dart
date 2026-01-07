@@ -1,14 +1,20 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/ai_character.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/services/analytics_service.dart';
+import '../../core/services/notification_permission_service.dart';
+import '../../core/services/notification_service.dart';
 import '../../core/services/update_service.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../../domain/entities/notification_settings.dart';
 import '../providers/ai_character_controller.dart';
 import '../providers/diary_list_controller.dart';
 import '../providers/providers.dart';
 import '../providers/app_info_provider.dart';
+import '../providers/notification_settings_controller.dart';
 import '../providers/update_provider.dart';
 import '../widgets/help_dialog.dart';
 import '../widgets/mindlog_app_bar.dart';
@@ -30,6 +36,10 @@ class SettingsScreen extends ConsumerWidget {
     final characterAsync = ref.watch(aiCharacterProvider);
     final selectedCharacter =
         characterAsync.valueOrNull ?? AiCharacter.warmCounselor;
+    final notificationSettingsAsync = ref.watch(notificationSettingsProvider);
+    final notificationSettings =
+        notificationSettingsAsync.valueOrNull ?? NotificationSettings.defaults();
+    final notificationsReady = !notificationSettingsAsync.isLoading;
     final versionLabel = appInfo == null
         ? (appInfoAsync.hasError ? '버전 확인 실패' : '불러오는 중...')
         : _formatVersionLabel(appInfo);
@@ -120,6 +130,86 @@ class SettingsScreen extends ConsumerWidget {
                   ref,
                   selectedCharacter,
                 ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // 알림 섹션
+          _buildSectionHeader(context, '알림'),
+          _buildSettingsCard(
+            context,
+            children: [
+              _buildToggleSettingItem(
+                context,
+                icon: Icons.notifications_active_outlined,
+                title: '일기 리마인더',
+                subtitle: '매일 지정한 시간에 일기 작성을 알려드려요.',
+                value: notificationSettings.isReminderEnabled,
+                enabled: notificationsReady,
+                onChanged: (value) {
+                  unawaited(
+                    _handleReminderToggle(context, ref, value),
+                  );
+                },
+              ),
+              _buildDivider(context),
+              _buildSettingItem(
+                context,
+                icon: Icons.schedule_outlined,
+                title: '리마인더 시간',
+                titleColor: notificationSettings.isReminderEnabled
+                    ? null
+                    : colorScheme.outline,
+                trailing: _buildTimeTrailing(
+                  context,
+                  label: _formatTimeLabel(
+                    context,
+                    notificationSettings.reminderHour,
+                    notificationSettings.reminderMinute,
+                  ),
+                  enabled: notificationSettings.isReminderEnabled,
+                ),
+                onTap: (!notificationSettings.isReminderEnabled ||
+                        !notificationsReady)
+                    ? null
+                    : () => _pickReminderTime(
+                          context,
+                          ref,
+                          notificationSettings,
+                        ),
+              ),
+              _buildDivider(context),
+              _buildSettingItem(
+                context,
+                icon: Icons.send_outlined,
+                title: '테스트 알림 보내기',
+                titleColor: notificationsReady ? null : colorScheme.outline,
+                trailing: Icon(
+                  Icons.chevron_right,
+                  color: notificationsReady
+                      ? colorScheme.onSurfaceVariant
+                      : colorScheme.outline,
+                ),
+                onTap: notificationsReady
+                    ? () => _sendTestNotification(context)
+                    : null,
+              ),
+              _buildDivider(context),
+              _buildToggleSettingItem(
+                context,
+                icon: Icons.favorite_border,
+                title: '마음 케어 알림',
+                subtitle: '마음 케어 소식을 푸시로 받아볼게요.',
+                value: notificationSettings.isMindcareTopicEnabled,
+                enabled: notificationsReady,
+                onChanged: (value) {
+                  unawaited(
+                    ref
+                        .read(notificationSettingsProvider.notifier)
+                        .updateMindcareTopicEnabled(value),
+                  );
+                },
               ),
             ],
           ),
@@ -295,6 +385,95 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildToggleSettingItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    bool enabled = true,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textColor = enabled ? colorScheme.onSurface : colorScheme.outline;
+    final subtitleColor =
+        enabled ? colorScheme.onSurfaceVariant : colorScheme.outline;
+
+    return InkWell(
+      onTap: enabled ? () => onChanged(!value) : null,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color: enabled ? colorScheme.onSurfaceVariant : colorScheme.outline,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: textColor,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: subtitleColor,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Switch(
+              value: value,
+              onChanged: enabled ? onChanged : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeTrailing(
+    BuildContext context, {
+    required String label,
+    required bool enabled,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textColor = enabled ? colorScheme.onSurfaceVariant : colorScheme.outline;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        if (enabled) ...[
+          const SizedBox(width: 4),
+          Icon(
+            Icons.chevron_right,
+            color: colorScheme.outline,
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildCharacterThumbnail(AiCharacter character) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -358,6 +537,12 @@ class SettingsScreen extends ConsumerWidget {
                   groupValue: selected,
                   onChanged: (value) async {
                     if (value == null) return;
+                    if (value != selected) {
+                      unawaited(AnalyticsService.logAiCharacterChanged(
+                        fromCharacterId: selected.id,
+                        toCharacterId: value.id,
+                      ));
+                    }
                     await ref
                         .read(aiCharacterProvider.notifier)
                         .setCharacter(value);
@@ -541,6 +726,35 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  String _formatTimeLabel(
+    BuildContext context,
+    int hour,
+    int minute,
+  ) {
+    final timeOfDay = TimeOfDay(hour: hour, minute: minute);
+    return MaterialLocalizations.of(context).formatTimeOfDay(timeOfDay);
+  }
+
+  Future<void> _pickReminderTime(
+    BuildContext context,
+    WidgetRef ref,
+    NotificationSettings settings,
+  ) async {
+    final initialTime = TimeOfDay(
+      hour: settings.reminderHour,
+      minute: settings.reminderMinute,
+    );
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+    if (picked == null) return;
+    await ref.read(notificationSettingsProvider.notifier).updateReminderTime(
+          hour: picked.hour,
+          minute: picked.minute,
+        );
+  }
+
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -633,6 +847,199 @@ class SettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => const HelpDialog(),
+    );
+  }
+
+  /// 리마인더 토글 핸들러
+  ///
+  /// 리마인더를 활성화할 때:
+  /// 1. Android 12+ 기기에서 정확한 알람 권한을 확인
+  /// 2. 배터리 최적화 상태를 확인하고 제외 요청
+  Future<void> _handleReminderToggle(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    // 리마인더 비활성화 시 바로 처리
+    if (!enabled) {
+      await ref
+          .read(notificationSettingsProvider.notifier)
+          .updateReminderEnabled(false);
+      return;
+    }
+
+    // 1. 정확한 알람 권한 확인 (Android 12+)
+    final canScheduleExact =
+        await NotificationPermissionService.canScheduleExactAlarms();
+
+    if (!canScheduleExact && context.mounted) {
+      // 권한이 없으면 안내 다이얼로그 표시
+      final shouldContinue = await _showExactAlarmPermissionDialog(context);
+
+      if (shouldContinue == true) {
+        // 설정 화면으로 이동
+        await NotificationPermissionService.requestExactAlarmPermission();
+        await NotificationPermissionService.markExactAlarmPrompted();
+
+        // 설정 화면에서 돌아온 후 권한 재확인
+        if (context.mounted) {
+          final nowCanSchedule =
+              await NotificationPermissionService.canScheduleExactAlarms();
+          if (!nowCanSchedule && context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('알람이 정확한 시간에 울리지 않을 수 있습니다.'),
+                duration: Duration(seconds: 4),
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    // 2. 배터리 최적화 상태 확인
+    if (context.mounted) {
+      final isIgnoringBattery =
+          await NotificationPermissionService.isIgnoringBatteryOptimizations();
+
+      if (!isIgnoringBattery && context.mounted) {
+        // 배터리 최적화 대상이면 안내 다이얼로그 표시
+        final shouldDisable =
+            await _showBatteryOptimizationDialog(context);
+
+        if (shouldDisable == true && context.mounted) {
+          // 시스템 다이얼로그로 배터리 최적화 비활성화 요청
+          await NotificationPermissionService
+              .requestDisableBatteryOptimization();
+
+          // 재확인 후 안내
+          if (context.mounted) {
+            final nowIgnoring = await NotificationPermissionService
+                .isIgnoringBatteryOptimizations();
+            if (!nowIgnoring && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    '배터리 최적화가 활성화되어 있어 알람이 전달되지 않을 수 있습니다.',
+                  ),
+                  duration: Duration(seconds: 5),
+                ),
+              );
+            }
+          }
+        }
+      }
+    }
+
+    // 리마인더 활성화 진행
+    if (context.mounted) {
+      await ref
+          .read(notificationSettingsProvider.notifier)
+          .updateReminderEnabled(true);
+    }
+  }
+
+  /// 정확한 알람 권한 안내 다이얼로그
+  Future<bool?> _showExactAlarmPermissionDialog(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.alarm_outlined, size: 24),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text('정확한 알람 권한 필요'),
+            ),
+          ],
+        ),
+        content: const Text(
+          '리마인더가 정확한 시간에 울리려면 "알람 및 리마인더" 권한이 필요합니다.\n\n'
+          '설정에서 권한을 허용해주세요.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('나중에'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+            ),
+            child: const Text('설정으로 이동'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 테스트 알림 보내기
+  ///
+  /// 알림이 제대로 작동하는지 확인하기 위해 즉시 알림을 보냅니다.
+  Future<void> _sendTestNotification(BuildContext context) async {
+    try {
+      await NotificationService.showTestNotification();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('테스트 알림을 보냈습니다. 알림이 표시되는지 확인해주세요.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('알림 전송 실패: $e'),
+            duration: const Duration(seconds: 5),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  /// 배터리 최적화 안내 다이얼로그
+  ///
+  /// 배터리 최적화가 활성화되어 있으면 알람이 시스템에 의해 억제될 수 있음을 안내합니다.
+  Future<bool?> _showBatteryOptimizationDialog(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.battery_alert_outlined, size: 24),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text('배터리 최적화 설정'),
+            ),
+          ],
+        ),
+        content: const Text(
+          '리마인더 알림이 정확히 전달되려면 배터리 최적화에서 이 앱을 제외해야 합니다.\n\n'
+          '배터리 최적화가 활성화되면 시스템이 알람을 지연시키거나 전달하지 않을 수 있습니다.\n\n'
+          '"허용"을 선택하여 배터리 최적화를 비활성화해주세요.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('나중에'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+            ),
+            child: const Text('허용'),
+          ),
+        ],
+      ),
     );
   }
 }
