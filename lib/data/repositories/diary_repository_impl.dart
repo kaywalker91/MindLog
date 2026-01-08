@@ -5,11 +5,12 @@ import '../../core/errors/failure_mapper.dart';
 import '../../core/errors/failures.dart';
 import '../../../domain/entities/diary.dart';
 import '../../../domain/repositories/diary_repository.dart';
+import 'repository_failure_handler.dart';
 import '../datasources/local/sqlite_local_datasource.dart';
 import '../datasources/remote/groq_remote_datasource.dart';
 
 /// 일기 Repository 구현체
-class DiaryRepositoryImpl implements DiaryRepository {
+class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryRepository {
   final SqliteLocalDataSource _localDataSource;
   final GroqRemoteDataSource _remoteDataSource;
 
@@ -21,7 +22,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
 
   @override
   Future<Diary> createDiary(String content) async {
-    try {
+    return guardFailure('일기 생성 실패', () async {
       final diary = Diary(
         id: _generateId(),
         content: content,
@@ -30,9 +31,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
       );
       await _localDataSource.saveDiary(diary);
       return diary;
-    } catch (e) {
-      throw FailureMapper.from(e, message: '일기 생성 실패');
-    }
+    });
   }
 
   @override
@@ -83,7 +82,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
 
   @override
   Future<void> updateDiary(Diary diary) async {
-    try {
+    return guardFailure('일기 업데이트 실패', () async {
       // 상태와 분석 결과를 모두 업데이트
       await _localDataSource.updateDiaryStatus(diary.id, diary.status);
       if (diary.analysisResult != null) {
@@ -92,41 +91,36 @@ class DiaryRepositoryImpl implements DiaryRepository {
           diary.analysisResult!,
         );
       }
-    } catch (e) {
-      throw FailureMapper.from(e, message: '일기 업데이트 실패');
-    }
+    });
   }
 
   @override
   Future<Diary?> getDiaryById(String diaryId) async {
-    try {
-      return await _localDataSource.getDiaryById(diaryId);
-    } catch (e) {
-      throw FailureMapper.from(e, message: '일기 조회 실패');
-    }
+    return guardFailure(
+      '일기 조회 실패',
+      () => _localDataSource.getDiaryById(diaryId),
+    );
   }
 
   @override
   Future<List<Diary>> getAllDiaries() async {
-    try {
-      return await _localDataSource.getAllDiaries();
-    } catch (e) {
-      throw FailureMapper.from(e, message: '일기 목록 조회 실패');
-    }
+    return guardFailure(
+      '일기 목록 조회 실패',
+      _localDataSource.getAllDiaries,
+    );
   }
 
   @override
   Future<List<Diary>> getTodayDiaries() async {
-    try {
-      return await _localDataSource.getTodayDiaries();
-    } catch (e) {
-      throw FailureMapper.from(e, message: '오늘 일기 조회 실패');
-    }
+    return guardFailure(
+      '오늘 일기 조회 실패',
+      _localDataSource.getTodayDiaries,
+    );
   }
 
   @override
   Future<void> markActionCompleted(String diaryId) async {
-    try {
+    return guardFailure('행동 완료 표시 실패', () async {
       final diary = await _localDataSource.getDiaryById(diaryId);
       if (diary == null) {
         throw const Failure.dataNotFound(message: '일기를 찾을 수 없습니다.');
@@ -138,36 +132,31 @@ class DiaryRepositoryImpl implements DiaryRepository {
         );
         await _localDataSource.updateDiaryWithAnalysis(diaryId, updatedAnalysis);
       }
-    } catch (e) {
-      throw FailureMapper.from(e, message: '행동 완료 표시 실패');
-    }
+    });
   }
 
   @override
   Future<void> toggleDiaryPin(String diaryId, bool isPinned) async {
-    try {
-      await _localDataSource.updateDiaryPin(diaryId, isPinned);
-    } catch (e) {
-      throw FailureMapper.from(e, message: '일기 고정 상태 업데이트 실패');
-    }
+    return guardFailure(
+      '일기 고정 상태 업데이트 실패',
+      () => _localDataSource.updateDiaryPin(diaryId, isPinned),
+    );
   }
 
   @override
   Future<void> deleteDiary(String diaryId) async {
-    try {
-      await _localDataSource.deleteDiary(diaryId);
-    } catch (e) {
-      throw FailureMapper.from(e, message: '일기 삭제 실패');
-    }
+    return guardFailure(
+      '일기 삭제 실패',
+      () => _localDataSource.deleteDiary(diaryId),
+    );
   }
 
   @override
   Future<void> deleteAllDiaries() async {
-    try {
-      await _localDataSource.deleteAllDiaries();
-    } catch (e) {
-      throw FailureMapper.from(e, message: '모든 일기 삭제 실패');
-    }
+    return guardFailure(
+      '모든 일기 삭제 실패',
+      _localDataSource.deleteAllDiaries,
+    );
   }
 
   String _generateId() => const Uuid().v4();

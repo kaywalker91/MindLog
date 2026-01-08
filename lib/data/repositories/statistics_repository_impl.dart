@@ -1,11 +1,13 @@
-import '../../core/errors/failure_mapper.dart';
 import '../../domain/entities/diary.dart';
 import '../../domain/entities/statistics.dart';
 import '../../domain/repositories/statistics_repository.dart';
 import '../datasources/local/sqlite_local_datasource.dart';
+import 'repository_failure_handler.dart';
 
 /// 통계 Repository 구현체
-class StatisticsRepositoryImpl implements StatisticsRepository {
+class StatisticsRepositoryImpl
+    with RepositoryFailureHandler
+    implements StatisticsRepository {
   final SqliteLocalDataSource _localDataSource;
 
   StatisticsRepositoryImpl({
@@ -14,7 +16,7 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
 
   @override
   Future<EmotionStatistics> getStatistics(StatisticsPeriod period) async {
-    try {
+    return guardFailure('통계 조회 실패', () async {
       final now = DateTime.now();
       DateTime? startDate;
 
@@ -50,9 +52,7 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
         periodStart: startDate,
         periodEnd: now,
       );
-    } catch (e) {
-      throw FailureMapper.from(e, message: '통계 조회 실패');
-    }
+    });
   }
 
   @override
@@ -60,7 +60,7 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    try {
+    return guardFailure('일별 감정 조회 실패', () async {
       // SQL 레벨에서 필터링 (성능 최적화)
       final filteredDiaries = await _localDataSource.getAnalyzedDiariesInRange(
         startDate: startDate,
@@ -68,14 +68,12 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
       );
 
       return _calculateDailyEmotions(filteredDiaries);
-    } catch (e) {
-      throw FailureMapper.from(e, message: '일별 감정 조회 실패');
-    }
+    });
   }
 
   @override
   Future<Map<String, int>> getKeywordFrequency({int? limit}) async {
-    try {
+    return guardFailure('키워드 빈도 조회 실패', () async {
       // SQL 레벨에서 필터링 (성능 최적화)
       final analyzedDiaries = await _localDataSource.getAnalyzedDiariesInRange();
 
@@ -88,9 +86,7 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
         ..sort((a, b) => b.value.compareTo(a.value));
 
       return Map.fromEntries(sorted.take(limit));
-    } catch (e) {
-      throw FailureMapper.from(e, message: '키워드 빈도 조회 실패');
-    }
+    });
   }
 
   @override
@@ -98,7 +94,7 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    try {
+    return guardFailure('활동 맵 조회 실패', () async {
       // SQL 레벨에서 필터링 (성능 최적화)
       final filteredDiaries = await _localDataSource.getAnalyzedDiariesInRange(
         startDate: startDate,
@@ -106,9 +102,7 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
       );
 
       return _calculateActivityMap(filteredDiaries);
-    } catch (e) {
-      throw FailureMapper.from(e, message: '활동 맵 조회 실패');
-    }
+    });
   }
 
   /// 단일 패스로 일별 통계 계산 (dailyEmotions, activityMap, overallAverage)
