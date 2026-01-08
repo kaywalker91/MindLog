@@ -8,10 +8,13 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- 부팅 후 알람 복원 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- 잠금 화면에서 알림 표시 -->
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <!-- 배터리 최적화 제외 요청 -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- Full-screen intent 권한 제거 (사용하지 않음) -->
+    <uses-permission
+        android:name="android.permission.USE_FULL_SCREEN_INTENT"
+        tools:node="remove" />
 
     <!-- Advertising ID 권한 제거 (Analytics에서 자동 추가되는 항목 방지) -->
     <uses-permission
