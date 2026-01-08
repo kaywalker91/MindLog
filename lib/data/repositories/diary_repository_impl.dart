@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/constants/ai_character.dart';
-import '../../core/errors/failure_mapper.dart';
 import '../../core/errors/failures.dart';
 import '../../../domain/entities/diary.dart';
 import '../../../domain/repositories/diary_repository.dart';
@@ -40,44 +39,46 @@ class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryReposito
     required AiCharacter character,
   }) async {
     var diaryLoaded = false;
-    try {
-      final diary = await _localDataSource.getDiaryById(diaryId);
-      if (diary == null) {
-        throw const Failure.dataNotFound(message: '일기를 찾을 수 없습니다.');
-      }
-      diaryLoaded = true;
+    return guardFailureWithHook(
+      '일기 분석 실패',
+      () async {
+        final diary = await _localDataSource.getDiaryById(diaryId);
+        if (diary == null) {
+          throw const Failure.dataNotFound(message: '일기를 찾을 수 없습니다.');
+        }
+        diaryLoaded = true;
 
-      // 원격 API 호출
-      final analysisDto = await _remoteDataSource.analyzeDiary(
-        diary.content,
-        character: character,
-      );
-      final analysisResult = analysisDto.toEntity().copyWith(
-        aiCharacterId: character.id,
-      );
+        // 원격 API 호출
+        final analysisDto = await _remoteDataSource.analyzeDiary(
+          diary.content,
+          character: character,
+        );
+        final analysisResult = analysisDto.toEntity().copyWith(
+          aiCharacterId: character.id,
+        );
 
-      // 분석 결과를 로컬에 저장
-      await _localDataSource.updateDiaryWithAnalysis(diaryId, analysisResult);
+        // 분석 결과를 로컬에 저장
+        await _localDataSource.updateDiaryWithAnalysis(diaryId, analysisResult);
 
-      return diary.copyWith(
-        status: DiaryStatus.analyzed,
-        analysisResult: analysisResult,
-      );
-    } catch (e, stackTrace) {
-      final failure = FailureMapper.from(e, message: '일기 분석 실패');
-      if (failure is UnknownFailure) {
+        return diary.copyWith(
+          status: DiaryStatus.analyzed,
+          analysisResult: analysisResult,
+        );
+      },
+      onFailure: (failure) async {
+        if (diaryLoaded) {
+          await _updateDiaryStatusOnFailure(diaryId, failure);
+        }
+      },
+      onUnknownFailure: (error, stackTrace) {
         // 디버그 모드에서만 로깅
         assert(() {
-          debugPrint('Unknown Exception in analyzeDiary: $e');
+          debugPrint('Unknown Exception in analyzeDiary: $error');
           debugPrint('Stack Trace: $stackTrace');
           return true;
         }());
-      }
-      if (diaryLoaded) {
-        await _updateDiaryStatusOnFailure(diaryId, failure);
-      }
-      throw failure;
-    }
+      },
+    );
   }
 
   @override
