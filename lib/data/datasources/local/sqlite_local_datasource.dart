@@ -74,11 +74,9 @@ class SqliteLocalDataSource {
 
   /// 일기 저장
   Future<void> saveDiary(Diary diary) async {
-    try {
-      final db = await _getDatabase();
-      
+    return _runDb('일기 저장 실패', (db) async {
       final analysisResultJson = diary.analysisResult?.toJson();
-      
+
       await db.insert(
         'diaries',
         {
@@ -86,23 +84,19 @@ class SqliteLocalDataSource {
           'content': diary.content,
           'created_at': diary.createdAt.toIso8601String(),
           'status': diary.status.name,
-          'analysis_result': analysisResultJson != null 
+          'analysis_result': analysisResultJson != null
               ? jsonEncode(analysisResultJson)
               : null,
           'is_pinned': diary.isPinned ? 1 : 0,
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-    } catch (e) {
-      throw CacheException('일기 저장 실패: $e');
-    }
+    });
   }
 
   /// 일기 읽기 (ID 기준)
   Future<Diary?> getDiaryById(String diaryId) async {
-    try {
-      final db = await _getDatabase();
-      
+    return _runDb('일기 조회 실패', (db) async {
       final maps = await db.query(
         'diaries',
         where: 'id = ?',
@@ -111,37 +105,29 @@ class SqliteLocalDataSource {
       );
 
       if (maps.isEmpty) return null;
-      
+
       return _mapToDiary(maps.first);
-    } catch (e) {
-      throw CacheException('일기 조회 실패: $e');
-    }
+    });
   }
 
   /// 모든 일기 조회
   Future<List<Diary>> getAllDiaries() async {
-    try {
-      final db = await _getDatabase();
-      
+    return _runDb('일기 목록 조회 실패', (db) async {
       final maps = await db.query(
         'diaries',
         orderBy: 'is_pinned DESC, created_at DESC',
       );
 
       return maps.map(_mapToDiary).toList();
-    } catch (e) {
-      throw CacheException('일기 목록 조회 실패: $e');
-    }
+    });
   }
 
   /// 오늘 작성된 일기 조회
   Future<List<Diary>> getTodayDiaries() async {
-    try {
-      final db = await _getDatabase();
-      
+    return _runDb('오늘 일기 조회 실패', (db) async {
       final now = DateTime.now();
       final todayStart = DateTime(now.year, now.month, now.day);
-      
+
       final maps = await db.query(
         'diaries',
         where: 'created_at >= ?',
@@ -150,16 +136,12 @@ class SqliteLocalDataSource {
       );
 
       return maps.map(_mapToDiary).toList();
-    } catch (e) {
-      throw CacheException('오늘 일기 조회 실패: $e');
-    }
+    });
   }
 
   /// 일기 분석 결과 업데이트
   Future<void> updateDiaryWithAnalysis(String diaryId, AnalysisResult analysisResult) async {
-    try {
-      final db = await _getDatabase();
-      
+    return _runDb('일기 업데이트 실패', (db) async {
       await db.update(
         'diaries',
         {
@@ -169,48 +151,36 @@ class SqliteLocalDataSource {
         where: 'id = ?',
         whereArgs: [diaryId],
       );
-    } catch (e) {
-      throw CacheException('일기 업데이트 실패: $e');
-    }
+    });
   }
 
   /// 일기 상태 업데이트
   Future<void> updateDiaryStatus(String diaryId, DiaryStatus status) async {
-    try {
-      final db = await _getDatabase();
-      
+    return _runDb('일기 상태 업데이트 실패', (db) async {
       await db.update(
         'diaries',
         {'status': status.name},
         where: 'id = ?',
         whereArgs: [diaryId],
       );
-    } catch (e) {
-      throw CacheException('일기 상태 업데이트 실패: $e');
-    }
+    });
   }
 
   /// 일기 상단 고정 상태 업데이트
   Future<void> updateDiaryPin(String diaryId, bool isPinned) async {
-    try {
-      final db = await _getDatabase();
-      
+    return _runDb('일기 고정 상태 업데이트 실패', (db) async {
       await db.update(
         'diaries',
         {'is_pinned': isPinned ? 1 : 0},
         where: 'id = ?',
         whereArgs: [diaryId],
       );
-    } catch (e) {
-      throw CacheException('일기 고정 상태 업데이트 실패: $e');
-    }
+    });
   }
 
   /// 일기 삭제
   Future<void> deleteDiary(String diaryId) async {
-    try {
-      final db = await _getDatabase();
-
+    return _runDb('일기 삭제 실패', (db) async {
       final deleted = await db.delete(
         'diaries',
         where: 'id = ?',
@@ -220,21 +190,14 @@ class SqliteLocalDataSource {
       if (deleted == 0) {
         throw DataNotFoundException('삭제할 일기를 찾을 수 없습니다: $diaryId');
       }
-    } on DataNotFoundException {
-      rethrow;
-    } catch (e) {
-      throw CacheException('일기 삭제 실패: $e');
-    }
+    });
   }
 
   /// 모든 일기 삭제
   Future<void> deleteAllDiaries() async {
-    try {
-      final db = await _getDatabase();
+    return _runDb('모든 일기 삭제 실패', (db) async {
       await db.delete('diaries');
-    } catch (e) {
-      throw CacheException('모든 일기 삭제 실패: $e');
-    }
+    });
   }
 
   /// 데이터베이스 닫기
@@ -250,9 +213,7 @@ class SqliteLocalDataSource {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    try {
-      final db = await _getDatabase();
-
+    return _runDb('날짜 범위 일기 조회 실패', (db) async {
       String whereClause = "(status = 'analyzed' OR status = 'safetyBlocked')";
       final List<String> whereArgs = [];
 
@@ -273,8 +234,21 @@ class SqliteLocalDataSource {
       );
 
       return maps.map(_mapToDiary).toList();
+    });
+  }
+
+  /// 공통 DB 호출 래퍼 (예외 메시지 표준화)
+  Future<T> _runDb<T>(
+    String errorMessage,
+    Future<T> Function(Database db) action,
+  ) async {
+    try {
+      final db = await _getDatabase();
+      return await action(db);
+    } on DataNotFoundException {
+      rethrow;
     } catch (e) {
-      throw CacheException('날짜 범위 일기 조회 실패: $e');
+      throw CacheException('$errorMessage: $e');
     }
   }
 
@@ -304,7 +278,5 @@ class SqliteLocalDataSource {
       isPinned: (map['is_pinned'] as int?) == 1,
     );
   }
-
-  /// UUID 생성 헬퍼
 
 }
