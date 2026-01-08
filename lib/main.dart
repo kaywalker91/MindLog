@@ -124,8 +124,6 @@ void main() {
   );
 }
 
-
-
 class MindLogApp extends ConsumerWidget {
   const MindLogApp({super.key});
 
