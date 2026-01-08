@@ -110,7 +110,9 @@ class CircuitBreaker {
     _lastFailureTime = DateTime.now();
     _resetTimer?.cancel();
     
-    debugPrint('🔌 Circuit Breaker OPENED');
+    if (kDebugMode) {
+      debugPrint('🔌 Circuit Breaker OPENED');
+    }
     
     // 타임아웃 후 반열림 전환 예약 (run 호출 없이도 자동 전환 가능하게 하려면)
     _resetTimer = Timer(config.resetTimeout, () {
@@ -124,7 +126,9 @@ class CircuitBreaker {
   void _transitionToHalfOpen() {
     _state = CircuitState.halfOpen;
     _successCount = 0;
-    debugPrint('🔌 Circuit Breaker HALF-OPEN');
+    if (kDebugMode) {
+      debugPrint('🔌 Circuit Breaker HALF-OPEN');
+    }
   }
 
   void _transitionToClosed() {
@@ -132,7 +136,9 @@ class CircuitBreaker {
     _failureCount = 0;
     _successCount = 0;
     _resetTimer?.cancel();
-    debugPrint('🔌 Circuit Breaker CLOSED');
+    if (kDebugMode) {
+      debugPrint('🔌 Circuit Breaker CLOSED');
+    }
   }
   
   /// 상태 리셋
