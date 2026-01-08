@@ -1,8 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/services/notification_settings_service.dart';
-import '../../domain/entities/notification_settings.dart';
-import 'providers.dart';
+import 'package:mindlog/core/services/notification_settings_service.dart';
+import 'package:mindlog/domain/entities/notification_settings.dart';
+import 'package:mindlog/presentation/providers/providers.dart';
 
 class NotificationSettingsController
     extends AsyncNotifier<NotificationSettings> {

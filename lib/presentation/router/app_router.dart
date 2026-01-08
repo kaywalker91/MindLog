@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../domain/entities/diary.dart';
-import '../../presentation/screens/splash_screen.dart';
-import '../../presentation/screens/diary_list_screen.dart';
-import '../../presentation/screens/diary_screen.dart';
-import '../../presentation/screens/diary_detail_screen.dart';
-import '../../presentation/screens/statistics_screen.dart';
-import '../../presentation/screens/settings_screen.dart';
-import '../../presentation/screens/privacy_policy_screen.dart';
-import '../../presentation/screens/changelog_screen.dart';
+import 'package:mindlog/domain/entities/diary.dart';
+import 'package:mindlog/presentation/screens/changelog_screen.dart';
+import 'package:mindlog/presentation/screens/diary_detail_screen.dart';
+import 'package:mindlog/presentation/screens/diary_list_screen.dart';
+import 'package:mindlog/presentation/screens/diary_screen.dart';
+import 'package:mindlog/presentation/screens/privacy_policy_screen.dart';
+import 'package:mindlog/presentation/screens/settings_screen.dart';
+import 'package:mindlog/presentation/screens/splash_screen.dart';
+import 'package:mindlog/presentation/screens/statistics_screen.dart';
 
 /// 앱 라우트 정의
 class AppRoutes {

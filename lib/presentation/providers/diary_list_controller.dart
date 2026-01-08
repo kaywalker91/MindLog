@@ -1,7 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/entities/diary.dart';
-import 'providers.dart';
+import 'package:mindlog/domain/entities/diary.dart';
+import 'package:mindlog/presentation/providers/providers.dart';
 
 /// 일기 목록 상태 관리 컨트롤러
 class DiaryListController extends AsyncNotifier<List<Diary>> {

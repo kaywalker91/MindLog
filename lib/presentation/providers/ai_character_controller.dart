@@ -1,7 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/constants/ai_character.dart';
-import 'providers.dart';
+import 'package:mindlog/core/constants/ai_character.dart';
+import 'package:mindlog/presentation/providers/providers.dart';
 
 class AiCharacterController extends AsyncNotifier<AiCharacter> {
   @override

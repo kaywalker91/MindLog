@@ -1,9 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/services/analytics_service.dart';
-import '../../domain/entities/diary.dart';
-import '../../core/errors/failures.dart';
-import 'providers.dart';
+import 'package:mindlog/core/errors/failures.dart';
+import 'package:mindlog/core/services/analytics_service.dart';
+import 'package:mindlog/domain/entities/diary.dart';
+import 'package:mindlog/presentation/providers/providers.dart';
 
 /// 일기 분석 상태
 sealed class DiaryAnalysisState {
