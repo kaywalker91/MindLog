@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/constants/ai_character.dart';
+import 'package:mindlog/core/errors/exceptions.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/data/datasources/local/sqlite_local_datasource.dart';
 import 'package:mindlog/data/datasources/remote/groq_remote_datasource.dart';
@@ -16,7 +17,7 @@ class MockSqliteLocalDataSource implements SqliteLocalDataSource {
   @override
   Future<void> saveDiary(Diary diary) async {
     if (shouldThrowOnSave) {
-      throw Exception('Save failed');
+      throw CacheException('저장 실패');
     }
     _diaries[diary.id] = diary;
   }
@@ -24,7 +25,7 @@ class MockSqliteLocalDataSource implements SqliteLocalDataSource {
   @override
   Future<Diary?> getDiaryById(String diaryId) async {
     if (shouldThrowOnGet) {
-      throw Exception('Get failed');
+      throw CacheException('조회 실패');
     }
     return _diaries[diaryId];
   }
@@ -76,7 +77,7 @@ class MockSqliteLocalDataSource implements SqliteLocalDataSource {
   @override
   Future<void> deleteDiary(String diaryId) async {
     if (!_diaries.containsKey(diaryId)) {
-      throw Exception('Diary not found');
+      throw DataNotFoundException('일기를 찾을 수 없습니다: $diaryId');
     }
     _diaries.remove(diaryId);
   }
@@ -123,7 +124,7 @@ class MockGroqRemoteDataSource implements GroqRemoteDataSource {
     required AiCharacter character,
   }) async {
     if (shouldThrow) {
-      throw Exception(errorMessage ?? 'API Error');
+      throw ApiException(message: errorMessage ?? 'API Error');
     }
     return mockResponse ??
         const AnalysisResponseDto(
@@ -285,13 +286,13 @@ void main() {
         expect(result.analysisResult?.keywords, contains('테스트'));
       });
 
-      test('존재하지 않는 일기 분석 시 CacheFailure를 던져야 한다', () async {
+      test('존재하지 않는 일기 분석 시 DataNotFoundFailure를 던져야 한다', () async {
         expect(
           () => repository.analyzeDiary(
             'non-existent',
             character: AiCharacter.warmCounselor,
           ),
-          throwsA(isA<CacheFailure>()),
+          throwsA(isA<DataNotFoundFailure>()),
         );
       });
     });
@@ -364,10 +365,10 @@ void main() {
         expect(result, isNull);
       });
 
-      test('존재하지 않는 일기 삭제 시 CacheFailure를 던져야 한다', () async {
+      test('존재하지 않는 일기 삭제 시 DataNotFoundFailure를 던져야 한다', () async {
         expect(
           () => repository.deleteDiary('non-existent'),
-          throwsA(isA<CacheFailure>()),
+          throwsA(isA<DataNotFoundFailure>()),
         );
       });
     });

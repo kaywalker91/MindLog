@@ -1,3 +1,4 @@
+import '../../core/errors/failure_mapper.dart';
 import '../../domain/entities/diary.dart';
 import '../../domain/entities/statistics.dart';
 import '../../domain/repositories/statistics_repository.dart';
@@ -13,41 +14,45 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
 
   @override
   Future<EmotionStatistics> getStatistics(StatisticsPeriod period) async {
-    final now = DateTime.now();
-    DateTime? startDate;
+    try {
+      final now = DateTime.now();
+      DateTime? startDate;
 
-    // 기간에 따른 시작일 계산
-    if (period.days != null) {
-      startDate = DateTime(now.year, now.month, now.day)
-          .subtract(Duration(days: period.days! - 1));
+      // 기간에 따른 시작일 계산
+      if (period.days != null) {
+        startDate = DateTime(now.year, now.month, now.day)
+            .subtract(Duration(days: period.days! - 1));
+      }
+
+      // SQL 레벨에서 필터링된 일기 조회 (성능 최적화)
+      final analyzedDiaries = await _localDataSource.getAnalyzedDiariesInRange(
+        startDate: startDate,
+        endDate: now,
+      );
+
+      if (analyzedDiaries.isEmpty) {
+        return EmotionStatistics.empty();
+      }
+
+      // 단일 패스로 일별 감정 + 활동 맵 + 평균 점수 계산 (성능 최적화)
+      final (dailyEmotions, activityMap, overallAverage) =
+          _calculateDailyStats(analyzedDiaries);
+
+      // 키워드 빈도 계산
+      final keywordFrequency = _calculateKeywordFrequency(analyzedDiaries);
+
+      return EmotionStatistics(
+        dailyEmotions: dailyEmotions,
+        keywordFrequency: keywordFrequency,
+        activityMap: activityMap,
+        totalDiaries: analyzedDiaries.length,
+        overallAverageScore: overallAverage,
+        periodStart: startDate,
+        periodEnd: now,
+      );
+    } catch (e) {
+      throw FailureMapper.from(e, message: '통계 조회 실패');
     }
-
-    // SQL 레벨에서 필터링된 일기 조회 (성능 최적화)
-    final analyzedDiaries = await _localDataSource.getAnalyzedDiariesInRange(
-      startDate: startDate,
-      endDate: now,
-    );
-
-    if (analyzedDiaries.isEmpty) {
-      return EmotionStatistics.empty();
-    }
-
-    // 단일 패스로 일별 감정 + 활동 맵 + 평균 점수 계산 (성능 최적화)
-    final (dailyEmotions, activityMap, overallAverage) =
-        _calculateDailyStats(analyzedDiaries);
-
-    // 키워드 빈도 계산
-    final keywordFrequency = _calculateKeywordFrequency(analyzedDiaries);
-
-    return EmotionStatistics(
-      dailyEmotions: dailyEmotions,
-      keywordFrequency: keywordFrequency,
-      activityMap: activityMap,
-      totalDiaries: analyzedDiaries.length,
-      overallAverageScore: overallAverage,
-      periodStart: startDate,
-      periodEnd: now,
-    );
   }
 
   @override
@@ -55,29 +60,37 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    // SQL 레벨에서 필터링 (성능 최적화)
-    final filteredDiaries = await _localDataSource.getAnalyzedDiariesInRange(
-      startDate: startDate,
-      endDate: endDate,
-    );
+    try {
+      // SQL 레벨에서 필터링 (성능 최적화)
+      final filteredDiaries = await _localDataSource.getAnalyzedDiariesInRange(
+        startDate: startDate,
+        endDate: endDate,
+      );
 
-    return _calculateDailyEmotions(filteredDiaries);
+      return _calculateDailyEmotions(filteredDiaries);
+    } catch (e) {
+      throw FailureMapper.from(e, message: '일별 감정 조회 실패');
+    }
   }
 
   @override
   Future<Map<String, int>> getKeywordFrequency({int? limit}) async {
-    // SQL 레벨에서 필터링 (성능 최적화)
-    final analyzedDiaries = await _localDataSource.getAnalyzedDiariesInRange();
+    try {
+      // SQL 레벨에서 필터링 (성능 최적화)
+      final analyzedDiaries = await _localDataSource.getAnalyzedDiariesInRange();
 
-    final frequency = _calculateKeywordFrequency(analyzedDiaries);
+      final frequency = _calculateKeywordFrequency(analyzedDiaries);
 
-    if (limit == null) return frequency;
+      if (limit == null) return frequency;
 
-    // 상위 N개만 반환
-    final sorted = frequency.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+      // 상위 N개만 반환
+      final sorted = frequency.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
 
-    return Map.fromEntries(sorted.take(limit));
+      return Map.fromEntries(sorted.take(limit));
+    } catch (e) {
+      throw FailureMapper.from(e, message: '키워드 빈도 조회 실패');
+    }
   }
 
   @override
@@ -85,13 +98,17 @@ class StatisticsRepositoryImpl implements StatisticsRepository {
     DateTime? startDate,
     DateTime? endDate,
   }) async {
-    // SQL 레벨에서 필터링 (성능 최적화)
-    final filteredDiaries = await _localDataSource.getAnalyzedDiariesInRange(
-      startDate: startDate,
-      endDate: endDate,
-    );
+    try {
+      // SQL 레벨에서 필터링 (성능 최적화)
+      final filteredDiaries = await _localDataSource.getAnalyzedDiariesInRange(
+        startDate: startDate,
+        endDate: endDate,
+      );
 
-    return _calculateActivityMap(filteredDiaries);
+      return _calculateActivityMap(filteredDiaries);
+    } catch (e) {
+      throw FailureMapper.from(e, message: '활동 맵 조회 실패');
+    }
   }
 
   /// 단일 패스로 일별 통계 계산 (dailyEmotions, activityMap, overallAverage)

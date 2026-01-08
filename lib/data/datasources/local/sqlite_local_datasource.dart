@@ -218,8 +218,10 @@ class SqliteLocalDataSource {
       );
 
       if (deleted == 0) {
-        throw Exception('삭제할 일기를 찾을 수 없습니다: $diaryId');
+        throw DataNotFoundException('삭제할 일기를 찾을 수 없습니다: $diaryId');
       }
+    } on DataNotFoundException {
+      rethrow;
     } catch (e) {
       throw CacheException('일기 삭제 실패: $e');
     }

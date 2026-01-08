@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/constants/ai_character.dart';
+import '../../core/errors/failure_mapper.dart';
+import '../../core/errors/failures.dart';
 import '../../../domain/entities/diary.dart';
 import '../../../domain/repositories/diary_repository.dart';
-import '../../core/errors/failures.dart';
 import '../datasources/local/sqlite_local_datasource.dart';
 import '../datasources/remote/groq_remote_datasource.dart';
-import '../../core/errors/exceptions.dart';
 
 /// 일기 Repository 구현체
 class DiaryRepositoryImpl implements DiaryRepository {
@@ -16,8 +16,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
   DiaryRepositoryImpl({
     required SqliteLocalDataSource localDataSource,
     required GroqRemoteDataSource remoteDataSource,
-  }) : 
-        _localDataSource = localDataSource,
+  }) : _localDataSource = localDataSource,
         _remoteDataSource = remoteDataSource;
 
   @override
@@ -32,7 +31,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
       await _localDataSource.saveDiary(diary);
       return diary;
     } catch (e) {
-      throw CacheFailure(message: '일기 생성 실패: $e');
+      throw FailureMapper.from(e, message: '일기 생성 실패');
     }
   }
 
@@ -41,15 +40,19 @@ class DiaryRepositoryImpl implements DiaryRepository {
     String diaryId, {
     required AiCharacter character,
   }) async {
+    var diaryLoaded = false;
     try {
       final diary = await _localDataSource.getDiaryById(diaryId);
       if (diary == null) {
-        throw CacheFailure(message: '일기를 찾을 수 없습니다: $diaryId');
+        throw const Failure.dataNotFound(message: '일기를 찾을 수 없습니다.');
       }
+      diaryLoaded = true;
 
       // 원격 API 호출
-      final analysisDto =
-          await _remoteDataSource.analyzeDiary(diary.content, character: character);
+      final analysisDto = await _remoteDataSource.analyzeDiary(
+        diary.content,
+        character: character,
+      );
       final analysisResult = analysisDto.toEntity().copyWith(
         aiCharacterId: character.id,
       );
@@ -61,23 +64,20 @@ class DiaryRepositoryImpl implements DiaryRepository {
         status: DiaryStatus.analyzed,
         analysisResult: analysisResult,
       );
-    } on NetworkException catch (e) {
-      await _localDataSource.updateDiaryStatus(diaryId, DiaryStatus.failed);
-      throw NetworkFailure(message: e.message ?? '네트워크 오류');
-    } on ApiException catch (e) {
-      await _localDataSource.updateDiaryStatus(diaryId, DiaryStatus.failed);
-      throw ServerFailure(message: e.message ?? 'API 오류');
-    } on SafetyBlockException catch (e) {
-      await _localDataSource.updateDiaryStatus(diaryId, DiaryStatus.safetyBlocked);
-      throw ServerFailure(message: e.message ?? '안전 필터에 의해 차단됨');
     } catch (e, stackTrace) {
-      // 디버그 모드에서만 로깅
-      assert(() {
-        debugPrint('Unknown Exception in analyzeDiary: $e');
-        debugPrint('Stack Trace: $stackTrace');
-        return true;
-      }());
-      throw const CacheFailure(message: '일기 분석 실패');
+      final failure = FailureMapper.from(e, message: '일기 분석 실패');
+      if (failure is UnknownFailure) {
+        // 디버그 모드에서만 로깅
+        assert(() {
+          debugPrint('Unknown Exception in analyzeDiary: $e');
+          debugPrint('Stack Trace: $stackTrace');
+          return true;
+        }());
+      }
+      if (diaryLoaded) {
+        await _updateDiaryStatusOnFailure(diaryId, failure);
+      }
+      throw failure;
     }
   }
 
@@ -93,7 +93,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
         );
       }
     } catch (e) {
-      throw CacheFailure(message: '일기 업데이트 실패: $e');
+      throw FailureMapper.from(e, message: '일기 업데이트 실패');
     }
   }
 
@@ -102,7 +102,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
     try {
       return await _localDataSource.getDiaryById(diaryId);
     } catch (e) {
-      throw CacheFailure(message: '일기 조회 실패: $e');
+      throw FailureMapper.from(e, message: '일기 조회 실패');
     }
   }
 
@@ -111,7 +111,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
     try {
       return await _localDataSource.getAllDiaries();
     } catch (e) {
-      throw CacheFailure(message: '일기 목록 조회 실패: $e');
+      throw FailureMapper.from(e, message: '일기 목록 조회 실패');
     }
   }
 
@@ -120,7 +120,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
     try {
       return await _localDataSource.getTodayDiaries();
     } catch (e) {
-      throw CacheFailure(message: '오늘 일기 조회 실패: $e');
+      throw FailureMapper.from(e, message: '오늘 일기 조회 실패');
     }
   }
 
@@ -129,7 +129,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
     try {
       final diary = await _localDataSource.getDiaryById(diaryId);
       if (diary == null) {
-        throw CacheFailure(message: '일기를 찾을 수 없습니다: $diaryId');
+        throw const Failure.dataNotFound(message: '일기를 찾을 수 없습니다.');
       }
 
       if (diary.analysisResult != null) {
@@ -139,7 +139,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
         await _localDataSource.updateDiaryWithAnalysis(diaryId, updatedAnalysis);
       }
     } catch (e) {
-      throw CacheFailure(message: '행동 완료 표시 실패: $e');
+      throw FailureMapper.from(e, message: '행동 완료 표시 실패');
     }
   }
 
@@ -148,7 +148,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
     try {
       await _localDataSource.updateDiaryPin(diaryId, isPinned);
     } catch (e) {
-      throw CacheFailure(message: '일기 고정 상태 업데이트 실패: $e');
+      throw FailureMapper.from(e, message: '일기 고정 상태 업데이트 실패');
     }
   }
 
@@ -157,7 +157,7 @@ class DiaryRepositoryImpl implements DiaryRepository {
     try {
       await _localDataSource.deleteDiary(diaryId);
     } catch (e) {
-      throw CacheFailure(message: '일기 삭제 실패: $e');
+      throw FailureMapper.from(e, message: '일기 삭제 실패');
     }
   }
 
@@ -166,9 +166,31 @@ class DiaryRepositoryImpl implements DiaryRepository {
     try {
       await _localDataSource.deleteAllDiaries();
     } catch (e) {
-      throw CacheFailure(message: '모든 일기 삭제 실패: $e');
+      throw FailureMapper.from(e, message: '모든 일기 삭제 실패');
     }
   }
 
   String _generateId() => const Uuid().v4();
+
+  Future<void> _updateDiaryStatusOnFailure(
+    String diaryId,
+    Failure failure,
+  ) async {
+    try {
+      if (failure is SafetyBlockedFailure) {
+        await _localDataSource.updateDiaryStatus(
+          diaryId,
+          DiaryStatus.safetyBlocked,
+        );
+        return;
+      }
+      if (failure is NetworkFailure ||
+          failure is ApiFailure ||
+          failure is ServerFailure) {
+        await _localDataSource.updateDiaryStatus(diaryId, DiaryStatus.failed);
+      }
+    } catch (_) {
+      // 상태 업데이트 실패는 원본 오류를 덮지 않기 위해 무시
+    }
+  }
 }

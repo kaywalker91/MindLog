@@ -26,6 +26,15 @@ class CacheException implements Exception {
   String toString() => 'CacheException: $message';
 }
 
+/// 데이터를 찾을 수 없을 때 발생하는 예외
+class DataNotFoundException implements Exception {
+  final String? message;
+  DataNotFoundException([this.message]);
+
+  @override
+  String toString() => 'DataNotFoundException: $message';
+}
+
 /// 안전 필터 관련 예외 (Safety block)
 class SafetyBlockException implements Exception {
   final String? message;
