@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../services/crashlytics_service.dart';
 
 /// 앱 전역 에러 처리 설정
 /// 
@@ -70,7 +71,11 @@ class ErrorBoundary {
       debugPrint('🚨 [ErrorBoundary] Uncaught error: $error');
       debugPrint('$stack');
     }
-    // TODO: 프로덕션에서는 Crashlytics 등으로 전송
+    CrashlyticsService.recordError(
+      error,
+      stack,
+      fatal: true,
+    );
   }
 }
 

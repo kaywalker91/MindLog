@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/notification_settings.dart';
+import 'analytics_service.dart';
 import 'fcm_service.dart';
 import 'notification_permission_service.dart';
 import 'notification_service.dart';
@@ -10,7 +11,14 @@ class NotificationSettingsService {
   static const String mindcareTopic = 'mindlog_mindcare';
   static const String reminderPayload = '{"type":"reminder"}';
 
-  static Future<void> applySettings(NotificationSettings settings) async {
+  /// 알림 설정 적용
+  ///
+  /// [settings] 적용할 알림 설정
+  /// [source] 스케줄링 트리거 소스 ('user_toggle', 'app_start', 'time_change')
+  static Future<void> applySettings(
+    NotificationSettings settings, {
+    String source = 'user_toggle',
+  }) async {
     if (settings.isReminderEnabled) {
       // 상세 로깅 (항상 출력)
       if (kDebugMode) {
@@ -18,6 +26,7 @@ class NotificationSettingsService {
         debugPrint('[NotificationSettings] 📅 Scheduling Daily Reminder');
         debugPrint('[NotificationSettings] ═══════════════════════════════════════');
         debugPrint('[NotificationSettings] Time: ${settings.reminderHour}:${settings.reminderMinute.toString().padLeft(2, '0')}');
+        debugPrint('[NotificationSettings] Source: $source');
       }
 
       // 권한 상태 확인
@@ -58,10 +67,22 @@ class NotificationSettingsService {
           payload: reminderPayload,
         );
 
+        // Analytics 이벤트: 스케줄링 성공
+        await AnalyticsService.logReminderScheduled(
+          hour: settings.reminderHour,
+          minute: settings.reminderMinute,
+          source: source,
+        );
+
         if (kDebugMode) {
           debugPrint('[NotificationSettings] ✅ Schedule call completed successfully');
         }
       } catch (e, stackTrace) {
+        // Analytics 이벤트: 스케줄링 실패
+        await AnalyticsService.logReminderScheduleFailed(
+          errorType: e.runtimeType.toString(),
+        );
+
         if (kDebugMode) {
           debugPrint('[NotificationSettings] ❌ Schedule FAILED: $e');
           debugPrint('[NotificationSettings] Stack trace: $stackTrace');
@@ -84,6 +105,9 @@ class NotificationSettingsService {
         debugPrint('[NotificationSettings] 🔕 Cancelling daily reminder');
       }
       await NotificationService.cancelDailyReminder();
+
+      // Analytics 이벤트: 리마인더 취소
+      await AnalyticsService.logReminderCancelled(source: source);
     }
 
     if (settings.isMindcareTopicEnabled) {

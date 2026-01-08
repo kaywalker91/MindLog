@@ -12,8 +12,10 @@ import '../../domain/repositories/settings_repository.dart';
 import '../../domain/repositories/statistics_repository.dart';
 import '../../domain/usecases/analyze_diary_usecase.dart';
 import '../../domain/usecases/get_selected_ai_character_usecase.dart';
+import '../../domain/usecases/get_notification_settings_usecase.dart';
 import '../../domain/usecases/get_statistics_usecase.dart';
 import '../../domain/usecases/set_selected_ai_character_usecase.dart';
+import '../../domain/usecases/set_notification_settings_usecase.dart';
 import '../../core/network/circuit_breaker.dart';
 
 /// SQLite 로컬 데이터 소스 Provider
@@ -79,6 +81,18 @@ final getSelectedAiCharacterUseCaseProvider =
 final setSelectedAiCharacterUseCaseProvider =
     Provider<SetSelectedAiCharacterUseCase>((ref) {
   return SetSelectedAiCharacterUseCase(ref.watch(settingsRepositoryProvider));
+});
+
+/// GetNotificationSettingsUseCase Provider
+final getNotificationSettingsUseCaseProvider =
+    Provider<GetNotificationSettingsUseCase>((ref) {
+  return GetNotificationSettingsUseCase(ref.watch(settingsRepositoryProvider));
+});
+
+/// SetNotificationSettingsUseCase Provider
+final setNotificationSettingsUseCaseProvider =
+    Provider<SetNotificationSettingsUseCase>((ref) {
+  return SetNotificationSettingsUseCase(ref.watch(settingsRepositoryProvider));
 });
 
 // ============ Statistics Providers ============

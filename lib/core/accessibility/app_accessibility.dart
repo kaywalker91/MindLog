@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
-import 'package:characters/characters.dart';
 
 /// 앱 전역 접근성 설정 및 유틸리티
 /// 

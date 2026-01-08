@@ -2,7 +2,7 @@ name: mindlog
 description: "AI 기반 감정 케어 다이어리 - 사용자의 일기를 분석하여 위로와 행동 지침을 제공합니다."
 publish_to: "none"
 
-version: 1.4.8+14
+version: 1.4.9+15
 
 environment:
   sdk: ^3.10.1
@@ -47,12 +47,23 @@ dependencies:
   # App Info
   package_info_plus: ^8.0.0
 
+  # Firebase
+  firebase_core: ^3.8.0
+  firebase_analytics: ^11.4.0
+  firebase_crashlytics: ^4.2.0
+  firebase_messaging: ^15.2.0
+
+  # Local Notifications (FCM용)
+  flutter_local_notifications: ^18.0.0
+  timezone: ^0.9.4
+
   # Markdown Rendering
   flutter_markdown_plus: ^1.0.7
   go_router: ^17.0.1
   flutter_localizations:
     sdk: flutter
   characters: ^1.4.0
+  flutter_timezone: ^5.0.1
 
 dev_dependencies:
   flutter_test:

@@ -1,12 +1,91 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/config/environment_service.dart';
-import 'core/errors/error_boundary.dart';
-import 'core/theme/app_theme.dart';
 import 'core/constants/app_constants.dart';
-import 'presentation/screens/splash_screen.dart';
+import 'core/errors/error_boundary.dart';
+import 'core/services/analytics_service.dart';
+import 'core/services/fcm_service.dart';
+import 'core/services/firebase_service.dart';
+import 'core/services/notification_service.dart';
+import 'core/services/notification_settings_service.dart';
+import 'core/theme/app_theme.dart';
+import 'domain/entities/notification_settings.dart' as app;
 import 'l10n/app_localizations.dart';
+import 'presentation/services/notification_action_handler.dart';
+import 'presentation/screens/splash_screen.dart';
+
+final ProviderContainer appContainer = ProviderContainer();
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
+
+/// 앱 시작 시 알림 재스케줄링
+///
+/// Android에서 기기 재부팅 시 모든 예약된 알람이 삭제됩니다.
+/// 이 함수는 앱 시작 시 리마인더가 활성화되어 있고, 예약된 알림이 없을 때만
+/// 알람을 다시 스케줄합니다.
+///
+/// 최적화:
+/// - 이미 예약된 알림이 있으면 불필요한 재스케줄링을 건너뜀
+/// - 이를 통해 알람 안정성을 높이고 시스템 리소스를 절약
+///
+/// 참고: zonedSchedule의 matchDateTimeComponents: DateTimeComponents.time이
+/// 매일 반복되는 알림을 처리하므로, 재스케줄 시 같은 시간으로 설정됩니다.
+Future<void> _rescheduleNotificationsIfNeeded() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final reminderEnabled = prefs.getBool('notification_reminder_enabled') ?? false;
+
+    if (!reminderEnabled) {
+      if (kDebugMode) {
+        debugPrint('[Main] Reminder is disabled, skipping reschedule');
+      }
+      return;
+    }
+
+    // 이미 예약된 알림이 있는지 확인 (스마트 재스케줄링)
+    final pendingNotifications = await NotificationService.getPendingNotifications();
+    final hasScheduledReminder = pendingNotifications.any((n) => n.id == 1001); // _dailyReminderId
+
+    if (hasScheduledReminder) {
+      if (kDebugMode) {
+        debugPrint('[Main] Reminder already scheduled, skipping reschedule');
+        for (final notification in pendingNotifications) {
+          debugPrint('[Main]   • ID: ${notification.id}, Title: ${notification.title}');
+        }
+      }
+      return; // 이미 예약되어 있으면 재스케줄 불필요
+    }
+
+    // SharedPreferences에서 알림 설정 읽기
+    final hour = prefs.getInt('notification_reminder_hour') ?? 21;
+    final minute = prefs.getInt('notification_reminder_minute') ?? 0;
+    final mindcareEnabled = prefs.getBool('notification_mindcare_topic_enabled') ?? false;
+
+    final settings = app.NotificationSettings(
+      isReminderEnabled: true,
+      reminderHour: hour,
+      reminderMinute: minute,
+      isMindcareTopicEnabled: mindcareEnabled,
+    );
+
+    if (kDebugMode) {
+      debugPrint('[Main] No scheduled reminder found. Rescheduling for $hour:${minute.toString().padLeft(2, '0')}');
+    }
+
+    await NotificationSettingsService.applySettings(settings, source: 'app_start');
+
+    if (kDebugMode) {
+      debugPrint('[Main] Notification rescheduled successfully');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('[Main] Failed to reschedule notifications: $e');
+    }
+  }
+}
 
 void main() {
   // 에러 바운더리로 앱 실행
@@ -17,14 +96,31 @@ void main() {
 
       // 한국어 날짜 포맷 초기화
       await initializeDateFormatting('ko_KR', null);
+
+      await FirebaseService.initialize();
+      FirebaseMessaging.onBackgroundMessage(
+        firebaseMessagingBackgroundHandler,
+      );
+      NotificationActionHandler.configure(
+        navigatorKey: rootNavigatorKey,
+        container: appContainer,
+      );
+      await NotificationService.initialize(
+        onNotificationResponse: NotificationActionHandler.handlePayload,
+      );
+      await FCMService.initialize(
+        onMessageOpened: NotificationActionHandler.handleRemoteData,
+      );
+
+      // 앱 시작 시 알림 재스케줄링
+      // 기기 재부팅, 앱 업데이트, 시스템 알람 취소 등의 경우에 알람을 복원합니다.
+      // cancelDailyReminder()가 먼저 호출되므로 중복 스케줄링은 발생하지 않습니다.
+      await _rescheduleNotificationsIfNeeded();
     },
-    appBuilder: () => const ProviderScope(
-      child: MindLogApp(),
+    appBuilder: () => UncontrolledProviderScope(
+      container: appContainer,
+      child: const MindLogApp(),
     ),
-    onError: (error, stack) {
-      // TODO: Crashlytics 등 외부 서비스로 에러 전송
-      // FirebaseCrashlytics.instance.recordError(error, stack);
-    },
   );
 }
 
@@ -41,11 +137,15 @@ class MindLogApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      
+      navigatorKey: rootNavigatorKey,
+
       // 로컬라이제이션 설정
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      
+
+      navigatorObservers: [
+        if (AnalyticsService.observer != null) AnalyticsService.observer!,
+      ],
       home: const SplashScreen(),
       builder: (context, child) {
         return child!;

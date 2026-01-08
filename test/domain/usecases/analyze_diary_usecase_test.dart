@@ -3,6 +3,7 @@ import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/core/constants/app_constants.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/entities/diary.dart';
+import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/repositories/diary_repository.dart';
 import 'package:mindlog/domain/repositories/settings_repository.dart';
 import 'package:mindlog/domain/usecases/analyze_diary_usecase.dart';
@@ -82,6 +83,7 @@ class MockDiaryRepository implements DiaryRepository {
 
 class MockSettingsRepository implements SettingsRepository {
   AiCharacter selectedCharacter = AiCharacter.warmCounselor;
+  NotificationSettings notificationSettings = NotificationSettings.defaults();
 
   @override
   Future<AiCharacter> getSelectedAiCharacter() async {
@@ -91,6 +93,16 @@ class MockSettingsRepository implements SettingsRepository {
   @override
   Future<void> setSelectedAiCharacter(AiCharacter character) async {
     selectedCharacter = character;
+  }
+
+  @override
+  Future<NotificationSettings> getNotificationSettings() async {
+    return notificationSettings;
+  }
+
+  @override
+  Future<void> setNotificationSettings(NotificationSettings settings) async {
+    notificationSettings = settings;
   }
 }
 

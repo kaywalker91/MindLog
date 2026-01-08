@@ -67,7 +67,19 @@
             android:name="io.flutter.embedding.android.EnableImpeller"
             android:value="false" />
 
-        <!-- 부팅 완료 시 알림 재스케줄링을 위한 BroadcastReceiver -->
+        <!-- flutter_local_notifications 스케줄된 알림을 위한 필수 Receiver -->
+        <!-- 이 receiver가 없으면 스케줄된 알림이 앱 종료 후 작동하지 않음 -->
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 커스텀 부팅 완료 시 알림 재스케줄링을 위한 BroadcastReceiver -->
         <receiver
             android:name=".BootReceiver"
             android:exported="true"

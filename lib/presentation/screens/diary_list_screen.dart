@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
@@ -29,6 +31,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
     super.initState();
     // 화면 진입 시 데이터 로드
     // Future.microtask(() => ref.read(diaryListControllerProvider.notifier).refresh());
+    unawaited(AnalyticsService.logScreenView('diary_list'));
   }
 
   @override
@@ -174,7 +177,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
-          color: const Color(0xFFFF5252).withOpacity(0.9), // 부드러운 빨간색
+          color: const Color(0xFFFF5252).withValues(alpha: 0.9), // 부드러운 빨간색
           borderRadius: BorderRadius.circular(16),
         ),
         child: const Icon(Icons.delete, color: Colors.white, size: 28),

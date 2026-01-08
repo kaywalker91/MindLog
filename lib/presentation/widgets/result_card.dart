@@ -1,8 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:characters/characters.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/ai_character.dart';
+import '../../core/services/analytics_service.dart';
 import '../../domain/entities/diary.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -31,12 +32,15 @@ class _ResultCardState extends State<ResultCard> {
     _isActionCompleted = widget.diary.analysisResult?.isActionCompleted ?? false;
   }
 
-  void _onActionCheck(bool? checked) {
+  void _onActionCheck(String actionItem, bool? checked) {
     if (checked == true && !_isActionCompleted) {
       // 체크하는 순간 축하 효과
       setState(() {
         _isActionCompleted = true;
       });
+      unawaited(
+        AnalyticsService.logActionItemCompleted(actionItemText: actionItem),
+      );
       _showSuccessMessage();
     } else if (checked == false) {
       setState(() {
@@ -689,7 +693,7 @@ class _ResultCardState extends State<ResultCard> {
 
   Widget _buildActionItem(String actionItem) {
     return GestureDetector(
-      onTap: () => _onActionCheck(!_isActionCompleted),
+      onTap: () => _onActionCheck(actionItem, !_isActionCompleted),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.all(20),

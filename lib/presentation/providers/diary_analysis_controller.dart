@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/services/analytics_service.dart';
 import '../../domain/entities/diary.dart';
 import '../../core/errors/failures.dart';
 import 'providers.dart';
@@ -56,6 +58,20 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
         return;
       }
       state = DiaryAnalysisSuccess(diary);
+      final analysisResult = diary.analysisResult;
+      unawaited(AnalyticsService.logDiaryCreated(
+        contentLength: diary.content.length,
+        aiCharacterId: analysisResult?.aiCharacterId,
+      ));
+      if (diary.status == DiaryStatus.analyzed && analysisResult != null) {
+        final energyLevel =
+            analysisResult.energyLevel ?? analysisResult.sentimentScore;
+        unawaited(AnalyticsService.logDiaryAnalyzed(
+          aiCharacterId: analysisResult.aiCharacterId ?? 'default',
+          sentimentScore: analysisResult.sentimentScore,
+          energyLevel: energyLevel,
+        ));
+      }
       if (diary.status == DiaryStatus.analyzed ||
           diary.status == DiaryStatus.safetyBlocked) {
         _ref.invalidate(statisticsProvider);

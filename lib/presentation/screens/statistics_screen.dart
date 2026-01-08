@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
+import '../../core/services/analytics_service.dart';
 import '../../domain/entities/statistics.dart';
 import '../providers/providers.dart';
 import '../widgets/emotion_line_chart.dart';
@@ -10,11 +12,32 @@ import '../widgets/activity_heatmap.dart';
 import '../widgets/mindlog_app_bar.dart';
 
 /// 감정 통계 화면 (레이아웃 B: 요약+잔디 우선형)
-class StatisticsScreen extends ConsumerWidget {
+class StatisticsScreen extends ConsumerStatefulWidget {
   const StatisticsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StatisticsScreen> createState() => _StatisticsScreenState();
+}
+
+class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final period = ref.read(selectedStatisticsPeriodProvider);
+    unawaited(AnalyticsService.logStatisticsViewed(period: period.name));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<StatisticsPeriod>(
+      selectedStatisticsPeriodProvider,
+      (previous, next) {
+        if (previous != next) {
+          unawaited(AnalyticsService.logStatisticsViewed(period: next.name));
+        }
+      },
+    );
+
     final statisticsAsync = ref.watch(statisticsProvider);
     final selectedPeriod = ref.watch(selectedStatisticsPeriodProvider);
 

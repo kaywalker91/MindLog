@@ -195,22 +195,23 @@ class SettingsScreen extends ConsumerWidget {
                     ? () => _sendTestNotification(context)
                     : null,
               ),
-              _buildDivider(context),
-              _buildToggleSettingItem(
-                context,
-                icon: Icons.favorite_border,
-                title: '마음 케어 알림',
-                subtitle: '마음 케어 소식을 푸시로 받아볼게요.',
-                value: notificationSettings.isMindcareTopicEnabled,
-                enabled: notificationsReady,
-                onChanged: (value) {
-                  unawaited(
-                    ref
-                        .read(notificationSettingsProvider.notifier)
-                        .updateMindcareTopicEnabled(value),
-                  );
-                },
-              ),
+              // TODO: 마음 케어 알림 - 서버측 푸시 발송 시스템 구현 후 활성화
+              // _buildDivider(context),
+              // _buildToggleSettingItem(
+              //   context,
+              //   icon: Icons.favorite_border,
+              //   title: '마음 케어 알림',
+              //   subtitle: '마음 케어 소식을 푸시로 받아볼게요.',
+              //   value: notificationSettings.isMindcareTopicEnabled,
+              //   enabled: notificationsReady,
+              //   onChanged: (value) {
+              //     unawaited(
+              //       ref
+              //           .read(notificationSettingsProvider.notifier)
+              //           .updateMindcareTopicEnabled(value),
+              //     );
+              //   },
+              // ),
             ],
           ),
           const SizedBox(height: 24),

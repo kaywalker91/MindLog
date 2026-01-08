@@ -21,8 +21,6 @@ class DiaryDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: MindlogAppBar(
         title: const Text('일기 상세'),

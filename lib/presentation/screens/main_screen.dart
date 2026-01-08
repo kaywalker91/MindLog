@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/services/notification_permission_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../services/notification_action_handler.dart';
 import 'diary_list_screen.dart';
 import 'statistics_screen.dart';
 import 'settings_screen.dart';
@@ -10,11 +13,74 @@ import 'settings_screen.dart';
 final selectedTabIndexProvider = StateProvider<int>((ref) => 0);
 
 /// 메인 화면 (BottomNavigationBar 포함)
-class MainScreen extends ConsumerWidget {
+class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends ConsumerState<MainScreen> {
+  bool _notificationDialogShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationActionHandler.markMainReady();
+      unawaited(_maybeRequestNotificationPermission());
+    });
+  }
+
+  Future<void> _maybeRequestNotificationPermission() async {
+    if (_notificationDialogShown) return;
+    final shouldPrompt =
+        await NotificationPermissionService.shouldPromptAndroidPermission();
+    if (!mounted || !shouldPrompt) return;
+
+    _notificationDialogShown = true;
+
+    final allow = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('알림 권한 허용'),
+          content: const Text(
+            '일기 작성 리마인더와 마음 케어 알림을 받으려면 알림 권한이 필요해요.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('나중에'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.statsPrimary,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('알림 받기'),
+            ),
+          ],
+        );
+      },
+    );
+
+    await NotificationPermissionService.markPrompted();
+    if (!mounted || allow != true) return;
+
+    final granted =
+        await NotificationPermissionService.requestAndroidPermission();
+    if (!mounted || granted == true) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('알림 권한이 거부되었습니다.')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selectedIndex = ref.watch(selectedTabIndexProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompact = screenWidth < 360;
