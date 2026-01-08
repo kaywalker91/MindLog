@@ -20,6 +20,9 @@
     <uses-permission
         android:name="android.permission.ACCESS_ADSERVICES_AD_ID"
         tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION"
+        tools:node="remove" />
     
     <application
         android:label="MindLog - 마음 케어 다이어리"
