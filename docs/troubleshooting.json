@@ -1,0 +1,28 @@
+{
+  "title": "MindLog 트러블슈팅 가이드",
+  "description": "알려진 이슈와 해결 방법",
+  "issues": [
+    {
+      "id": "notification-not-firing-release",
+      "title": "Release 빌드에서 예약 알림 미작동",
+      "status": "resolved",
+      "resolvedAt": "2026-01-09",
+      "affectedVersions": ["< 1.4.11"],
+      "category": "notification",
+      "severity": "critical",
+      "summary": "Release APK에서 예약된 일기 리마인더 알림이 설정 시간에 발생하지 않음",
+      "cause": "Proguard/R8 난독화가 flutter_local_notifications의 ScheduledNotificationReceiver 클래스를 제거/변경하여 AlarmManager가 찾지 못함",
+      "solution": "proguard-rules.pro에 keep 규칙 추가: -keep class com.dexterous.flutterlocalnotifications.** { *; }",
+      "documentation": "troubleshooting/notification-not-firing-release.md",
+      "tags": ["android", "proguard", "r8", "notification", "alarmmanager"]
+    }
+  ],
+  "categories": {
+    "notification": "알림 관련",
+    "ui": "UI/UX 관련",
+    "build": "빌드/배포 관련",
+    "api": "API 연동 관련",
+    "database": "데이터베이스 관련"
+  },
+  "updatedAt": "2026-01-09"
+}

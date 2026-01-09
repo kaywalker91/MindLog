@@ -32,3 +32,7 @@
 # Keep annotations
 -keepattributes RuntimeVisibleAnnotations
 -keepattributes RuntimeInvisibleAnnotations
+
+# flutter_local_notifications - 예약된 알림에 필수
+# R8이 Receiver 클래스를 난독화/제거하면 AlarmManager가 찾지 못해 알림 발생 안함
+-keep class com.dexterous.flutterlocalnotifications.** { *; }

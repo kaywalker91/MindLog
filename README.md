@@ -91,9 +91,25 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 ```
 
 
+## 🔧 트러블슈팅
+
+알려진 이슈와 해결 방법:
+
+| 이슈 | 원인 | 해결 |
+|------|------|------|
+| [Release 빌드에서 예약 알림 미작동](docs/troubleshooting/notification-not-firing-release.md) | Proguard/R8 난독화 | keep 규칙 추가 |
+
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.10 (Current)
+### v1.4.11 (Current)
+*   **트러블슈팅 문서 시스템 추가:**
+    *   **트러블슈팅 게시판:** GitHub Pages에 알려진 이슈와 해결 방법을 확인할 수 있는 페이지 추가
+    *   **웹 모달 마크다운 뷰어:** MD 파일을 다운로드 없이 웹에서 바로 확인 가능
+    *   **필터 및 검색:** 상태/카테고리별 필터링과 키워드 검색 지원
+*   **알림 안정성 강화:**
+    *   **Proguard keep 규칙 추가:** Release 빌드에서 예약 알림이 정상 동작하도록 수정
+
+### v1.4.10
 *   **개인정보/정책 정비:**
     *   **광고 ID 권한 제거:** AD_ID/AdServices 관련 권한을 제외했어요.
     *   **Analytics 설정 강화:** 광고 ID 수집을 비활성화했어요.

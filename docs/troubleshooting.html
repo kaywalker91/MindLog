@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>트러블슈팅 가이드 - MindLog</title>
+    <meta name="description" content="MindLog 알려진 이슈와 해결 방법을 확인하세요.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=20260109">
+</head>
+<body>
+    <header class="hero troubleshooting-hero" id="top">
+        <nav class="nav container">
+            <a href="index.html" class="nav-brand">MindLog</a>
+            <div class="nav-links">
+                <a href="index.html">홈</a>
+                <a href="index.html#features">기능</a>
+                <a href="index.html#updates">최근 개선</a>
+                <a href="troubleshooting.html" class="active">트러블슈팅</a>
+                <a href="https://github.com/kaywalker91/MindLog" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </nav>
+        <div class="hero-content container troubleshooting-hero-content">
+            <span class="hero-pill">개발자 가이드</span>
+            <h1>트러블슈팅 가이드</h1>
+            <p class="hero-subtitle">알려진 이슈와 해결 방법</p>
+        </div>
+    </header>
+
+    <section class="troubleshooting-filters">
+        <div class="container filters-container">
+            <div class="filter-group">
+                <span class="filter-label">상태:</span>
+                <button class="filter-btn active" data-status="all">전체</button>
+                <button class="filter-btn" data-status="resolved">해결됨</button>
+                <button class="filter-btn" data-status="open">미해결</button>
+            </div>
+            <div class="filter-group" id="category-filters">
+                <span class="filter-label">카테고리:</span>
+                <!-- JavaScript로 동적 생성 -->
+            </div>
+            <div class="search-group">
+                <input type="text" id="search-input" class="search-input" placeholder="이슈 검색...">
+            </div>
+        </div>
+    </section>
+
+    <section class="troubleshooting-list">
+        <div class="container">
+            <div id="issues-grid" class="issues-grid">
+                <!-- JavaScript로 동적 렌더링 -->
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>이슈 목록을 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container">
+            <h2>이슈를 발견하셨나요?</h2>
+            <p>GitHub에서 새로운 이슈를 등록해주세요.</p>
+            <div class="hero-buttons">
+                <a href="https://github.com/kaywalker91/MindLog/issues/new" class="btn btn-primary" target="_blank" rel="noopener">
+                    이슈 등록하기
+                </a>
+                <a href="index.html" class="btn btn-secondary">홈으로 돌아가기</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Issue Detail Modal -->
+    <div id="issue-modal" class="modal" aria-hidden="true">
+        <div class="modal-overlay" data-close-modal></div>
+        <div class="modal-container">
+            <header class="modal-header">
+                <h2 id="modal-title">이슈 상세</h2>
+                <button class="modal-close" data-close-modal aria-label="닫기">&times;</button>
+            </header>
+            <div id="modal-content" class="modal-content">
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>문서를 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 MindLog. Made with Flutter.</p>
+            <p>
+                <a href="https://github.com/kaywalker91/MindLog" target="_blank" rel="noopener">GitHub</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script>
+    (function() {
+        'use strict';
+
+        let allIssues = [];
+        let categories = {};
+        let currentFilters = {
+            status: 'all',
+            category: 'all',
+            search: ''
+        };
+
+        // DOM Elements
+        const issuesGrid = document.getElementById('issues-grid');
+        const searchInput = document.getElementById('search-input');
+        const categoryFilters = document.getElementById('category-filters');
+
+        // Initialize
+        async function init() {
+            try {
+                const data = await fetch('troubleshooting.json').then(r => r.json());
+                allIssues = data.issues || [];
+                categories = data.categories || {};
+
+                renderCategoryFilters();
+                setupEventListeners();
+                renderIssues();
+            } catch (error) {
+                console.error('Failed to load issues:', error);
+                showError();
+            }
+        }
+
+        // Render category filter buttons
+        function renderCategoryFilters() {
+            if (!categoryFilters) return;
+
+            let html = '<span class="filter-label">카테고리:</span>';
+            html += '<button class="filter-btn active" data-category="all">전체</button>';
+
+            for (const [key, label] of Object.entries(categories)) {
+                html += `<button class="filter-btn" data-category="${key}">${label}</button>`;
+            }
+
+            categoryFilters.innerHTML = html;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Status filters
+            document.querySelectorAll('[data-status]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('[data-status]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilters.status = btn.dataset.status;
+                    renderIssues();
+                });
+            });
+
+            // Category filters
+            categoryFilters?.addEventListener('click', (e) => {
+                if (e.target.matches('[data-category]')) {
+                    categoryFilters.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentFilters.category = e.target.dataset.category;
+                    renderIssues();
+                }
+            });
+
+            // Search
+            searchInput?.addEventListener('input', debounce((e) => {
+                currentFilters.search = e.target.value.toLowerCase().trim();
+                renderIssues();
+            }, 300));
+        }
+
+        // Filter issues
+        function filterIssues() {
+            return allIssues.filter(issue => {
+                // Status filter
+                if (currentFilters.status !== 'all') {
+                    if (currentFilters.status === 'resolved' && issue.status !== 'resolved') return false;
+                    if (currentFilters.status === 'open' && issue.status === 'resolved') return false;
+                }
+
+                // Category filter
+                if (currentFilters.category !== 'all' && issue.category !== currentFilters.category) {
+                    return false;
+                }
+
+                // Search filter
+                if (currentFilters.search) {
+                    const searchTarget = [
+                        issue.title,
+                        issue.summary,
+                        issue.cause,
+                        issue.solution,
+                        ...(issue.tags || [])
+                    ].join(' ').toLowerCase();
+
+                    if (!searchTarget.includes(currentFilters.search)) return false;
+                }
+
+                return true;
+            });
+        }
+
+        // Render issues
+        function renderIssues() {
+            const filtered = filterIssues();
+
+            if (filtered.length === 0) {
+                issuesGrid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3>검색 결과가 없습니다</h3>
+                        <p>다른 검색어나 필터를 시도해보세요.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            issuesGrid.innerHTML = filtered.map(issue => renderIssueCard(issue)).join('');
+        }
+
+        // Render single issue card
+        function renderIssueCard(issue) {
+            const statusClass = issue.status === 'resolved' ? 'resolved' : 'open';
+            const statusText = issue.status === 'resolved' ? '해결됨' : '미해결';
+            const severityClass = (issue.severity || 'minor').toLowerCase();
+            const categoryLabel = categories[issue.category] || issue.category;
+            const dateText = issue.status === 'resolved' ? issue.resolvedAt : '';
+            const versionsText = issue.affectedVersions?.join(', ') || '';
+
+            return `
+                <article class="issue-card" data-id="${issue.id}">
+                    <div class="issue-header">
+                        <span class="issue-status ${statusClass}">${statusText}</span>
+                        <span class="issue-severity ${severityClass}">${issue.severity || 'Minor'}</span>
+                        ${dateText ? `<span class="issue-date">${dateText}</span>` : ''}
+                    </div>
+                    <h3 class="issue-title">${escapeHtml(issue.title)}</h3>
+                    <p class="issue-summary">${escapeHtml(issue.summary)}</p>
+                    <div class="issue-meta">
+                        <span class="issue-category">${categoryLabel}</span>
+                        ${versionsText ? `<span class="issue-versions">영향: ${versionsText}</span>` : ''}
+                    </div>
+                    <div class="issue-tags">
+                        ${(issue.tags || []).map(tag => `<span class="issue-tag">${escapeHtml(tag)}</span>`).join('')}
+                    </div>
+                    ${issue.documentation ? `<button class="issue-link" onclick="openIssueModal('${issue.id}')">상세 보기 →</button>` : ''}
+                </article>
+            `;
+        }
+
+        // Utilities
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function debounce(fn, delay) {
+            let timer;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn(...args), delay);
+            };
+        }
+
+        function showError() {
+            issuesGrid.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">⚠️</div>
+                    <h3>데이터를 불러올 수 없습니다</h3>
+                    <p>잠시 후 다시 시도해주세요.</p>
+                </div>
+            `;
+        }
+
+        // ====== Modal Functions ======
+        const modal = document.getElementById('issue-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+
+        // Global function for onclick
+        window.openIssueModal = async function(issueId) {
+            const issue = allIssues.find(i => i.id === issueId);
+            if (!issue) return;
+
+            // Show modal with loading state
+            modalTitle.textContent = issue.title;
+            modalContent.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>문서를 불러오는 중...</p>
+                </div>
+            `;
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+
+            // Fetch and render markdown
+            if (issue.documentation) {
+                try {
+                    const response = await fetch(issue.documentation);
+                    if (!response.ok) throw new Error('Failed to fetch');
+                    const markdown = await response.text();
+
+                    // Render markdown to HTML using marked.js
+                    const html = marked.parse(markdown);
+                    modalContent.innerHTML = `<div class="markdown-body">${html}</div>`;
+                } catch (error) {
+                    console.error('Failed to load documentation:', error);
+                    modalContent.innerHTML = `
+                        <div class="modal-error">
+                            <p>문서를 불러올 수 없습니다.</p>
+                            <a href="${issue.documentation}" target="_blank" class="btn btn-secondary">
+                                마크다운 파일 직접 보기 →
+                            </a>
+                        </div>
+                    `;
+                }
+            } else {
+                // No documentation, show issue details from JSON
+                modalContent.innerHTML = `
+                    <div class="issue-detail">
+                        <div class="issue-detail-section">
+                            <h3>요약</h3>
+                            <p>${escapeHtml(issue.summary)}</p>
+                        </div>
+                        ${issue.cause ? `
+                        <div class="issue-detail-section">
+                            <h3>원인</h3>
+                            <p>${escapeHtml(issue.cause)}</p>
+                        </div>
+                        ` : ''}
+                        ${issue.solution ? `
+                        <div class="issue-detail-section">
+                            <h3>해결 방법</h3>
+                            <p>${escapeHtml(issue.solution)}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+        };
+
+        function closeModal() {
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        // Modal event listeners
+        modal?.querySelectorAll('[data-close-modal]').forEach(el => {
+            el.addEventListener('click', closeModal);
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('is-open')) {
+                closeModal();
+            }
+        });
+
+        // Start
+        document.addEventListener('DOMContentLoaded', init);
+    })();
+    </script>
+</body>
+</html>
