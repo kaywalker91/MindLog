@@ -1,0 +1,29 @@
+{
+  "latestVersion": "1.4.12",
+  "minSupportedVersion": "1.4.0",
+  "forceUpdate": false,
+  "androidUrl": "https://play.google.com/store/apps/details?id=com.kaywalker.mindlog",
+  "iosUrl": null,
+  "changelog": {
+    "1.4.12": [
+      "마음 케어 알림 기능 추가",
+      "안정성 및 성능 개선"
+    ],
+    "1.4.11": [
+      "트러블슈팅 문서 시스템 추가",
+      "버그 수정"
+    ],
+    "1.4.10": [
+      "AI 분석 안정성 개선",
+      "UI/UX 개선"
+    ],
+    "1.4.9": [
+      "알림 권한 처리 개선",
+      "배터리 최적화 안내 추가"
+    ],
+    "1.4.8": [
+      "일기 삭제 기능 개선",
+      "통계 화면 버그 수정"
+    ]
+  }
+}

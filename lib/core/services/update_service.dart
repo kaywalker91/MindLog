@@ -130,17 +130,36 @@ class UpdateService {
     }
   }
 
+  /// 업데이트 확인
+  ///
+  /// 원격 설정을 가져와 현재 버전과 비교합니다.
+  /// 네트워크 오류 발생 시 "최신 상태"로 Fallback 처리합니다.
   Future<UpdateCheckResult> checkForUpdate({
     required String currentVersion,
     TargetPlatform? platform,
     http.Client? client,
   }) async {
-    final config = await fetchConfig(client: client);
-    return evaluate(
-      currentVersion: currentVersion,
-      config: config,
-      platform: platform,
-    );
+    try {
+      final config = await fetchConfig(client: client);
+      return evaluate(
+        currentVersion: currentVersion,
+        config: config,
+        platform: platform,
+      );
+    } catch (e) {
+      // 네트워크 오류 시 Fallback: 현재 버전을 최신으로 간주
+      if (kDebugMode) {
+        debugPrint('[UpdateService] Failed to fetch config: $e');
+      }
+      return UpdateCheckResult(
+        availability: UpdateAvailability.upToDate,
+        currentVersion: currentVersion,
+        latestVersion: currentVersion,
+        minSupportedVersion: currentVersion,
+        storeUrl: null,
+        notes: [],
+      );
+    }
   }
 
   UpdateCheckResult evaluate({
