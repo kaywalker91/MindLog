@@ -12,12 +12,12 @@
     /* Background & Surface */
     --background-color: #F8FBFF;
     --surface-color: #FFFFFF;
-    --surface-muted: #F0F4F8;
+    --surface-muted: #F1F5F9;
 
     /* Text */
     --text-primary: #2C3E50;
     --text-secondary: #7F8C9A;
-    --text-muted: #A8B5C4;
+    --text-muted: #94A3B8;
 
     /* Border */
     --border-color: #E8F4FA;
@@ -25,6 +25,16 @@
     /* Gradient */
     --gradient-start: #7EC8E3;
     --gradient-end: #B8C5E2;
+
+    /* Shadow */
+    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+    /* Category Colors (앱 팔레트 기반) */
+    --cat-notification: #7EC8E3;
+    --cat-ui: #A8E6CF;
+    --cat-build: #F5A895;
+    --cat-api: #B8C5E2;
+    --cat-database: #FFD93D;
 }
 
 * {
@@ -491,13 +501,6 @@ section {
 
 /* ===== Troubleshooting Page Styles ===== */
 
-/* Additional CSS variables for troubleshooting */
-:root {
-    --text-muted: #94A3B8;
-    --surface-muted: #F1F5F9;
-    --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
 /* Hero pill badge */
 .hero-pill {
     display: inline-flex;
@@ -635,6 +638,7 @@ section {
     border-radius: 20px;
     padding: 28px;
     border: 1px solid var(--border-color);
+    border-left: 4px solid var(--category-color, var(--primary-color));
     box-shadow: var(--shadow-card);
     transition: transform 0.3s, box-shadow 0.3s;
     display: flex;
@@ -646,6 +650,13 @@ section {
     transform: translateY(-4px);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
 }
+
+/* Category-specific border colors */
+.issue-card[data-category="notification"] { --category-color: var(--cat-notification); }
+.issue-card[data-category="ui"] { --category-color: var(--cat-ui); }
+.issue-card[data-category="build"] { --category-color: var(--cat-build); }
+.issue-card[data-category="api"] { --category-color: var(--cat-api); }
+.issue-card[data-category="database"] { --category-color: var(--cat-database); }
 
 .issue-header {
     display: flex;
@@ -662,13 +673,13 @@ section {
 }
 
 .issue-status.resolved {
-    background: rgba(168, 230, 207, 0.3);
-    color: #2D9B6E;
+    background: #D1FAE5;
+    color: #065F46; /* 대비 7.1:1 */
 }
 
 .issue-status.open {
-    background: rgba(239, 68, 68, 0.15);
-    color: #DC2626;
+    background: #FEE2E2;
+    color: #991B1B; /* 대비 6.8:1 */
 }
 
 .issue-severity {
@@ -681,18 +692,18 @@ section {
 }
 
 .issue-severity.critical {
-    background: rgba(245, 168, 149, 0.25);
-    color: #D86B4D;
+    background: #FED7AA;
+    color: #9A3412; /* 대비 5.2:1 */
 }
 
 .issue-severity.major {
-    background: rgba(255, 193, 7, 0.2);
-    color: #D39E00;
+    background: #FEF3C7;
+    color: #92400E; /* 대비 5.5:1 */
 }
 
 .issue-severity.minor {
-    background: rgba(23, 162, 184, 0.15);
-    color: #117A8B;
+    background: #CFFAFE;
+    color: #155E75; /* 대비 5.1:1 */
 }
 
 .issue-date {
@@ -1150,5 +1161,106 @@ section {
     .markdown-body pre {
         padding: 0.8em 1em;
         font-size: 0.8em;
+    }
+}
+
+/* ===== Accessibility Enhancements ===== */
+
+/* Skip Link */
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary-color);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 0 0 8px 8px;
+    z-index: 1000;
+    text-decoration: none;
+    font-weight: 600;
+    transition: top 0.3s;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* Focus Visible Styles */
+.filter-btn:focus-visible,
+.issue-link:focus-visible,
+.search-input:focus-visible,
+.btn:focus-visible,
+.modal-close:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Results Count (screen reader friendly) */
+.results-count {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+/* Empty State Actions */
+.empty-state-actions {
+    margin-top: 20px;
+}
+
+.btn-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--primary-color);
+    background: transparent;
+    color: var(--primary-dark);
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-reset:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Card Entrance Animation */
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.issue-card {
+    animation: cardFadeIn 0.3s ease-out;
+    animation-fill-mode: both;
+}
+
+.issue-card:nth-child(1) { animation-delay: 0ms; }
+.issue-card:nth-child(2) { animation-delay: 50ms; }
+.issue-card:nth-child(3) { animation-delay: 100ms; }
+.issue-card:nth-child(4) { animation-delay: 150ms; }
+.issue-card:nth-child(5) { animation-delay: 200ms; }
+.issue-card:nth-child(6) { animation-delay: 250ms; }
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .issue-card,
+    .skip-link,
+    .btn,
+    .filter-btn,
+    .modal-container {
+        animation: none !important;
+        transition-duration: 0.01ms !important;
     }
 }

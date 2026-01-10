@@ -8,9 +8,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260110-sky">
+    <link rel="stylesheet" href="style.css?v=20260110-ux">
 </head>
 <body>
+    <a href="#issues-grid" class="skip-link">이슈 목록으로 건너뛰기</a>
     <header class="hero troubleshooting-hero" id="top">
         <nav class="nav container">
             <a href="index.html" class="nav-brand">MindLog</a>
@@ -49,6 +50,7 @@
 
     <section class="troubleshooting-list">
         <div class="container">
+            <p id="results-count" class="results-count" aria-live="polite"></p>
             <div id="issues-grid" class="issues-grid">
                 <!-- JavaScript로 동적 렌더링 -->
                 <div class="loading-state">
@@ -117,6 +119,7 @@
         const issuesGrid = document.getElementById('issues-grid');
         const searchInput = document.getElementById('search-input');
         const categoryFilters = document.getElementById('category-filters');
+        const resultsCount = document.getElementById('results-count');
 
         // Initialize
         async function init() {
@@ -212,12 +215,18 @@
         function renderIssues() {
             const filtered = filterIssues();
 
+            // Update results count
+            resultsCount.textContent = `${filtered.length}개의 이슈가 있습니다`;
+
             if (filtered.length === 0) {
                 issuesGrid.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">🔍</div>
                         <h3>검색 결과가 없습니다</h3>
                         <p>다른 검색어나 필터를 시도해보세요.</p>
+                        <div class="empty-state-actions">
+                            <button class="btn-reset" onclick="resetFilters()">필터 초기화</button>
+                        </div>
                     </div>
                 `;
                 return;
@@ -226,7 +235,29 @@
             issuesGrid.innerHTML = filtered.map(issue => renderIssueCard(issue)).join('');
         }
 
-        // Render single issue card
+        // Reset filters function
+        window.resetFilters = function() {
+            // Reset status filters
+            document.querySelectorAll('[data-status]').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-status="all"]')?.classList.add('active');
+            currentFilters.status = 'all';
+
+            // Reset category filters
+            categoryFilters?.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            categoryFilters?.querySelector('[data-category="all"]')?.classList.add('active');
+            currentFilters.category = 'all';
+
+            // Reset search
+            if (searchInput) searchInput.value = '';
+            currentFilters.search = '';
+
+            renderIssues();
+        };
+
+        // Severity labels for display
+        const severityLabels = { critical: 'Critical', major: 'Major', minor: 'Minor' };
+
+        // Render single issue card with hierarchical structure
         function renderIssueCard(issue) {
             const statusClass = issue.status === 'resolved' ? 'resolved' : 'open';
             const statusText = issue.status === 'resolved' ? '해결됨' : '미해결';
@@ -236,20 +267,26 @@
             const versionsText = issue.affectedVersions?.join(', ') || '';
 
             return `
-                <article class="issue-card" data-id="${issue.id}">
-                    <div class="issue-header">
-                        <span class="issue-status ${statusClass}">${statusText}</span>
-                        <span class="issue-severity ${severityClass}">${issue.severity || 'Minor'}</span>
-                        ${dateText ? `<span class="issue-date">${dateText}</span>` : ''}
+                <article class="issue-card" data-id="${issue.id}" data-category="${issue.category}">
+                    <div class="issue-card__primary">
+                        <div class="issue-header">
+                            <span class="issue-status ${statusClass}">${statusText}</span>
+                            <span class="issue-severity ${severityClass}">${severityLabels[severityClass] || 'Minor'}</span>
+                            ${dateText ? `<span class="issue-date">${dateText}</span>` : ''}
+                        </div>
+                        <h3 class="issue-title">${escapeHtml(issue.title)}</h3>
                     </div>
-                    <h3 class="issue-title">${escapeHtml(issue.title)}</h3>
-                    <p class="issue-summary">${escapeHtml(issue.summary)}</p>
-                    <div class="issue-meta">
-                        <span class="issue-category">${categoryLabel}</span>
-                        ${versionsText ? `<span class="issue-versions">영향: ${versionsText}</span>` : ''}
+                    <div class="issue-card__secondary">
+                        <p class="issue-summary">${escapeHtml(issue.summary)}</p>
                     </div>
-                    <div class="issue-tags">
-                        ${(issue.tags || []).map(tag => `<span class="issue-tag">${escapeHtml(tag)}</span>`).join('')}
+                    <div class="issue-card__tertiary">
+                        <div class="issue-meta">
+                            <span class="issue-category">${categoryLabel}</span>
+                            ${versionsText ? `<span class="issue-versions">영향: ${versionsText}</span>` : ''}
+                        </div>
+                        <div class="issue-tags">
+                            ${(issue.tags || []).map(tag => `<span class="issue-tag">${escapeHtml(tag)}</span>`).join('')}
+                        </div>
                     </div>
                     ${issue.documentation ? `<button class="issue-link" onclick="openIssueModal('${issue.id}')">상세 보기 →</button>` : ''}
                 </article>
