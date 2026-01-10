@@ -38,7 +38,7 @@ void main() {
         source,
         anyOf([
           'dart-define',
-          'dev_api_keys.dart (development only)',
+          'DEV_GROQ_API_KEY (development only)',
           'not configured',
         ]),
       );
@@ -64,7 +64,6 @@ void main() {
         source,
         anyOf([
           'dart-define (secure)',
-          'dev_api_keys.dart (development only)',
           'not configured',
         ]),
       );
