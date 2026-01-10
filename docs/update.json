@@ -1,10 +1,20 @@
 {
-  "latestVersion": "1.4.12",
+  "latestVersion": "1.4.14",
   "minSupportedVersion": "1.3.0",
   "forceUpdate": false,
   "androidUrl": "https://play.google.com/store/apps/details?id=com.kaywalker.mindlog",
   "iosUrl": null,
   "changelog": {
+    "1.4.14": [
+      "설정에서 이름을 입력하면 AI 상담사가 이름을 불러줘요.",
+      "\"OO님, 오늘도 고생 많으셨어요\"처럼 따뜻한 메시지를 받아보세요.",
+      "이름은 기기에만 저장되어 개인정보가 안전하게 보호돼요."
+    ],
+    "1.4.13": [
+      "GitHub Pages 디자인이 앱 테마와 통일되었어요.",
+      "스킬 문서가 77% 압축되어 더 가벼워졌어요.",
+      "CHANGELOG에 v1.4.1~v1.4.12 상세 노트가 추가되었어요."
+    ],
     "1.4.12": [
       "마음 케어 알림을 설정에서 켜고 끌 수 있어요.",
       "처음 켤 때 안내 팝업이 표시돼요.",

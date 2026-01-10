@@ -10,6 +10,7 @@ abstract class DiaryRepository {
   Future<Diary> analyzeDiary(
     String diaryId, {
     required AiCharacter character,
+    String? userName,
   });
 
   /// 일기 전체 업데이트 (상태 및 분석 결과 포함)

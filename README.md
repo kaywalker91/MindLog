@@ -101,7 +101,17 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.13 (Current)
+### v1.4.14 (Current)
+*   **유저 이름 기반 AI 상담 개인화:**
+    *   **이름 설정 기능:** 설정 화면에서 사용자 이름을 입력하면 AI 상담사가 이름을 불러줍니다
+    *   **프롬프트 개인화:** empathy_message에 "OO님"으로 한 번 자연스럽게 호칭
+    *   **선택적 적용:** 이름 미설정 시 기존 방식 그대로 유지
+*   **아키텍처 준수:**
+    *   **Clean Architecture 패턴:** Domain/Data/Presentation 계층 분리 유지
+    *   **UserNameController 추가:** Riverpod AsyncNotifier 기반 상태 관리
+    *   **프라이버시 보호:** 이름은 로컬 SharedPreferences에만 저장 (서버 전송 없음)
+
+### v1.4.13
 *   **GitHub Pages 개선:**
     *   **디자인 통일:** 앱 테마와 색상 시스템 통일 (Sky Blue #7EC8E3, Coral/Mint 액센트)
     *   **트러블슈팅 JSON 경로 수정:** 404 오류 해결

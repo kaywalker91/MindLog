@@ -383,12 +383,24 @@ $_commonInstruction
   static String createAnalysisPrompt(
     String diaryContent, {
     AiCharacter character = AiCharacter.warmCounselor,
+    String? userName,
   }) {
     final timeSlot = _getTimeSlotName();
     final suggestedCategory = _getRandomCategory();
     final characterName = character.displayName;
     final characterHint = _characterPromptHint(character);
-    
+
+    // 유저 이름이 설정된 경우에만 개인화 섹션 추가
+    final userNameSection = userName != null
+        ? '''
+
+[유저 이름]
+이 일기를 작성한 분의 이름은 "$userName"입니다.
+empathy_message에서 "$userName님"이라고 한 번 자연스럽게 호칭해주세요.
+단, 모든 문장에 이름을 넣지 말고 첫 문장이나 마지막 문장에서 한 번만 사용하세요.
+'''
+        : '';
+
     return '''
 [분석 대상 일기]
 "$diaryContent"
@@ -398,7 +410,7 @@ $_commonInstruction
 캐릭터 특징: ${character.description}
 캐릭터 스타일 지침:
 $characterHint
-
+$userNameSection
 [시간 정보]
 현재 시간대: $timeSlot
 

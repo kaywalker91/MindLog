@@ -37,6 +37,7 @@ class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryReposito
   Future<Diary> analyzeDiary(
     String diaryId, {
     required AiCharacter character,
+    String? userName,
   }) async {
     var diaryLoaded = false;
     return guardFailureWithHook(
@@ -48,10 +49,11 @@ class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryReposito
         }
         diaryLoaded = true;
 
-        // 원격 API 호출
+        // 원격 API 호출 (유저 이름 전달)
         final analysisDto = await _remoteDataSource.analyzeDiary(
           diary.content,
           character: character,
+          userName: userName,
         );
         final analysisResult = analysisDto.toEntity().copyWith(
           aiCharacterId: character.id,

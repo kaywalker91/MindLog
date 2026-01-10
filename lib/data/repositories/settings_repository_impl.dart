@@ -44,4 +44,20 @@ class SettingsRepositoryImpl
       () => _localDataSource.setNotificationSettings(settings),
     );
   }
+
+  @override
+  Future<String?> getUserName() async {
+    return guardFailure(
+      '유저 이름 조회 실패',
+      _localDataSource.getUserName,
+    );
+  }
+
+  @override
+  Future<void> setUserName(String? name) async {
+    return guardFailure(
+      '유저 이름 설정 실패',
+      () => _localDataSource.setUserName(name),
+    );
+  }
 }

@@ -33,6 +33,7 @@ class MockDiaryRepository implements DiaryRepository {
   Future<Diary> analyzeDiary(
     String diaryId, {
     required AiCharacter character,
+    String? userName,
   }) async {
     if (shouldThrowOnAnalyze) {
       throw Exception(analyzeError ?? 'Analysis failed');
@@ -84,6 +85,7 @@ class MockDiaryRepository implements DiaryRepository {
 class MockSettingsRepository implements SettingsRepository {
   AiCharacter selectedCharacter = AiCharacter.warmCounselor;
   NotificationSettings notificationSettings = NotificationSettings.defaults();
+  String? userName;
 
   @override
   Future<AiCharacter> getSelectedAiCharacter() async {
@@ -103,6 +105,16 @@ class MockSettingsRepository implements SettingsRepository {
   @override
   Future<void> setNotificationSettings(NotificationSettings settings) async {
     notificationSettings = settings;
+  }
+
+  @override
+  Future<String?> getUserName() async {
+    return userName;
+  }
+
+  @override
+  Future<void> setUserName(String? name) async {
+    userName = name;
   }
 }
 

@@ -42,6 +42,8 @@ class SettingsScreen extends ConsumerWidget {
     final notificationSettings =
         notificationSettingsAsync.valueOrNull ?? NotificationSettings.defaults();
     final notificationsReady = !notificationSettingsAsync.isLoading;
+    final userNameAsync = ref.watch(userNameProvider);
+    final userName = userNameAsync.valueOrNull;
     final versionLabel = appInfo == null
         ? (appInfoAsync.hasError ? '버전 확인 실패' : '불러오는 중...')
         : _formatVersionLabel(appInfo);
@@ -132,6 +134,14 @@ class SettingsScreen extends ConsumerWidget {
                   ref,
                   selectedCharacter,
                 ),
+              ),
+              _buildDivider(context),
+              _buildSettingItem(
+                context,
+                icon: Icons.person_outline,
+                title: '내 이름',
+                trailing: _buildUserNameTrailing(context, userName),
+                onTap: () => _showUserNameDialog(context, ref, userName),
               ),
             ],
           ),
@@ -380,6 +390,110 @@ class SettingsScreen extends ConsumerWidget {
           color: colorScheme.outline,
         ),
       ],
+    );
+  }
+
+  Widget _buildUserNameTrailing(BuildContext context, String? userName) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final displayName = userName ?? '설정 안 함';
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          displayName,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: userName != null
+                    ? colorScheme.onSurfaceVariant
+                    : colorScheme.outline,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(width: 4),
+        Icon(
+          Icons.chevron_right,
+          color: colorScheme.outline,
+        ),
+      ],
+    );
+  }
+
+  void _showUserNameDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String? currentName,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final controller = TextEditingController(text: currentName);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('내 이름 설정'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'AI 상담사가 이름을 불러드려요.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: '이름을 입력하세요',
+                border: const OutlineInputBorder(),
+                counterText: '',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () => controller.clear(),
+                ),
+              ),
+              maxLength: 20,
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              await ref.read(userNameProvider.notifier).setUserName(null);
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('이름이 초기화되었습니다.')),
+                );
+              }
+            },
+            child: Text(
+              '초기화',
+              style: TextStyle(color: colorScheme.error),
+            ),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final name = controller.text.trim();
+              await ref.read(userNameProvider.notifier).setUserName(
+                    name.isEmpty ? null : name,
+                  );
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                if (name.isNotEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('$name님으로 설정되었습니다.')),
+                  );
+                }
+              }
+            },
+            child: const Text('저장'),
+          ),
+        ],
+      ),
     );
   }
 

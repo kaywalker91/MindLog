@@ -9,6 +9,7 @@ class PreferencesLocalDataSource {
   static const String _reminderMinuteKey = 'notification_reminder_minute';
   static const String _mindcareTopicEnabledKey =
       'notification_mindcare_topic_enabled';
+  static const String _userNameKey = 'user_name';
 
   Future<AiCharacter> getSelectedAiCharacter() async {
     final prefs = await SharedPreferences.getInstance();
@@ -44,5 +45,21 @@ class PreferencesLocalDataSource {
       _mindcareTopicEnabledKey,
       settings.isMindcareTopicEnabled,
     );
+  }
+
+  /// 유저 이름 조회 (미설정 시 null 반환)
+  Future<String?> getUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userNameKey);
+  }
+
+  /// 유저 이름 저장 (null 또는 빈 문자열 시 삭제)
+  Future<void> setUserName(String? name) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (name == null || name.trim().isEmpty) {
+      await prefs.remove(_userNameKey);
+    } else {
+      await prefs.setString(_userNameKey, name.trim());
+    }
   }
 }

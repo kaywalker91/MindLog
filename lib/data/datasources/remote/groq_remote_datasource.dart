@@ -31,24 +31,28 @@ class GroqRemoteDataSource {
   Future<AnalysisResponseDto> analyzeDiary(
     String content, {
     required AiCharacter character,
+    String? userName,
   }) async {
     if (_circuitBreaker != null) {
-      return _circuitBreaker.run(() => analyzeDiaryWithRetry(content, character: character));
+      return _circuitBreaker.run(
+        () => analyzeDiaryWithRetry(content, character: character, userName: userName),
+      );
     }
-    return analyzeDiaryWithRetry(content, character: character);
+    return analyzeDiaryWithRetry(content, character: character, userName: userName);
   }
 
   /// 일기 내용 분석 (재시도 로직 포함)
   Future<AnalysisResponseDto> analyzeDiaryWithRetry(
     String content, {
     required AiCharacter character,
+    String? userName,
   }) async {
     int attempt = 0;
     Duration currentDelay = _initialDelay;
 
     while (attempt < _maxRetries) {
       try {
-        return await _analyzeDiaryOnce(content, character: character);
+        return await _analyzeDiaryOnce(content, character: character, userName: userName);
       } on SocketException catch (e) {
         attempt++;
         if (attempt >= _maxRetries) {
@@ -84,6 +88,7 @@ class GroqRemoteDataSource {
   Future<AnalysisResponseDto> _analyzeDiaryOnce(
     String content, {
     required AiCharacter character,
+    String? userName,
   }) async {
     // API 키 유효성 검증
     if (_apiKey.isEmpty) {
@@ -97,6 +102,7 @@ class GroqRemoteDataSource {
       final prompt = PromptConstants.createAnalysisPrompt(
         content,
         character: character,
+        userName: userName,
       );
       
       final response = await _client.post(

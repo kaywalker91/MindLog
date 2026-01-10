@@ -39,6 +39,7 @@ class AnalyzeDiaryUseCase {
       // 1. 로컬에 일기 저장 (pending 상태)
       final diary = await _repository.createDiary(content);
       final character = await _settingsRepository.getSelectedAiCharacter();
+      final userName = await _settingsRepository.getUserName();
 
       // 2. 사전 안전 필터링 - 응급 키워드 감지 시 즉시 SOS 분기
       if (SafetyConstants.containsEmergencyKeyword(content)) {
@@ -79,11 +80,12 @@ class AnalyzeDiaryUseCase {
         return emergencyDiary;
       }
 
-      // 3. AI 분석 요청 (응급 상황이 아닌 경우)
+      // 3. AI 분석 요청 (응급 상황이 아닌 경우, 유저 이름 전달)
       final diaryId = diary.id;
       final analyzedDiary = await _repository.analyzeDiary(
         diaryId,
         character: character,
+        userName: userName,
       );
 
       // AI 응답에서도 응급 상황 체크 (이중 안전망)

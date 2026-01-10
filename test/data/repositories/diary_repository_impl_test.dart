@@ -122,6 +122,7 @@ class MockGroqRemoteDataSource implements GroqRemoteDataSource {
   Future<AnalysisResponseDto> analyzeDiary(
     String content, {
     required AiCharacter character,
+    String? userName,
   }) async {
     if (shouldThrow) {
       throw ApiException(message: errorMessage ?? 'API Error');
@@ -140,8 +141,9 @@ class MockGroqRemoteDataSource implements GroqRemoteDataSource {
   Future<AnalysisResponseDto> analyzeDiaryWithRetry(
     String content, {
     required AiCharacter character,
+    String? userName,
   }) async {
-    return analyzeDiary(content, character: character);
+    return analyzeDiary(content, character: character, userName: userName);
   }
 }
 

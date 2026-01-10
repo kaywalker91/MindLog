@@ -3,3 +3,4 @@
 
 export 'infra_providers.dart';
 export 'statistics_providers.dart';
+export 'user_name_controller.dart';

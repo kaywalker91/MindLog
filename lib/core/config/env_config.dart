@@ -1,4 +1,5 @@
-// import 'dev_api_keys.dart' as dev_keys;
+import 'package:flutter/foundation.dart';
+import 'dev_api_keys.dart' as dev_keys;
 
 /// 환경 변수 설정 클래스
 ///
@@ -34,10 +35,10 @@ class EnvConfig {
       return _dartDefineApiKey;
     }
 
-    // 2. 개발 모드에서만 dev_api_keys.dart 폴백 (CI 빌드 오류로 인해 주석 처리)
-    // if (kDebugMode && dev_keys.devGroqApiKey.isNotEmpty) {
-    //   return dev_keys.devGroqApiKey;
-    // }
+    // 2. 개발 모드에서만 dev_api_keys.dart 폴백
+    if (kDebugMode && dev_keys.devGroqApiKey.isNotEmpty) {
+      return dev_keys.devGroqApiKey;
+    }
 
     return '';
   }
@@ -56,9 +57,9 @@ class EnvConfig {
     if (_dartDefineApiKey.isNotEmpty) {
       return 'dart-define';
     }
-    // if (kDebugMode && dev_keys.devGroqApiKey.isNotEmpty) {
-    //   return 'dev_api_keys.dart (development only)';
-    // }
+    if (kDebugMode && dev_keys.devGroqApiKey.isNotEmpty) {
+      return 'dev_api_keys.dart (development only)';
+    }
     return 'not configured';
   }
 
