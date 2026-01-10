@@ -255,7 +255,7 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 icon: Icons.email_outlined,
                 title: '문의하기',
-                onTap: () => _launchExternalUrl('mailto:rikygak@gmail.com'),
+                onTap: () => _launchExternalUrl('mailto:rikygak@gmail.com', context),
               ),
             ],
           ),
@@ -831,7 +831,7 @@ class SettingsScreen extends ConsumerWidget {
         onPrimary: () async {
           Navigator.of(context).pop();
           if (canUpdate) {
-            await _launchExternalUrl(result.storeUrl!);
+            await _launchExternalUrl(result.storeUrl!, context);
           }
         },
       ),
@@ -927,11 +927,30 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  /// 외부 앱으로 URL 열기 (이메일 등)
-  Future<void> _launchExternalUrl(String url) async {
+  /// 외부 앱으로 URL 열기 (이메일, Play Store 등)
+  ///
+  /// [LaunchMode.externalApplication]을 사용하여 Play Store URL이
+  /// 인앱 브라우저가 아닌 Play Store 앱으로 직접 열리도록 합니다.
+  Future<bool> _launchExternalUrl(String url, [BuildContext? context]) async {
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched && context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('링크를 열 수 없습니다.')),
+        );
+      }
+      return launched;
+    } catch (e) {
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('링크 열기 실패: $e')),
+        );
+      }
+      return false;
     }
   }
 
