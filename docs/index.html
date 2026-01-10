@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MindLog - AI 기반 감정 케어 다이어리</title>
-    <meta name="description" content="MindLog는 AI가 감정을 분석하고 따뜻한 위로와 맞춤형 행동 지침을 제공하는 스마트 다이어리 앱입니다.">
+    <meta name="description" content="MindLog는 AI가 당신의 감정을 분석하고 맞춤형 위로 메시지를 제공하는 스마트 다이어리 앱입니다.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260109">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=20260110">
 </head>
 <body>
-    <header class="hero" id="top">
-        <nav class="nav container">
+    <header class="hero">
+        <nav class="nav">
             <div class="nav-brand">MindLog</div>
             <div class="nav-links">
                 <a href="#features">기능</a>
@@ -23,64 +23,26 @@
                 <a href="https://github.com/kaywalker91/MindLog" target="_blank" rel="noopener">GitHub</a>
             </div>
         </nav>
-        <div class="hero-content container">
-            <div class="hero-copy">
-                <span class="hero-pill">AI 기반 감정 케어 다이어리</span>
-                <h1>MindLog</h1>
-                <p class="hero-subtitle">마음을 읽고, 일상을 돌보는 기록</p>
-                <p class="hero-description">
-                    당신의 일기를 분석하여 감정 상태를 파악하고,<br>
-                    따뜻한 위로의 메시지와 맞춤형 행동 지침을 제공합니다.
-                </p>
-                <div class="hero-buttons">
-                    <a href="https://play.google.com/store/apps/details?id=com.mindlog.mindlog" class="btn btn-primary" target="_blank" rel="noopener">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M8 5v14l11-7z"/>
-                        </svg>
-                        Google Play에서 다운로드
-                    </a>
-                    <a href="#features" class="btn btn-secondary">기능 둘러보기</a>
-                </div>
-                <div class="hero-highlights">
-                    <div class="hero-highlight">
-                        <span class="highlight-title">로컬 저장</span>
-                        <span class="highlight-desc">민감한 기록은 기기에만</span>
-                    </div>
-                    <div class="hero-highlight">
-                        <span class="highlight-title">AI 분석</span>
-                        <span class="highlight-desc">감정 점수와 키워드 요약</span>
-                    </div>
-                    <div class="hero-highlight">
-                        <span class="highlight-title">통계 대시보드</span>
-                        <span class="highlight-desc">감정 패턴을 한눈에</span>
-                    </div>
-                </div>
-            </div>
-            <div class="hero-visual">
-                <div class="hero-card">
-                    <div class="hero-card-header">
-                        <span class="hero-card-title">오늘의 마음 리포트</span>
-                        <span class="hero-chip">AI 분석</span>
-                    </div>
-                    <p class="hero-card-text">차분하게 회복하고 있는 하루예요.</p>
-                    <div class="hero-meter">
-                        <span>마음 온도</span>
-                        <div class="meter-bar"><span></span></div>
-                    </div>
-                    <div class="hero-card-tags">
-                        <span>#회복</span>
-                        <span>#차분함</span>
-                        <span>#성장</span>
-                    </div>
-                </div>
-                <div class="hero-card hero-card-mini">
-                    <div class="hero-card-header">
-                        <span class="hero-card-title">로딩 온보딩</span>
-                        <span class="hero-chip hero-chip-muted">준비 중</span>
-                    </div>
-                    <p class="hero-card-text">마음 기록을 준비 중이에요.</p>
-                    <div class="hero-mini-progress"><span></span></div>
-                </div>
+        <div class="hero-content">
+            <h1>MindLog</h1>
+            <p class="hero-subtitle">AI 기반 감정 케어 다이어리</p>
+            <p class="hero-description">
+                당신의 일기를 분석하여 감정 상태를 파악하고,<br>
+                따뜻한 위로의 메시지와 맞춤형 행동 지침을 제공합니다.
+            </p>
+            <div class="hero-buttons">
+                <a href="https://play.google.com/store/apps/details?id=com.mindlog.mindlog" class="btn btn-primary" target="_blank" rel="noopener">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    Google Play에서 다운로드
+                </a>
+                <a href="https://github.com/kaywalker91/MindLog" class="btn btn-secondary" target="_blank" rel="noopener">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    GitHub에서 보기
+                </a>
             </div>
         </div>
     </header>
@@ -126,23 +88,23 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-lede">v1.4.12에서는 마음 케어 알림을 정식으로 열고, 매일 아침 자동 발송 시스템을 구축했어요.</p>
+            <p class="section-subtitle">v1.4.12에서는 마음 케어 알림을 정식으로 열고, 매일 아침 자동 발송 시스템을 구축했어요.</p>
             <div class="updates-grid">
-                <article class="update-card">
+                <div class="update-card">
                     <span class="update-tag">Feature</span>
                     <h3>마음 케어 알림</h3>
                     <p>설정에서 알림을 켜면 매일 아침 따뜻한 메시지를 받을 수 있어요.</p>
-                </article>
-                <article class="update-card">
+                </div>
+                <div class="update-card">
                     <span class="update-tag">Onboarding</span>
                     <h3>첫 활성화 안내</h3>
                     <p>처음 켤 때 안내 다이얼로그로 기능 사용 방법을 바로 확인할 수 있어요.</p>
-                </article>
-                <article class="update-card">
+                </div>
+                <div class="update-card">
                     <span class="update-tag">Automation</span>
                     <h3>자동 발송 시스템</h3>
                     <p>Firebase Functions 기반으로 정해진 시간에 메시지가 자동 발송되도록 구성했어요.</p>
-                </article>
+                </div>
             </div>
         </div>
     </section>
@@ -152,27 +114,27 @@
             <h2 class="section-title">스크린샷</h2>
             <div class="screenshots-grid">
                 <div class="screenshot-item">
-                    <img src="images/v2/mindlog_main.jpeg" alt="MindLog 일기 목록 화면" loading="lazy">
+                    <img src="assets/images/mindlog_main.jpeg" alt="MindLog 일기 목록 화면" loading="lazy">
                     <p>일기 목록</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="images/v2/mindlog_write.jpeg" alt="MindLog 일기 작성 화면" loading="lazy">
+                    <img src="assets/images/mindlog_write.jpeg" alt="MindLog 일기 작성 화면" loading="lazy">
                     <p>일기 작성</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="images/v2/mindlog_stat.jpeg" alt="MindLog 감정 통계 화면" loading="lazy">
+                    <img src="assets/images/mindlog_stat.jpeg" alt="MindLog 감정 통계 화면" loading="lazy">
                     <p>감정 통계</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="images/v2/mindlog_stat_2.jpeg" alt="MindLog 감정 통계 상세 화면" loading="lazy">
+                    <img src="assets/images/mindlog_stat_2.jpeg" alt="MindLog 감정 통계 상세 화면" loading="lazy">
                     <p>통계 상세</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="images/v2/mindlog_setting.jpeg" alt="MindLog 설정 화면" loading="lazy">
+                    <img src="assets/images/mindlog_setting.jpeg" alt="MindLog 설정 화면" loading="lazy">
                     <p>설정</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="images/v2/mindlog_guide.jpeg" alt="MindLog 사용 가이드 화면" loading="lazy">
+                    <img src="assets/images/mindlog_guide.jpeg" alt="MindLog 사용 가이드 화면" loading="lazy">
                     <p>사용 가이드</p>
                 </div>
             </div>
