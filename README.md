@@ -101,7 +101,22 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.11 (Current)
+### v1.4.12 (Current)
+*   **마음 케어 알림 활성화 UX:**
+    *   **설정 토글 추가:** 마음 케어 알림을 설정에서 구독/해제 가능
+    *   **첫 활성화 환영 다이얼로그:** SharedPreferences 기반 1회 안내 + 재활성화 SnackBar 피드백
+    *   **Analytics 이벤트 추가:** mindcare_enabled / mindcare_disabled 로깅
+*   **마음 케어 발송 인프라 구축:**
+    *   **Cloud Functions 추가:** 매일 오전 9시(KST) 자동 발송, 관리자용 HTTP API(수동 발송/메시지 추가/상태 조회)
+    *   **FCM 토픽 발송 서비스:** mindlog_mindcare 토픽 메시지 전송 및 공통 payload 구성
+    *   **Firestore 구성/보안:** 메시지/발송 로그/통계 컬렉션, rules 및 indexes 추가
+*   **문서/자산 정리:**
+    *   **개인정보 처리방침 경로 변경:** `docs/legal/privacy-policy.md` 기준으로 assets 연동
+*   **테스트 보강:**
+    *   **에러/서킷브레이커/업데이트:** FailureMapper, 예외/Failure, CircuitBreaker, UpdateService, NotificationService 테스트 추가
+    *   **UI/도메인:** MindcareWelcomeDialog 위젯 테스트, NotificationSettings 엔티티 테스트 추가
+
+### v1.4.11
 *   **트러블슈팅 문서 시스템 추가:**
     *   **트러블슈팅 게시판:** GitHub Pages에 알려진 이슈와 해결 방법을 확인할 수 있는 페이지 추가
     *   **웹 모달 마크다운 뷰어:** MD 파일을 다운로드 없이 웹에서 바로 확인 가능

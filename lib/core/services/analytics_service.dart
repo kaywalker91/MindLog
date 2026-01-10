@@ -171,6 +171,18 @@ class AnalyticsService {
     _debugLog('reminder_schedule_failed', {'error_type': errorType});
   }
 
+  /// 마음 케어 알림 활성화 이벤트
+  static Future<void> logMindcareEnabled() async {
+    await _instance()?.logEvent(name: 'mindcare_enabled');
+    _debugLog('mindcare_enabled', {});
+  }
+
+  /// 마음 케어 알림 비활성화 이벤트
+  static Future<void> logMindcareDisabled() async {
+    await _instance()?.logEvent(name: 'mindcare_disabled');
+    _debugLog('mindcare_disabled', {});
+  }
+
   /// 사용자 속성 설정
   static Future<void> setUserProperty({
     required String name,

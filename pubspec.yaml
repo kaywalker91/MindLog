@@ -2,7 +2,7 @@ name: mindlog
 description: "AI 기반 감정 케어 다이어리 - 사용자의 일기를 분석하여 위로와 행동 지침을 제공합니다."
 publish_to: "none"
 
-version: 1.4.11+18
+version: 1.4.12+19
 
 environment:
   sdk: ^3.10.1
@@ -70,6 +70,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_local_notifications_platform_interface: ^8.0.0
 
   # Code Generation
   build_runner: ^2.4.13
@@ -85,7 +86,7 @@ flutter:
   assets:
     # 주의: .env는 보안상 assets에 포함하지 않음
     # API 키는 flutter run --dart-define=GROQ_API_KEY=xxx 로 주입
-    - docs/mindlog_privacy.md
+    - docs/legal/privacy-policy.md
     - assets/images/characters/
 
 flutter_launcher_icons:

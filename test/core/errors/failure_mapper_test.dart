@@ -8,84 +8,167 @@ import 'package:mindlog/core/network/circuit_breaker.dart';
 
 void main() {
   group('FailureMapper', () {
-    test('Failure는 그대로 반환해야 한다', () {
-      const failure = Failure.cache(message: '캐시 오류');
+    group('from', () {
+      test('Failure는 그대로 반환한다', () {
+        // Given
+        const originalFailure = NetworkFailure(message: 'original');
 
-      final result = FailureMapper.from(failure);
+        // When
+        final result = FailureMapper.from(originalFailure);
 
-      expect(result, isA<CacheFailure>());
-      expect(result.message, '캐시 오류');
+        // Then
+        expect(result, same(originalFailure));
+      });
+
+      test('SafetyBlockException을 SafetyBlockedFailure로 변환한다', () {
+        // Given
+        final exception = SafetyBlockException('blocked');
+
+        // When
+        final result = FailureMapper.from(exception);
+
+        // Then
+        expect(result, isA<SafetyBlockedFailure>());
+      });
+
+      test('DataNotFoundException을 DataNotFoundFailure로 변환한다', () {
+        // Given
+        final exception = DataNotFoundException('데이터 없음');
+
+        // When
+        final result = FailureMapper.from(exception);
+
+        // Then
+        expect(result, isA<DataNotFoundFailure>());
+        expect(result.displayMessage, '데이터 없음');
+      });
+
+      test('CacheException을 CacheFailure로 변환한다', () {
+        // Given
+        final exception = CacheException('저장 실패');
+
+        // When
+        final result = FailureMapper.from(exception);
+
+        // Then
+        expect(result, isA<CacheFailure>());
+        expect(result.displayMessage, '저장 실패');
+      });
+
+      test('NetworkException을 NetworkFailure로 변환한다', () {
+        // Given
+        final exception = NetworkException('연결 끊김');
+
+        // When
+        final result = FailureMapper.from(exception);
+
+        // Then
+        expect(result, isA<NetworkFailure>());
+        expect(result.displayMessage, '연결 끊김');
+      });
+
+      test('ApiException을 ApiFailure로 변환한다', () {
+        // Given
+        final exception = ApiException(message: 'API 오류', statusCode: 500);
+
+        // When
+        final result = FailureMapper.from(exception);
+
+        // Then
+        expect(result, isA<ApiFailure>());
+        expect((result as ApiFailure).statusCode, 500);
+        expect(result.displayMessage, 'API 오류');
+      });
+
+      test('CircuitBreakerOpenException을 ServerFailure로 변환한다', () {
+        // Given
+        final exception = CircuitBreakerOpenException();
+
+        // When
+        final result = FailureMapper.from(exception);
+
+        // Then
+        expect(result, isA<ServerFailure>());
+        expect(result.displayMessage, contains('잠시 후'));
+      });
+
+      test('TimeoutException을 NetworkFailure로 변환한다', () {
+        // Given
+        final exception = TimeoutException('timeout');
+
+        // When
+        final result = FailureMapper.from(exception);
+
+        // Then
+        expect(result, isA<NetworkFailure>());
+        expect(result.displayMessage, contains('시간'));
+      });
+
+      test('FormatException을 ApiFailure로 변환한다', () {
+        // Given
+        const exception = FormatException('invalid');
+
+        // When
+        final result = FailureMapper.from(exception);
+
+        // Then
+        expect(result, isA<ApiFailure>());
+        expect(result.displayMessage, contains('형식'));
+      });
+
+      test('알 수 없는 예외를 UnknownFailure로 변환한다', () {
+        // Given
+        final exception = Exception('unknown error');
+
+        // When
+        final result = FailureMapper.from(exception);
+
+        // Then
+        expect(result, isA<UnknownFailure>());
+      });
+
+      test('message 파라미터로 메시지를 오버라이드할 수 있다', () {
+        // Given: 메시지 없는 예외
+        final exception = NetworkException();
+
+        // When: 외부에서 메시지 제공
+        final result = FailureMapper.from(exception, message: '커스텀 메시지');
+
+        // Then
+        expect(result, isA<NetworkFailure>());
+        expect(result.displayMessage, '커스텀 메시지');
+      });
+
+      test('예외의 메시지가 우선된다', () {
+        // Given: 메시지 있는 예외
+        final exception = NetworkException('예외 메시지');
+
+        // When: 외부에서도 메시지 제공
+        final result = FailureMapper.from(exception, message: '외부 메시지');
+
+        // Then: 예외의 메시지가 우선
+        expect(result.displayMessage, '예외 메시지');
+      });
     });
 
-    test('NetworkException은 NetworkFailure로 변환해야 한다', () {
-      final result = FailureMapper.from(NetworkException('네트워크 오류'));
+    group('_mergeMessage', () {
+      test('primary가 있으면 primary를 반환한다', () {
+        final exception = NetworkException('primary');
+        final result = FailureMapper.from(exception, message: 'fallback');
+        expect(result.displayMessage, 'primary');
+      });
 
-      expect(result, isA<NetworkFailure>());
-      expect(result.message, '네트워크 오류');
-    });
+      test('primary가 없으면 fallback을 반환한다', () {
+        final exception = NetworkException();
+        final result = FailureMapper.from(exception, message: 'fallback');
+        expect(result.displayMessage, 'fallback');
+      });
 
-    test('ApiException은 ApiFailure로 변환해야 한다', () {
-      final result = FailureMapper.from(ApiException(
-        message: 'API 오류',
-        statusCode: 500,
-      ));
-
-      expect(result, isA<ApiFailure>());
-      expect((result as ApiFailure).statusCode, 500);
-      expect(result.message, 'API 오류');
-    });
-
-    test('CacheException은 CacheFailure로 변환해야 한다', () {
-      final result = FailureMapper.from(CacheException('캐시 실패'));
-
-      expect(result, isA<CacheFailure>());
-      expect(result.message, '캐시 실패');
-    });
-
-    test('DataNotFoundException은 DataNotFoundFailure로 변환해야 한다', () {
-      final result = FailureMapper.from(DataNotFoundException('데이터 없음'));
-
-      expect(result, isA<DataNotFoundFailure>());
-      expect(result.message, '데이터 없음');
-    });
-
-    test('SafetyBlockException은 SafetyBlockedFailure로 변환해야 한다', () {
-      final result = FailureMapper.from(SafetyBlockException());
-
-      expect(result, isA<SafetyBlockedFailure>());
-    });
-
-    test('CircuitBreakerOpenException은 ServerFailure로 변환해야 한다', () {
-      final result = FailureMapper.from(CircuitBreakerOpenException());
-
-      expect(result, isA<ServerFailure>());
-    });
-
-    test('TimeoutException은 NetworkFailure로 변환해야 한다', () {
-      final result = FailureMapper.from(
-        TimeoutException('timeout'),
-        message: '요청 시간이 초과되었습니다.',
-      );
-
-      expect(result, isA<NetworkFailure>());
-      expect(result.message, '요청 시간이 초과되었습니다.');
-    });
-
-    test('FormatException은 ApiFailure로 변환해야 한다', () {
-      final result = FailureMapper.from(const FormatException('bad format'));
-
-      expect(result, isA<ApiFailure>());
-      expect(result.message, '응답 형식이 올바르지 않습니다.');
-    });
-
-    test('알 수 없는 예외는 UnknownFailure로 변환해야 한다', () {
-      final result = FailureMapper.from(
-        ArgumentError('oops'),
-        message: '알 수 없는 오류',
-      );
-
-      expect(result, isA<UnknownFailure>());
-      expect(result.message, '알 수 없는 오류');
+      test('primary가 빈 문자열이면 fallback을 반환한다', () {
+        final exception = NetworkException('');
+        final result = FailureMapper.from(exception, message: 'fallback');
+        expect(result.displayMessage, 'fallback');
+      });
     });
   });
 }

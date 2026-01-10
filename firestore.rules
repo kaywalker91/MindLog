@@ -1,0 +1,43 @@
+rules_version = '2';
+
+/**
+ * MindLog Firestore 보안 규칙
+ *
+ * 마음케어 관련 컬렉션:
+ * - mindcare_messages: 발송 메시지 저장
+ * - mindcare_sent_log: 발송 이력 (중복 방지)
+ * - mindcare_stats: 발송 통계
+ *
+ * 보안 정책:
+ * - 클라이언트 읽기/쓰기 차단 (Functions만 접근)
+ * - Admin SDK는 규칙 우회 (자동)
+ */
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 마음케어 메시지 - Functions만 접근
+    match /mindcare_messages/{messageId} {
+      allow read, write: if false;
+    }
+
+    // 발송 로그 - Functions만 접근
+    match /mindcare_sent_log/{logId} {
+      allow read, write: if false;
+    }
+
+    // 발송 통계 - Functions만 접근
+    match /mindcare_stats/{statId} {
+      allow read, write: if false;
+    }
+
+    // 스케줄 설정 - Functions만 접근
+    match /mindcare_schedules/{scheduleId} {
+      allow read, write: if false;
+    }
+
+    // 기타 문서는 기본 거부
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

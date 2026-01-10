@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/ai_character.dart';
 import '../../core/constants/app_strings.dart';
@@ -17,6 +18,7 @@ import '../providers/app_info_provider.dart';
 import '../providers/notification_settings_controller.dart';
 import '../providers/update_provider.dart';
 import '../widgets/help_dialog.dart';
+import '../widgets/mindcare_welcome_dialog.dart';
 import '../widgets/mindlog_app_bar.dart';
 import '../widgets/update_up_to_date_dialog.dart';
 import '../widgets/update_prompt_dialog.dart';
@@ -195,23 +197,18 @@ class SettingsScreen extends ConsumerWidget {
                     ? () => _sendTestNotification(context)
                     : null,
               ),
-              // TODO: 마음 케어 알림 - 서버측 푸시 발송 시스템 구현 후 활성화
-              // _buildDivider(context),
-              // _buildToggleSettingItem(
-              //   context,
-              //   icon: Icons.favorite_border,
-              //   title: '마음 케어 알림',
-              //   subtitle: '마음 케어 소식을 푸시로 받아볼게요.',
-              //   value: notificationSettings.isMindcareTopicEnabled,
-              //   enabled: notificationsReady,
-              //   onChanged: (value) {
-              //     unawaited(
-              //       ref
-              //           .read(notificationSettingsProvider.notifier)
-              //           .updateMindcareTopicEnabled(value),
-              //     );
-              //   },
-              // ),
+              _buildDivider(context),
+              _buildToggleSettingItem(
+                context,
+                icon: Icons.favorite_border,
+                title: '마음 케어 알림',
+                subtitle: '매일 아침 따뜻한 마음 케어 메시지를 받아요.',
+                value: notificationSettings.isMindcareTopicEnabled,
+                enabled: notificationsReady,
+                onChanged: (value) {
+                  unawaited(_handleMindcareToggle(context, ref, value));
+                },
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -760,6 +757,50 @@ class SettingsScreen extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  /// 마음 케어 알림 토글 핸들러
+  Future<void> _handleMindcareToggle(
+    BuildContext context,
+    WidgetRef ref,
+    bool value,
+  ) async {
+    // FCM 토픽 구독/해제 처리
+    await ref
+        .read(notificationSettingsProvider.notifier)
+        .updateMindcareTopicEnabled(value);
+
+    // Analytics 이벤트 (fire-and-forget)
+    if (value) {
+      unawaited(AnalyticsService.logMindcareEnabled());
+    } else {
+      unawaited(AnalyticsService.logMindcareDisabled());
+    }
+
+    if (!context.mounted) return;
+
+    if (value) {
+      // 활성화: 첫 활성화인지 확인
+      final prefs = await SharedPreferences.getInstance();
+      final hasShownWelcome =
+          prefs.getBool('mindcare_first_activation_shown') ?? false;
+
+      if (!hasShownWelcome) {
+        // 첫 활성화: 환영 다이얼로그 표시
+        await prefs.setBool('mindcare_first_activation_shown', true);
+        if (context.mounted) {
+          await MindcareWelcomeDialog.show(context);
+        }
+      } else {
+        // 재활성화: SnackBar 피드백
+        if (context.mounted) {
+          _showSnackBar(context, '마음 케어 알림이 켜졌어요');
+        }
+      }
+    } else {
+      // 비활성화: SnackBar 피드백
+      _showSnackBar(context, '마음 케어 알림을 껐어요');
+    }
   }
 
   Widget _buildDivider(BuildContext context) {

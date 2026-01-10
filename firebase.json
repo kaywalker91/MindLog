@@ -1,1 +1,51 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"mindlog-7e235","appId":"1:274694888964:android:0d38372910eb25c6dedf51","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"mindlog-7e235","appId":"1:274694888964:ios:29f64395b977e39ddedf51","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"mindlog-7e235","configurations":{"android":"1:274694888964:android:0d38372910eb25c6dedf51","ios":"1:274694888964:ios:29f64395b977e39ddedf51"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "mindlog-7e235",
+          "appId": "1:274694888964:android:0d38372910eb25c6dedf51",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "mindlog-7e235",
+          "appId": "1:274694888964:ios:29f64395b977e39ddedf51",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "mindlog-7e235",
+          "configurations": {
+            "android": "1:274694888964:android:0d38372910eb25c6dedf51",
+            "ios": "1:274694888964:ios:29f64395b977e39ddedf51"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

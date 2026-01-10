@@ -35,7 +35,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
 
   Future<void> _loadMarkdownContent() async {
     try {
-      final content = await rootBundle.loadString('docs/mindlog_privacy.md');
+      final content = await rootBundle.loadString('docs/legal/privacy-policy.md');
       if (mounted) {
         setState(() {
           _markdownContent = content;
