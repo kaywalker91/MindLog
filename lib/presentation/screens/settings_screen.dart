@@ -16,8 +16,9 @@ import '../providers/diary_list_controller.dart';
 import '../providers/providers.dart';
 import '../providers/app_info_provider.dart';
 import '../providers/notification_settings_controller.dart';
-import '../providers/update_provider.dart';
+import '../providers/update_state_provider.dart';
 import '../widgets/help_dialog.dart';
+import '../widgets/update_badge.dart';
 import '../widgets/mindcare_welcome_dialog.dart';
 import '../widgets/mindlog_app_bar.dart';
 import '../widgets/update_up_to_date_dialog.dart';
@@ -94,6 +95,7 @@ class SettingsScreen extends ConsumerWidget {
                 context,
                 icon: Icons.system_update,
                 title: '업데이트 확인',
+                trailing: const UpdateBadge(),
                 onTap: () => _checkForUpdates(context, ref, appInfo),
               ),
               _buildDivider(context),
@@ -747,25 +749,27 @@ class SettingsScreen extends ConsumerWidget {
       return;
     }
 
-    final updateService = ref.read(updateServiceProvider);
-    _showUpdateProgressDialog(context);
+    final notifier = ref.read(updateStateProvider.notifier);
+    final currentState = ref.read(updateStateProvider);
 
-    late final UpdateCheckResult result;
-    try {
-      result = await updateService.checkForUpdate(
-        currentVersion: appInfo.version,
-      );
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        _showSnackBar(context, '업데이트 정보를 가져오지 못했습니다.');
-      }
+    // 이미 캐시된 결과가 있고 로딩 중이 아니면 즉시 다이얼로그 표시
+    if (currentState.result != null && !currentState.isLoading) {
+      await _showUpdateResultDialog(context, ref, currentState.result!);
       return;
     }
 
+    _showUpdateProgressDialog(context);
+    await notifier.check(appInfo.version);
+
     if (!context.mounted) return;
     Navigator.of(context, rootNavigator: true).pop();
-    await _showUpdateResultDialog(context, result);
+
+    final state = ref.read(updateStateProvider);
+    if (state.result != null) {
+      await _showUpdateResultDialog(context, ref, state.result!);
+    } else {
+      _showSnackBar(context, '업데이트 정보를 가져오지 못했습니다.');
+    }
   }
 
   void _showUpdateProgressDialog(BuildContext context) {
@@ -791,6 +795,7 @@ class SettingsScreen extends ConsumerWidget {
 
   Future<void> _showUpdateResultDialog(
     BuildContext context,
+    WidgetRef ref,
     UpdateCheckResult result,
   ) {
     final canUpdate = result.storeUrl != null && result.storeUrl!.isNotEmpty;
@@ -820,20 +825,31 @@ class SettingsScreen extends ConsumerWidget {
     return showDialog(
       context: context,
       barrierDismissible: !(result.isRequired && canUpdate),
-      builder: (context) => UpdatePromptDialog(
+      builder: (dialogContext) => UpdatePromptDialog(
         isRequired: result.isRequired,
         title: title,
         message: message,
+        currentVersion: result.currentVersion,
+        latestVersion: result.latestVersion,
         notes: result.notes,
         primaryLabel: primaryLabel,
         secondaryLabel: secondaryLabel,
-        onSecondary: secondaryLabel == null ? null : () => Navigator.of(context).pop(),
+        onSecondary: secondaryLabel == null ? null : () => Navigator.of(dialogContext).pop(),
         onPrimary: () async {
-          Navigator.of(context).pop();
+          Navigator.of(dialogContext).pop();
           if (canUpdate) {
             await _launchExternalUrl(result.storeUrl!, context);
           }
         },
+        // "나중에 알림" - 해당 버전 dismiss 후 다이얼로그 닫기
+        onRemindLater: result.isRequired
+            ? null
+            : () async {
+                await ref.read(updateStateProvider.notifier).dismiss();
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
       ),
     );
   }

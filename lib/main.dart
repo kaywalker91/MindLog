@@ -17,6 +17,8 @@ import 'domain/entities/notification_settings.dart' as app;
 import 'l10n/app_localizations.dart';
 import 'presentation/services/notification_action_handler.dart';
 import 'presentation/screens/splash_screen.dart';
+import 'presentation/providers/app_info_provider.dart';
+import 'presentation/providers/update_state_provider.dart';
 
 final ProviderContainer appContainer = ProviderContainer();
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -116,6 +118,19 @@ void main() {
       // 기기 재부팅, 앱 업데이트, 시스템 알람 취소 등의 경우에 알람을 복원합니다.
       // cancelDailyReminder()가 먼저 호출되므로 중복 스케줄링은 발생하지 않습니다.
       await _rescheduleNotificationsIfNeeded();
+
+      // 백그라운드 업데이트 체크 (2초 지연, non-blocking)
+      // 메인 UI 렌더링 후 네트워크 호출, 실패 시 silent 처리
+      Future.delayed(const Duration(seconds: 2), () async {
+        try {
+          final appInfo = await appContainer.read(appInfoProvider.future);
+          await appContainer.read(updateStateProvider.notifier).check(appInfo.version);
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint('[Main] Background update check failed: $e');
+          }
+        }
+      });
     },
     appBuilder: () => UncontrolledProviderScope(
       container: appContainer,

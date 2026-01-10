@@ -10,6 +10,7 @@ class PreferencesLocalDataSource {
   static const String _mindcareTopicEnabledKey =
       'notification_mindcare_topic_enabled';
   static const String _userNameKey = 'user_name';
+  static const String _dismissedUpdateVersionKey = 'dismissed_update_version';
 
   Future<AiCharacter> getSelectedAiCharacter() async {
     final prefs = await SharedPreferences.getInstance();
@@ -61,5 +62,23 @@ class PreferencesLocalDataSource {
     } else {
       await prefs.setString(_userNameKey, name.trim());
     }
+  }
+
+  /// dismiss된 업데이트 버전 조회
+  Future<String?> getDismissedUpdateVersion() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_dismissedUpdateVersionKey);
+  }
+
+  /// dismiss된 업데이트 버전 저장
+  Future<void> setDismissedUpdateVersion(String version) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_dismissedUpdateVersionKey, version);
+  }
+
+  /// dismiss된 업데이트 버전 삭제
+  Future<void> clearDismissedUpdateVersion() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_dismissedUpdateVersionKey);
   }
 }
