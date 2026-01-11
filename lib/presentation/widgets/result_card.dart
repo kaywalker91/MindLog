@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/ai_character.dart';
 import '../../core/services/analytics_service.dart';
+import '../../core/utils/animation_settings.dart';
 import '../../domain/entities/diary.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -89,6 +91,97 @@ class _ResultCardState extends State<ResultCard> {
     if (score <= 6) return '평범한 하루였네요';
     if (score <= 8) return '기분 좋은 하루였군요!';
     return '정말 행복한 하루였네요!';
+  }
+
+  /// 감정 점수별 차별화된 이모지 애니메이션
+  Widget _buildAnimatedEmoji(String emoji, int score) {
+    final shouldAnimate = AnimationSettings.shouldAnimate(context);
+    final config = EmotionAnimationConfig.forScore(score);
+
+    final emojiWidget = Text(emoji, style: const TextStyle(fontSize: 64));
+
+    // Reduced Motion 설정 시 정적 표시
+    if (!shouldAnimate) {
+      return Semantics(
+        label: '감정 점수 $score점, ${_getSentimentText()}',
+        child: emojiWidget,
+      );
+    }
+
+    Widget animatedEmoji;
+
+    // 낮은 감정 점수: 느린 등장 + 미세한 떨림 (무게감 표현)
+    if (config.hasShake) {
+      animatedEmoji = emojiWidget
+          .animate()
+          .scale(
+            duration: config.scaleDuration,
+            curve: config.scaleCurve,
+            begin: Offset(config.scaleBegin, config.scaleBegin),
+          )
+          .then(delay: 200.ms)
+          .shake(
+            hz: 2,
+            rotation: config.shakeRotation,
+            duration: config.secondaryDuration,
+          );
+    }
+    // 높은 감정 점수: 빠른 등장 + 회전 + 바운스 (활력 표현)
+    else if (config.hasRotation) {
+      animatedEmoji = emojiWidget
+          .animate()
+          .scale(
+            duration: config.scaleDuration,
+            curve: config.scaleCurve,
+            begin: Offset(config.scaleBegin, config.scaleBegin),
+          )
+          .rotate(
+            begin: -0.08,
+            end: 0.04,
+            duration: config.secondaryDuration,
+            curve: Curves.easeOut,
+          )
+          .then()
+          .scale(
+            begin: const Offset(1.08, 1.08),
+            end: const Offset(1.0, 1.0),
+            duration: 200.ms,
+            curve: Curves.easeOut,
+          );
+    }
+    // 중립: 부드러운 등장
+    else {
+      animatedEmoji = emojiWidget
+          .animate()
+          .scale(
+            duration: config.scaleDuration,
+            curve: config.scaleCurve,
+            begin: Offset(config.scaleBegin, config.scaleBegin),
+          );
+    }
+
+    return Semantics(
+      label: '감정 점수 $score점, ${_getSentimentText()}',
+      child: GestureDetector(
+        onTap: () => _onEmojiTap(emoji, score),
+        child: animatedEmoji,
+      ),
+    );
+  }
+
+  /// 이모지 탭 시 펄스 피드백
+  void _onEmojiTap(String emoji, int score) {
+    HapticFeedback.lightImpact();
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('오늘의 감정 온도: ${score * 10}°C $emoji'),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: _getSentimentColor(),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -288,14 +381,7 @@ class _ResultCardState extends State<ResultCard> {
       ),
       child: Column(
         children: [
-          Text(
-            emoji,
-            style: const TextStyle(fontSize: 64),
-          ).animate().scale(
-            duration: 600.ms,
-            curve: Curves.elasticOut,
-            begin: const Offset(0.5, 0.5),
-          ),
+          _buildAnimatedEmoji(emoji, score),
           const SizedBox(height: 16),
           Text(
             text,
@@ -325,7 +411,8 @@ class _ResultCardState extends State<ResultCard> {
               ),
               LayoutBuilder(
                 builder: (context, constraints) {
-                  return Container(
+                  final shouldAnimate = AnimationSettings.shouldAnimate(context);
+                  final gaugeBar = Container(
                     height: 16,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -342,14 +429,32 @@ class _ResultCardState extends State<ResultCard> {
                         )
                       ]
                     ),
-                  ).animate().custom(
-                    duration: 1200.ms,
-                    curve: Curves.easeOutCubic,
-                    builder: (context, value, child) => SizedBox(
-                      width: constraints.maxWidth * (score / 10) * value,
-                      child: child,
-                    ),
                   );
+
+                  // Reduced Motion 설정 시 정적 표시
+                  if (!shouldAnimate) {
+                    return SizedBox(
+                      width: constraints.maxWidth * (score / 10),
+                      child: gaugeBar,
+                    );
+                  }
+
+                  // 게이지 채우기 애니메이션 + shimmer 효과
+                  return gaugeBar
+                    .animate()
+                    .custom(
+                      duration: 1200.ms,
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) => SizedBox(
+                        width: constraints.maxWidth * (score / 10) * value,
+                        child: child,
+                      ),
+                    )
+                    .then(delay: 200.ms)
+                    .shimmer(
+                      duration: 1500.ms,
+                      color: Colors.white.withValues(alpha: 0.35),
+                    );
                 },
               ),
             ],

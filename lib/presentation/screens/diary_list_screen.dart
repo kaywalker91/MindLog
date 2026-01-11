@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/animation_settings.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
 import '../providers/diary_list_controller.dart';
@@ -26,12 +29,24 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
   // DateFormat 인스턴스 재사용 (생성 비용 최적화)
   static final DateFormat _dateFormatter = DateFormat('MM월 dd일 (E)', 'ko_KR');
 
+  // 초기 로드 플래그 (stagger 애니메이션 제어)
+  bool _isInitialLoad = true;
+  // FAB 탭 상태
+  bool _isFabPressed = false;
+
   @override
   void initState() {
     super.initState();
     // 화면 진입 시 데이터 로드
     // Future.microtask(() => ref.read(diaryListControllerProvider.notifier).refresh());
     unawaited(AnalyticsService.logScreenView('diary_list'));
+
+    // 초기 애니메이션 후 플래그 리셋
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        setState(() => _isInitialLoad = false);
+      }
+    });
   }
 
   @override
@@ -81,43 +96,66 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
       child: Semantics(
         button: true,
         label: '오늘 기록하기',
-        child: Material(
-          color: Colors.transparent,
-          elevation: 6,
-          shadowColor: AppColors.statsPrimary.withValues(alpha: 0.35),
-          borderRadius: borderRadius,
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onPressed,
-            borderRadius: borderRadius,
-            splashColor: Colors.white.withValues(alpha: 0.2),
-            highlightColor: Colors.white.withValues(alpha: 0.1),
-            child: Ink(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        child: GestureDetector(
+          onTapDown: (_) {
+            HapticFeedback.mediumImpact();
+            setState(() => _isFabPressed = true);
+          },
+          onTapUp: (_) {
+            setState(() => _isFabPressed = false);
+            onPressed();
+          },
+          onTapCancel: () => setState(() => _isFabPressed = false),
+          child: AnimatedScale(
+            scale: _isFabPressed ? 0.95 : 1.0,
+            duration: const Duration(milliseconds: 100),
+            curve: Curves.easeOut,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 100),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    AppColors.statsPrimary,
-                    AppColors.statsSecondary,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
                 borderRadius: borderRadius,
-                border: Border.all(
-                  color: AppColors.statsPrimaryDark.withValues(alpha: 0.25),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.edit_note_rounded, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Text(
-                    '오늘 기록하기',
-                    style: AppTextStyles.button.copyWith(color: Colors.white),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.statsPrimary.withValues(
+                      alpha: _isFabPressed ? 0.2 : 0.35,
+                    ),
+                    blurRadius: _isFabPressed ? 4 : 12,
+                    offset: Offset(0, _isFabPressed ? 2 : 6),
                   ),
                 ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: borderRadius,
+                clipBehavior: Clip.antiAlias,
+                child: Ink(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        AppColors.statsPrimary,
+                        AppColors.statsSecondary,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: borderRadius,
+                    border: Border.all(
+                      color: AppColors.statsPrimaryDark.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.edit_note_rounded, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(
+                        '오늘 기록하기',
+                        style: AppTextStyles.button.copyWith(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -146,7 +184,12 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
 
     return RefreshIndicator(
       onRefresh: () async {
-        return ref.read(diaryListControllerProvider.notifier).refresh();
+        setState(() => _isInitialLoad = true);
+        await ref.read(diaryListControllerProvider.notifier).refresh();
+        // 새로고침 후 애니메이션 재생
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (mounted) setState(() => _isInitialLoad = false);
+        });
       },
       child: ListView.separated(
         padding: EdgeInsets.only(
@@ -160,10 +203,23 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
         separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final diary = diaries[index];
-          return KeyedSubtree(
+          final shouldAnimate = AnimationSettings.shouldAnimate(context);
+
+          // 초기 로드 시 stagger 애니메이션 적용
+          Widget item = KeyedSubtree(
             key: ValueKey(diary.id),
             child: _buildSwipeableDiaryItem(diary),
           );
+
+          if (_isInitialLoad && shouldAnimate && index < 10) {
+            final delay = (index * 50).ms;
+            item = item
+                .animate()
+                .fadeIn(delay: delay, duration: 300.ms)
+                .slideX(begin: 0.08, delay: delay, duration: 300.ms, curve: Curves.easeOut);
+          }
+
+          return item;
         },
       ),
     );
@@ -218,7 +274,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
       }
     }
 
-    return InkWell(
+    return _TappableCard(
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -226,9 +282,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
           ),
         );
       },
-      borderRadius: BorderRadius.circular(16),
       child: Container(
-
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -330,6 +384,60 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 탭 피드백이 있는 카드 위젯
+class _TappableCard extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _TappableCard({
+    required this.child,
+    required this.onTap,
+  });
+
+  @override
+  State<_TappableCard> createState() => _TappableCardState();
+}
+
+class _TappableCardState extends State<_TappableCard> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) {
+        HapticFeedback.lightImpact();
+        setState(() => _isPressed = true);
+      },
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: _isPressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(
+                  alpha: _isPressed ? 0.02 : 0.05,
+                ),
+                blurRadius: _isPressed ? 4 : 10,
+                offset: Offset(0, _isPressed ? 2 : 4),
+              ),
+            ],
+          ),
+          child: widget.child,
         ),
       ),
     );

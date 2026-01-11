@@ -1,10 +1,17 @@
 {
-  "latestVersion": "1.4.14",
+  "latestVersion": "1.4.15",
   "minSupportedVersion": "1.3.0",
   "forceUpdate": false,
   "androidUrl": "https://play.google.com/store/apps/details?id=com.kaywalker.mindlog",
   "iosUrl": null,
   "changelog": {
+    "1.4.15": [
+      "감정에 따라 달라지는 이모지 애니메이션이 추가됐어요!",
+      "슬픈 날은 천천히, 행복한 날은 신나게 움직이는 이모지를 만나보세요.",
+      "카드를 누르면 살짝 줄어드는 탭 피드백이 추가됐어요.",
+      "일기 목록이 순차적으로 등장하는 예쁜 애니메이션을 확인해보세요.",
+      "모션 줄이기 설정 시 애니메이션이 자동으로 꺼져요."
+    ],
     "1.4.14": [
       "설정에서 이름을 입력하면 AI 상담사가 이름을 불러줘요.",
       "\"OO님, 오늘도 고생 많으셨어요\"처럼 따뜻한 메시지를 받아보세요.",
@@ -81,5 +88,5 @@
       "설정 화면에서 앱 버전을 바로 확인할 수 있어요."
     ]
   },
-  "updatedAt": "2026-01-10"
+  "updatedAt": "2026-01-11"
 }
