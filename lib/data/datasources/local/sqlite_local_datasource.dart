@@ -7,7 +7,7 @@ import '../../../core/errors/exceptions.dart';
 
 /// SQLite 로컬 데이터 소스
 class SqliteLocalDataSource {
-  static const int _currentVersion = 3;
+  static const int _currentVersion = 4;
   static Database? _database;
 
   /// 테스트용 데이터베이스 초기화 (기존 연결 종료 후 재설정)
@@ -54,6 +54,8 @@ class SqliteLocalDataSource {
     await db.execute('CREATE INDEX idx_diaries_status ON diaries(status)');
     // 복합 인덱스: 통계 쿼리 최적화 (status + created_at 동시 조건)
     await db.execute('CREATE INDEX idx_diaries_status_created_at ON diaries(status, created_at)');
+    // 복합 인덱스: 목록 조회 최적화 (is_pinned DESC, created_at DESC 정렬)
+    await db.execute('CREATE INDEX idx_diaries_pinned_created ON diaries(is_pinned DESC, created_at DESC)');
   }
 
   /// 데이터베이스 마이그레이션
@@ -69,6 +71,17 @@ class SqliteLocalDataSource {
     if (oldVersion < 3) {
       await db.execute('ALTER TABLE diaries ADD COLUMN is_pinned INTEGER DEFAULT 0');
       await db.execute('CREATE INDEX IF NOT EXISTS idx_diaries_is_pinned ON diaries(is_pinned)');
+    }
+
+    // 버전 3 → 4: 복합 인덱스 추가 (목록 조회 최적화)
+    // getAllDiaries(), getTodayDiaries()에서 'is_pinned DESC, created_at DESC' 정렬 최적화
+    if (oldVersion < 4) {
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_diaries_pinned_created ON diaries(is_pinned DESC, created_at DESC)',
+      );
+      // 단일 is_pinned 인덱스는 복합 인덱스로 대체되므로 제거 (선택적)
+      // SQLite는 DROP INDEX IF EXISTS를 지원하므로 안전하게 제거
+      await db.execute('DROP INDEX IF EXISTS idx_diaries_is_pinned');
     }
   }
 
@@ -256,24 +269,37 @@ class SqliteLocalDataSource {
   Diary _mapToDiary(Map<String, dynamic> map) {
     AnalysisResult? analysisResult;
     final analysisResultStr = map['analysis_result'] as String?;
-    
+
     if (analysisResultStr != null && analysisResultStr.isNotEmpty) {
       try {
-        final analysisResultMap = jsonDecode(analysisResultStr) as Map<String, dynamic>;
+        final analysisResultMap =
+            jsonDecode(analysisResultStr) as Map<String, dynamic>;
         analysisResult = AnalysisResult.fromJson(analysisResultMap);
       } catch (e) {
-        // JSON 파싱 실패 시 null로 처리
         analysisResult = null;
       }
     }
 
+    // DateTime 파싱 안전 처리: 잘못된 형식은 현재 시간으로 대체
+    DateTime createdAt;
+    try {
+      createdAt = DateTime.parse(map['created_at'] as String);
+    } catch (e) {
+      createdAt = DateTime.now();
+    }
+
+    // DiaryStatus 파싱 안전 처리: 알 수 없는 상태는 pending으로 대체
+    final statusStr = map['status'] as String?;
+    final status = DiaryStatus.values.firstWhere(
+      (s) => s.name == statusStr,
+      orElse: () => DiaryStatus.pending,
+    );
+
     return Diary(
       id: map['id'] as String,
       content: map['content'] as String,
-      createdAt: DateTime.parse(map['created_at'] as String),
-      status: DiaryStatus.values.firstWhere(
-        (status) => status.name == map['status'] as String,
-      ),
+      createdAt: createdAt,
+      status: status,
       analysisResult: analysisResult,
       isPinned: (map['is_pinned'] as int?) == 1,
     );

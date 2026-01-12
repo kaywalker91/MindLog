@@ -101,7 +101,28 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.15 (Current)
+### v1.4.16 (Current)
+*   **코드 품질 및 안정성 전면 개선 (Code Review P0-P3):**
+    *   **P0 Critical Fixes:**
+        *   Circuit Breaker 레이스 컨디션 해결 (Lock 패턴 적용)
+        *   SQLite DateTime/DiaryStatus 파싱 안전성 강화
+        *   API 응답 민감정보 노출 방지 (에러 메시지 정리)
+        *   ValidationFailure null assertion 오류 수정
+    *   **P1 High Priority Fixes:**
+        *   Rate Limit 429 에러 핸들링 및 Retry-After 헤더 파싱 추가
+        *   `Diary.copyWith` nullable 필드 처리 개선
+    *   **P2 Medium Priority Fixes:**
+        *   `AnalysisResult.analyzedAt` DateTime.now() 의존성 제거 (필수 파라미터화)
+        *   Emoji 매핑 로직 Presentation Layer로 이동 (Clean Architecture 준수)
+    *   **P3 Optimization:**
+        *   시스템 프롬프트 캐싱으로 토큰 비용 절감
+        *   SQLite 복합 인덱스 최적화 (DB v4: `is_pinned DESC, created_at DESC`)
+        *   테스트용 Clock/Random 주입 패턴 표준화 (`lib/core/utils/clock.dart`)
+*   **테스트 커버리지 확대:** 181 → 201 테스트 (20개 추가)
+    *   Clock 유틸리티 테스트 (`test/core/utils/clock_test.dart`)
+    *   PromptConstants 캐싱/시간 주입 테스트 (`test/core/constants/prompt_constants_test.dart`)
+
+### v1.4.15
 *   **감정 이모지 동적 애니메이션:**
     *   **감정별 차별화:** 낮은 점수(1-4)는 느린 등장 + 미세한 떨림(무게감), 높은 점수(7-10)는 빠른 바운스 + 회전(활력)
     *   **EmotionAnimationConfig:** 감정 점수별 Duration, Curve, Shake/Rotation 파라미터화

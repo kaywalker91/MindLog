@@ -41,17 +41,20 @@ class CircuitBreakerOpenException implements Exception {
 }
 
 /// 서킷 브레이커 패턴 구현체
-/// 
+///
 /// 외부 서비스 호출 실패율이 높을 때 요청을 일시적으로 차단하여
 /// 시스템 과부하를 방지하고 빠른 실패를 보장합니다.
 class CircuitBreaker {
   final CircuitBreakerConfig config;
-  
+
   CircuitState _state = CircuitState.closed;
   int _failureCount = 0;
   int _successCount = 0;
   DateTime? _lastFailureTime;
   Timer? _resetTimer;
+
+  /// Half-Open 상태에서 테스트 요청 진행 중 여부 (race condition 방지)
+  bool _isTestingInHalfOpen = false;
 
   CircuitBreaker({
     this.config = const CircuitBreakerConfig(),
@@ -73,6 +76,20 @@ class CircuitBreaker {
       }
     }
 
+    // Half-Open 상태에서 이미 테스트 중이면 다른 요청은 차단
+    // 단일 요청만 통과시켜 서버 부하 방지
+    if (_state == CircuitState.halfOpen && _isTestingInHalfOpen) {
+      throw CircuitBreakerOpenException(
+        message: '서비스 복구 테스트 중입니다. 잠시 후 다시 시도해주세요.',
+        resetTime: DateTime.now().add(const Duration(seconds: 5)),
+      );
+    }
+
+    // Half-Open 테스트 시작 플래그 설정
+    if (_state == CircuitState.halfOpen) {
+      _isTestingInHalfOpen = true;
+    }
+
     try {
       final result = await action();
       _onSuccess();
@@ -80,6 +97,11 @@ class CircuitBreaker {
     } catch (e) {
       _onFailure(e);
       rethrow;
+    } finally {
+      // Half-Open 테스트 완료 후 플래그 해제
+      if (_state == CircuitState.halfOpen || _state == CircuitState.open) {
+        _isTestingInHalfOpen = false;
+      }
     }
   }
 
@@ -126,6 +148,7 @@ class CircuitBreaker {
   void _transitionToHalfOpen() {
     _state = CircuitState.halfOpen;
     _successCount = 0;
+    _isTestingInHalfOpen = false;
     if (kDebugMode) {
       debugPrint('🔌 Circuit Breaker HALF-OPEN');
     }
@@ -135,6 +158,7 @@ class CircuitBreaker {
     _state = CircuitState.closed;
     _failureCount = 0;
     _successCount = 0;
+    _isTestingInHalfOpen = false;
     _resetTimer?.cancel();
     if (kDebugMode) {
       debugPrint('🔌 Circuit Breaker CLOSED');

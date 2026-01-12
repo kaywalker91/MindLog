@@ -43,3 +43,18 @@ class SafetyBlockException implements Exception {
   @override
   String toString() => 'SafetyBlockException: Content blocked for safety reasons';
 }
+
+/// Rate Limit (429) 관련 예외
+/// 서버의 Retry-After 헤더 값을 포함하여 적절한 대기 시간 제공
+class RateLimitException implements Exception {
+  final String message;
+  final Duration? retryAfter;
+
+  RateLimitException({
+    this.message = '요청 제한을 초과했습니다.',
+    this.retryAfter,
+  });
+
+  @override
+  String toString() => 'RateLimitException: $message (retry after: ${retryAfter?.inSeconds ?? "unknown"}s)';
+}

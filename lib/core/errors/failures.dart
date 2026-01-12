@@ -72,7 +72,7 @@ class ValidationFailure extends Failure {
   const ValidationFailure({required String message}) : super(message: message);
 
   @override
-  String get displayMessage => message!;
+  String get displayMessage => message ?? '입력 유효성 검사에 실패했습니다.';
 }
 
 class SafetyBlockedFailure extends Failure {

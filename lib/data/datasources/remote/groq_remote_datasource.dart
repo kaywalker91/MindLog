@@ -69,15 +69,21 @@ class GroqRemoteDataSource {
         _printRetryMessage(attempt, '요청 시간 초과', currentDelay);
         await Future.delayed(currentDelay);
         currentDelay = _calculateNextDelay(currentDelay);
-      } catch (e) {
-        if (e.toString().contains('429')) { // Rate Limit
-          attempt++;
-          if (attempt >= _maxRetries) rethrow;
-          _printRetryMessage(attempt, '요청 제한(Rate Limit)', currentDelay);
-          await Future.delayed(currentDelay);
-          currentDelay = _calculateNextDelay(currentDelay);
-          continue;
+      } on RateLimitException catch (e) {
+        // Rate Limit(429) 처리: Retry-After 헤더 값 우선 사용
+        attempt++;
+        if (attempt >= _maxRetries) {
+          throw ApiException(message: e.message, statusCode: 429);
         }
+        final retryDelay = e.retryAfter ?? currentDelay;
+        _printRetryMessage(attempt, '요청 제한(Rate Limit)', retryDelay);
+        await Future.delayed(retryDelay);
+        currentDelay = _calculateNextDelay(retryDelay);
+        continue;
+      } on ApiException {
+        // Rate Limit이 아닌 ApiException은 재시도하지 않음
+        rethrow;
+      } catch (e) {
         rethrow;
       }
     }
@@ -130,8 +136,19 @@ class GroqRemoteDataSource {
       );
 
       if (response.statusCode != 200) {
+        // Rate Limit(429) 처리: Retry-After 헤더 파싱
+        if (response.statusCode == 429) {
+          final retryAfter = _parseRetryAfterHeader(response.headers['retry-after']);
+          throw RateLimitException(
+            message: _sanitizeErrorMessage(429),
+            retryAfter: retryAfter,
+          );
+        }
+
+        // 민감정보 노출 방지: response.body 대신 상태코드별 일반화된 메시지 사용
+        final errorMessage = _sanitizeErrorMessage(response.statusCode);
         throw ApiException(
-          message: 'Groq API 오류: ${response.statusCode} - ${response.body}',
+          message: errorMessage,
           statusCode: response.statusCode,
         );
       }
@@ -175,13 +192,28 @@ class GroqRemoteDataSource {
       }
 
     } catch (e) {
-      if (e is ApiException || e is NetworkException) rethrow;
+      if (e is ApiException || e is NetworkException || e is RateLimitException) rethrow;
       throw ApiException(message: 'Groq 분석 중 오류: $e');
     }
   }
 
   Duration _calculateNextDelay(Duration current) {
-    return Duration(milliseconds: (current.inMilliseconds * _backoffMultiplier).round());
+    return Duration(
+        milliseconds: (current.inMilliseconds * _backoffMultiplier).round());
+  }
+
+  /// HTTP 상태코드별 일반화된 에러 메시지 (민감정보 제외)
+  String _sanitizeErrorMessage(int statusCode) {
+    return switch (statusCode) {
+      400 => 'Groq API 오류: 잘못된 요청 형식입니다.',
+      401 => 'Groq API 오류: API 키 인증에 실패했습니다.',
+      403 => 'Groq API 오류: 접근 권한이 없습니다.',
+      429 => 'Groq API 오류: 요청 제한을 초과했습니다. 잠시 후 다시 시도해주세요.',
+      500 => 'Groq API 오류: 서버 내부 오류가 발생했습니다.',
+      502 => 'Groq API 오류: 서버 게이트웨이 오류가 발생했습니다.',
+      503 => 'Groq API 오류: 서비스를 일시적으로 사용할 수 없습니다.',
+      _ => 'Groq API 오류: 알 수 없는 오류가 발생했습니다. (코드: $statusCode)',
+    };
   }
 
   void _printRetryMessage(int attempt, String errorType, Duration delay) {
@@ -190,5 +222,33 @@ class GroqRemoteDataSource {
       debugPrint('🔄 Groq API 요청 재시도 $attempt/$_maxRetries: $errorType, ${delay.inSeconds}초 후 재시도...');
       return true;
     }());
+  }
+
+  /// Retry-After 헤더 파싱 (초 단위 또는 HTTP-date 형식)
+  /// RFC 7231 Section 7.1.3 준수
+  Duration? _parseRetryAfterHeader(String? headerValue) {
+    if (headerValue == null || headerValue.isEmpty) return null;
+
+    // 1. 초 단위 숫자 형식 (예: "30")
+    final seconds = int.tryParse(headerValue);
+    if (seconds != null) {
+      // 최대 5분으로 제한 (서버 오류 방지)
+      final clampedSeconds = seconds.clamp(1, 300);
+      return Duration(seconds: clampedSeconds);
+    }
+
+    // 2. HTTP-date 형식 (예: "Fri, 31 Dec 2024 23:59:59 GMT")
+    try {
+      final retryDate = HttpDate.parse(headerValue);
+      final now = DateTime.now().toUtc();
+      final difference = retryDate.difference(now);
+      if (difference.isNegative) return _initialDelay;
+      // 최대 5분으로 제한
+      if (difference.inSeconds > 300) return const Duration(minutes: 5);
+      return difference;
+    } catch (_) {
+      // 파싱 실패 시 기본값 사용
+      return null;
+    }
   }
 }

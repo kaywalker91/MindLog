@@ -45,7 +45,7 @@ class MockDiaryRepository implements DiaryRepository {
         sentimentScore: 7,
         empathyMessage: '테스트 공감 메시지입니다.',
         actionItem: '테스트 행동 아이템',
-        analyzedAt: DateTime.now(),
+        analyzedAt: DateTime(2024, 1, 1, 12, 0), // 테스트용 고정 시간
       ),
     );
     return mockAnalyzedDiary!;

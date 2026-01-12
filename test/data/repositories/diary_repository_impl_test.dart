@@ -317,6 +317,7 @@ void main() {
             empathyMessage: '응급 메시지',
             actionItem: '전화하세요',
             isEmergency: true,
+            analyzedAt: DateTime(2024, 1, 1, 12, 0),
           ),
         );
 
@@ -340,6 +341,7 @@ void main() {
             empathyMessage: '메시지',
             actionItem: '행동',
             isActionCompleted: false,
+            analyzedAt: DateTime(2024, 1, 1, 12, 0),
           ),
         );
         mockLocalDataSource.addDiary(testDiary);

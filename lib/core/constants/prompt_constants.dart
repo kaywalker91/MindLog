@@ -1,11 +1,45 @@
 import 'dart:math';
 import 'ai_character.dart';
+import '../utils/clock.dart';
 
 /// AI API 프롬프트 상수
+///
+/// 최적화 전략:
+/// 1. 시스템 프롬프트는 캐릭터별로 캐싱 (첫 호출 시 생성, 이후 재사용)
+/// 2. 공통 지시사항은 const로 컴파일 타임에 확정
+/// 3. 동적 요소(시간대, 랜덤 카테고리)만 런타임에 생성
+///
+/// Test Time Injection:
+/// - [clock]과 [random]을 주입하여 테스트에서 결정론적 동작 보장
+/// - 프로덕션에서는 기본 SystemClock과 Random 사용
 class PromptConstants {
   PromptConstants._();
 
-  static final Random _random = Random();
+  static Random _random = Random();
+
+  /// 테스트용 Clock 주입 (기본: SystemClock)
+  static Clock _clock = const SystemClock();
+
+  /// 테스트용: Clock 설정
+  static void setClock(Clock clock) {
+    _clock = clock;
+  }
+
+  /// 테스트용: Random 설정
+  static void setRandom(Random random) {
+    _random = random;
+  }
+
+  /// 테스트용: 기본값으로 리셋
+  static void resetForTesting() {
+    _clock = const SystemClock();
+    _random = Random();
+    _systemPromptCache.clear();
+  }
+
+  /// 캐릭터별 시스템 프롬프트 캐시 (Lazy 초기화)
+  /// API 호출 시 동일한 프롬프트 재생성 방지
+  static final Map<AiCharacter, String> _systemPromptCache = {};
 
   /// 8개 카테고리 목록
   static const List<String> _actionCategories = [
@@ -20,8 +54,9 @@ class PromptConstants {
   ];
 
   /// 시간대 판별 (0: 아침, 1: 점심, 2: 오후, 3: 저녁, 4: 밤)
+  /// Clock 주입을 통해 테스트에서 시간을 제어할 수 있습니다.
   static int _getTimeSlot() {
-    final hour = DateTime.now().hour;
+    final hour = _clock.now().hour;
     if (hour >= 5 && hour < 11) return 0; // 아침
     if (hour >= 11 && hour < 14) return 1; // 점심
     if (hour >= 14 && hour < 18) return 2; // 오후
@@ -68,8 +103,17 @@ class PromptConstants {
 
   /// 시스템 프롬프트 (페르소나 및 제약사항)
   /// Llama 3.3 70B 모델에 최적화된 프롬프트
+  ///
+  /// 캐싱 최적화: 캐릭터별로 한 번만 생성하고 재사용
+  /// - 시스템 프롬프트는 정적 콘텐츠로 매 요청마다 동일
+  /// - 첫 호출 시 생성 후 _systemPromptCache에 저장
   static String systemInstructionFor(AiCharacter character) {
-    return '''
+    // 캐시된 프롬프트가 있으면 재사용
+    final cached = _systemPromptCache[character];
+    if (cached != null) return cached;
+
+    // 캐시에 없으면 생성 후 저장
+    final prompt = '''
 [Role]
 ${_personaInstruction(character)}
 
@@ -77,6 +121,8 @@ ${_styleGuide(character)}
 
 $_commonInstruction
 ''';
+    _systemPromptCache[character] = prompt;
+    return prompt;
   }
 
   static String get systemInstruction =>

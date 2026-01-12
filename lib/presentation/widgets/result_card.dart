@@ -9,6 +9,7 @@ import '../../core/utils/animation_settings.dart';
 import '../../domain/entities/diary.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../extensions/emotion_emoji_extension.dart';
 
 /// 감정 분석 결과 카드 위젯
 class ResultCard extends StatefulWidget {

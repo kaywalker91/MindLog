@@ -48,12 +48,16 @@ class Diary {
     this.isPinned = false,
   });
 
+  /// copyWith 메서드
+  /// [clearAnalysisResult]를 true로 설정하면 analysisResult를 명시적으로 null로 설정합니다.
+  /// 이는 null 파라미터가 "변경 없음"을 의미하는 copyWith 패턴의 한계를 해결합니다.
   Diary copyWith({
     String? id,
     String? content,
     DateTime? createdAt,
     DiaryStatus? status,
     AnalysisResult? analysisResult,
+    bool clearAnalysisResult = false,
     bool? isPinned,
   }) {
     return Diary(
@@ -61,7 +65,7 @@ class Diary {
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
-      analysisResult: analysisResult ?? this.analysisResult,
+      analysisResult: clearAnalysisResult ? null : (analysisResult ?? this.analysisResult),
       isPinned: isPinned ?? this.isPinned,
     );
   }
@@ -88,26 +92,8 @@ class EmotionCategory {
       _$EmotionCategoryFromJson(json);
   Map<String, dynamic> toJson() => _$EmotionCategoryToJson(this);
 
-  /// 1차 감정에 해당하는 이모지 반환
-  String get primaryEmoji {
-    switch (primary) {
-      case '기쁨':
-        return '😊';
-      case '슬픔':
-        return '😢';
-      case '분노':
-        return '😠';
-      case '공포':
-        return '😨';
-      case '놀람':
-        return '😲';
-      case '혐오':
-        return '🤢';
-      case '평온':
-      default:
-        return '😌';
-    }
-  }
+  // primaryEmoji getter는 Presentation Layer로 이동됨
+  // → lib/presentation/extensions/emotion_emoji_extension.dart
 }
 
 /// 감정 유발 요인
@@ -128,27 +114,13 @@ class EmotionTrigger {
       _$EmotionTriggerFromJson(json);
   Map<String, dynamic> toJson() => _$EmotionTriggerToJson(this);
 
-  /// 카테고리에 해당하는 아이콘 이모지 반환
-  String get categoryEmoji {
-    switch (category) {
-      case '일/업무':
-        return '💼';
-      case '관계':
-        return '👥';
-      case '건강':
-        return '🏥';
-      case '재정':
-        return '💰';
-      case '자아':
-        return '🪞';
-      case '환경':
-        return '🏠';
-      case '기타':
-      default:
-        return '📌';
-    }
-  }
+  // categoryEmoji getter는 Presentation Layer로 이동됨
+  // → lib/presentation/extensions/emotion_emoji_extension.dart
 }
+
+/// JSON에서 analyzedAt이 null일 경우 현재 시간 반환 (기존 데이터 호환용)
+DateTime _dateTimeFromJsonOrNow(String? json) =>
+    json != null ? DateTime.parse(json) : DateTime.now();
 
 /// 감정 분석 결과 엔티티
 @JsonSerializable()
@@ -168,7 +140,8 @@ class AnalysisResult {
   /// 단계별 추천 행동 (즉시/오늘/이번주)
   final List<String> actionItems;
 
-  /// 분석 시간
+  /// 분석 시간 (JSON에서 null일 경우 현재 시간으로 대체)
+  @JsonKey(fromJson: _dateTimeFromJsonOrNow)
   final DateTime analyzedAt;
 
   /// 추천 행동 완료 여부
@@ -192,13 +165,16 @@ class AnalysisResult {
   /// 인지 패턴 (선택적 - 부정적 사고 패턴 감지 시)
   final String? cognitivePattern;
 
-  AnalysisResult({
+  /// [analyzedAt]은 필수 파라미터로, 호출자가 명시적으로 제공해야 합니다.
+  /// 테스트에서는 고정된 시간을 주입하여 결정론적 테스트가 가능합니다.
+  /// 프로덕션 코드에서는 `DateTime.now()`를 전달합니다.
+  const AnalysisResult({
     this.keywords = const [],
     this.sentimentScore = 5,
     this.empathyMessage = '',
     this.actionItem = '',
     this.actionItems = const [],
-    DateTime? analyzedAt,
+    required this.analyzedAt,
     this.isActionCompleted = false,
     this.isEmergency = false,
     this.aiCharacterId,
@@ -206,7 +182,7 @@ class AnalysisResult {
     this.emotionTrigger,
     this.energyLevel,
     this.cognitivePattern,
-  }) : analyzedAt = analyzedAt ?? DateTime.now();
+  });
 
   factory AnalysisResult.fromJson(Map<String, dynamic> json) => _$AnalysisResultFromJson(json);
   Map<String, dynamic> toJson() => _$AnalysisResultToJson(this);
@@ -248,6 +224,8 @@ class AnalysisResult {
     return [];
   }
 
+  /// copyWith 메서드
+  /// clear* 파라미터를 사용하여 nullable 필드를 명시적으로 null로 설정할 수 있습니다.
   AnalysisResult copyWith({
     List<String>? keywords,
     int? sentimentScore,
@@ -258,10 +236,15 @@ class AnalysisResult {
     bool? isActionCompleted,
     bool? isEmergency,
     String? aiCharacterId,
+    bool clearAiCharacterId = false,
     EmotionCategory? emotionCategory,
+    bool clearEmotionCategory = false,
     EmotionTrigger? emotionTrigger,
+    bool clearEmotionTrigger = false,
     int? energyLevel,
+    bool clearEnergyLevel = false,
     String? cognitivePattern,
+    bool clearCognitivePattern = false,
   }) {
     return AnalysisResult(
       keywords: keywords ?? this.keywords,
@@ -272,11 +255,11 @@ class AnalysisResult {
       analyzedAt: analyzedAt ?? this.analyzedAt,
       isActionCompleted: isActionCompleted ?? this.isActionCompleted,
       isEmergency: isEmergency ?? this.isEmergency,
-      aiCharacterId: aiCharacterId ?? this.aiCharacterId,
-      emotionCategory: emotionCategory ?? this.emotionCategory,
-      emotionTrigger: emotionTrigger ?? this.emotionTrigger,
-      energyLevel: energyLevel ?? this.energyLevel,
-      cognitivePattern: cognitivePattern ?? this.cognitivePattern,
+      aiCharacterId: clearAiCharacterId ? null : (aiCharacterId ?? this.aiCharacterId),
+      emotionCategory: clearEmotionCategory ? null : (emotionCategory ?? this.emotionCategory),
+      emotionTrigger: clearEmotionTrigger ? null : (emotionTrigger ?? this.emotionTrigger),
+      energyLevel: clearEnergyLevel ? null : (energyLevel ?? this.energyLevel),
+      cognitivePattern: clearCognitivePattern ? null : (cognitivePattern ?? this.cognitivePattern),
     );
   }
 }

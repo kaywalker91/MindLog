@@ -179,14 +179,15 @@ class AnalysisResponseDto {
   }
 
   /// DTO → Entity 변환
-  AnalysisResult toEntity() {
+  /// [analyzedAt]을 선택적 파라미터로 받아 테스트 용이성 확보
+  AnalysisResult toEntity({DateTime? analyzedAt}) {
     return AnalysisResult(
       keywords: keywords,
       sentimentScore: sentimentScore.clamp(1, 10),
       empathyMessage: empathyMessage,
       actionItem: actionItem,
       actionItems: actionItems,
-      analyzedAt: DateTime.now(),
+      analyzedAt: analyzedAt ?? DateTime.now(),
       isEmergency: isEmergency,
       emotionCategory: emotionCategory?.toEntity(),
       emotionTrigger: emotionTrigger?.toEntity(),
