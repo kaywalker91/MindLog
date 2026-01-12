@@ -11,6 +11,7 @@ class PreferencesLocalDataSource {
       'notification_mindcare_topic_enabled';
   static const String _userNameKey = 'user_name';
   static const String _dismissedUpdateVersionKey = 'dismissed_update_version';
+  static const String _lastSeenAppVersionKey = 'last_seen_app_version';
 
   Future<AiCharacter> getSelectedAiCharacter() async {
     final prefs = await SharedPreferences.getInstance();
@@ -80,5 +81,17 @@ class PreferencesLocalDataSource {
   Future<void> clearDismissedUpdateVersion() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_dismissedUpdateVersionKey);
+  }
+
+  /// 마지막으로 확인한 앱 버전 조회 (업그레이드 감지용)
+  Future<String?> getLastSeenAppVersion() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_lastSeenAppVersionKey);
+  }
+
+  /// 마지막으로 확인한 앱 버전 저장
+  Future<void> setLastSeenAppVersion(String version) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastSeenAppVersionKey, version);
   }
 }

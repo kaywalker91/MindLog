@@ -739,6 +739,10 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  /// 수동 업데이트 확인
+  ///
+  /// 사용자가 설정에서 "업데이트 확인"을 탭했을 때 호출됩니다.
+  /// 항상 fresh 네트워크 요청을 수행하여 최신 상태를 확인합니다.
   Future<void> _checkForUpdates(
     BuildContext context,
     WidgetRef ref,
@@ -750,15 +754,11 @@ class SettingsScreen extends ConsumerWidget {
     }
 
     final notifier = ref.read(updateStateProvider.notifier);
-    final currentState = ref.read(updateStateProvider);
 
-    // 이미 캐시된 결과가 있고 로딩 중이 아니면 즉시 다이얼로그 표시
-    if (currentState.result != null && !currentState.isLoading) {
-      await _showUpdateResultDialog(context, ref, currentState.result!);
-      return;
-    }
-
+    // 수동 확인 시 항상 progress 다이얼로그 표시 후 fresh 체크 수행
+    // dismiss 상태 초기화하여 이전에 "나중에 알림" 선택한 것도 다시 표시
     _showUpdateProgressDialog(context);
+    await notifier.clearDismissal();
     await notifier.check(appInfo.version);
 
     if (!context.mounted) return;
@@ -945,18 +945,46 @@ class SettingsScreen extends ConsumerWidget {
 
   /// 외부 앱으로 URL 열기 (이메일, Play Store 등)
   ///
-  /// [LaunchMode.externalApplication]을 사용하여 Play Store URL이
-  /// 인앱 브라우저가 아닌 Play Store 앱으로 직접 열리도록 합니다.
+  /// 다중 fallback 전략을 적용하여 URL 열기 성공률을 높입니다:
+  /// 1. externalApplication (Play Store 앱 직접 열기)
+  /// 2. externalNonBrowserApplication (브라우저 외 앱)
+  /// 3. platformDefault (시스템 기본)
   Future<bool> _launchExternalUrl(String url, [BuildContext? context]) async {
-    final uri = Uri.parse(url);
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      if (context != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('잘못된 URL 형식입니다.')),
+        );
+      }
+      return false;
+    }
+
     try {
-      final launched = await launchUrl(
+      // 1차 시도: Play Store 앱으로 직접 열기
+      var launched = await launchUrl(
         uri,
         mode: LaunchMode.externalApplication,
       );
+
+      // 2차 시도: 브라우저 외 외부 앱
+      if (!launched) {
+        launched = await launchUrl(
+          uri,
+          mode: LaunchMode.externalNonBrowserApplication,
+        );
+      }
+
+      // 3차 시도: 시스템 기본 방식
+      if (!launched) {
+        launched = await launchUrl(uri);
+      }
+
       if (!launched && context != null && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('링크를 열 수 없습니다.')),
+          const SnackBar(
+            content: Text('링크를 열 수 없습니다. Play Store에서 직접 검색해주세요.'),
+          ),
         );
       }
       return launched;

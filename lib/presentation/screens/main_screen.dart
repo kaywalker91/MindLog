@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/notification_permission_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../providers/app_info_provider.dart';
+import '../providers/app_upgrade_check_provider.dart';
 import '../services/notification_action_handler.dart';
+import '../widgets/whats_new_dialog.dart';
 import 'diary_list_screen.dart';
 import 'statistics_screen.dart';
 import 'settings_screen.dart';
@@ -22,14 +25,62 @@ class MainScreen extends ConsumerStatefulWidget {
 
 class _MainScreenState extends ConsumerState<MainScreen> {
   bool _notificationDialogShown = false;
+  bool _whatsNewDialogShown = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       NotificationActionHandler.markMainReady();
-      unawaited(_maybeRequestNotificationPermission());
+      // What's New 다이얼로그 먼저 표시, 그 다음 알림 권한 요청
+      unawaited(_maybeShowWhatsNewDialog().then((_) {
+        unawaited(_maybeRequestNotificationPermission());
+      }));
     });
+  }
+
+  /// 앱 업그레이드 후 What's New 다이얼로그 표시
+  ///
+  /// - 신규 설치: 다이얼로그 표시 안 함
+  /// - 동일 버전 재실행: 다이얼로그 표시 안 함
+  /// - 버전 업그레이드: 한 번만 다이얼로그 표시
+  Future<void> _maybeShowWhatsNewDialog() async {
+    if (_whatsNewDialogShown) return;
+
+    try {
+      final appInfo = await ref.read(appInfoProvider.future);
+      await ref.read(appUpgradeCheckProvider.notifier).checkForUpgrade(appInfo.version);
+
+      final upgradeState = ref.read(appUpgradeCheckProvider);
+      final data = upgradeState.valueOrNull;
+
+      // 업그레이드가 아니거나 이미 표시됨
+      if (data == null || !data.isUpgradeDetected || data.hasShownWhatsNew) {
+        return;
+      }
+
+      // changelog가 비어있으면 다이얼로그 스킵하고 버전만 저장
+      if (data.changelogNotes.isEmpty) {
+        await ref.read(appUpgradeCheckProvider.notifier).markWhatsNewShown();
+        return;
+      }
+
+      if (!mounted) return;
+      _whatsNewDialogShown = true;
+
+      await WhatsNewDialog.show(
+        context,
+        version: data.currentVersion,
+        notes: data.changelogNotes,
+        onDismiss: () {
+          ref.read(appUpgradeCheckProvider.notifier).markWhatsNewShown();
+          Navigator.of(context).pop();
+        },
+      );
+    } catch (e) {
+      // 에러 발생 시 silent 처리 (다이얼로그 표시 안 함)
+      debugPrint('[MainScreen] What\'s New dialog error: $e');
+    }
   }
 
   Future<void> _maybeRequestNotificationPermission() async {
