@@ -8,7 +8,7 @@ import '../../domain/entities/statistics.dart';
 import '../providers/providers.dart';
 import '../widgets/emotion_line_chart.dart';
 import '../widgets/keyword_tags.dart';
-import '../widgets/activity_heatmap.dart';
+import '../widgets/emotion_garden.dart';
 import '../widgets/mindlog_app_bar.dart';
 
 /// 감정 통계 화면 (레이아웃 B: 요약+잔디 우선형)
@@ -369,8 +369,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           ),
           const SizedBox(height: 16),
 
-          // 히트맵
-          ActivityHeatmap(
+          // 감정 정원
+          EmotionGarden(
             activityMap: statistics.activityMap,
             weeksToShow: _getWeeksForPeriod(statistics, selectedPeriod),
           ),

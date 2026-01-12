@@ -67,6 +67,10 @@ class AppColors {
   static const Color statsAccentCoral = Color(0xFFF5A895);   // 스트릭 강조
   static const Color statsAccentMint = Color(0xFFA8E6CF);    // 성취, 긍정
 
+  // Emotion Garden Colors (감정 정원)
+  static const Color gardenSoil = Color(0xFFF5F0EB);         // 빈 날 (흙)
+  static const Color gardenSoilBorder = Color(0xFFE8E0D8);   // 흙 테두리
+
   /// 감정 점수에 따른 색상 반환
   static Color getSentimentColor(int score) {
     if (score <= 2) return sentimentVeryNegative;
