@@ -11,6 +11,7 @@ import 'package:mindlog/domain/entities/diary.dart';
 /// Mock SqliteLocalDataSource for testing
 class MockSqliteLocalDataSource implements SqliteLocalDataSource {
   final Map<String, Diary> _diaries = {};
+  final Map<String, String> _metadata = {};
   bool shouldThrowOnSave = false;
   bool shouldThrowOnGet = false;
 
@@ -104,6 +105,16 @@ class MockSqliteLocalDataSource implements SqliteLocalDataSource {
         .where((d) =>
             endDate == null || d.createdAt.isBefore(endDate.add(const Duration(days: 1))))
         .toList();
+  }
+
+  @override
+  Future<void> setMetadata(String key, String value) async {
+    _metadata[key] = value;
+  }
+
+  @override
+  Future<String?> getMetadata(String key) async {
+    return _metadata[key];
   }
 
   // Helper method for testing

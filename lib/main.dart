@@ -11,10 +11,13 @@ import 'core/services/analytics_service.dart';
 import 'core/services/fcm_service.dart';
 import 'core/services/firebase_service.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/db_recovery_service.dart';
 import 'core/services/notification_settings_service.dart';
 import 'core/theme/app_theme.dart';
+import 'data/datasources/local/sqlite_local_datasource.dart';
 import 'domain/entities/notification_settings.dart' as app;
 import 'l10n/app_localizations.dart';
+import 'presentation/providers/infra_providers.dart';
 import 'presentation/services/notification_action_handler.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/providers/app_info_provider.dart';
@@ -100,6 +103,20 @@ void main() {
       await initializeDateFormatting('ko_KR', null);
 
       await FirebaseService.initialize();
+
+      // DB 복원 감지 및 처리
+      // 앱 재설치 시 OS가 복원한 DB 파일을 정확히 읽도록 함
+      await SqliteLocalDataSource.forceReconnect();
+      final dataSource = SqliteLocalDataSource();
+      final wasRecovered = await DbRecoveryService.checkAndRecoverIfNeeded(dataSource);
+      if (wasRecovered) {
+        // 복원 감지 시 Provider 캐시 무효화
+        invalidateDataProviders(appContainer);
+        if (kDebugMode) {
+          debugPrint('[Main] DB recovery detected, providers invalidated');
+        }
+      }
+
       FirebaseMessaging.onBackgroundMessage(
         firebaseMessagingBackgroundHandler,
       );

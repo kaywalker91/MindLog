@@ -108,3 +108,12 @@ final setNotificationSettingsUseCaseProvider =
 final getStatisticsUseCaseProvider = Provider<GetStatisticsUseCase>((ref) {
   return GetStatisticsUseCase(ref.watch(statisticsRepositoryProvider));
 });
+
+/// DB 복원 후 Provider 캐시 무효화
+///
+/// DB 복원이 감지되면 모든 데이터 관련 Provider를 무효화하여
+/// 새로운 DB 데이터를 반영합니다.
+void invalidateDataProviders(ProviderContainer container) {
+  // 데이터 소스 Provider 무효화 → 의존하는 모든 Provider 자동 갱신
+  container.invalidate(sqliteLocalDataSourceProvider);
+}

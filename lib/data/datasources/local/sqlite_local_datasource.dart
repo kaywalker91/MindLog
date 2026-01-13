@@ -7,13 +7,31 @@ import '../../../core/errors/exceptions.dart';
 
 /// SQLite 로컬 데이터 소스
 class SqliteLocalDataSource {
-  static const int _currentVersion = 4;
+  static const int _currentVersion = 5;
   static Database? _database;
 
   /// 테스트용 데이터베이스 초기화 (기존 연결 종료 후 재설정)
   static Future<void> resetForTesting() async {
+    await forceReconnect();
+  }
+
+  /// DB 연결 강제 리셋
+  ///
+  /// 앱 재설치 시 OS가 복원한 DB 파일을 읽기 위해 캐시된 연결을 해제합니다.
+  /// 이 메서드는 앱 시작 시 호출되어야 합니다.
+  ///
+  /// 문제 상황:
+  /// - static [_database]는 앱 프로세스 동안 캐싱됨
+  /// - 앱 삭제 후 재설치 시 OS가 백업에서 DB 파일 복원
+  /// - 기존 캐시 연결은 복원된 파일이 아닌 이전 상태 유지
+  /// - 결과: 일기 목록은 보이지만 통계에 반영 안 됨
+  static Future<void> forceReconnect() async {
     if (_database != null) {
-      await _database!.close();
+      try {
+        await _database!.close();
+      } catch (e) {
+        // 이미 닫힌 연결은 무시 (복원 시나리오에서 발생 가능)
+      }
       _database = null;
     }
   }
@@ -56,6 +74,14 @@ class SqliteLocalDataSource {
     await db.execute('CREATE INDEX idx_diaries_status_created_at ON diaries(status, created_at)');
     // 복합 인덱스: 목록 조회 최적화 (is_pinned DESC, created_at DESC 정렬)
     await db.execute('CREATE INDEX idx_diaries_pinned_created ON diaries(is_pinned DESC, created_at DESC)');
+
+    // 앱 메타데이터 테이블 (세션 추적용)
+    await db.execute('''
+      CREATE TABLE app_metadata (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    ''');
   }
 
   /// 데이터베이스 마이그레이션
@@ -83,6 +109,41 @@ class SqliteLocalDataSource {
       // SQLite는 DROP INDEX IF EXISTS를 지원하므로 안전하게 제거
       await db.execute('DROP INDEX IF EXISTS idx_diaries_is_pinned');
     }
+
+    // 버전 4 → 5: app_metadata 테이블 추가 (DB 복원 감지용)
+    if (oldVersion < 5) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS app_metadata (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        )
+      ''');
+    }
+  }
+
+  /// 메타데이터 저장
+  Future<void> setMetadata(String key, String value) async {
+    return _runDb('메타데이터 저장 실패', (db) async {
+      await db.insert(
+        'app_metadata',
+        {'key': key, 'value': value},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    });
+  }
+
+  /// 메타데이터 조회
+  Future<String?> getMetadata(String key) async {
+    return _runDb('메타데이터 조회 실패', (db) async {
+      final result = await db.query(
+        'app_metadata',
+        where: 'key = ?',
+        whereArgs: [key],
+        limit: 1,
+      );
+      if (result.isEmpty) return null;
+      return result.first['value'] as String?;
+    });
   }
 
   /// 일기 저장
