@@ -101,7 +101,22 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.17 (Current)
+### v1.4.18 (Current)
+*   **알림 메시지 다양화 (연구 기반):**
+    *   **랜덤 메시지 시스템:** 고정 메시지 → 8개 제목 x 8개 본문 랜덤 조합
+    *   **NotificationMessages 상수 클래스:** `dart:math` Random 주입 패턴으로 테스트 가능성 확보
+    *   **Record 타입 적용:** Dart 3.0+ `({String title, String body})` 반환으로 타입 안전성 강화
+*   **기본 알림 시간 최적화:**
+    *   **연구 기반 시간 변경:** 21:00 → 19:00 (PMC 연구: 17:00-20:00 참여율 최고)
+    *   **직장인 타겟팅:** 퇴근 후 여유 시간대에 알림 도달
+*   **DB 복구 시스템 (OS 백업 대응):**
+    *   **문제:** 앱 재설치 후 OS 복원 데이터가 목록에 표시되나 통계 미반영
+    *   **원인:** Static singleton `_database`가 이전 연결 캐싱 → 복원된 DB 파일 미인식
+    *   **해결:** `forceReconnect()` + `DbRecoveryService` 세션 ID 비교 (SharedPreferences vs DB)
+    *   **스키마:** v4 → v5 마이그레이션, `app_metadata` 테이블 추가
+*   **테스트 추가:** NotificationMessages 테스트 18개 추가 (총 230개)
+
+### v1.4.17
 *   **감정 정원(Emotion Garden) 디자인 도입:**
     *   **기존 히트맵 → 감정 정원:** 개발자 스타일 GitHub 잔디심기 → 일반 사용자 친화적 식물 성장 메타포
     *   **이모지 기반 시각화:** 감정 점수에 따라 🌱씨앗 → 🌿새싹 → 🌷꽃봉오리 → 🌸꽃 → 🌻해바라기로 성장

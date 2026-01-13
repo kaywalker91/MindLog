@@ -27,14 +27,15 @@ void main() {
         final settings = NotificationSettings.defaults();
 
         // Then
-        expect(settings.isReminderEnabled, false);
-        expect(settings.reminderHour, 21);
-        expect(settings.reminderMinute, 0);
-        expect(settings.isMindcareTopicEnabled, false);
+        expect(settings.isReminderEnabled, NotificationSettings.defaultReminderEnabled);
+        expect(settings.reminderHour, NotificationSettings.defaultReminderHour);
+        expect(settings.reminderMinute, NotificationSettings.defaultReminderMinute);
+        expect(settings.isMindcareTopicEnabled, NotificationSettings.defaultMindcareTopicEnabled);
       });
 
       test('기본값 상수가 올바르게 정의되어 있다', () {
-        expect(NotificationSettings.defaultReminderHour, 21);
+        // 직장인 퇴근 후 여유 시간대 (17:00-20:00 연구 기반)
+        expect(NotificationSettings.defaultReminderHour, 19);
         expect(NotificationSettings.defaultReminderMinute, 0);
         expect(NotificationSettings.defaultReminderEnabled, false);
         expect(NotificationSettings.defaultMindcareTopicEnabled, false);

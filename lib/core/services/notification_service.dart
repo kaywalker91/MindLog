@@ -4,6 +4,8 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../constants/notification_messages.dart';
+
 class NotificationService {
   NotificationService._();
 
@@ -122,10 +124,13 @@ class NotificationService {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
 
+      // 매번 다른 메시지로 사용자 참여 유도
+      final message = NotificationMessages.getRandomReminderMessage();
+
       await _notifications.zonedSchedule(
         _dailyReminderId,
-        '오늘 하루는 어떠셨나요?',
-        '마음을 기록해보세요 💙',
+        message.title,
+        message.body,
         scheduledDate,
         const NotificationDetails(
           android: AndroidNotificationDetails(
@@ -156,6 +161,7 @@ class NotificationService {
 
       if (kDebugMode) {
         debugPrint('[Notification] Daily reminder scheduled for: $scheduledDate');
+        debugPrint('[Notification] Message: "${message.title}" / "${message.body}"');
         debugPrint('[Notification] Current time: $now');
         debugPrint('[Notification] Timezone: ${tz.local.name}');
       }

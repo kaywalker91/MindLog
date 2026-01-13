@@ -11,7 +11,8 @@ class NotificationSettings {
   final int reminderMinute;
   final bool isMindcareTopicEnabled;
 
-  static const int defaultReminderHour = 21;
+  // 연구 기반: 17:00-20:00 참여율 최고, 19:00은 직장인 퇴근 후 여유 시간
+  static const int defaultReminderHour = 19;
   static const int defaultReminderMinute = 0;
   static const bool defaultReminderEnabled = false;
   static const bool defaultMindcareTopicEnabled = false;

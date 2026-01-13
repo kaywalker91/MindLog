@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_local_notifications_platform_interface/flutter_local_notifications_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mindlog/core/constants/notification_messages.dart';
 import 'package:mindlog/core/services/notification_service.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -154,7 +155,12 @@ void main() {
         final args = call.arguments as Map;
 
         expect(args['id'], 1001);
-        expect(args['title'], '오늘 하루는 어떠셨나요?');
+        // 랜덤 메시지이므로 유효한 목록 내 값인지 확인
+        expect(
+          NotificationMessages.reminderTitles,
+          contains(args['title']),
+          reason: 'title should be one of the reminder titles',
+        );
         expect(args['payload'], payload);
       } catch (_) {
         rethrow;
