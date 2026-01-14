@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -9,6 +10,11 @@ import '../../../core/errors/exceptions.dart';
 class SqliteLocalDataSource {
   static const int _currentVersion = 5;
   static Database? _database;
+
+  /// 테스트용 Database 주입 (인메모리 DB 테스트용)
+  /// 프로덕션에서는 사용하지 않음
+  @visibleForTesting
+  static Database? testDatabase;
 
   /// 테스트용 데이터베이스 초기화 (기존 연결 종료 후 재설정)
   static Future<void> resetForTesting() async {
@@ -38,6 +44,8 @@ class SqliteLocalDataSource {
 
   /// 데이터베이스 인스턴스 초기화
   static Future<Database> _getDatabase() async {
+    // 테스트용 DB가 주입된 경우 사용
+    if (testDatabase != null) return testDatabase!;
     if (_database != null) return _database!;
 
     final documentsDirectory = await getApplicationDocumentsDirectory();
@@ -46,14 +54,16 @@ class SqliteLocalDataSource {
     _database = await openDatabase(
       path,
       version: _currentVersion,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
+      onCreate: onCreate,
+      onUpgrade: onUpgrade,
     );
     return _database!;
   }
 
   /// 데이터베이스 테이블 생성
-  static Future<void> _onCreate(Database db, int version) async {
+  /// 테스트에서 직접 호출 가능하도록 @visibleForTesting 추가
+  @visibleForTesting
+  static Future<void> onCreate(Database db, int version) async {
     const idType = 'TEXT PRIMARY KEY';
 
     await db.execute('''
@@ -85,7 +95,9 @@ class SqliteLocalDataSource {
   }
 
   /// 데이터베이스 마이그레이션
-  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  /// 테스트에서 직접 호출 가능하도록 @visibleForTesting 추가
+  @visibleForTesting
+  static Future<void> onUpgrade(Database db, int oldVersion, int newVersion) async {
     // 버전 1 → 2: 복합 인덱스 추가 (통계 쿼리 최적화)
     if (oldVersion < 2) {
       await db.execute(

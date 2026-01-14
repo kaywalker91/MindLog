@@ -128,6 +128,7 @@ class MockGroqRemoteDataSource implements GroqRemoteDataSource {
   bool shouldThrow = false;
   String? errorMessage;
   AnalysisResponseDto? mockResponse;
+  Exception? customException;
 
   @override
   Future<AnalysisResponseDto> analyzeDiary(
@@ -136,6 +137,9 @@ class MockGroqRemoteDataSource implements GroqRemoteDataSource {
     String? userName,
   }) async {
     if (shouldThrow) {
+      if (customException != null) {
+        throw customException!;
+      }
       throw ApiException(message: errorMessage ?? 'API Error');
     }
     return mockResponse ??
@@ -383,6 +387,258 @@ void main() {
       test('존재하지 않는 일기 삭제 시 DataNotFoundFailure를 던져야 한다', () async {
         expect(
           () => repository.deleteDiary('non-existent'),
+          throwsA(isA<DataNotFoundFailure>()),
+        );
+      });
+    });
+
+    group('getTodayDiaries', () {
+      test('오늘 작성된 일기만 반환해야 한다', () async {
+        final now = DateTime.now();
+        // 오늘의 시작 이후 시간으로 설정
+        final todayStart = DateTime(now.year, now.month, now.day);
+        final todayNoon = todayStart.add(const Duration(hours: 12));
+        final todayMorning = todayStart.add(const Duration(hours: 9));
+        final yesterday = todayStart.subtract(const Duration(hours: 9)); // 어제 15시
+
+        mockLocalDataSource.addDiary(Diary(
+          id: 'today-1',
+          content: '오늘 일기 1',
+          createdAt: todayNoon,
+          status: DiaryStatus.pending,
+        ));
+        mockLocalDataSource.addDiary(Diary(
+          id: 'today-2',
+          content: '오늘 일기 2',
+          createdAt: todayMorning,
+          status: DiaryStatus.analyzed,
+        ));
+        mockLocalDataSource.addDiary(Diary(
+          id: 'yesterday',
+          content: '어제 일기',
+          createdAt: yesterday,
+          status: DiaryStatus.pending,
+        ));
+
+        final todayDiaries = await repository.getTodayDiaries();
+
+        expect(todayDiaries.length, 2);
+        expect(todayDiaries.any((d) => d.id == 'today-1'), true);
+        expect(todayDiaries.any((d) => d.id == 'today-2'), true);
+        expect(todayDiaries.any((d) => d.id == 'yesterday'), false);
+      });
+
+      test('오늘 일기가 없으면 빈 리스트를 반환해야 한다', () async {
+        mockLocalDataSource.addDiary(Diary(
+          id: 'old',
+          content: '오래된 일기',
+          createdAt: DateTime.now().subtract(const Duration(days: 7)),
+          status: DiaryStatus.pending,
+        ));
+
+        final todayDiaries = await repository.getTodayDiaries();
+
+        expect(todayDiaries, isEmpty);
+      });
+    });
+
+    group('toggleDiaryPin', () {
+      test('일기 고정 상태를 true로 변경해야 한다', () async {
+        final testDiary = Diary(
+          id: 'test-pin',
+          content: '고정 테스트',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.analyzed,
+          isPinned: false,
+        );
+        mockLocalDataSource.addDiary(testDiary);
+
+        await repository.toggleDiaryPin('test-pin', true);
+
+        final result = await repository.getDiaryById('test-pin');
+        expect(result?.isPinned, true);
+      });
+
+      test('일기 고정 상태를 false로 변경해야 한다', () async {
+        final testDiary = Diary(
+          id: 'test-unpin',
+          content: '고정 해제 테스트',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.analyzed,
+          isPinned: true,
+        );
+        mockLocalDataSource.addDiary(testDiary);
+
+        await repository.toggleDiaryPin('test-unpin', false);
+
+        final result = await repository.getDiaryById('test-unpin');
+        expect(result?.isPinned, false);
+      });
+    });
+
+    group('deleteAllDiaries', () {
+      test('모든 일기를 삭제해야 한다', () async {
+        mockLocalDataSource.addDiary(Diary(
+          id: '1',
+          content: '일기 1',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        ));
+        mockLocalDataSource.addDiary(Diary(
+          id: '2',
+          content: '일기 2',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.analyzed,
+        ));
+        mockLocalDataSource.addDiary(Diary(
+          id: '3',
+          content: '일기 3',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.failed,
+        ));
+
+        await repository.deleteAllDiaries();
+
+        final allDiaries = await repository.getAllDiaries();
+        expect(allDiaries, isEmpty);
+      });
+
+      test('일기가 없어도 에러 없이 완료되어야 한다', () async {
+        await repository.deleteAllDiaries();
+
+        final allDiaries = await repository.getAllDiaries();
+        expect(allDiaries, isEmpty);
+      });
+    });
+
+    group('analyzeDiary - 실패 시 상태 업데이트', () {
+      test('SafetyBlockException 발생 시 safetyBlocked 상태로 업데이트되어야 한다', () async {
+        final testDiary = Diary(
+          id: 'test-safety',
+          content: '안전 차단 테스트',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        mockLocalDataSource.addDiary(testDiary);
+        mockRemoteDataSource.shouldThrow = true;
+        mockRemoteDataSource.customException =
+            SafetyBlockException('안전 차단됨');
+
+        await expectLater(
+          () => repository.analyzeDiary(
+            'test-safety',
+            character: AiCharacter.warmCounselor,
+          ),
+          throwsA(isA<SafetyBlockedFailure>()),
+        );
+
+        final result = await repository.getDiaryById('test-safety');
+        expect(result?.status, DiaryStatus.safetyBlocked);
+      });
+
+      test('NetworkException 발생 시 failed 상태로 업데이트되어야 한다', () async {
+        final testDiary = Diary(
+          id: 'test-network',
+          content: '네트워크 오류 테스트',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        mockLocalDataSource.addDiary(testDiary);
+        mockRemoteDataSource.shouldThrow = true;
+        mockRemoteDataSource.customException =
+            NetworkException('네트워크 오류');
+
+        await expectLater(
+          () => repository.analyzeDiary(
+            'test-network',
+            character: AiCharacter.warmCounselor,
+          ),
+          throwsA(isA<NetworkFailure>()),
+        );
+
+        final result = await repository.getDiaryById('test-network');
+        expect(result?.status, DiaryStatus.failed);
+      });
+
+      test('ApiException 발생 시 failed 상태로 업데이트되어야 한다', () async {
+        final testDiary = Diary(
+          id: 'test-api',
+          content: 'API 오류 테스트',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        mockLocalDataSource.addDiary(testDiary);
+        mockRemoteDataSource.shouldThrow = true;
+        mockRemoteDataSource.customException = ApiException(message: 'API 오류');
+
+        await expectLater(
+          () => repository.analyzeDiary(
+            'test-api',
+            character: AiCharacter.warmCounselor,
+          ),
+          throwsA(isA<ApiFailure>()),
+        );
+
+        final result = await repository.getDiaryById('test-api');
+        expect(result?.status, DiaryStatus.failed);
+      });
+
+      test('일기가 로드되지 않은 상태에서 실패 시 상태 업데이트를 시도하지 않아야 한다', () async {
+        // 존재하지 않는 일기 ID로 분석 시도
+        mockRemoteDataSource.shouldThrow = true;
+
+        await expectLater(
+          () => repository.analyzeDiary(
+            'non-existent-diary',
+            character: AiCharacter.warmCounselor,
+          ),
+          throwsA(isA<DataNotFoundFailure>()),
+        );
+
+        // 상태 업데이트가 호출되지 않음 (diaryLoaded = false)
+      });
+
+      test('userName 파라미터가 전달되어야 한다', () async {
+        final testDiary = Diary(
+          id: 'test-username',
+          content: '유저 이름 테스트',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        mockLocalDataSource.addDiary(testDiary);
+
+        final result = await repository.analyzeDiary(
+          'test-username',
+          character: AiCharacter.cheerfulFriend,
+          userName: '홍길동',
+        );
+
+        expect(result.status, DiaryStatus.analyzed);
+        expect(result.analysisResult, isNotNull);
+      });
+    });
+
+    group('markActionCompleted - 엣지 케이스', () {
+      test('analysisResult가 없는 일기는 무시되어야 한다', () async {
+        final testDiary = Diary(
+          id: 'test-no-analysis',
+          content: '분석 결과 없는 일기',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+          analysisResult: null,
+        );
+        mockLocalDataSource.addDiary(testDiary);
+
+        // 에러 없이 완료되어야 함
+        await repository.markActionCompleted('test-no-analysis');
+
+        final result = await repository.getDiaryById('test-no-analysis');
+        expect(result?.analysisResult, isNull);
+      });
+
+      test('존재하지 않는 일기는 DataNotFoundFailure를 던져야 한다', () async {
+        expect(
+          () => repository.markActionCompleted('non-existent'),
           throwsA(isA<DataNotFoundFailure>()),
         );
       });

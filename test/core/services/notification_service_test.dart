@@ -181,11 +181,83 @@ void main() {
     
     test('showTestNotification 호출 시 show가 호출된다', () async {
       await NotificationService.showTestNotification();
-      
+
       final call = mockPlatform.calls.firstWhere((call) => call.method == 'show',
       orElse: () => throw Exception('show not called. Calls: ${mockPlatform.calls}'));
       final args = call.arguments as Map;
       expect(args['title'], '테스트 알림');
+    });
+
+    test('showNotification 호출 시 지정된 title과 body로 show가 호출된다', () async {
+      // Given
+      const title = '알림 제목';
+      const body = '알림 본문';
+      const payload = 'test_payload';
+
+      // When
+      await NotificationService.showNotification(
+        title: title,
+        body: body,
+        payload: payload,
+      );
+
+      // Then
+      final call = mockPlatform.calls.firstWhere(
+        (call) => call.method == 'show',
+        orElse: () => throw Exception('show not called'),
+      );
+      final args = call.arguments as Map;
+      expect(args['title'], title);
+      expect(args['body'], body);
+      expect(args['payload'], payload);
+    });
+
+    test('getPendingNotifications 호출 시 pendingNotificationRequests가 호출된다', () async {
+      // When
+      final pending = await NotificationService.getPendingNotifications();
+
+      // Then
+      expect(
+        mockPlatform.calls.any((call) => call.method == 'pendingNotificationRequests'),
+        isTrue,
+      );
+      expect(pending, isEmpty);
+    });
+
+    test('scheduleDailyReminder 호출 시 오늘 시간이 지났으면 다음 날로 스케줄된다', () async {
+      // Given - 현재 시간보다 이전 시간 설정
+      final now = tz.TZDateTime.now(tz.local);
+      final pastHour = (now.hour - 1 + 24) % 24;
+
+      // When
+      await NotificationService.scheduleDailyReminder(
+        hour: pastHour,
+        minute: 0,
+      );
+
+      // Then
+      final call = mockPlatform.calls.firstWhere(
+        (call) => call.method == 'zonedSchedule',
+        orElse: () => throw Exception('zonedSchedule not called'),
+      );
+      final args = call.arguments as Map;
+      final scheduledDate = args['scheduledDate'] as tz.TZDateTime;
+
+      // 스케줄된 날짜가 오늘이거나 내일이어야 함
+      expect(scheduledDate.isAfter(now) || scheduledDate.isAtSameMomentAs(now), isTrue);
+    });
+
+    test('cancelDailyReminder 호출 전 항상 cancel이 호출된다', () async {
+      // When
+      await NotificationService.scheduleDailyReminder(
+        hour: 21,
+        minute: 0,
+      );
+
+      // Then - scheduleDailyReminder 내부에서 cancelDailyReminder가 먼저 호출됨
+      final cancelCalls = mockPlatform.calls.where((call) => call.method == 'cancel').toList();
+      expect(cancelCalls.isNotEmpty, isTrue);
+      expect(cancelCalls.first.arguments, 1001); // _dailyReminderId
     });
   });
 }

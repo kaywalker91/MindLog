@@ -101,7 +101,20 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.18 (Current)
+### v1.4.19 (Current)
+*   **테스트 커버리지 대폭 확대:**
+    *   **전체 커버리지:** 91.9% → 92.5% (1,809줄 중 1,673줄 커버)
+    *   **테스트 수:** 608개 → 665개 (57개 추가)
+    *   **core/theme 완전 테스트:** 0% → 95.7% (AppColors, AppTheme, SplashTheme)
+    *   **Data Layer 강화:** DataSource, DTO, Repository 테스트 추가
+*   **신규 테스트 파일:**
+    *   `test/core/theme/app_colors_test.dart` - 감정/히트맵 색상 매핑 테스트
+    *   `test/core/theme/app_theme_test.dart` - 라이트/다크 테마 검증
+    *   `test/core/theme/splash_theme_test.dart` - 스플래시 테마 검증
+    *   `test/data/datasources/` - Local/Remote DataSource 테스트
+    *   `test/data/dto/analysis_response_dto_test.dart` - AI 응답 파싱 테스트
+
+### v1.4.18
 *   **알림 메시지 다양화 (연구 기반):**
     *   **랜덤 메시지 시스템:** 고정 메시지 → 8개 제목 x 8개 본문 랜덤 조합
     *   **NotificationMessages 상수 클래스:** `dart:math` Random 주입 패턴으로 테스트 가능성 확보

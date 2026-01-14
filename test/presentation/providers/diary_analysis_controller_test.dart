@@ -17,6 +17,7 @@ class MockAnalyzeDiaryUseCase implements AnalyzeDiaryUseCase {
   Failure? failureToThrow;
   Diary? mockDiary;
   DiaryStatus? mockStatus;
+  Exception? genericException; // Failure가 아닌 일반 Exception throw용
 
   final List<String> analyzedContents = [];
 
@@ -25,12 +26,16 @@ class MockAnalyzeDiaryUseCase implements AnalyzeDiaryUseCase {
     failureToThrow = null;
     mockDiary = null;
     mockStatus = null;
+    genericException = null;
     analyzedContents.clear();
   }
 
   @override
   Future<Diary> execute(String content) async {
     analyzedContents.add(content);
+    if (genericException != null) {
+      throw genericException!;
+    }
     if (shouldThrow) {
       throw failureToThrow ?? const Failure.unknown(message: '분석 실패');
     }
@@ -214,12 +219,12 @@ void main() {
         expect(mockUseCase.analyzedContents, contains(testContent));
       });
 
-      test('예외 발생 시 UnknownFailure로 래핑해야 한다', () async {
+      test('Failure throw 시 UnknownFailure로 처리해야 한다', () async {
         // Arrange
         final notifier = container.read(diaryAnalysisControllerProvider.notifier);
-        // Failure가 아닌 일반 Exception throw하도록 설정
+        // Failure를 throw하도록 설정
         mockUseCase.shouldThrow = true;
-        mockUseCase.failureToThrow = null;  // 일반 Unknown 반환
+        mockUseCase.failureToThrow = null;  // 기본 Unknown Failure 반환
 
         // Act
         await notifier.analyzeDiary('테스트');
@@ -228,6 +233,23 @@ void main() {
         final state = container.read(diaryAnalysisControllerProvider);
         expect(state, isA<DiaryAnalysisError>());
         expect((state as DiaryAnalysisError).failure, isA<UnknownFailure>());
+      });
+
+      test('일반 Exception 발생 시 UnknownFailure로 래핑해야 한다', () async {
+        // Arrange
+        final notifier = container.read(diaryAnalysisControllerProvider.notifier);
+        // Failure가 아닌 일반 Exception throw
+        mockUseCase.genericException = Exception('일반 예외 발생');
+
+        // Act
+        await notifier.analyzeDiary('테스트');
+
+        // Assert
+        final state = container.read(diaryAnalysisControllerProvider);
+        expect(state, isA<DiaryAnalysisError>());
+        final errorState = state as DiaryAnalysisError;
+        expect(errorState.failure, isA<UnknownFailure>());
+        expect(errorState.failure.message, contains('일반 예외 발생'));
       });
     });
 
