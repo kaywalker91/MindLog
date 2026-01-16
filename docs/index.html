@@ -88,22 +88,22 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.18에서는 사용자 참여율 연구를 기반으로 알림 시스템을 개선하고, 데이터 복구 안정성을 강화했습니다.</p>
+            <p class="section-subtitle">v1.4.20에서는 테스트 커버리지를 92.5%로 확대하여 앱 안정성을 더욱 강화했습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
-                    <span class="update-tag">Research-Based</span>
-                    <h3>다양한 리마인더 메시지</h3>
-                    <p>매일 같은 메시지 → 8가지 제목/본문 랜덤 조합. 헬스앱 연구 기반 사용자 이탈 53% 방지 전략을 적용했습니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">UX</span>
-                    <h3>최적 알림 시간대</h3>
-                    <p>PMC 연구 기반 직장인 참여율 최고 시간대(17:00-20:00) 분석 후 기본값을 19:00으로 설정했습니다.</p>
+                    <span class="update-tag">Quality</span>
+                    <h3>테스트 커버리지 92.5%</h3>
+                    <p>665개의 자동화 테스트로 코드 품질을 검증합니다. core/theme 테스트가 0%에서 95.7%로 완전히 갖춰졌습니다.</p>
                 </div>
                 <div class="update-card">
                     <span class="update-tag">Stability</span>
-                    <h3>DB 복구 시스템</h3>
-                    <p>OS 자동 백업 복원 후 통계 미반영 문제를 해결했습니다. 세션 ID 비교로 DB 상태 불일치를 자동 감지합니다.</p>
+                    <h3>Data Layer 테스트 강화</h3>
+                    <p>SqliteLocalDataSource, GroqRemoteDataSource 등 핵심 데이터 레이어에 대한 테스트로 더욱 안정적인 데이터 처리가 가능합니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Infrastructure</span>
+                    <h3>MockHttpClient 도입</h3>
+                    <p>API 테스트 인프라 강화로 AI 분석 기능의 안정성을 높였습니다. 알림, 분석 파서, 컨트롤러 테스트도 보강되었습니다.</p>
                 </div>
             </div>
         </div>

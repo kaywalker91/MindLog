@@ -101,7 +101,21 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.19 (Current)
+### v1.4.20 (Current)
+*   **테스트 커버리지 92.5% 달성:**
+    *   **전체 테스트:** 665개 (57개 신규 추가)
+    *   **core/theme 완전 테스트:** 0% → 95.7%로 향상
+*   **신규 테스트 영역:**
+    *   `AppColors`, `AppTheme`, `SplashTheme` 테마 시스템 검증
+    *   `SqliteLocalDataSource`, `PreferencesLocalDataSource` 로컬 데이터 레이어
+    *   `GroqRemoteDataSource` AI API 연동 테스트
+    *   `AnalysisResponseDto` 파싱 및 에지 케이스 처리
+    *   `Diary`, `Statistics` 도메인 엔티티 검증
+*   **테스트 인프라 강화:**
+    *   `MockHttpClient` 도입으로 API 테스트 안정화
+    *   기존 알림, 분석 파서, 리포지토리, 컨트롤러 테스트 보강
+
+### v1.4.19
 *   **테스트 커버리지 대폭 확대:**
     *   **전체 커버리지:** 91.9% → 92.5% (1,809줄 중 1,673줄 커버)
     *   **테스트 수:** 608개 → 665개 (57개 추가)
