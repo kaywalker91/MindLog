@@ -5,7 +5,6 @@ import 'package:mindlog/domain/entities/diary.dart';
 import 'package:mindlog/domain/usecases/analyze_diary_usecase.dart';
 import 'package:mindlog/presentation/providers/diary_analysis_controller.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
-import 'package:mindlog/presentation/providers/statistics_providers.dart';
 
 import '../../fixtures/diary_fixtures.dart';
 import '../../helpers/firebase_test_helpers.dart';

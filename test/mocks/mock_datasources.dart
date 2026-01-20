@@ -2,10 +2,10 @@ import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/core/errors/exceptions.dart';
 import 'package:mindlog/data/datasources/local/preferences_local_datasource.dart';
 import 'package:mindlog/data/datasources/local/sqlite_local_datasource.dart';
+import 'package:mindlog/data/datasources/remote/groq_remote_datasource.dart';
+import 'package:mindlog/data/dto/analysis_response_dto.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
-
-import '../fixtures/diary_fixtures.dart';
 
 /// Mock SqliteLocalDataSource
 /// 메모리 기반 구현으로 실제 DB 없이 테스트 가능
@@ -102,8 +102,8 @@ class MockSqliteLocalDataSource extends SqliteLocalDataSource {
     if (diary == null) {
       throw DataNotFoundException('일기를 찾을 수 없습니다: $diaryId');
     }
+    // 기존 상태 유지, 분석 결과만 업데이트
     _diaries[diaryId] = diary.copyWith(
-      status: DiaryStatus.analyzed,
       analysisResult: analysisResult,
     );
   }
@@ -325,4 +325,83 @@ class MockPreferencesLocalDataSource extends PreferencesLocalDataSource {
       _notificationSettings = settings;
   void setMockUserName(String? name) => _userName = name;
   void setMockLastSeenAppVersion(String? version) => _lastSeenAppVersion = version;
+}
+
+/// Mock GroqRemoteDataSource
+/// API 호출 없이 테스트 가능한 Mock 구현
+class MockGroqRemoteDataSource extends GroqRemoteDataSource {
+  // 상태 제어 변수
+  bool shouldThrow = false;
+  String? errorMessage;
+  AnalysisResponseDto? mockResponse;
+  Exception? customException;
+
+  // 호출 추적
+  final List<Map<String, dynamic>> analyzeRequests = [];
+
+  MockGroqRemoteDataSource() : super('mock-api-key');
+
+  /// 상태 초기화
+  void reset() {
+    shouldThrow = false;
+    errorMessage = null;
+    mockResponse = null;
+    customException = null;
+    analyzeRequests.clear();
+  }
+
+  @override
+  Future<AnalysisResponseDto> analyzeDiary(
+    String content, {
+    required AiCharacter character,
+    String? userName,
+  }) async {
+    analyzeRequests.add({
+      'content': content,
+      'character': character,
+      'userName': userName,
+    });
+
+    if (shouldThrow) {
+      if (customException != null) {
+        throw customException!;
+      }
+      throw ApiException(message: errorMessage ?? 'API Error');
+    }
+
+    return mockResponse ?? _defaultResponse();
+  }
+
+  @override
+  Future<AnalysisResponseDto> analyzeDiaryWithRetry(
+    String content, {
+    required AiCharacter character,
+    String? userName,
+  }) async {
+    return analyzeDiary(content, character: character, userName: userName);
+  }
+
+  AnalysisResponseDto _defaultResponse() {
+    return const AnalysisResponseDto(
+      keywords: ['테스트', '키워드', '분석', '결과', '확인'],
+      sentimentScore: 7,
+      empathyMessage: '오늘 하루도 고생 많으셨어요. 충분히 잘하고 계세요.',
+      actionItem: '잠시 휴식을 취하며 좋아하는 음악을 들어보세요.',
+      isEmergency: false,
+      emotionCategory: EmotionCategoryDto(primary: '평온', secondary: '만족'),
+      emotionTrigger: EmotionTriggerDto(category: '일상', description: '일상적인 활동'),
+      energyLevel: 6,
+    );
+  }
+
+  // 테스트용 헬퍼 메서드
+  void setMockResponse(AnalysisResponseDto response) => mockResponse = response;
+  void setErrorMode(String message) {
+    shouldThrow = true;
+    errorMessage = message;
+  }
+  void setCustomException(Exception exception) {
+    shouldThrow = true;
+    customException = exception;
+  }
 }

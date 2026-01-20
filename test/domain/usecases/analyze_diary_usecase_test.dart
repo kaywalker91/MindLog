@@ -1,122 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/core/constants/app_constants.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/entities/diary.dart';
-import 'package:mindlog/domain/entities/notification_settings.dart';
-import 'package:mindlog/domain/repositories/diary_repository.dart';
-import 'package:mindlog/domain/repositories/settings_repository.dart';
 import 'package:mindlog/domain/usecases/analyze_diary_usecase.dart';
 
-/// Mock DiaryRepository for testing
-class MockDiaryRepository implements DiaryRepository {
-  Diary? mockDiary;
-  Diary? mockAnalyzedDiary;
-  bool shouldThrowOnAnalyze = false;
-  String? analyzeError;
-  final List<Diary> savedDiaries = [];
-  final List<Diary> updatedDiaries = [];
-
-  @override
-  Future<Diary> createDiary(String content) async {
-    mockDiary = Diary(
-      id: 'test-id-123',
-      content: content,
-      createdAt: DateTime.now(),
-      status: DiaryStatus.pending,
-    );
-    savedDiaries.add(mockDiary!);
-    return mockDiary!;
-  }
-
-  @override
-  Future<Diary> analyzeDiary(
-    String diaryId, {
-    required AiCharacter character,
-    String? userName,
-  }) async {
-    if (shouldThrowOnAnalyze) {
-      throw Exception(analyzeError ?? 'Analysis failed');
-    }
-    mockAnalyzedDiary = mockDiary!.copyWith(
-      status: DiaryStatus.analyzed,
-      analysisResult: AnalysisResult(
-        keywords: ['테스트', '키워드', '분석'],
-        sentimentScore: 7,
-        empathyMessage: '테스트 공감 메시지입니다.',
-        actionItem: '테스트 행동 아이템',
-        analyzedAt: DateTime(2024, 1, 1, 12, 0), // 테스트용 고정 시간
-      ),
-    );
-    return mockAnalyzedDiary!;
-  }
-
-  @override
-  Future<void> updateDiary(Diary diary) async {
-    updatedDiaries.add(diary);
-  }
-
-  @override
-  Future<void> deleteDiary(String diaryId) async {}
-
-  @override
-  Future<List<Diary>> getAllDiaries() async => [];
-
-  @override
-  Future<Diary?> getDiaryById(String diaryId) async => mockDiary;
-
-  @override
-  Future<List<Diary>> getTodayDiaries() async => [];
-
-  @override
-  Future<void> markActionCompleted(String diaryId) async {}
-
-  @override
-  Future<void> toggleDiaryPin(String diaryId, bool isPinned) async {
-    if (mockDiary != null && mockDiary!.id == diaryId) {
-      mockDiary = mockDiary!.copyWith(isPinned: isPinned);
-    }
-  }
-
-  @override
-  Future<void> deleteAllDiaries() async {}
-}
-
-class MockSettingsRepository implements SettingsRepository {
-  AiCharacter selectedCharacter = AiCharacter.warmCounselor;
-  NotificationSettings notificationSettings = NotificationSettings.defaults();
-  String? userName;
-
-  @override
-  Future<AiCharacter> getSelectedAiCharacter() async {
-    return selectedCharacter;
-  }
-
-  @override
-  Future<void> setSelectedAiCharacter(AiCharacter character) async {
-    selectedCharacter = character;
-  }
-
-  @override
-  Future<NotificationSettings> getNotificationSettings() async {
-    return notificationSettings;
-  }
-
-  @override
-  Future<void> setNotificationSettings(NotificationSettings settings) async {
-    notificationSettings = settings;
-  }
-
-  @override
-  Future<String?> getUserName() async {
-    return userName;
-  }
-
-  @override
-  Future<void> setUserName(String? name) async {
-    userName = name;
-  }
-}
+import '../../mocks/mock_repositories.dart';
 
 void main() {
   late AnalyzeDiaryUseCase useCase;
@@ -127,6 +15,11 @@ void main() {
     mockRepository = MockDiaryRepository();
     mockSettingsRepository = MockSettingsRepository();
     useCase = AnalyzeDiaryUseCase(mockRepository, mockSettingsRepository);
+  });
+
+  tearDown(() {
+    mockRepository.reset();
+    mockSettingsRepository.reset();
   });
 
   group('AnalyzeDiaryUseCase', () {
@@ -231,7 +124,7 @@ void main() {
     group('에러 처리', () {
       test('분석 실패 시에도 일기는 저장되어야 한다', () async {
         mockRepository.shouldThrowOnAnalyze = true;
-        mockRepository.analyzeError = 'API Error';
+        mockRepository.errorMessage = 'API Error';
 
         await expectLater(
           useCase.execute('오늘 하루는 평범하게 지나갔다.'),

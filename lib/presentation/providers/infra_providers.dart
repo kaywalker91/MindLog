@@ -16,6 +16,7 @@ import 'package:mindlog/domain/usecases/get_selected_ai_character_usecase.dart';
 import 'package:mindlog/domain/usecases/get_statistics_usecase.dart';
 import 'package:mindlog/domain/usecases/set_notification_settings_usecase.dart';
 import 'package:mindlog/domain/usecases/set_selected_ai_character_usecase.dart';
+import 'package:mindlog/domain/usecases/validate_diary_content_usecase.dart';
 
 /// 인프라 의존성 Provider 모음
 /// - 데이터 소스, 리포지토리, 유스케이스를 구성합니다.
@@ -72,11 +73,22 @@ final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {
   );
 });
 
+/// ValidateDiaryContentUseCase Provider
+///
+/// 일기 내용 유효성 검사 전용 UseCase
+/// - UI에서 실시간 유효성 피드백에 활용
+/// - AnalyzeDiaryUseCase 내부에서도 사용
+final validateDiaryContentUseCaseProvider =
+    Provider<ValidateDiaryContentUseCase>((ref) {
+  return ValidateDiaryContentUseCase();
+});
+
 /// AnalyzeDiaryUseCase Provider
 final analyzeDiaryUseCaseProvider = Provider<AnalyzeDiaryUseCase>((ref) {
   return AnalyzeDiaryUseCase(
     ref.watch(diaryRepositoryProvider),
     ref.watch(settingsRepositoryProvider),
+    validateUseCase: ref.watch(validateDiaryContentUseCaseProvider),
   );
 });
 

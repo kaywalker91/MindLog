@@ -2,165 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/core/errors/exceptions.dart';
 import 'package:mindlog/core/errors/failures.dart';
-import 'package:mindlog/data/datasources/local/sqlite_local_datasource.dart';
-import 'package:mindlog/data/datasources/remote/groq_remote_datasource.dart';
-import 'package:mindlog/data/dto/analysis_response_dto.dart';
 import 'package:mindlog/data/repositories/diary_repository_impl.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 
-/// Mock SqliteLocalDataSource for testing
-class MockSqliteLocalDataSource implements SqliteLocalDataSource {
-  final Map<String, Diary> _diaries = {};
-  final Map<String, String> _metadata = {};
-  bool shouldThrowOnSave = false;
-  bool shouldThrowOnGet = false;
-
-  @override
-  Future<void> saveDiary(Diary diary) async {
-    if (shouldThrowOnSave) {
-      throw CacheException('저장 실패');
-    }
-    _diaries[diary.id] = diary;
-  }
-
-  @override
-  Future<Diary?> getDiaryById(String diaryId) async {
-    if (shouldThrowOnGet) {
-      throw CacheException('조회 실패');
-    }
-    return _diaries[diaryId];
-  }
-
-  @override
-  Future<List<Diary>> getAllDiaries() async {
-    final diaries = _diaries.values.toList();
-    diaries.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return diaries;
-  }
-
-  @override
-  Future<List<Diary>> getTodayDiaries() async {
-    final now = DateTime.now();
-    final todayStart = DateTime(now.year, now.month, now.day);
-    return _diaries.values
-        .where((d) => d.createdAt.isAfter(todayStart))
-        .toList();
-  }
-
-  @override
-  Future<void> updateDiaryWithAnalysis(
-      String diaryId, AnalysisResult analysisResult) async {
-    final diary = _diaries[diaryId];
-    if (diary != null) {
-      // 기존 상태를 유지하면서 분석 결과만 업데이트
-      _diaries[diaryId] = diary.copyWith(
-        analysisResult: analysisResult,
-      );
-    }
-  }
-
-  @override
-  Future<void> updateDiaryStatus(String diaryId, DiaryStatus status) async {
-    final diary = _diaries[diaryId];
-    if (diary != null) {
-      _diaries[diaryId] = diary.copyWith(status: status);
-    }
-  }
-
-  @override
-  Future<void> updateDiaryPin(String diaryId, bool isPinned) async {
-    final diary = _diaries[diaryId];
-    if (diary != null) {
-      _diaries[diaryId] = diary.copyWith(isPinned: isPinned);
-    }
-  }
-
-  @override
-  Future<void> deleteDiary(String diaryId) async {
-    if (!_diaries.containsKey(diaryId)) {
-      throw DataNotFoundException('일기를 찾을 수 없습니다: $diaryId');
-    }
-    _diaries.remove(diaryId);
-  }
-
-  @override
-  Future<void> deleteAllDiaries() async {
-    _diaries.clear();
-  }
-
-  @override
-  Future<void> close() async {}
-
-  @override
-  Future<List<Diary>> getAnalyzedDiariesInRange({
-    DateTime? startDate,
-    DateTime? endDate,
-  }) async {
-    return _diaries.values
-        .where((d) =>
-            d.status == DiaryStatus.analyzed ||
-            d.status == DiaryStatus.safetyBlocked)
-        .where((d) =>
-            startDate == null || d.createdAt.isAfter(startDate.subtract(const Duration(days: 1))))
-        .where((d) =>
-            endDate == null || d.createdAt.isBefore(endDate.add(const Duration(days: 1))))
-        .toList();
-  }
-
-  @override
-  Future<void> setMetadata(String key, String value) async {
-    _metadata[key] = value;
-  }
-
-  @override
-  Future<String?> getMetadata(String key) async {
-    return _metadata[key];
-  }
-
-  // Helper method for testing
-  void addDiary(Diary diary) {
-    _diaries[diary.id] = diary;
-  }
-}
-
-/// Mock GroqRemoteDataSource for testing
-class MockGroqRemoteDataSource implements GroqRemoteDataSource {
-  bool shouldThrow = false;
-  String? errorMessage;
-  AnalysisResponseDto? mockResponse;
-  Exception? customException;
-
-  @override
-  Future<AnalysisResponseDto> analyzeDiary(
-    String content, {
-    required AiCharacter character,
-    String? userName,
-  }) async {
-    if (shouldThrow) {
-      if (customException != null) {
-        throw customException!;
-      }
-      throw ApiException(message: errorMessage ?? 'API Error');
-    }
-    return mockResponse ??
-        const AnalysisResponseDto(
-          keywords: ['테스트', '키워드', '분석'],
-          sentimentScore: 7,
-          empathyMessage: '테스트 공감 메시지입니다.',
-          actionItem: '테스트 행동을 해보세요.',
-          isEmergency: false,
-        );
-  }
-
-  @override
-  Future<AnalysisResponseDto> analyzeDiaryWithRetry(
-    String content, {
-    required AiCharacter character,
-    String? userName,
-  }) async {
-    return analyzeDiary(content, character: character, userName: userName);
-  }
-}
+import '../../mocks/mock_datasources.dart';
 
 void main() {
   late DiaryRepositoryImpl repository;
@@ -174,6 +19,11 @@ void main() {
       localDataSource: mockLocalDataSource,
       remoteDataSource: mockRemoteDataSource,
     );
+  });
+
+  tearDown(() {
+    mockLocalDataSource.reset();
+    mockRemoteDataSource.reset();
   });
 
   group('DiaryRepositoryImpl', () {
@@ -395,11 +245,10 @@ void main() {
     group('getTodayDiaries', () {
       test('오늘 작성된 일기만 반환해야 한다', () async {
         final now = DateTime.now();
-        // 오늘의 시작 이후 시간으로 설정
         final todayStart = DateTime(now.year, now.month, now.day);
         final todayNoon = todayStart.add(const Duration(hours: 12));
         final todayMorning = todayStart.add(const Duration(hours: 9));
-        final yesterday = todayStart.subtract(const Duration(hours: 9)); // 어제 15시
+        final yesterday = todayStart.subtract(const Duration(hours: 9));
 
         mockLocalDataSource.addDiary(Diary(
           id: 'today-1',
@@ -520,9 +369,7 @@ void main() {
           status: DiaryStatus.pending,
         );
         mockLocalDataSource.addDiary(testDiary);
-        mockRemoteDataSource.shouldThrow = true;
-        mockRemoteDataSource.customException =
-            SafetyBlockException('안전 차단됨');
+        mockRemoteDataSource.setCustomException(SafetyBlockException('안전 차단됨'));
 
         await expectLater(
           () => repository.analyzeDiary(
@@ -544,9 +391,7 @@ void main() {
           status: DiaryStatus.pending,
         );
         mockLocalDataSource.addDiary(testDiary);
-        mockRemoteDataSource.shouldThrow = true;
-        mockRemoteDataSource.customException =
-            NetworkException('네트워크 오류');
+        mockRemoteDataSource.setCustomException(NetworkException('네트워크 오류'));
 
         await expectLater(
           () => repository.analyzeDiary(
@@ -568,8 +413,7 @@ void main() {
           status: DiaryStatus.pending,
         );
         mockLocalDataSource.addDiary(testDiary);
-        mockRemoteDataSource.shouldThrow = true;
-        mockRemoteDataSource.customException = ApiException(message: 'API 오류');
+        mockRemoteDataSource.setErrorMode('API 오류');
 
         await expectLater(
           () => repository.analyzeDiary(
@@ -584,7 +428,6 @@ void main() {
       });
 
       test('일기가 로드되지 않은 상태에서 실패 시 상태 업데이트를 시도하지 않아야 한다', () async {
-        // 존재하지 않는 일기 ID로 분석 시도
         mockRemoteDataSource.shouldThrow = true;
 
         await expectLater(
@@ -594,8 +437,6 @@ void main() {
           ),
           throwsA(isA<DataNotFoundFailure>()),
         );
-
-        // 상태 업데이트가 호출되지 않음 (diaryLoaded = false)
       });
 
       test('userName 파라미터가 전달되어야 한다', () async {
@@ -615,6 +456,9 @@ void main() {
 
         expect(result.status, DiaryStatus.analyzed);
         expect(result.analysisResult, isNotNull);
+        // 호출 추적 검증
+        expect(mockRemoteDataSource.analyzeRequests.last['userName'], '홍길동');
+        expect(mockRemoteDataSource.analyzeRequests.last['character'], AiCharacter.cheerfulFriend);
       });
     });
 
@@ -629,7 +473,6 @@ void main() {
         );
         mockLocalDataSource.addDiary(testDiary);
 
-        // 에러 없이 완료되어야 함
         await repository.markActionCompleted('test-no-analysis');
 
         final result = await repository.getDiaryById('test-no-analysis');

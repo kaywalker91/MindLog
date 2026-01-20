@@ -7,8 +7,6 @@ import 'package:mindlog/domain/usecases/set_selected_ai_character_usecase.dart';
 import 'package:mindlog/presentation/providers/ai_character_controller.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
 
-import '../../mocks/mock_repositories.dart';
-
 /// Mock GetSelectedAiCharacterUseCase
 class MockGetSelectedAiCharacterUseCase implements GetSelectedAiCharacterUseCase {
   AiCharacter mockCharacter = AiCharacter.warmCounselor;
