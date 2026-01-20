@@ -9,7 +9,7 @@ export type MessageStatus = "pending" | "sent" | "failed";
 export type MessagePriority = "high" | "normal";
 
 /** 메시지 카테고리 */
-export type MessageCategory = "daily" | "weekly" | "special";
+export type MessageCategory = "daily" | "weekly" | "special" | "morning";
 
 /** Firestore에 저장되는 마음케어 메시지 */
 export interface MindcareMessage {

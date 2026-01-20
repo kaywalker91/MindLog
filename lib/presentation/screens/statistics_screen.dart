@@ -8,7 +8,7 @@ import '../../domain/entities/statistics.dart';
 import '../providers/providers.dart';
 import '../widgets/emotion_line_chart.dart';
 import '../widgets/keyword_tags.dart';
-import '../widgets/emotion_garden.dart';
+import '../widgets/emotion_calendar.dart';
 import '../widgets/mindlog_app_bar.dart';
 
 /// 감정 통계 화면 (레이아웃 B: 요약+잔디 우선형)
@@ -369,10 +369,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           ),
           const SizedBox(height: 16),
 
-          // 감정 정원
-          EmotionGarden(
+          // 감정 달력
+          EmotionCalendar(
             activityMap: statistics.activityMap,
-            weeksToShow: _getWeeksForPeriod(statistics, selectedPeriod),
+            showLegend: true,
           ),
         ],
       ),
@@ -576,34 +576,6 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     }
 
     return streak;
-  }
-
-  int _getWeeksForPeriod(
-    EmotionStatistics statistics,
-    StatisticsPeriod period,
-  ) {
-    final today = DateTime.now();
-    DateTime? startDate = statistics.periodStart;
-
-    if (startDate == null && statistics.activityMap.isNotEmpty) {
-      final earliest = _getEarliestActivityDate(statistics.activityMap);
-      startDate = DateTime(earliest.year, earliest.month, earliest.day);
-    }
-
-    if (startDate == null) {
-      return 4;
-    }
-
-    final normalizedToday = DateTime(today.year, today.month, today.day);
-    final normalizedStart =
-        DateTime(startDate.year, startDate.month, startDate.day);
-    final days = normalizedToday.difference(normalizedStart).inDays + 1;
-
-    if (days <= 0) {
-      return 1;
-    }
-
-    return (days / 7).ceil();
   }
 
   int _getPeriodDayCount(

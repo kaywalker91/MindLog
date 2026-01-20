@@ -71,6 +71,17 @@ class AppColors {
   static const Color gardenSoil = Color(0xFFF5F0EB);         // 빈 날 (흙)
   static const Color gardenSoilBorder = Color(0xFFE8E0D8);   // 흙 테두리
 
+  // Warm Garden Colors (따뜻한 정원 - 친근감 디자인)
+  static const Color gardenWarm1 = Color(0xFFFAF8F5);        // 크림 (1-2점)
+  static const Color gardenWarm2 = Color(0xFFF5F2ED);        // 베이지 (3-4점)
+  static const Color gardenWarm3 = Color(0xFFE8F0E5);        // 연민트 (5-6점)
+  static const Color gardenWarm4 = Color(0xFFD4E8D0);        // 민트 (7-8점)
+  static const Color gardenWarm5 = Color(0xFFC0E0BC);        // 연초록 (9-10점)
+
+  // Cell Glow Colors
+  static const Color gardenGlow = Color(0xFFA8E6CF);         // 성취감 glow
+  static const Color todayGlow = Color(0xFFFFE4B5);          // 오늘 강조 (모카신)
+
   /// 감정 점수에 따른 색상 반환
   static Color getSentimentColor(int score) {
     if (score <= 2) return sentimentVeryNegative;

@@ -7,7 +7,7 @@
 
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
-import { COLLECTIONS, DEFAULT_MESSAGES } from "../config/constants";
+import { COLLECTIONS, DEFAULT_MORNING_MESSAGES, DEFAULT_EVENING_MESSAGES } from "../config/constants";
 import { MindcareMessage, MindcareStats } from "../types";
 
 const db = admin.firestore();
@@ -18,6 +18,26 @@ const db = admin.firestore();
 export function getTodayKey(): string {
   const now = new Date();
   return now.toISOString().split("T")[0];
+}
+
+/**
+ * 시간대에 따른 기본 메시지 선택
+ *
+ * - 오전 5시 ~ 11시: 아침 메시지 (활기찬 하루 시작)
+ * - 그 외: 저녁 메시지 (하루 마무리)
+ */
+function getDefaultMessageByTimeOfDay(): { title: string; body: string } {
+  const now = new Date();
+  // KST 기준 (Firebase Functions asia-northeast3 리전 사용)
+  const hour = now.getHours();
+
+  // 오전 5시 ~ 11시: 아침 메시지
+  const messages = (hour >= 5 && hour < 12)
+    ? DEFAULT_MORNING_MESSAGES
+    : DEFAULT_EVENING_MESSAGES;
+
+  const randomIndex = Math.floor(Math.random() * messages.length);
+  return { title: messages[randomIndex].title, body: messages[randomIndex].body };
 }
 
 /**
@@ -124,15 +144,13 @@ export async function getTodayMessage(): Promise<{ title: string; body: string }
       return { title: message.title, body: message.body };
     }
 
-    // 3. 기본 메시지 (랜덤)
-    const randomIndex = Math.floor(Math.random() * DEFAULT_MESSAGES.length);
-    return DEFAULT_MESSAGES[randomIndex];
+    // 3. 시간대에 맞는 기본 메시지 (랜덤)
+    return getDefaultMessageByTimeOfDay();
   } catch (error) {
     logger.error("[Firestore] Failed to get today message", { error });
 
-    // 에러 시 기본 메시지 반환
-    const randomIndex = Math.floor(Math.random() * DEFAULT_MESSAGES.length);
-    return DEFAULT_MESSAGES[randomIndex];
+    // 에러 시 시간대에 맞는 기본 메시지 반환
+    return getDefaultMessageByTimeOfDay();
   }
 }
 
