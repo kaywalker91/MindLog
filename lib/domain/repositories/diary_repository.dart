@@ -4,13 +4,22 @@ import '../entities/diary.dart';
 /// 일기 저장소 인터페이스 (Domain Layer)
 abstract class DiaryRepository {
   /// 일기 생성 (content 기준)
-  Future<Diary> createDiary(String content);
+  ///
+  /// [content] 일기 내용
+  /// [imagePaths] 첨부 이미지 경로 목록 (선택)
+  Future<Diary> createDiary(String content, {List<String>? imagePaths});
 
   /// 일기 분석 요청
+  ///
+  /// [diaryId] 분석할 일기 ID
+  /// [character] AI 캐릭터
+  /// [userName] 사용자 이름 (선택)
+  /// [imagePaths] 분석에 포함할 이미지 경로 목록 (선택 - Vision API 사용)
   Future<Diary> analyzeDiary(
     String diaryId, {
     required AiCharacter character,
     String? userName,
+    List<String>? imagePaths,
   });
 
   /// 일기 전체 업데이트 (상태 및 분석 결과 포함)

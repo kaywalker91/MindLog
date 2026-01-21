@@ -4,7 +4,9 @@ import '../repositories/settings_repository.dart';
 import '../../core/constants/ai_character.dart';
 import '../../core/errors/failures.dart';
 import '../../core/constants/safety_constants.dart';
+import '../../core/services/image_service.dart';
 import '../../core/utils/clock.dart';
+import '../../core/constants/app_constants.dart';
 import 'validate_diary_content_usecase.dart';
 
 /// 일기 분석 유스케이스
@@ -12,6 +14,7 @@ import 'validate_diary_content_usecase.dart';
 /// 책임: 일기 저장 및 AI 분석 실행
 /// 유효성 검사는 [ValidateDiaryContentUseCase]에 위임
 /// 시간 의존성은 [Clock]을 통해 주입받아 테스트 가능성 향상
+/// 이미지 처리는 [ImageService]를 통해 수행
 class AnalyzeDiaryUseCase {
   final DiaryRepository _repository;
   final SettingsRepository _settingsRepository;
@@ -29,16 +32,33 @@ class AnalyzeDiaryUseCase {
   /// 일기 작성 및 분석 실행
   ///
   /// [content] 사용자가 입력한 일기 내용
+  /// [imagePaths] 첨부된 이미지 경로 목록 (선택)
   ///
   /// 반환값: 분석이 완료된 Diary 엔티티
-  Future<Diary> execute(String content) async {
+  Future<Diary> execute(String content, {List<String>? imagePaths}) async {
     try {
       // 입력 유효성 검사 (ValidateDiaryContentUseCase에 위임)
       final validationResult = _validateUseCase.execute(content);
       final validatedContent = validationResult.sanitizedContent;
 
+      // 이미지 유효성 검사
+      if (imagePaths != null && imagePaths.length > AppConstants.maxImagesPerDiary) {
+        throw ValidationFailure(
+          message: '이미지는 최대 ${AppConstants.maxImagesPerDiary}개까지 첨부할 수 있습니다.',
+        );
+      }
+
+      // 이미지 처리 (압축 및 앱 디렉토리로 복사)
+      List<String>? processedImagePaths;
+      if (imagePaths != null && imagePaths.isNotEmpty) {
+        processedImagePaths = await _processImages(imagePaths);
+      }
+
       // 1. 로컬에 일기 저장 (pending 상태)
-      final diary = await _repository.createDiary(validatedContent);
+      final diary = await _repository.createDiary(
+        validatedContent,
+        imagePaths: processedImagePaths,
+      );
       final character = await _settingsRepository.getSelectedAiCharacter();
       final userName = await _settingsRepository.getUserName();
 
@@ -81,12 +101,13 @@ class AnalyzeDiaryUseCase {
         return emergencyDiary;
       }
 
-      // 3. AI 분석 요청 (응급 상황이 아닌 경우, 유저 이름 전달)
+      // 3. AI 분석 요청 (응급 상황이 아닌 경우, 유저 이름 및 이미지 전달)
       final diaryId = diary.id;
       final analyzedDiary = await _repository.analyzeDiary(
         diaryId,
         character: character,
         userName: userName,
+        imagePaths: processedImagePaths,
       );
 
       // AI 응답에서도 응급 상황 체크 (이중 안전망)
@@ -101,5 +122,33 @@ class AnalyzeDiaryUseCase {
       }
       throw UnknownFailure(message: e.toString());
     }
+  }
+
+  /// 이미지 처리 (앱 디렉토리로 복사 + 압축)
+  ///
+  /// [rawImagePaths] 원본 이미지 경로 목록 (갤러리/카메라에서 선택된 파일)
+  ///
+  /// 반환: 처리된 이미지 경로 목록 (앱 디렉토리에 저장됨)
+  Future<List<String>> _processImages(List<String> rawImagePaths) async {
+    // 임시 ID 생성 (나중에 실제 diary ID로 이동)
+    final tempDiaryId = DateTime.now().millisecondsSinceEpoch.toString();
+    final processedPaths = <String>[];
+
+    for (int i = 0; i < rawImagePaths.length; i++) {
+      final sourcePath = rawImagePaths[i];
+
+      // 앱 디렉토리로 복사
+      final copiedPath = await ImageService.copyToAppDirectory(
+        sourcePath: sourcePath,
+        diaryId: tempDiaryId,
+        index: i,
+      );
+
+      // 4MB 초과 시 압축
+      final compressedPath = await ImageService.compressIfNeeded(copiedPath);
+      processedPaths.add(compressedPath);
+    }
+
+    return processedPaths;
   }
 }

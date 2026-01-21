@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 import 'package:mindlog/data/datasources/local/sqlite_local_datasource.dart';
 import 'package:mindlog/core/errors/exceptions.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite/sqflite.dart';
 
 void main() {
   late SqliteLocalDataSource dataSource;
@@ -28,7 +26,8 @@ void main() {
             created_at TEXT NOT NULL,
             status TEXT NOT NULL,
             analysis_result TEXT,
-            is_pinned INTEGER DEFAULT 0
+            is_pinned INTEGER DEFAULT 0,
+            image_paths TEXT
           )
         ''');
         await db.execute('''
@@ -713,7 +712,7 @@ void main() {
         await SqliteLocalDataSource.onUpgrade(upgradeDb, 2, 3);
 
         // is_pinned 컬럼 확인
-        final columns = await upgradeDb.rawQuery("PRAGMA table_info(diaries)");
+        final columns = await upgradeDb.rawQuery('PRAGMA table_info(diaries)');
         final columnNames = columns.map((c) => c['name'] as String).toList();
         expect(columnNames, contains('is_pinned'));
       } finally {
@@ -820,7 +819,7 @@ void main() {
 
         // 최종 스키마 검증
         // 1. is_pinned 컬럼 확인
-        final columns = await upgradeDb.rawQuery("PRAGMA table_info(diaries)");
+        final columns = await upgradeDb.rawQuery('PRAGMA table_info(diaries)');
         final columnNames = columns.map((c) => c['name'] as String).toList();
         expect(columnNames, contains('is_pinned'));
 

@@ -45,12 +45,15 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
   DiaryAnalysisNotifier(this._ref) : super(const DiaryAnalysisInitial());
 
   /// 일기 분석 실행
-  Future<void> analyzeDiary(String content) async {
+  ///
+  /// [content] 일기 텍스트 내용
+  /// [imagePaths] 첨부된 이미지 경로 목록 (선택)
+  Future<void> analyzeDiary(String content, {List<String>? imagePaths}) async {
     state = const DiaryAnalysisLoading();
 
     try {
       final useCase = _ref.read(analyzeDiaryUseCaseProvider);
-      final diary = await useCase.execute(content);
+      final diary = await useCase.execute(content, imagePaths: imagePaths);
       if (diary.analysisResult == null &&
           diary.status != DiaryStatus.safetyBlocked) {
         state = const DiaryAnalysisError(

@@ -95,7 +95,7 @@ void main() {
         );
 
         expect(mockClient.callCount, 1);
-        final body = jsonDecode(mockClient.calledBodies.first as String);
+        final body = jsonDecode(mockClient.calledBodies.first as String) as Map<String, dynamic>;
         // 요청이 전송되었음을 확인 (프롬프트 내용은 PromptConstants에서 생성)
         expect(body['messages'], isNotEmpty);
       });
@@ -823,70 +823,7 @@ class _DirectExceptionClient implements http.Client {
   }
 }
 
-/// 순차적으로 예외 또는 응답을 반환하는 클라이언트
-class _SequentialResponseClient implements http.Client {
-  final List<Object?> responses;
-  int callCount = 0;
 
-  _SequentialResponseClient({required this.responses});
-
-  @override
-  Future<http.Response> post(
-    Uri url, {
-    Map<String, String>? headers,
-    Object? body,
-    Encoding? encoding,
-  }) async {
-    final response = responses[callCount++];
-    if (response is Exception) {
-      throw response;
-    }
-    return response as http.Response;
-  }
-
-  @override
-  Future<http.Response> get(Uri url, {Map<String, String>? headers}) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<http.Response> head(Uri url, {Map<String, String>? headers}) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<http.Response> put(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<http.Response> patch(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<http.Response> delete(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<String> read(Uri url, {Map<String, String>? headers}) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  void close() {}
-
-  @override
-  Future<Uint8List> readBytes(Uri url, {Map<String, String>? headers}) {
-    throw UnimplementedError();
-  }
-}
 
 /// 재시도 테스트를 위한 커스텀 Mock 클라이언트
 class _RetryMockHttpClient implements http.Client {

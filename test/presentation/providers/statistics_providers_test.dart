@@ -7,7 +7,7 @@ import 'package:mindlog/presentation/providers/infra_providers.dart';
 import 'package:mindlog/presentation/providers/statistics_providers.dart';
 
 import '../../fixtures/statistics_fixtures.dart';
-import '../../mocks/mock_repositories.dart';
+
 
 /// Mock GetStatisticsUseCase
 class MockGetStatisticsUseCase implements GetStatisticsUseCase {

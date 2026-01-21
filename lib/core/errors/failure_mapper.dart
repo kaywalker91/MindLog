@@ -29,6 +29,9 @@ class FailureMapper {
     if (error is CircuitBreakerOpenException) {
       return const Failure.server(message: '요청이 많아 잠시 후 다시 시도해주세요.');
     }
+    if (error is ImageProcessingException) {
+      return Failure.imageProcessing(message: _mergeMessage(error.message, message));
+    }
     if (error is TimeoutException) {
       return const Failure.network(message: '요청 시간이 초과되었습니다.');
     }

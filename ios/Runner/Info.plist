@@ -50,5 +50,10 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
+	<!-- 카메라 및 사진 라이브러리 접근 권한 (AI 일기 사진 분석) -->
+	<key>NSCameraUsageDescription</key>
+	<string>일기에 첨부할 사진을 촬영하기 위해 카메라 접근 권한이 필요합니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>일기에 첨부할 사진을 선택하기 위해 사진 라이브러리 접근 권한이 필요합니다.</string>
 </dict>
 </plist>

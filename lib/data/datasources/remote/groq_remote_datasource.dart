@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/constants/ai_character.dart';
+import '../../../core/services/image_service.dart';
 import '../../dto/analysis_response_dto.dart';
 import '../../dto/analysis_response_parser.dart';
 import '../../../core/constants/app_constants.dart';
@@ -88,6 +89,193 @@ class GroqRemoteDataSource {
       }
     }
     throw NetworkException('알 수 없는 네트워크 오류가 발생했습니다.');
+  }
+
+  /// 이미지가 포함된 일기 분석 (Vision API 사용)
+  ///
+  /// [content] 일기 텍스트 내용
+  /// [imagePaths] 첨부된 이미지 경로 목록
+  /// [character] AI 캐릭터
+  /// [userName] 사용자 이름 (선택)
+  Future<AnalysisResponseDto> analyzeDiaryWithImages(
+    String content, {
+    required List<String> imagePaths,
+    required AiCharacter character,
+    String? userName,
+  }) async {
+    if (_circuitBreaker != null) {
+      return _circuitBreaker.run(
+        () => _analyzeDiaryWithImagesRetry(
+          content,
+          imagePaths: imagePaths,
+          character: character,
+          userName: userName,
+        ),
+      );
+    }
+    return _analyzeDiaryWithImagesRetry(
+      content,
+      imagePaths: imagePaths,
+      character: character,
+      userName: userName,
+    );
+  }
+
+  /// 이미지 포함 분석 (재시도 로직)
+  Future<AnalysisResponseDto> _analyzeDiaryWithImagesRetry(
+    String content, {
+    required List<String> imagePaths,
+    required AiCharacter character,
+    String? userName,
+  }) async {
+    int attempt = 0;
+    Duration currentDelay = _initialDelay;
+
+    while (attempt < _maxRetries) {
+      try {
+        return await _analyzeDiaryWithImagesOnce(
+          content,
+          imagePaths: imagePaths,
+          character: character,
+          userName: userName,
+        );
+      } on SocketException catch (e) {
+        attempt++;
+        if (attempt >= _maxRetries) {
+          throw NetworkException('네트워크 연결에 실패했습니다. ($_maxRetries번 재시도): $e');
+        }
+        _printRetryMessage(attempt, '네트워크 연결 오류', currentDelay);
+        await Future.delayed(currentDelay);
+        currentDelay = _calculateNextDelay(currentDelay);
+      } on TimeoutException catch (e) {
+        attempt++;
+        if (attempt >= _maxRetries) {
+          throw NetworkException('요청 시간이 초과되었습니다. ($_maxRetries번 재시도): $e');
+        }
+        _printRetryMessage(attempt, '요청 시간 초과', currentDelay);
+        await Future.delayed(currentDelay);
+        currentDelay = _calculateNextDelay(currentDelay);
+      } on RateLimitException catch (e) {
+        attempt++;
+        if (attempt >= _maxRetries) {
+          throw ApiException(message: e.message, statusCode: 429);
+        }
+        final retryDelay = e.retryAfter ?? currentDelay;
+        _printRetryMessage(attempt, '요청 제한(Rate Limit)', retryDelay);
+        await Future.delayed(retryDelay);
+        currentDelay = _calculateNextDelay(retryDelay);
+        continue;
+      } on ApiException {
+        rethrow;
+      } catch (e) {
+        rethrow;
+      }
+    }
+    throw NetworkException('알 수 없는 네트워크 오류가 발생했습니다.');
+  }
+
+  /// 이미지 포함 단일 분석 실행 (Vision API)
+  Future<AnalysisResponseDto> _analyzeDiaryWithImagesOnce(
+    String content, {
+    required List<String> imagePaths,
+    required AiCharacter character,
+    String? userName,
+  }) async {
+    if (_apiKey.isEmpty) {
+      throw ApiException(
+        message: 'API 키가 설정되지 않았습니다. '
+            '--dart-define=GROQ_API_KEY=... 또는 ./scripts/run.sh로 주입해주세요.',
+      );
+    }
+
+    try {
+      final prompt = PromptConstants.createAnalysisPromptWithImages(
+        content,
+        imageCount: imagePaths.length,
+        character: character,
+        userName: userName,
+      );
+
+      // 이미지를 Base64로 인코딩
+      final imageDataUrls = await ImageService.encodeMultipleToBase64DataUrls(imagePaths);
+
+      // Vision API 메시지 구성
+      final userContent = <Map<String, dynamic>>[
+        {'type': 'text', 'text': prompt},
+        ...imageDataUrls.map((dataUrl) => {
+              'type': 'image_url',
+              'image_url': {'url': dataUrl}
+            }),
+      ];
+
+      final response = await _client.post(
+        Uri.parse(_baseUrl),
+        headers: {
+          'Authorization': 'Bearer $_apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': AppConstants.groqVisionModel,
+          'messages': [
+            {
+              'role': 'system',
+              'content': PromptConstants.systemInstructionForVision(character)
+            },
+            {
+              'role': 'user',
+              'content': userContent,
+            }
+          ],
+          'temperature': 0.7,
+          'max_tokens': 1500, // Vision 분석은 토큰을 더 많이 사용
+          'response_format': {'type': 'json_object'}
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        if (response.statusCode == 429) {
+          final retryAfter = _parseRetryAfterHeader(response.headers['retry-after']);
+          throw RateLimitException(
+            message: _sanitizeErrorMessage(429),
+            retryAfter: retryAfter,
+          );
+        }
+
+        final errorMessage = _sanitizeErrorMessage(response.statusCode);
+        throw ApiException(
+          message: errorMessage,
+          statusCode: response.statusCode,
+        );
+      }
+
+      final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      final choices = data['choices'] as List<dynamic>?;
+      if (choices == null || choices.isEmpty) {
+        throw ApiException(message: 'Groq Vision API 응답이 비어있습니다.');
+      }
+
+      final choice = choices[0] as Map<String, dynamic>;
+      final message = choice['message'] as Map<String, dynamic>;
+      final messageContent = message['content'] as String;
+
+      try {
+        final jsonResult = AnalysisResponseParser.parseString(messageContent);
+
+        assert(() {
+          debugPrint('🖼️ [DEBUG] Vision API response:');
+          debugPrint(messageContent);
+          return true;
+        }());
+
+        return AnalysisResponseDto.fromJson(jsonResult);
+      } catch (e) {
+        debugPrint('❌ [DEBUG] Vision API parse error: $e');
+        throw ApiException(message: '응답 파싱 실패');
+      }
+    } catch (e) {
+      if (e is ApiException || e is NetworkException || e is RateLimitException) rethrow;
+      throw ApiException(message: 'Groq Vision 분석 중 오류: $e');
+    }
   }
 
   /// 단일 분석 실행

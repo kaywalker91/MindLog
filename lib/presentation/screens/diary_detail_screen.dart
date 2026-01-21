@@ -5,6 +5,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
 import '../widgets/delete_diary_dialog.dart';
+import '../widgets/diary_image_gallery.dart';
 import '../widgets/result_card.dart';
 import '../widgets/mindlog_app_bar.dart';
 import '../widgets/sos_card.dart';
@@ -70,6 +71,15 @@ class DiaryDetailScreen extends ConsumerWidget {
                   style: AppTextStyles.body.copyWith(height: 1.6),
                 ),
               ),
+
+              // 첨부 이미지 (있을 경우에만)
+              if (diary.hasImages) ...[
+                const SizedBox(height: 24),
+                DiaryImageGallery(
+                  imagePaths: diary.imagePaths!,
+                  galleryId: 'detail_${diary.id}',
+                ),
+              ],
               const SizedBox(height: 32),
 
               // 분석 결과 (있을 경우에만)

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/data/repositories/statistics_repository_impl.dart';
-import 'package:mindlog/domain/entities/diary.dart';
+
 import 'package:mindlog/domain/entities/statistics.dart';
 
 import '../../fixtures/diary_fixtures.dart';

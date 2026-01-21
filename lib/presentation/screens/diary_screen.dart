@@ -13,6 +13,7 @@ import '../widgets/sos_card.dart';
 import '../widgets/loading_indicator.dart';
 import '../widgets/mindlog_app_bar.dart';
 import '../widgets/network_status_overlay.dart';
+import '../widgets/image_picker_section.dart';
 
 /// 일기 작성 화면
 class DiaryScreen extends ConsumerStatefulWidget {
@@ -28,6 +29,9 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
   bool _showNetworkOverlay = false;
   String _networkOverlayMessage = '';
   NetworkStatusType _networkStatusType = NetworkStatusType.loading;
+
+  /// 선택된 이미지 경로 목록
+  final List<String> _selectedImages = [];
 
   @override
   void initState() {
@@ -58,14 +62,35 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
     if (!mounted) {
       return;
     }
+
+    final hasImages = _selectedImages.isNotEmpty;
     _showNetworkFeedback(
       statusType: NetworkStatusType.loading,
-      message: 'AI가 당신의 마음을 분석하고 있어요...',
+      message: hasImages
+          ? 'AI가 사진과 함께 마음을 분석하고 있어요...'
+          : 'AI가 당신의 마음을 분석하고 있어요...',
     );
 
     ref.read(diaryAnalysisControllerProvider.notifier).analyzeDiary(
           _textController.text,
+          imagePaths: hasImages ? List.from(_selectedImages) : null,
         );
+  }
+
+  void _onImageAdded(String path) {
+    if (_selectedImages.length < AppConstants.maxImagesPerDiary) {
+      setState(() {
+        _selectedImages.add(path);
+      });
+    }
+  }
+
+  void _onImageRemoved(int index) {
+    if (index >= 0 && index < _selectedImages.length) {
+      setState(() {
+        _selectedImages.removeAt(index);
+      });
+    }
   }
 
   void _showNetworkFeedback({
@@ -278,6 +303,14 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
             validator: Validators.validateDiaryContent,
             onChanged: (_) => setState(() {}),
           ),
+          const SizedBox(height: 16),
+
+          // 이미지 선택 섹션
+          ImagePickerSection(
+            imagePaths: _selectedImages,
+            onImageAdded: _onImageAdded,
+            onImageRemoved: _onImageRemoved,
+          ),
           const SizedBox(height: 24),
 
           // 제출 버튼
@@ -286,7 +319,11 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
                     AppConstants.diaryMinLength
                 ? _onSubmit
                 : null,
-            child: const Text(AppStrings.submitButton),
+            child: Text(
+              _selectedImages.isNotEmpty
+                  ? '${AppStrings.submitButton} (사진 ${_selectedImages.length}장 포함)'
+                  : AppStrings.submitButton,
+            ),
           ),
         ],
       ),

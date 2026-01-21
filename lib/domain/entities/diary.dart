@@ -39,6 +39,9 @@ class Diary {
   /// 상단 고정 여부
   final bool isPinned;
 
+  /// 첨부 이미지 경로 목록 (nullable - 하위 호환성 유지)
+  final List<String>? imagePaths;
+
   const Diary({
     required this.id,
     required this.content,
@@ -46,10 +49,18 @@ class Diary {
     this.status = DiaryStatus.pending,
     this.analysisResult,
     this.isPinned = false,
+    this.imagePaths,
   });
+
+  /// 이미지가 첨부되어 있는지 여부
+  bool get hasImages => imagePaths != null && imagePaths!.isNotEmpty;
+
+  /// 첨부된 이미지 수
+  int get imageCount => imagePaths?.length ?? 0;
 
   /// copyWith 메서드
   /// [clearAnalysisResult]를 true로 설정하면 analysisResult를 명시적으로 null로 설정합니다.
+  /// [clearImagePaths]를 true로 설정하면 imagePaths를 명시적으로 null로 설정합니다.
   /// 이는 null 파라미터가 "변경 없음"을 의미하는 copyWith 패턴의 한계를 해결합니다.
   Diary copyWith({
     String? id,
@@ -59,6 +70,8 @@ class Diary {
     AnalysisResult? analysisResult,
     bool clearAnalysisResult = false,
     bool? isPinned,
+    List<String>? imagePaths,
+    bool clearImagePaths = false,
   }) {
     return Diary(
       id: id ?? this.id,
@@ -67,6 +80,7 @@ class Diary {
       status: status ?? this.status,
       analysisResult: clearAnalysisResult ? null : (analysisResult ?? this.analysisResult),
       isPinned: isPinned ?? this.isPinned,
+      imagePaths: clearImagePaths ? null : (imagePaths ?? this.imagePaths),
     );
   }
 

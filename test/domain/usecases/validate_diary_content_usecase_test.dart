@@ -50,7 +50,7 @@ void main() {
       });
 
       test('유효한 내용은 DiaryValidationResult를 반환해야 한다', () {
-        final validContent = '오늘 하루도 열심히 보냈다. 피곤하지만 뿌듯하다.';
+        const validContent = '오늘 하루도 열심히 보냈다. 피곤하지만 뿌듯하다.';
         final result = useCase.execute(validContent);
 
         expect(result.isValid, true);
@@ -118,7 +118,7 @@ void main() {
       });
 
       test('유효한 내용은 valid 결과를 반환해야 한다', () {
-        final validContent = '오늘 하루도 열심히 보냈다. 피곤하지만 뿌듯하다.';
+        const validContent = '오늘 하루도 열심히 보냈다. 피곤하지만 뿌듯하다.';
         final result = useCase.validate(validContent);
 
         expect(result.isValid, true);

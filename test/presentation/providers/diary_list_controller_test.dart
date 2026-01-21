@@ -53,8 +53,8 @@ void main() {
         // Arrange
         mockRepository.shouldThrowOnGet = true;
 
-        // Act
-        final state = container.read(diaryListControllerProvider);
+          // Act
+        // final state = container.read(diaryListControllerProvider);
 
         // Assert (초기 상태는 Loading이고, future 접근 시 에러)
         await expectLater(

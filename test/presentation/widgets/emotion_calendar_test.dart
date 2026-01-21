@@ -126,11 +126,11 @@ void main() {
     group('빈 데이터 처리', () {
       testWidgets('activityMap이 비어있어도 범례는 표시되어야 한다', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SingleChildScrollView(
                 child: EmotionCalendar(
-                  activityMap: const {},
+                  activityMap: {},
                   showLegend: true,
                 ),
               ),
@@ -144,11 +144,11 @@ void main() {
 
       testWidgets('showLegend가 false이면 범례가 숨겨져야 한다', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SingleChildScrollView(
                 child: EmotionCalendar(
-                  activityMap: const {},
+                  activityMap: {},
                   showLegend: false,
                 ),
               ),
@@ -163,11 +163,11 @@ void main() {
     group('범례 표시', () {
       testWidgets('마음의 정원 범례가 표시되어야 한다', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SingleChildScrollView(
                 child: EmotionCalendar(
-                  activityMap: const {},
+                  activityMap: {},
                   showLegend: true,
                 ),
               ),
@@ -184,11 +184,11 @@ void main() {
     group('요일 라벨', () {
       testWidgets('요일 라벨이 올바르게 표시되어야 한다', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
+          const MaterialApp(
             home: Scaffold(
               body: SingleChildScrollView(
                 child: EmotionCalendar(
-                  activityMap: const {},
+                  activityMap: {},
                 ),
               ),
             ),
@@ -475,10 +475,10 @@ void main() {
           MaterialApp(
             themeMode: ThemeMode.dark,
             darkTheme: ThemeData.dark(useMaterial3: true),
-            home: Scaffold(
+            home: const Scaffold(
               body: SingleChildScrollView(
                 child: EmotionCalendar(
-                  activityMap: const {},
+                  activityMap: {},
                 ),
               ),
             ),

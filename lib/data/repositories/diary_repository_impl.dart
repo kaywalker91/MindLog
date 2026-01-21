@@ -20,13 +20,14 @@ class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryReposito
         _remoteDataSource = remoteDataSource;
 
   @override
-  Future<Diary> createDiary(String content) async {
+  Future<Diary> createDiary(String content, {List<String>? imagePaths}) async {
     return guardFailure('일기 생성 실패', () async {
       final diary = Diary(
         id: _generateId(),
         content: content,
         createdAt: DateTime.now(),
         status: DiaryStatus.pending,
+        imagePaths: imagePaths,
       );
       await _localDataSource.saveDiary(diary);
       return diary;
@@ -38,6 +39,7 @@ class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryReposito
     String diaryId, {
     required AiCharacter character,
     String? userName,
+    List<String>? imagePaths,
   }) async {
     var diaryLoaded = false;
     return guardFailureWithHook(
@@ -49,12 +51,23 @@ class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryReposito
         }
         diaryLoaded = true;
 
-        // 원격 API 호출 (유저 이름 전달)
-        final analysisDto = await _remoteDataSource.analyzeDiary(
-          diary.content,
-          character: character,
-          userName: userName,
-        );
+        // 이미지가 있으면 Vision API 사용, 없으면 텍스트 전용 API 사용
+        final effectiveImagePaths = imagePaths ?? diary.imagePaths;
+        final hasImages = effectiveImagePaths != null && effectiveImagePaths.isNotEmpty;
+
+        final analysisDto = hasImages
+            ? await _remoteDataSource.analyzeDiaryWithImages(
+                diary.content,
+                imagePaths: effectiveImagePaths,
+                character: character,
+                userName: userName,
+              )
+            : await _remoteDataSource.analyzeDiary(
+                diary.content,
+                character: character,
+                userName: userName,
+              );
+
         final analysisResult = analysisDto.toEntity().copyWith(
           aiCharacterId: character.id,
         );

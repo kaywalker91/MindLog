@@ -215,14 +215,14 @@ void main() {
 
     group('toEntity', () {
       test('sentimentScore가 1-10 범위로 클램핑되어야 한다', () {
-        final dto1 = AnalysisResponseDto(
+        const dto1 = AnalysisResponseDto(
           keywords: ['테스트'],
           sentimentScore: 15,
           empathyMessage: '테스트',
           actionItem: '',
         );
 
-        final dto2 = AnalysisResponseDto(
+        const dto2 = AnalysisResponseDto(
           keywords: ['테스트'],
           sentimentScore: -5,
           empathyMessage: '테스트',
@@ -237,7 +237,7 @@ void main() {
       });
 
       test('energyLevel이 null이면 null로 유지해야 한다', () {
-        final dto = AnalysisResponseDto(
+        const dto = AnalysisResponseDto(
           keywords: ['테스트'],
           sentimentScore: 5,
           empathyMessage: '테스트',
@@ -251,7 +251,7 @@ void main() {
       });
 
       test('energyLevel도 1-10 범위로 클램핑되어야 한다', () {
-        final dto = AnalysisResponseDto(
+        const dto = AnalysisResponseDto(
           keywords: ['테스트'],
           sentimentScore: 5,
           empathyMessage: '테스트',
@@ -265,7 +265,7 @@ void main() {
       });
 
       test('analyzedAt 파라미터가 없으면 현재 시간을 사용해야 한다', () {
-        final dto = AnalysisResponseDto(
+        const dto = AnalysisResponseDto(
           keywords: ['테스트'],
           sentimentScore: 5,
           empathyMessage: '테스트',
@@ -281,7 +281,7 @@ void main() {
       });
 
       test('analyzedAt 파라미터가 있으면 해당 시간을 사용해야 한다', () {
-        final dto = AnalysisResponseDto(
+        const dto = AnalysisResponseDto(
           keywords: ['테스트'],
           sentimentScore: 5,
           empathyMessage: '테스트',
@@ -295,12 +295,12 @@ void main() {
       });
 
       test('emotionCategory가 Entity로 올바르게 변환되어야 한다', () {
-        final dto = AnalysisResponseDto(
+        const dto = AnalysisResponseDto(
           keywords: ['테스트'],
           sentimentScore: 5,
           empathyMessage: '테스트',
           actionItem: '',
-          emotionCategory: const EmotionCategoryDto(
+          emotionCategory: EmotionCategoryDto(
             primary: '슬픔',
             secondary: '외로움',
           ),
@@ -314,12 +314,12 @@ void main() {
       });
 
       test('emotionTrigger가 Entity로 올바르게 변환되어야 한다', () {
-        final dto = AnalysisResponseDto(
+        const dto = AnalysisResponseDto(
           keywords: ['테스트'],
           sentimentScore: 5,
           empathyMessage: '테스트',
           actionItem: '',
-          emotionTrigger: const EmotionTriggerDto(
+          emotionTrigger: EmotionTriggerDto(
             category: '관계',
             description: '친구와의 대화',
           ),
@@ -335,15 +335,15 @@ void main() {
 
     group('toJson', () {
       test('모든 필드가 올바르게 직렬화되어야 한다', () {
-        final dto = AnalysisResponseDto(
+        const dto = AnalysisResponseDto(
           keywords: ['키워드1', '키워드2'],
           sentimentScore: 7,
           empathyMessage: '공감 메시지',
           actionItem: '레거시',
           actionItems: ['행동1', '행동2'],
           isEmergency: false,
-          emotionCategory: const EmotionCategoryDto(primary: '기쁨', secondary: '만족'),
-          emotionTrigger: const EmotionTriggerDto(category: '일', description: '성과'),
+          emotionCategory: EmotionCategoryDto(primary: '기쁨', secondary: '만족'),
+          emotionTrigger: EmotionTriggerDto(category: '일', description: '성과'),
           energyLevel: 8,
           cognitivePattern: '긍정적',
         );
@@ -363,7 +363,7 @@ void main() {
       });
 
       test('null 필드는 JSON에 포함되지 않아야 한다', () {
-        final dto = AnalysisResponseDto(
+        const dto = AnalysisResponseDto(
           keywords: ['테스트'],
           sentimentScore: 5,
           empathyMessage: '테스트',
@@ -390,7 +390,7 @@ void main() {
       });
 
       test('toEntity가 올바르게 변환되어야 한다', () {
-        final dto = const EmotionCategoryDto(
+        const dto = EmotionCategoryDto(
           primary: '분노',
           secondary: '짜증',
         );
@@ -413,7 +413,7 @@ void main() {
       });
 
       test('toEntity가 올바르게 변환되어야 한다', () {
-        final dto = const EmotionTriggerDto(
+        const dto = EmotionTriggerDto(
           category: '건강',
           description: '운동 후',
         );

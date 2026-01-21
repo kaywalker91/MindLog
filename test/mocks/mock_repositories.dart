@@ -52,7 +52,7 @@ class MockDiaryRepository implements DiaryRepository {
   }
 
   @override
-  Future<Diary> createDiary(String content) async {
+  Future<Diary> createDiary(String content, {List<String>? imagePaths}) async {
     if (shouldThrowOnCreate) {
       throw failureToThrow ??
           Failure.cache(message: errorMessage ?? '일기 생성 실패');
@@ -67,6 +67,7 @@ class MockDiaryRepository implements DiaryRepository {
     String diaryId, {
     required AiCharacter character,
     String? userName,
+    List<String>? imagePaths,
   }) async {
     analyzedDiaryIds.add(diaryId);
     if (shouldThrowOnAnalyze) {

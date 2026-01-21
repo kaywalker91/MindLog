@@ -30,7 +30,7 @@ class MockAnalyzeDiaryUseCase implements AnalyzeDiaryUseCase {
   }
 
   @override
-  Future<Diary> execute(String content) async {
+  Future<Diary> execute(String content, {List<String>? imagePaths}) async {
     analyzedContents.add(content);
     if (genericException != null) {
       throw genericException!;

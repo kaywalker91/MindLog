@@ -13,6 +13,7 @@ import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
 import '../providers/diary_list_controller.dart';
 import '../widgets/delete_diary_dialog.dart';
+import '../widgets/diary_image_indicator.dart';
 import '../widgets/mindlog_app_bar.dart';
 import 'diary_screen.dart';
 import 'diary_detail_screen.dart';
@@ -325,12 +326,20 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          _dateFormatter.format(diary.createdAt),
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: Colors.grey,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              _dateFormatter.format(diary.createdAt),
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: Colors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (diary.hasImages) ...[
+                              const SizedBox(width: 8),
+                              DiaryImageIndicator(count: diary.imageCount),
+                            ],
+                          ],
                         ),
                         const SizedBox(height: 4),
                         Text(

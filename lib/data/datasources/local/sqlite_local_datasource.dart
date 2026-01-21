@@ -8,7 +8,7 @@ import '../../../core/errors/exceptions.dart';
 
 /// SQLite 로컬 데이터 소스
 class SqliteLocalDataSource {
-  static const int _currentVersion = 5;
+  static const int _currentVersion = 6;
   static Database? _database;
 
   /// 테스트용 Database 주입 (인메모리 DB 테스트용)
@@ -73,7 +73,8 @@ class SqliteLocalDataSource {
         created_at TEXT NOT NULL,
         status TEXT NOT NULL,
         analysis_result TEXT,
-        is_pinned INTEGER DEFAULT 0
+        is_pinned INTEGER DEFAULT 0,
+        image_paths TEXT
       )
     ''');
 
@@ -131,6 +132,11 @@ class SqliteLocalDataSource {
         )
       ''');
     }
+
+    // 버전 5 → 6: image_paths 컬럼 추가 (이미지 첨부 기능)
+    if (oldVersion < 6) {
+      await db.execute('ALTER TABLE diaries ADD COLUMN image_paths TEXT');
+    }
   }
 
   /// 메타데이터 저장
@@ -174,6 +180,9 @@ class SqliteLocalDataSource {
               ? jsonEncode(analysisResultJson)
               : null,
           'is_pinned': diary.isPinned ? 1 : 0,
+          'image_paths': diary.imagePaths != null
+              ? jsonEncode(diary.imagePaths)
+              : null,
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
@@ -368,6 +377,20 @@ class SqliteLocalDataSource {
       orElse: () => DiaryStatus.pending,
     );
 
+    // image_paths 파싱 안전 처리
+    List<String>? imagePaths;
+    final imagePathsStr = map['image_paths'] as String?;
+    if (imagePathsStr != null && imagePathsStr.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(imagePathsStr);
+        if (decoded is List) {
+          imagePaths = decoded.map((e) => e.toString()).toList();
+        }
+      } catch (e) {
+        imagePaths = null;
+      }
+    }
+
     return Diary(
       id: map['id'] as String,
       content: map['content'] as String,
@@ -375,6 +398,7 @@ class SqliteLocalDataSource {
       status: status,
       analysisResult: analysisResult,
       isPinned: (map['is_pinned'] as int?) == 1,
+      imagePaths: imagePaths,
     );
   }
 

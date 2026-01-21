@@ -482,4 +482,89 @@ $userNameSection
             '- 행동 제안은 작고 즐거운 활동으로 제안하세요.',
     };
   }
+
+  // ===== Vision API 전용 프롬프트 =====
+
+  /// Vision API용 시스템 프롬프트 (이미지 분석 포함)
+  ///
+  /// 기존 텍스트 분석 프롬프트에 이미지 분석 지침 추가
+  static String systemInstructionForVision(AiCharacter character) {
+    final basePrompt = systemInstructionFor(character);
+    return '''
+$basePrompt
+
+[Image Analysis - 이미지 분석 지침]
+사용자가 일기와 함께 이미지를 첨부했습니다. 이미지를 분석하여 감정 상태를 더 정확하게 파악하세요.
+
+이미지 분석 시 주의사항:
+1. 이미지 속 표정, 환경, 분위기를 관찰하세요.
+2. 이미지와 텍스트 내용을 종합하여 감정을 분석하세요.
+3. 이미지에서 보이는 활동이나 상황을 'emotion_trigger' 분석에 활용하세요.
+4. 이미지에 텍스트가 있다면 함께 고려하세요.
+5. 이미지만으로 판단하지 말고, 반드시 텍스트 내용과 함께 분석하세요.
+
+이미지 속 요소별 감정 힌트:
+- 자연/풍경: 평온, 휴식, 여유
+- 음식: 만족, 즐거움, 자기보상
+- 사람들과 함께: 관계, 유대감, 소속감
+- 혼자 있는 모습: 자기 성찰, 고독, 휴식
+- 업무/공부 환경: 성취, 스트레스, 집중
+- 어두운 조명/밤: 피로, 우울, 휴식 필요
+- 밝은 조명/낮: 활력, 긍정, 에너지
+
+절대 이미지만 보고 섣불리 판단하지 마세요. 텍스트 내용이 더 중요합니다.
+''';
+  }
+
+  /// 이미지 포함 분석 프롬프트 생성
+  static String createAnalysisPromptWithImages(
+    String diaryContent, {
+    required int imageCount,
+    AiCharacter character = AiCharacter.warmCounselor,
+    String? userName,
+  }) {
+    final timeSlot = _getTimeSlotName();
+    final suggestedCategory = _getRandomCategory();
+    final characterName = character.displayName;
+    final characterHint = _characterPromptHint(character);
+
+    final userNameSection = userName != null
+        ? '''
+
+[유저 이름]
+이 일기를 작성한 분의 이름은 "$userName"입니다.
+empathy_message에서 "$userName님"이라고 한 번 자연스럽게 호칭해주세요.
+단, 모든 문장에 이름을 넣지 말고 첫 문장이나 마지막 문장에서 한 번만 사용하세요.
+'''
+        : '';
+
+    final imageSection = '''
+
+[첨부 이미지]
+사용자가 $imageCount개의 이미지를 첨부했습니다.
+이미지와 텍스트를 종합하여 감정을 분석해주세요.
+이미지에서 보이는 상황, 표정, 환경을 참고하되, 텍스트 내용을 기반으로 분석하세요.
+''';
+
+    return '''
+[분석 대상 일기]
+"$diaryContent"
+$imageSection
+[캐릭터 설정]
+선택 캐릭터: $characterName
+캐릭터 특징: ${character.description}
+캐릭터 스타일 지침:
+$characterHint
+$userNameSection
+[시간 정보]
+현재 시간대: $timeSlot
+
+[미션 카테고리 힌트]
+이번에는 '$suggestedCategory' 카테고리에서 미션을 제안해주세요.
+단, 감정 상태에 맞지 않으면 다른 카테고리를 선택해도 됩니다.
+이전과 다른 구체적이고 신선한 미션을 창의적으로 제안해주세요.
+
+위 일기와 첨부된 이미지를 함께 분석하여 JSON 형식으로 응답해주세요.
+''';
+  }
 }

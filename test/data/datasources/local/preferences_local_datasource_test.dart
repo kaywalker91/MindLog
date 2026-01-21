@@ -60,7 +60,7 @@ void main() {
       });
 
       test('설정한 값을 올바르게 저장/조회해야 한다', () async {
-        final customSettings = const NotificationSettings(
+        const customSettings = NotificationSettings(
           isReminderEnabled: true,
           reminderHour: 20,
           reminderMinute: 30,

@@ -101,7 +101,33 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.21 (Current)
+### v1.4.22 (Current)
+*   **📷 이미지 첨부 기능 (Vision API 연동):**
+    *   **일기에 이미지 첨부:** 최대 5개 이미지 첨부 지원 (갤러리/카메라 선택)
+    *   **Groq Vision API 통합:** `meta-llama/llama-4-scout-17b-16e-instruct` 모델로 이미지+텍스트 종합 분석
+    *   **이미지 자동 처리:** 앱 디렉토리로 복사 + 4MB 초과 시 자동 압축 (품질 85%, 최대 1920px)
+    *   **Base64 인코딩:** Vision API 전송을 위한 Data URL 인코딩 처리
+    *   **Vision 프롬프트 전용 설계:** 이미지 속 표정, 환경, 분위기를 분석하여 감정 파악 정확도 향상
+*   **새 위젯 및 서비스 추가:**
+    *   **`ImageService`:** 이미지 복사, 압축, Base64 인코딩, 삭제 담당 서비스 클래스
+    *   **`ImagePickerSection`:** 갤러리/카메라 이미지 선택 UI 위젯
+    *   **`DiaryImageGallery`:** 첨부된 이미지 그리드 표시 위젯
+    *   **`DiaryImageIndicator`:** 이미지 첨부 여부 표시 아이콘 위젯
+    *   **`FullscreenImageViewer`:** 이미지 전체화면 보기 + 제스처 확대/축소
+*   **Domain Layer 확장:**
+    *   **`Diary` 엔티티:** `imagePaths` 필드 추가 (nullable, 하위 호환성 유지)
+    *   **`DiaryRepository`:** `createDiary()`, `analyzeDiary()` 메서드에 이미지 경로 파라미터 추가
+    *   **`AnalyzeDiaryUseCase`:** 이미지 유효성 검사 + 처리 로직 추가
+*   **에러 처리 확장:**
+    *   **`ImageProcessingException`:** 이미지 처리 중 발생하는 예외
+    *   **`ImageProcessingFailure`:** Sealed Failure 클래스에 이미지 처리 실패 타입 추가
+    *   **`FailureMapper`:** `ImageProcessingException` → `ImageProcessingFailure` 매핑 추가
+*   **새 패키지 추가:**
+    *   `image_picker: ^1.0.7` - 갤러리/카메라 이미지 선택
+    *   `flutter_image_compress: ^2.1.0` - 이미지 압축 처리
+*   **테스트 추가:** ImageService, 이미지 위젯 테스트 5개 파일 추가
+
+### v1.4.21
 *   **감정 달력(EmotionCalendar) 위젯 전면 개편:**
     *   **기존 EmotionGarden → EmotionCalendar 전환:** 주간 히트맵에서 월간 캘린더 UI로 변경
     *   **PageView 기반 월 네비게이션:** 스와이프로 월 이동, 좌우 버튼 및 "오늘" 바로가기 지원

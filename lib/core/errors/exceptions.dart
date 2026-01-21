@@ -58,3 +58,12 @@ class RateLimitException implements Exception {
   @override
   String toString() => 'RateLimitException: $message (retry after: ${retryAfter?.inSeconds ?? "unknown"}s)';
 }
+
+/// 이미지 처리 관련 예외
+class ImageProcessingException implements Exception {
+  final String? message;
+  ImageProcessingException([this.message]);
+
+  @override
+  String toString() => 'ImageProcessingException: $message';
+}

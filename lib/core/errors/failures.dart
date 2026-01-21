@@ -25,6 +25,9 @@ sealed class Failure {
   /// 안전 필터 트리거 (자해/자살 관련 콘텐츠 감지)
   const factory Failure.safetyBlocked() = SafetyBlockedFailure;
 
+  /// 이미지 처리 실패
+  const factory Failure.imageProcessing({String? message}) = ImageProcessingFailure;
+
   /// 알 수 없는 오류
   const factory Failure.unknown({String? message}) = UnknownFailure;
 
@@ -80,6 +83,13 @@ class SafetyBlockedFailure extends Failure {
 
   @override
   String get displayMessage => message ?? '안전상의 이유로 분석이 중단되었습니다.';
+}
+
+class ImageProcessingFailure extends Failure {
+  const ImageProcessingFailure({super.message});
+
+  @override
+  String get displayMessage => message ?? '이미지 처리 중 오류가 발생했습니다.';
 }
 
 class UnknownFailure extends Failure {

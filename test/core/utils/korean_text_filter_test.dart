@@ -245,7 +245,7 @@ void main() {
     // ============================================================
     group('processKoreanText - 복합 케이스', () {
       test('한자어 + 중복 조사 + 조사 오류 복합 케이스', () {
-        final input = '希望를 가지세요. 친구에게를 感情을 전해주세요.';
+        const input = '希望를 가지세요. 친구에게를 感情을 전해주세요.';
         final result = KoreanTextFilter.processKoreanText(input);
         expect(result, equals('희망을 가지세요. 친구에게 감정을 전해주세요.'));
       });

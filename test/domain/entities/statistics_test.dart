@@ -59,7 +59,7 @@ void main() {
 
     group('getTopKeywords', () {
       test('상위 N개 키워드를 내림차순으로 반환해야 한다', () {
-        final stats = EmotionStatistics(
+        const stats = EmotionStatistics(
           dailyEmotions: [],
           keywordFrequency: {
             '행복': 10,
@@ -83,7 +83,7 @@ void main() {
       });
 
       test('요청한 수보다 키워드가 적으면 있는 만큼만 반환해야 한다', () {
-        final stats = EmotionStatistics(
+        const stats = EmotionStatistics(
           dailyEmotions: [],
           keywordFrequency: {'행복': 5, '만족': 3},
           activityMap: {},

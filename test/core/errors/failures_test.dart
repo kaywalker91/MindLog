@@ -93,6 +93,7 @@ void main() {
         DataNotFoundFailure() => 'not_found',
         ValidationFailure() => 'validation',
         SafetyBlockedFailure() => 'safety',
+        ImageProcessingFailure() => 'image_processing',
         UnknownFailure() => 'unknown',
       };
 
