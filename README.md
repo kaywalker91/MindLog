@@ -101,7 +101,20 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.22 (Current)
+### v1.4.23 (Current)
+*   **Google Play Photo/Video Permissions 정책 준수:**
+    *   **`READ_MEDIA_IMAGES` 권한 제거:** Google Play의 2025년 1월 Photo/Video Permissions 정책에 대응
+    *   **Android Photo Picker 도입:** Android 13+ (API 33+)에서 시스템 Photo Picker 사용으로 전환
+    *   **권한 요청 불필요:** 사용자에게 별도의 미디어 권한 요청 없이 사진 선택 가능
+    *   **하위 호환성 유지:** Android 12 이하에서는 `READ_EXTERNAL_STORAGE` (maxSdkVersion=32) 사용
+*   **의존성 업그레이드:**
+    *   **`image_picker`:** ^1.0.7 → ^1.2.1 (Photo Picker API 지원)
+    *   최신 Android/iOS API 지원 및 안정성 향상
+*   **AndroidManifest.xml 권한 정리:**
+    *   `READ_MEDIA_IMAGES` 권한 선언 제거
+    *   주석 업데이트로 권한 전략 문서화
+
+### v1.4.22
 *   **📷 이미지 첨부 기능 (Vision API 연동):**
     *   **일기에 이미지 첨부:** 최대 5개 이미지 첨부 지원 (갤러리/카메라 선택)
     *   **Groq Vision API 통합:** `meta-llama/llama-4-scout-17b-16e-instruct` 모델로 이미지+텍스트 종합 분석

@@ -1,10 +1,15 @@
 {
-  "latestVersion": "1.4.22",
+  "latestVersion": "1.4.23",
   "minSupportedVersion": "1.3.0",
   "forceUpdate": false,
   "androidUrl": "https://play.google.com/store/apps/details?id=com.mindlog.mindlog",
   "iosUrl": null,
   "changelog": {
+    "1.4.23": [
+      "Google Play 정책 준수를 위해 이미지 권한 처리를 개선했어요.",
+      "Android 13 이상에서 Photo Picker를 사용해 권한 요청 없이 사진을 선택할 수 있어요.",
+      "이미지 선택 라이브러리를 최신 버전으로 업그레이드했어요."
+    ],
     "1.4.22": [
       "📷 이제 일기에 사진을 첨부할 수 있어요! 최대 5장까지 추가하세요.",
       "AI가 사진까지 분석해요! 표정, 환경, 분위기를 종합해 더 정확한 감정 분석을 제공합니다.",
@@ -130,5 +135,5 @@
       "설정 화면에서 앱 버전을 바로 확인할 수 있어요."
     ]
   },
-  "updatedAt": "2026-01-21"
+  "updatedAt": "2026-01-22"
 }
