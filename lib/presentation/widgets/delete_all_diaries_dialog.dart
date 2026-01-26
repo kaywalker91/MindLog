@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/diary_list_controller.dart';
 import '../providers/providers.dart';
 
 /// 모든 일기 삭제 확인 다이얼로그

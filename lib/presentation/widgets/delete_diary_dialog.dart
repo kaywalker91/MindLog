@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../domain/entities/diary.dart';
-import '../providers/diary_list_controller.dart';
 import '../providers/providers.dart';
 
 /// 개별 일기 삭제 확인 다이얼로그
