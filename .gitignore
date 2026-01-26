@@ -66,3 +66,6 @@ android/key.properties
 *.jks
 *.keystore
 keystore-base64.txt
+
+# Claude Code local settings
+CLAUDE.local.md

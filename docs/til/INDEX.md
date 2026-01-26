@@ -2,7 +2,7 @@
 
 **생성일**: 2026-01-21
 **주제**: Groq Vision API 통합 학습 자료
-**총 3개 문서 / ~10,000 단어**
+**총 4개 문서 / ~12,000 단어**
 
 ---
 
@@ -13,7 +13,8 @@ docs/til/
 ├── INDEX.md (이 문서)
 ├── AI_DIARY_IMAGE_ANALYSIS_TIL.md      [메인 학습 문서]
 ├── IMPLEMENTATION_CHECKLIST.md         [구현 체크리스트 & 회고]
-└── TECHNICAL_REFERENCE.md              [기술 레퍼런스]
+├── TECHNICAL_REFERENCE.md              [기술 레퍼런스]
+└── ANDROID_PHOTO_PICKER_POLICY_TIL.md  [Google Play 정책 대응]
 ```
 
 ---
@@ -184,6 +185,51 @@ DB 마이그레이션: 4장 (10분)
 
 ---
 
+## 4️⃣ ANDROID_PHOTO_PICKER_POLICY_TIL.md
+
+**길이**: ~2,000 단어
+**난이도**: 중급
+**소요 시간**: 15-20분
+
+### 주요 내용
+
+**1장. 문제** (600 단어)
+- Google Play Photo/Video Permissions 정책 (2024-2025)
+- READ_MEDIA_IMAGES 권한 사용 제한
+- Android 버전별 갤러리 접근 방식
+
+**2장. 해결책** (800 단어)
+- Android Photo Picker API 특징
+- image_picker Flutter 패키지 내부 동작
+- 하이브리드 권한 전략 (maxSdkVersion 활용)
+- 버전별 동작 매트릭스
+
+**3장. 핵심 교훈** (400 단어)
+- 정책 우선 설계 (Policy-First Design)
+- 플랫폼 API 진화 추적
+- 패키지 버전 차이 인식
+- 권한 최소화 원칙
+
+**4장. 구현 체크리스트** (200 단어)
+- AndroidManifest.xml 검증
+- 패키지 버전 확인
+- 테스트 매트릭스
+
+### 대상 독자
+- Google Play 출시를 준비하는 Flutter 개발자
+- Android 권한 정책에 대한 이해가 필요한 개발자
+- 사진/갤러리 기능을 구현하는 앱 개발자
+
+### 빠른 네비게이션
+```
+문제만 이해: 1장 (5분)
+해결책 적용: 2장 (10분)
+핵심 교훈: 3장 (5분)
+체크리스트: 4장 (3분)
+```
+
+---
+
 ## 🎯 사용 시나리오별 가이드
 
 ### 시나리오 1: "Vision API가 뭔가요?"
@@ -226,17 +272,27 @@ DB 마이그레이션: 4장 (10분)
 **소요시간**: 45분
 **내용**: 기술 인사이트 + 설계 결정 + 회고
 
+### 시나리오 9: "Google Play에서 권한 정책 위반 경고를 받았어요"
+**추천**: ANDROID_PHOTO_PICKER_POLICY_TIL.md
+**소요시간**: 15분
+**내용**: Photo Picker API, 권한 전략, maxSdkVersion 활용
+
+### 시나리오 10: "READ_MEDIA_IMAGES 없이 갤러리 접근이 가능한가요?"
+**추천**: ANDROID_PHOTO_PICKER_POLICY_TIL.md 섹션 2
+**소요시간**: 10분
+**내용**: Photo Picker 특징, image_picker 패키지 동작
+
 ---
 
 ## 📊 문서 통계
 
 | 항목 | 값 |
 |------|-----|
-| 총 단어 수 | ~10,500 |
-| 총 섹션 | 25+ |
-| 코드 예제 | 45+ |
+| 총 단어 수 | ~12,500 |
+| 총 섹션 | 30+ |
+| 코드 예제 | 50+ |
 | 다이어그램 | 8+ |
-| 표 | 12+ |
+| 표 | 15+ |
 | 생성 시간 | 2026-01-21 |
 
 ---
@@ -269,6 +325,7 @@ DB 마이그레이션: 4장 (10분)
 | 버전 | 날짜 | 변경사항 |
 |------|------|---------|
 | 1.0 | 2026-01-21 | 초기 생성 (3개 문서) |
+| 1.1 | 2026-01-21 | Android Photo Picker 정책 TIL 추가 (4개 문서) |
 
 ---
 
