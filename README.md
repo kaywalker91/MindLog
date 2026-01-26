@@ -101,7 +101,32 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.23 (Current)
+### v1.4.24 (Current)
+*   **성능 최적화 (Isolate & RepaintBoundary):**
+    *   **Isolate 기반 이미지 처리:** `ImageService`의 이미지 압축/Base64 인코딩을 별도 Isolate에서 수행
+    *   **UI 스레드 블로킹 방지:** 대용량 이미지 처리 시에도 60fps 유지
+    *   **RepaintBoundary 적용:** 차트, 히트맵, 정원 위젯에 불필요한 리페인트 방지
+    *   **`compute()` 함수 활용:** Flutter의 공식 Isolate 헬퍼로 안정적인 백그라운드 처리
+*   **위젯 모듈화 리팩토링:**
+    *   **SettingsScreen 분해:** 1,224줄 → 200줄 + 9개 서브 컴포넌트
+        *   `SettingsCard`, `SettingsItem`, `SettingsTrailing`, `SettingsSections`
+        *   `PermissionDialogs`, `UserNameDialog`, `AICharacterSheet`, `SettingsUtils`
+    *   **ResultCard 분해:** 791줄 → 100줄 + 7개 서브 컴포넌트
+        *   `CharacterBanner`, `EmpathyMessage`, `SentimentDashboard`, `EmotionInsightCard`
+        *   `KeywordsSection`, `ActionItemsSection`, `SosCard`
+    *   **EmotionCalendar 분해:** 414줄 → 100줄 + 3개 서브 컴포넌트
+        *   `CalendarHeader`, `DayCell`, `CalendarLegend`
+*   **Provider 중앙화:**
+    *   **`ui_state_providers.dart` 신규:** 분산된 UI 상태 Provider들을 단일 파일로 통합
+    *   **중복 제거:** `isAnalyzingProvider`, `isLoadingProvider` 등 중복 선언 정리
+    *   **의존성 명확화:** 각 화면별 Provider 의존 관계 정리
+*   **문서 및 규칙 정비:**
+    *   **AGENTS.md 제거:** 더 이상 사용하지 않는 레거시 문서 삭제
+    *   **CLAUDE.md 구조화:** 프로젝트 온보딩 문서 대폭 개선
+    *   **`.claude/rules/` 체계화:** 아키텍처, 레이어별, 테스트, 빌드 규칙 분리
+    *   **스킬 카탈로그 추가:** `/arch-check`, `/widget-decompose`, `/provider-centralize`, `/refactor-plan`, `/session-wrap`
+
+### v1.4.23
 *   **Google Play Photo/Video Permissions 정책 준수:**
     *   **`READ_MEDIA_IMAGES` 권한 제거:** Google Play의 2025년 1월 Photo/Video Permissions 정책에 대응
     *   **Android Photo Picker 도입:** Android 13+ (API 33+)에서 시스템 Photo Picker 사용으로 전환

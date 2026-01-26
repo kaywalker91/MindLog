@@ -11,15 +11,27 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 | `/groq [action]` | `groq-expert.md` | AI prompt optimization |
 | `/db [action]` | `database-expert.md` | SQLite schema management |
 | `/resilience [action]` | `resilience-expert.md` | Error handling patterns |
-| `/version-bump [type]` | — | Version update (patch/minor/major) |
-| `/changelog` | — | CHANGELOG.md update |
-| `/lint-fix` | — | Auto-fix lint violations |
-| `/coverage` | — | Test coverage report |
-| `/review [file]` | — | Code review |
-| `/widget-test [file]` | — | Widget test generation |
+| `/version-bump [type]` | `version-bump.md` | Version update (patch/minor/major) |
+| `/changelog` | `changelog-update.md` | CHANGELOG.md update |
+| `/lint-fix` | `lint-fix.md` | Auto-fix lint violations |
+| `/coverage` | `test-coverage-report.md` | Test coverage report |
+| `/review [file]` | `code-reviewer.md` | Code review |
+| `/widget-test [file]` | `widget-test-gen.md` | Widget test generation |
+
+## Quality & Refactoring Commands
+
+| Command | Skill File | Purpose |
+|---------|-----------|---------|
+| `/arch-check` | `arch-check.md` | Clean Architecture 의존성 위반 검사 |
+| `/widget-decompose [file]` | `widget-decompose.md` | 대형 위젯 분해 자동화 |
+| `/provider-centralize` | `provider-centralize.md` | Provider 중복/분산 분석 및 중앙화 |
+| `/refactor-plan [scope]` | `refactor-plan.md` | 리팩토링 계획서 생성 |
+| `/session-wrap` | `session-wrap.md` | 세션 마무리 자동화 |
 
 ## Workflows
 - **New feature**: `/scaffold` -> `/usecase` -> `/test-unit-gen` -> `/coverage`
 - **Release**: `/lint-fix` -> `/review` -> `/version-bump` -> `/changelog`
 - **AI improvement**: `/groq analyze-prompt` -> `/groq optimize-tokens`
 - **DB change**: `/db add-column` -> `/db schema-report` -> `/test-unit-gen`
+- **Refactoring**: `/arch-check` -> `/provider-centralize` -> `/refactor-plan` -> `/widget-decompose`
+- **Session end**: `/session-wrap`

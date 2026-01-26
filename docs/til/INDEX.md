@@ -14,7 +14,8 @@ docs/til/
 ├── AI_DIARY_IMAGE_ANALYSIS_TIL.md      [메인 학습 문서]
 ├── IMPLEMENTATION_CHECKLIST.md         [구현 체크리스트 & 회고]
 ├── TECHNICAL_REFERENCE.md              [기술 레퍼런스]
-└── ANDROID_PHOTO_PICKER_POLICY_TIL.md  [Google Play 정책 대응]
+├── ANDROID_PHOTO_PICKER_POLICY_TIL.md  [Google Play 정책 대응]
+└── CLEAN_ARCHITECTURE_VIOLATION_FIX_TIL.md [아키텍처 위반 수정]
 ```
 
 ---
@@ -230,6 +231,45 @@ DB 마이그레이션: 4장 (10분)
 
 ---
 
+## 5️⃣ CLEAN_ARCHITECTURE_VIOLATION_FIX_TIL.md
+
+**길이**: ~800 단어
+**난이도**: 중급
+**소요 시간**: 10분
+
+### 주요 내용
+
+**1장. 문제 상황**
+- presentation → data 직접 import (P0 위반)
+- 의존성 역전(DIP) 위반의 영향
+
+**2장. 해결 전략**
+- Repository 인터페이스 확장
+- 구현체에 메서드 추가
+- Provider DI 변경
+
+**3장. 검증 방법**
+- grep 기반 위반 검사
+- 테스트 및 정적 분석
+
+**4장. 핵심 교훈**
+- Do/Don't 체크리스트
+- 점진적 수정 전략
+
+### 대상 독자
+- Clean Architecture를 적용하는 Flutter 개발자
+- 레이어 간 의존성 위반을 수정해야 하는 개발자
+- 리팩토링 전략을 배우려는 개발자
+
+### 빠른 네비게이션
+```
+문제 이해: 1장 (3분)
+해결 적용: 2장 (5분)
+검증: 3장 (2분)
+```
+
+---
+
 ## 🎯 사용 시나리오별 가이드
 
 ### 시나리오 1: "Vision API가 뭔가요?"
@@ -282,17 +322,22 @@ DB 마이그레이션: 4장 (10분)
 **소요시간**: 10분
 **내용**: Photo Picker 특징, image_picker 패키지 동작
 
+### 시나리오 11: "presentation에서 data를 직접 import하면 안 되나요?"
+**추천**: CLEAN_ARCHITECTURE_VIOLATION_FIX_TIL.md
+**소요시간**: 10분
+**내용**: DIP 위반 문제점, Repository 확장 패턴, DI 변경 방법
+
 ---
 
 ## 📊 문서 통계
 
 | 항목 | 값 |
 |------|-----|
-| 총 단어 수 | ~12,500 |
-| 총 섹션 | 30+ |
-| 코드 예제 | 50+ |
+| 총 단어 수 | ~13,300 |
+| 총 섹션 | 35+ |
+| 코드 예제 | 55+ |
 | 다이어그램 | 8+ |
-| 표 | 15+ |
+| 표 | 17+ |
 | 생성 시간 | 2026-01-21 |
 
 ---
@@ -326,6 +371,7 @@ DB 마이그레이션: 4장 (10분)
 |------|------|---------|
 | 1.0 | 2026-01-21 | 초기 생성 (3개 문서) |
 | 1.1 | 2026-01-21 | Android Photo Picker 정책 TIL 추가 (4개 문서) |
+| 1.2 | 2026-01-26 | Clean Architecture 위반 수정 TIL 추가 (5개 문서) |
 
 ---
 
