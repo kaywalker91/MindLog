@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/ui_state_providers.dart';
 import '../screens/diary_screen.dart';
-import '../screens/main_screen.dart';
 
 enum _NotificationDestination {
   diaryList,

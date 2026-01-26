@@ -5,6 +5,7 @@ import 'package:mindlog/domain/entities/statistics.dart';
 import 'package:mindlog/domain/usecases/get_statistics_usecase.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
 import 'package:mindlog/presentation/providers/statistics_providers.dart';
+import 'package:mindlog/presentation/providers/ui_state_providers.dart';
 
 import '../../fixtures/statistics_fixtures.dart';
 

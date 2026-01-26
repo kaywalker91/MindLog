@@ -6,14 +6,12 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../providers/app_info_provider.dart';
 import '../providers/app_upgrade_check_provider.dart';
+import '../providers/ui_state_providers.dart';
 import '../services/notification_action_handler.dart';
 import '../widgets/whats_new_dialog.dart';
 import 'diary_list_screen.dart';
 import 'statistics_screen.dart';
 import 'settings_screen.dart';
-
-/// 현재 선택된 탭 인덱스 Provider
-final selectedTabIndexProvider = StateProvider<int>((ref) => 0);
 
 /// 메인 화면 (BottomNavigationBar 포함)
 class MainScreen extends ConsumerStatefulWidget {
