@@ -176,6 +176,8 @@ class MockSettingsRepository implements SettingsRepository {
   AiCharacter _selectedCharacter = AiCharacter.warmCounselor;
   NotificationSettings _notificationSettings = NotificationSettings.defaults();
   String? _userName;
+  String? _dismissedUpdateVersion;
+  String? _lastSeenAppVersion;
 
   /// 상태 초기화
   void reset() {
@@ -185,6 +187,8 @@ class MockSettingsRepository implements SettingsRepository {
     _selectedCharacter = AiCharacter.warmCounselor;
     _notificationSettings = NotificationSettings.defaults();
     _userName = null;
+    _dismissedUpdateVersion = null;
+    _lastSeenAppVersion = null;
   }
 
   @override
@@ -235,11 +239,56 @@ class MockSettingsRepository implements SettingsRepository {
     _userName = name?.trim().isEmpty == true ? null : name?.trim();
   }
 
+  @override
+  Future<String?> getDismissedUpdateVersion() async {
+    if (shouldThrowOnGet) {
+      throw failureToThrow ?? const Failure.cache(message: 'dismiss 버전 조회 실패');
+    }
+    return _dismissedUpdateVersion;
+  }
+
+  @override
+  Future<void> setDismissedUpdateVersion(String version) async {
+    if (shouldThrowOnSet) {
+      throw failureToThrow ?? const Failure.cache(message: 'dismiss 버전 저장 실패');
+    }
+    _dismissedUpdateVersion = version;
+  }
+
+  @override
+  Future<void> clearDismissedUpdateVersion() async {
+    if (shouldThrowOnSet) {
+      throw failureToThrow ?? const Failure.cache(message: 'dismiss 버전 삭제 실패');
+    }
+    _dismissedUpdateVersion = null;
+  }
+
   // 테스트 헬퍼 메서드
   void setMockCharacter(AiCharacter character) => _selectedCharacter = character;
   void setMockNotificationSettings(NotificationSettings settings) =>
       _notificationSettings = settings;
   void setMockUserName(String? name) => _userName = name;
+  void setMockDismissedVersion(String? version) =>
+      _dismissedUpdateVersion = version;
+  void setMockLastSeenVersion(String? version) => _lastSeenAppVersion = version;
+
+  @override
+  Future<String?> getLastSeenAppVersion() async {
+    if (shouldThrowOnGet) {
+      throw failureToThrow ??
+          const Failure.cache(message: '마지막 앱 버전 조회 실패');
+    }
+    return _lastSeenAppVersion;
+  }
+
+  @override
+  Future<void> setLastSeenAppVersion(String version) async {
+    if (shouldThrowOnSet) {
+      throw failureToThrow ??
+          const Failure.cache(message: '마지막 앱 버전 저장 실패');
+    }
+    _lastSeenAppVersion = version;
+  }
 }
 
 /// Mock StatisticsRepository

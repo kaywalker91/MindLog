@@ -60,4 +60,44 @@ class SettingsRepositoryImpl
       () => _localDataSource.setUserName(name),
     );
   }
+
+  @override
+  Future<String?> getDismissedUpdateVersion() async {
+    return guardFailure(
+      'dismiss 버전 조회 실패',
+      _localDataSource.getDismissedUpdateVersion,
+    );
+  }
+
+  @override
+  Future<void> setDismissedUpdateVersion(String version) async {
+    return guardFailure(
+      'dismiss 버전 저장 실패',
+      () => _localDataSource.setDismissedUpdateVersion(version),
+    );
+  }
+
+  @override
+  Future<void> clearDismissedUpdateVersion() async {
+    return guardFailure(
+      'dismiss 버전 삭제 실패',
+      _localDataSource.clearDismissedUpdateVersion,
+    );
+  }
+
+  @override
+  Future<String?> getLastSeenAppVersion() async {
+    return guardFailure(
+      '마지막 앱 버전 조회 실패',
+      _localDataSource.getLastSeenAppVersion,
+    );
+  }
+
+  @override
+  Future<void> setLastSeenAppVersion(String version) async {
+    return guardFailure(
+      '마지막 앱 버전 저장 실패',
+      () => _localDataSource.setLastSeenAppVersion(version),
+    );
+  }
 }

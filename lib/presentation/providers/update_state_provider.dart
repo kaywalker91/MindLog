@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/update_service.dart';
-import '../../data/datasources/local/preferences_local_datasource.dart';
+import '../../domain/repositories/settings_repository.dart';
 import 'infra_providers.dart';
 import 'update_provider.dart';
 
@@ -47,14 +47,15 @@ class UpdateState {
 /// 업데이트 상태 관리 Notifier
 class UpdateStateNotifier extends StateNotifier<UpdateState> {
   final UpdateService _service;
-  final PreferencesLocalDataSource _prefs;
+  final SettingsRepository _settingsRepository;
 
-  UpdateStateNotifier(this._service, this._prefs) : super(const UpdateState()) {
+  UpdateStateNotifier(this._service, this._settingsRepository)
+      : super(const UpdateState()) {
     _loadDismissedVersion();
   }
 
   Future<void> _loadDismissedVersion() async {
-    final dismissed = await _prefs.getDismissedUpdateVersion();
+    final dismissed = await _settingsRepository.getDismissedUpdateVersion();
     if (mounted) {
       state = state.copyWith(dismissedVersion: dismissed);
     }
@@ -86,13 +87,13 @@ class UpdateStateNotifier extends StateNotifier<UpdateState> {
     final version = state.result?.latestVersion;
     if (version == null) return;
 
-    await _prefs.setDismissedUpdateVersion(version);
+    await _settingsRepository.setDismissedUpdateVersion(version);
     state = state.copyWith(dismissedVersion: version);
   }
 
   /// dismiss 상태 초기화 (수동 업데이트 확인 시)
   Future<void> clearDismissal() async {
-    await _prefs.clearDismissedUpdateVersion();
+    await _settingsRepository.clearDismissedUpdateVersion();
     state = state.copyWith(clearDismissed: true);
   }
 }
@@ -101,6 +102,6 @@ class UpdateStateNotifier extends StateNotifier<UpdateState> {
 final updateStateProvider =
     StateNotifierProvider<UpdateStateNotifier, UpdateState>((ref) {
   final service = ref.watch(updateServiceProvider);
-  final prefs = ref.watch(preferencesLocalDataSourceProvider);
-  return UpdateStateNotifier(service, prefs);
+  final settingsRepository = ref.watch(settingsRepositoryProvider);
+  return UpdateStateNotifier(service, settingsRepository);
 });
