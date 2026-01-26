@@ -103,15 +103,3 @@ final diaryAnalysisControllerProvider =
     StateNotifierProvider.autoDispose<DiaryAnalysisNotifier, DiaryAnalysisState>((ref) {
   return DiaryAnalysisNotifier(ref);
 });
-
-/// 일기 목록 Provider
-final diaryListProvider = FutureProvider.autoDispose<List<Diary>>((ref) async {
-  final repository = ref.watch(diaryRepositoryProvider);
-  return repository.getAllDiaries();
-});
-
-/// 오늘 일기 목록 Provider
-final todayDiariesProvider = FutureProvider.autoDispose<List<Diary>>((ref) async {
-  final repository = ref.watch(diaryRepositoryProvider);
-  return repository.getTodayDiaries();
-});

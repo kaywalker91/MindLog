@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/update_service.dart';
-import '../../data/datasources/local/preferences_local_datasource.dart';
+import '../../domain/repositories/settings_repository.dart';
 import 'infra_providers.dart';
 import 'update_provider.dart';
 
@@ -57,10 +57,10 @@ class AppUpgradeState {
 /// - 동일 버전: 다이얼로그 표시 안 함
 /// - 업그레이드: changelog 가져와서 다이얼로그 표시, 버전 저장
 class AppUpgradeCheckNotifier extends StateNotifier<AsyncValue<AppUpgradeState>> {
-  final PreferencesLocalDataSource _prefs;
+  final SettingsRepository _settingsRepository;
   final UpdateService _updateService;
 
-  AppUpgradeCheckNotifier(this._prefs, this._updateService)
+  AppUpgradeCheckNotifier(this._settingsRepository, this._updateService)
       : super(const AsyncValue.loading());
 
   /// 앱 업그레이드 여부 확인
@@ -70,11 +70,11 @@ class AppUpgradeCheckNotifier extends StateNotifier<AsyncValue<AppUpgradeState>>
     state = const AsyncValue.loading();
 
     try {
-      final previousVersion = await _prefs.getLastSeenAppVersion();
+      final previousVersion = await _settingsRepository.getLastSeenAppVersion();
 
       // 신규 설치: previousVersion이 null
       if (previousVersion == null) {
-        await _prefs.setLastSeenAppVersion(currentVersion);
+        await _settingsRepository.setLastSeenAppVersion(currentVersion);
         state = AsyncValue.data(AppUpgradeState(
           isUpgradeDetected: false,
           currentVersion: currentVersion,
@@ -128,7 +128,7 @@ class AppUpgradeCheckNotifier extends StateNotifier<AsyncValue<AppUpgradeState>>
       if (kDebugMode) {
         debugPrint('[AppUpgradeCheck] Error during upgrade check: $e');
       }
-      await _prefs.setLastSeenAppVersion(currentVersion);
+      await _settingsRepository.setLastSeenAppVersion(currentVersion);
       state = AsyncValue.error(e, st);
     }
   }
@@ -140,7 +140,7 @@ class AppUpgradeCheckNotifier extends StateNotifier<AsyncValue<AppUpgradeState>>
     final current = state.valueOrNull;
     if (current == null) return;
 
-    await _prefs.setLastSeenAppVersion(current.currentVersion);
+    await _settingsRepository.setLastSeenAppVersion(current.currentVersion);
     state = AsyncValue.data(current.copyWith(hasShownWhatsNew: true));
 
     if (kDebugMode) {
@@ -152,7 +152,7 @@ class AppUpgradeCheckNotifier extends StateNotifier<AsyncValue<AppUpgradeState>>
 /// 앱 업그레이드 확인 Provider
 final appUpgradeCheckProvider =
     StateNotifierProvider<AppUpgradeCheckNotifier, AsyncValue<AppUpgradeState>>((ref) {
-  final prefs = ref.watch(preferencesLocalDataSourceProvider);
+  final settingsRepository = ref.watch(settingsRepositoryProvider);
   final service = ref.watch(updateServiceProvider);
-  return AppUpgradeCheckNotifier(prefs, service);
+  return AppUpgradeCheckNotifier(settingsRepository, service);
 });
