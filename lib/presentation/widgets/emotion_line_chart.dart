@@ -28,9 +28,11 @@ class EmotionLineChart extends StatelessWidget {
     // Repository에서 이미 최신순 정렬됨 → 역순으로 변환 (복사+정렬 제거)
     final sortedEmotions = dailyEmotions.reversed.toList();
 
-    return SizedBox(
-      height: 200,
-      child: LineChart(
+    // RepaintBoundary: fl_chart의 CustomPaint가 상위 위젯 rebuild 시 불필요하게 repaint되는 것 방지
+    return RepaintBoundary(
+      child: SizedBox(
+        height: 200,
+        child: LineChart(
         LineChartData(
           gridData: FlGridData(
             show: true,
@@ -163,6 +165,7 @@ class EmotionLineChart extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

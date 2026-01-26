@@ -207,9 +207,12 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
           final shouldAnimate = AnimationSettings.shouldAnimate(context);
 
           // 초기 로드 시 stagger 애니메이션 적용
-          Widget item = KeyedSubtree(
-            key: ValueKey(diary.id),
-            child: _buildSwipeableDiaryItem(diary),
+          // RepaintBoundary: 개별 카드의 불필요한 repaint 방지
+          Widget item = RepaintBoundary(
+            child: KeyedSubtree(
+              key: ValueKey(diary.id),
+              child: _buildSwipeableDiaryItem(diary),
+            ),
           );
 
           if (_isInitialLoad && shouldAnimate && index < 10) {

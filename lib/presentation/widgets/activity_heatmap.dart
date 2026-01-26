@@ -31,13 +31,16 @@ class ActivityHeatmap extends StatelessWidget {
     // activityMap 키 정규화 (O(n) 전처리로 O(n²) → O(n) 최적화)
     final normalizedActivityMap = _normalizeActivityMap();
 
-    return Column(
+    // RepaintBoundary: 168개 셀(24주×7일) 그리드의 불필요한 repaint 방지
+    return RepaintBoundary(
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildHeatmap(context, startDate, now, normalizedActivityMap),
         const SizedBox(height: 12),
         _buildLegend(context),
       ],
+      ),
     );
   }
 

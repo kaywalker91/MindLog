@@ -29,13 +29,16 @@ class EmotionGarden extends StatelessWidget {
     final startDate = now.subtract(Duration(days: weeksToShow * 7 - 1));
     final normalizedActivityMap = _normalizeActivityMap();
 
-    return Column(
+    // RepaintBoundary: 168개 셀(24주×7일) 그리드의 불필요한 repaint 방지
+    return RepaintBoundary(
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildGarden(context, startDate, now, normalizedActivityMap),
         const SizedBox(height: 12),
         _buildLegend(context),
       ],
+      ),
     );
   }
 
