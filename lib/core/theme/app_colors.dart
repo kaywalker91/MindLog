@@ -78,9 +78,31 @@ class AppColors {
   static const Color gardenWarm4 = Color(0xFFD4E8D0);        // 민트 (7-8점)
   static const Color gardenWarm5 = Color(0xFFC0E0BC);        // 연초록 (9-10점)
 
+  // Legacy Garden Colors (기존 hex 호환)
+  static const Color gardenLegacy1 = Color(0xFFF5F8F5);      // 1-2점
+  static const Color gardenLegacy2 = Color(0xFFEDF5ED);      // 3-4점
+  static const Color gardenLegacy3 = Color(0xFFE5F2E5);      // 5-6점
+  static const Color gardenLegacy4 = Color(0xFFDDEFDD);      // 7-8점
+  static const Color gardenLegacy5 = Color(0xFFD4EBD4);      // 9-10점
+
   // Cell Glow Colors
   static const Color gardenGlow = Color(0xFFA8E6CF);         // 성취감 glow
   static const Color todayGlow = Color(0xFFFFE4B5);          // 오늘 강조 (모카신)
+
+  // Action/Mission Colors (행동 추천 UI)
+  static const Color actionAmber = Color(0xFFFFC107);
+  static const Color actionAmberDark = Color(0xFFF9A825);     // amber.shade800 대체
+  static const Color actionStep1 = Color(0xFF4CAF50);         // 즉시 행동 (green)
+  static const Color actionStep2 = Color(0xFFFF9800);         // 오늘 중 (orange)
+  static const Color actionStep3 = Color(0xFF2196F3);         // 이번 주 (blue)
+
+  // SOS Colors (긴급 상황 UI)
+  static const Color sosCardBackground = Color(0xFFFFEBEE);   // red.shade50
+  static const Color sosCardBorder = Color(0xFFEF9A9A);       // red.shade200
+  static const Color sosIcon = Color(0xFFF44336);             // red
+  static const Color sosTextDark = Color(0xFFC62828);         // red.shade800
+  static const Color sosTextDarker = Color(0xFFB71C1C);       // red.shade900
+  static const Color sosButton = Color(0xFFEF5350);           // red.shade400
 
   /// 감정 점수에 따른 색상 반환
   static Color getSentimentColor(int score) {

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/update_service.dart';
 import '../../domain/repositories/settings_repository.dart';
-import 'infra_providers.dart';
+import 'package:mindlog/core/di/infra_providers.dart';
 import 'update_provider.dart';
 
 /// 업데이트 상태 모델

@@ -582,8 +582,9 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     EmotionStatistics statistics,
     StatisticsPeriod period,
   ) {
-    if (period.days != null) {
-      return period.days!;
+    final days = period.days;
+    if (days != null) {
+      return days;
     }
 
     if (statistics.activityMap.isEmpty) {

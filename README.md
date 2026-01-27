@@ -101,8 +101,39 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.25 (Current)
-*   **위젯 분해 & 공통 컴포넌트 추출:**
+### v1.4.26 (Current)
+*   **코드 리뷰 기반 아키텍처 개선 (HIGH~LOW 이슈 수정):**
+    *   **DI 계층 분리:** `infra_providers.dart`를 `presentation/providers/` → `core/di/`로 이전
+        *   Clean Architecture 의존성 방향 준수 (presentation → domain ← data)
+        *   기존 경로에 re-export 파일을 유지하여 하위 호환성 확보
+    *   **main.dart 리팩토링:**
+        *   `data/datasources/` 직접 import 제거 → DI Provider를 통한 간접 접근
+        *   초기화 로직을 `_initializeApp()` 함수로 추출 (단일 책임 원칙)
+        *   `MaterialApp` → `MaterialApp.router` 전환 (GoRouter 완전 통합)
+        *   `NavigatorObserver`, `navigatorKey`를 GoRouter에서 중앙 관리
+        *   15초 안전 타임아웃 적용 (`Future.any`)으로 무한 대기 방지
+        *   FCM/알림 재스케줄링을 `unawaited`로 비차단 처리하여 앱 시작 속도 개선
+    *   **FCMService 안전성 강화:**
+        *   `_messaging!` force unwrap 3건 → 로컬 변수 캡처 패턴으로 교체
+        *   APNS 토큰 재시도 횟수 10회 → 3회 최적화
+    *   **NotificationActionHandler GoRouter 마이그레이션:**
+        *   `Navigator.popUntil/push` → `context.go/push` 교체
+        *   `DiaryScreen` 직접 import 제거 → `AppRoutes.diaryNew` 경로 사용
+    *   **DB 복원 서비스 개선:** `forceReconnect()` 호출을 DI Provider 경유로 변경
+*   **하드코딩 색상 중앙화 (MEDIUM):**
+    *   **AppColors에 16개 신규 상수 추가:**
+        *   `gardenLegacy1~5`: 감정 정원 배경색 (기존 hex 값 대체)
+        *   `actionAmber`, `actionAmberDark`, `actionStep1~3`: 행동 추천 UI 색상
+        *   `sosCardBackground`, `sosCardBorder`, `sosIcon`, `sosTextDark`, `sosTextDarker`, `sosButton`: SOS 카드 색상
+    *   **emotion_garden.dart:** 5개 `Color(0xFF...)` → `AppColors.gardenLegacy1~5`
+    *   **sos_card.dart:** 8개 `Colors.red.*` → `AppColors.sos*` 상수
+    *   **action_items_section.dart:** 11개 `Colors.amber/green/orange/blue/grey` → `AppColors.action*/textHint/textSecondary`
+*   **데드 코드 제거 & Null Safety 강화 (LOW):**
+    *   **diary_list_screen.dart:** 빈 `// TODO: 설정 화면 이동` → `context.goSettings()` 실제 구현
+    *   **statistics_screen.dart:** `period.days!` force unwrap → 로컬 변수 캡처 패턴 적용
+*   **검증:** `flutter analyze` 0건, `flutter test` 837/837 통과
+
+### v1.4.25
     *   **DiaryListScreen 분해:** 340줄 감소 — 목록 화면을 다수의 재사용 가능한 위젯으로 분리
         *   `TappableCard`: scale + shadow 애니메이션이 있는 범용 탭 피드백 카드
         *   `WriteFab`: 그라데이션 + 햅틱 피드백 FAB (오늘 기록하기)

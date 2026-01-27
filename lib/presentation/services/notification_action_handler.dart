@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/ui_state_providers.dart';
-import '../screens/diary_screen.dart';
+import '../router/app_router.dart';
 
 enum _NotificationDestination {
   diaryList,
@@ -107,20 +108,19 @@ class NotificationActionHandler {
   }
 
   static void _apply(_NotificationDestination destination) {
-    final navigator = _navigatorKey?.currentState;
-    if (navigator == null) {
+    final context = _navigatorKey?.currentContext;
+    if (context == null) {
       _pending.add(destination);
       return;
     }
 
-    navigator.popUntil((route) => route.isFirst);
+    // GoRouter로 홈 화면으로 이동 (스택 초기화)
+    context.go(AppRoutes.home);
     final tabIndex = _tabIndexFor(destination);
     _container?.read(selectedTabIndexProvider.notifier).state = tabIndex;
 
     if (destination == _NotificationDestination.newDiary) {
-      navigator.push(
-        MaterialPageRoute(builder: (_) => const DiaryScreen()),
-      );
+      context.push(AppRoutes.diaryNew);
     }
   }
 

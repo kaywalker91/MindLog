@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
 /// 응급 상황(SOS) 카드 위젯
@@ -12,12 +13,12 @@ class SOSCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: AppColors.sosCardBackground,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.red.shade200, width: 2),
+        border: Border.all(color: AppColors.sosCardBorder, width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.red.withValues(alpha: 0.1),
+            color: AppColors.sosIcon.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -25,7 +26,7 @@ class SOSCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(Icons.warning_amber_rounded, size: 56, color: Colors.red)
+          const Icon(Icons.warning_amber_rounded, size: 56, color: AppColors.sosIcon)
               .animate(onPlay: (controller) => controller.repeat(reverse: true))
               .scale(
                 begin: const Offset(1, 1),
@@ -35,7 +36,7 @@ class SOSCard extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             '전문가의 도움이 필요할 수 있어요',
-            style: AppTextStyles.headline.copyWith(color: Colors.red.shade800),
+            style: AppTextStyles.headline.copyWith(color: AppColors.sosTextDark),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -43,7 +44,7 @@ class SOSCard extends StatelessWidget {
             '혼자서 너무 힘들어하지 마세요.\n당신의 이야기를 들어줄 전문가가 기다리고 있습니다.',
             style: AppTextStyles.body.copyWith(
               height: 1.5,
-              color: Colors.red.shade900,
+              color: AppColors.sosTextDarker,
             ),
             textAlign: TextAlign.center,
           ),
@@ -89,7 +90,7 @@ class _EmergencyButton extends StatelessWidget {
       icon: Icon(icon, color: Colors.white),
       label: Text(label),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.red.shade400,
+        backgroundColor: AppColors.sosButton,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
         minimumSize: const Size(double.infinity, 50),

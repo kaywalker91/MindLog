@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mindlog/domain/entities/statistics.dart';
-import 'package:mindlog/presentation/providers/infra_providers.dart';
+import 'package:mindlog/core/di/infra_providers.dart';
 import 'package:mindlog/presentation/providers/ui_state_providers.dart';
 
 /// 통계 화면 전용 상태 Provider

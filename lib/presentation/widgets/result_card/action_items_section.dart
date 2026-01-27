@@ -31,21 +31,21 @@ class ActionItemsSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.amber.withValues(alpha: 0.05),
+        color: AppColors.actionAmber.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.actionAmber.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline, color: Colors.amber, size: 20),
+              const Icon(Icons.lightbulb_outline, color: AppColors.actionAmber, size: 20),
               const SizedBox(width: 8),
               Text(
                 '오늘의 마음 챙김 미션',
                 style: AppTextStyles.subtitle.copyWith(
-                  color: Colors.amber.shade800,
+                  color: AppColors.actionAmberDark,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -71,12 +71,12 @@ class ActionItemsSection extends StatelessWidget {
         decoration: BoxDecoration(
           color: isActionCompleted
               ? AppColors.success.withValues(alpha: 0.1)
-              : Colors.amber.withValues(alpha: 0.05),
+              : AppColors.actionAmber.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isActionCompleted
                 ? AppColors.success
-                : Colors.amber.withValues(alpha: 0.5),
+                : AppColors.actionAmber.withValues(alpha: 0.5),
             width: 2,
           ),
         ),
@@ -87,7 +87,7 @@ class ActionItemsSection extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: isActionCompleted ? AppColors.success : Colors.white,
                 border: Border.all(
-                  color: isActionCompleted ? AppColors.success : Colors.amber,
+                  color: isActionCompleted ? AppColors.success : AppColors.actionAmber,
                   width: 2,
                 ),
               ),
@@ -110,7 +110,7 @@ class ActionItemsSection extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: isActionCompleted
                           ? AppColors.success
-                          : Colors.amber.shade800,
+                          : AppColors.actionAmberDark,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -121,7 +121,7 @@ class ActionItemsSection extends StatelessWidget {
                       decoration:
                           isActionCompleted ? TextDecoration.lineThrough : null,
                       color: isActionCompleted
-                          ? Colors.grey
+                          ? AppColors.textHint
                           : AppColors.textPrimary,
                     ),
                   ),
@@ -198,13 +198,13 @@ class ActionItemsSection extends StatelessWidget {
   Color _getStepColor(int index) {
     switch (index) {
       case 0:
-        return Colors.green;
+        return AppColors.actionStep1;
       case 1:
-        return Colors.orange;
+        return AppColors.actionStep2;
       case 2:
-        return Colors.blue;
+        return AppColors.actionStep3;
       default:
-        return Colors.grey;
+        return AppColors.textSecondary;
     }
   }
 

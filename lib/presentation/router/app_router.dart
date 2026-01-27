@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mindlog/core/services/analytics_service.dart';
 import 'package:mindlog/domain/entities/diary.dart';
+import 'package:mindlog/main.dart' show rootNavigatorKey;
 import 'package:mindlog/presentation/screens/changelog_screen.dart';
 import 'package:mindlog/presentation/screens/diary_detail_screen.dart';
 import 'package:mindlog/presentation/screens/diary_screen.dart';
@@ -33,9 +35,13 @@ class AppRouter {
   AppRouter._();
 
   static final GoRouter router = GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: true,
-    
+    observers: [
+      if (AnalyticsService.observer != null) AnalyticsService.observer!,
+    ],
+
     // 에러 페이지
     errorBuilder: (context, state) => _ErrorPage(error: state.error),
     

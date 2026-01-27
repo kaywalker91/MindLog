@@ -264,11 +264,11 @@ class EmotionGarden extends StatelessWidget {
   Color _getBackgroundColor(double? score) {
     if (score == null) return AppColors.gardenSoil;
     // 성장할수록 연두빛 배경
-    if (score <= 2) return const Color(0xFFF5F8F5);
-    if (score <= 4) return const Color(0xFFEDF5ED);
-    if (score <= 6) return const Color(0xFFE5F2E5);
-    if (score <= 8) return const Color(0xFFDDEFDD);
-    return const Color(0xFFD4EBD4);
+    if (score <= 2) return AppColors.gardenLegacy1;
+    if (score <= 4) return AppColors.gardenLegacy2;
+    if (score <= 6) return AppColors.gardenLegacy3;
+    if (score <= 8) return AppColors.gardenLegacy4;
+    return AppColors.gardenLegacy5;
   }
 
   Widget _buildLegend(BuildContext context) {

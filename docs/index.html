@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260127-refactor">
+    <link rel="stylesheet" href="style.css?v=20260128-review">
 </head>
 <body>
     <header class="hero">
@@ -88,32 +88,32 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.25에서는 위젯 분해, 네비게이션 표준화, 테마 일관성, NLP 필터 고도화를 진행했습니다.</p>
+            <p class="section-subtitle">v1.4.26에서는 코드 리뷰 기반 아키텍처 개선, DI 계층 분리, 안전성 강화를 진행했습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
                     <span class="update-tag">Architecture</span>
-                    <h3>🧩 위젯 분해 & 패턴 추출</h3>
-                    <p>DiaryListScreen(340줄 감소)을 TappableCard, WriteFab, ExpandableText 등 재사용 가능한 공통 위젯으로 분해했습니다. Entity 표시 로직은 Extension 메서드로 분리하여 Clean Architecture를 준수합니다.</p>
+                    <h3>🏗️ DI 계층 분리 & main.dart 리팩토링</h3>
+                    <p>infra_providers.dart를 presentation → core/di/로 이전하여 Clean Architecture 의존성 방향을 준수합니다. main.dart에서 data layer 직접 참조를 제거하고 초기화 로직을 _initializeApp()으로 추출했습니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Navigation</span>
-                    <h3>🧭 go_router 네비게이션 통일</h3>
-                    <p>레거시 Navigator.push 호출을 go_router의 context.push/go로 전면 마이그레이션했습니다. 선언적 라우팅으로 딥링크 대응과 뒤로가기 동작이 일관됩니다.</p>
+                    <span class="update-tag">Safety</span>
+                    <h3>🛡️ Null Safety & Force Unwrap 제거</h3>
+                    <p>FCMService의 _messaging! force unwrap을 로컬 변수 캡처 패턴으로 교체했습니다. statistics_screen의 period.days! 위험 코드도 안전한 패턴으로 수정했습니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">UX</span>
-                    <h3>🗑️ Soft Delete & Undo 패턴</h3>
-                    <p>일기 삭제 시 즉시 리스트에서 제거하되 5초 내 되돌리기가 가능한 Undo SnackBar 패턴을 적용했습니다. Timer 생명주기 관리와 낙관적 업데이트로 안정적인 UX를 제공합니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">NLP</span>
-                    <h3>🇰🇷 한국어 텍스트 필터 고도화</h3>
-                    <p>AI 응답의 한국어 품질을 향상시키는 4단계 NLP 파이프라인(문법 교정→존칭 정규화→CJK 제거→후처리)을 구축했습니다. 테스트 136건 추가로 품질을 검증합니다.</p>
+                    <span class="update-tag">Stability</span>
+                    <h3>⏱️ 초기화 타임아웃 & FCM 최적화</h3>
+                    <p>앱 초기화에 15초 안전 타임아웃을 적용하여 무한 대기를 방지합니다. FCM APNS 토큰 재시도를 10회→3회로 최적화하고, 비차단(unawaited) 초기화로 앱 시작 속도를 개선했습니다.</p>
                 </div>
                 <div class="update-card">
                     <span class="update-tag">Theme</span>
-                    <h3>🎨 다크모드 색상 일관성</h3>
-                    <p>하드코딩된 Colors.white/black을 colorScheme.surface/onSurface로 전면 교체하여 다크모드에서도 자연스러운 색상을 보장합니다.</p>
+                    <h3>🎨 하드코딩 색상 중앙화</h3>
+                    <p>SOS 긴급 카드, 행동 추천 UI, 감정 정원의 하드코딩 색상(Colors.red/amber/green 등)을 AppColors 상수로 통합했습니다. 16개 신규 색상 상수를 추가하여 테마 일관성을 확보합니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Router</span>
+                    <h3>🧭 GoRouter 완전 통합</h3>
+                    <p>MaterialApp → MaterialApp.router로 전환하고, NavigatorObserver와 navigatorKey를 GoRouter에서 관리하도록 이전했습니다. NotificationActionHandler도 GoRouter 기반으로 마이그레이션했습니다.</p>
                 </div>
             </div>
         </div>

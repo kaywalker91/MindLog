@@ -30,6 +30,8 @@ class DbRecoveryService {
     _checked = true;
 
     try {
+      // 앱 시작 시 캐시된 DB 연결 해제 (OS 복원된 파일 반영)
+      await SqliteLocalDataSource.forceReconnect();
       final prefs = await SharedPreferences.getInstance();
       final prefsSessionId = prefs.getString(_sessionIdKey);
       final dbSessionId = await dataSource.getMetadata(_sessionIdKey);

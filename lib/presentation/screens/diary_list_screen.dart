@@ -49,9 +49,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () {
-              // TODO: 설정 화면 이동
-            },
+            onPressed: () => context.goSettings(),
           ),
         ],
       ),

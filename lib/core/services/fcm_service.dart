@@ -19,10 +19,11 @@ class FCMService {
   static Future<void> initialize({
     void Function(Map<String, dynamic> data)? onMessageOpened,
   }) async {
-    _messaging = FirebaseMessaging.instance;
+    final messaging = FirebaseMessaging.instance;
+    _messaging = messaging;
     _onMessageOpened = onMessageOpened;
 
-    final settings = await _messaging!.requestPermission(
+    final settings = await messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
@@ -37,7 +38,7 @@ class FCMService {
         settings.authorizationStatus == AuthorizationStatus.provisional) {
       await _getToken();
 
-      _messaging!.onTokenRefresh.listen(_onTokenRefresh);
+      messaging.onTokenRefresh.listen(_onTokenRefresh);
       _setupMessageHandlers();
     }
   }
@@ -48,7 +49,7 @@ class FCMService {
         defaultTargetPlatform == TargetPlatform.macOS) {
       String? apnsToken;
       int retryCount = 0;
-      const maxRetries = 10;
+      const maxRetries = 3;
 
       while (apnsToken == null && retryCount < maxRetries) {
         apnsToken = await _messaging?.getAPNSToken();
