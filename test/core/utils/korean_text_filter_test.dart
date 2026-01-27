@@ -148,9 +148,7 @@ void main() {
       });
 
       test('여러 한자어가 포함된 텍스트를 모두 대체한다', () {
-        final result = KoreanTextFilter.processKoreanText(
-          '感情을 이해하고 幸福을 찾으세요',
-        );
+        final result = KoreanTextFilter.processKoreanText('感情을 이해하고 幸福을 찾으세요');
         expect(result, equals('감정을 이해하고 행복을 찾으세요'));
       });
 
@@ -161,9 +159,7 @@ void main() {
       });
 
       test('한자어와 일본어가 혼합된 경우 모두 처리한다', () {
-        final result = KoreanTextFilter.processKoreanText(
-          '希望と감정을 가지세요',
-        );
+        final result = KoreanTextFilter.processKoreanText('希望と감정을 가지세요');
         expect(result, contains('희망'));
         expect(result, isNot(contains('と')));
       });
@@ -174,23 +170,17 @@ void main() {
     // ============================================================
     group('processKoreanText - 중복 조사 제거', () {
       test('에게를 → 에게로 교정한다', () {
-        final result = KoreanTextFilter.processKoreanText(
-          '친구에게를 감정을 전해주세요',
-        );
+        final result = KoreanTextFilter.processKoreanText('친구에게를 감정을 전해주세요');
         expect(result, equals('친구에게 감정을 전해주세요'));
       });
 
       test('한테를 → 한테로 교정한다', () {
-        final result = KoreanTextFilter.processKoreanText(
-          '동생한테를 말해주세요',
-        );
+        final result = KoreanTextFilter.processKoreanText('동생한테를 말해주세요');
         expect(result, equals('동생한테 말해주세요'));
       });
 
       test('에서를 → 에서로 교정한다', () {
-        final result = KoreanTextFilter.processKoreanText(
-          '학교에서를 공부하세요',
-        );
+        final result = KoreanTextFilter.processKoreanText('학교에서를 공부하세요');
         expect(result, equals('학교에서 공부하세요'));
       });
 
@@ -294,6 +284,122 @@ void main() {
       test('중복 조사가 있는 경우 전체 파이프라인을 적용한다', () {
         final result = KoreanTextFilter.filterMessage('친구에게를 말해주세요.');
         expect(result, equals('친구에게 말해주세요.'));
+      });
+    });
+
+    // ============================================================
+    // 신규 기능 테스트: 은/는 주제격 조사 교정
+    // ============================================================
+    group('processKoreanText - 은/는 교정', () {
+      test('대명사 나은 → 나는으로 교정한다', () {
+        final result = KoreanTextFilter.processKoreanText('나은 괜찮아요.');
+        expect(result, equals('나는 괜찮아요.'));
+      });
+
+      test('대명사 저은 → 저는으로 교정한다', () {
+        final result = KoreanTextFilter.processKoreanText('저은 행복해요.');
+        expect(result, equals('저는 행복해요.'));
+      });
+
+      test('고빈도 오류 하루은 → 하루는으로 교정한다', () {
+        final result = KoreanTextFilter.processKoreanText('하루은 힘들었어요.');
+        expect(result, equals('하루는 힘들었어요.'));
+      });
+
+      test('우리은 → 우리는으로 교정한다', () {
+        final result = KoreanTextFilter.processKoreanText('우리은 함께해요.');
+        expect(result, equals('우리는 함께해요.'));
+      });
+
+      test('정상적인 은/는은 변경하지 않는다', () {
+        final result = KoreanTextFilter.processKoreanText('오늘은 좋은 날이에요.');
+        expect(result, equals('오늘은 좋은 날이에요.'));
+      });
+    });
+
+    // ============================================================
+    // 신규 기능 테스트: 공통 오류 사전
+    // ============================================================
+    group('processKoreanText - 공통 오류 사전', () {
+      test('휴식를 → 휴식을로 교정한다', () {
+        final result = KoreanTextFilter.processKoreanText('휴식를 취하세요.');
+        expect(result, equals('휴식을 취하세요.'));
+      });
+
+      test('마음를 → 마음을로 교정한다', () {
+        final result = KoreanTextFilter.processKoreanText('마음를 다스려보세요.');
+        expect(result, equals('마음을 다스려보세요.'));
+      });
+
+      test('생각를 → 생각을로 교정한다', () {
+        final result = KoreanTextFilter.processKoreanText('생각를 정리해보세요.');
+        expect(result, equals('생각을 정리해보세요.'));
+      });
+
+      test('여러 오류가 함께 있는 경우 모두 교정한다', () {
+        final result = KoreanTextFilter.processKoreanText(
+          '휴식를 취하고 마음를 다스려보세요.',
+        );
+        expect(result, equals('휴식을 취하고 마음을 다스려보세요.'));
+      });
+    });
+
+    // ============================================================
+    // 신규 기능 테스트: 존댓말 정규화
+    // ============================================================
+    group('normalizeHonorific', () {
+      test('해봐 → 해보세요로 교정한다', () {
+        final result = KoreanTextFilter.normalizeHonorific('한번 해봐.');
+        expect(result, equals('한번 해보세요.'));
+      });
+
+      test('괜찮아 → 괜찮아요로 교정한다 (문장 끝)', () {
+        final result = KoreanTextFilter.normalizeHonorific('괜찮아.');
+        expect(result, equals('괜찮아요.'));
+      });
+
+      test('해봐요 → 해보세요로 교정한다 (어색한 존댓말)', () {
+        final result = KoreanTextFilter.normalizeHonorific('한번 해봐요.');
+        expect(result, equals('한번 해보세요.'));
+      });
+
+      test('쉬어봐 → 쉬어보세요로 교정한다', () {
+        final result = KoreanTextFilter.normalizeHonorific('좀 쉬어봐.');
+        expect(result, equals('좀 쉬어보세요.'));
+      });
+
+      test('정상 존댓말은 변경하지 않는다', () {
+        final result = KoreanTextFilter.normalizeHonorific('해보세요.');
+        expect(result, equals('해보세요.'));
+      });
+
+      test('문장 중간의 단어는 변경하지 않는다', () {
+        // "괜찮아서"는 구분자 앞이 아니므로 변경 안 됨
+        final result = KoreanTextFilter.normalizeHonorific('괜찮아서 다행이에요.');
+        expect(result, equals('괜찮아서 다행이에요.'));
+      });
+    });
+
+    // ============================================================
+    // 통합 테스트: 전체 파이프라인 복합 케이스
+    // ============================================================
+    group('processKoreanText - 전체 파이프라인 복합', () {
+      test('공통 오류 + 은/는 + 존댓말 복합 케이스', () {
+        final result = KoreanTextFilter.processKoreanText('나은 휴식를 취해봐.');
+        expect(result, equals('나는 휴식을 취해보세요.'));
+      });
+
+      test('한자어 + 조사 오류 + 존댓말 복합 케이스', () {
+        final result = KoreanTextFilter.processKoreanText('希望를 가져봐. 괜찮아.');
+        expect(result, equals('희망을 가져보세요. 괜찮아요.'));
+      });
+
+      test('실제 AI 응답 시나리오', () {
+        // AI가 생성할 수 있는 오류 패턴
+        final result = KoreanTextFilter.processKoreanText(
+          '저은 당신의 마음를 이해해요. 휴식를 취해봐요.',
+        );
+        expect(result, equals('저는 당신의 마음을 이해해요. 휴식을 취해보세요.'));
       });
     });
   });

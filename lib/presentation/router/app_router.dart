@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 import 'package:mindlog/presentation/screens/changelog_screen.dart';
 import 'package:mindlog/presentation/screens/diary_detail_screen.dart';
-import 'package:mindlog/presentation/screens/diary_list_screen.dart';
 import 'package:mindlog/presentation/screens/diary_screen.dart';
+import 'package:mindlog/presentation/screens/main_screen.dart';
 import 'package:mindlog/presentation/screens/privacy_policy_screen.dart';
 import 'package:mindlog/presentation/screens/settings_screen.dart';
 import 'package:mindlog/presentation/screens/splash_screen.dart';
@@ -47,11 +47,11 @@ class AppRouter {
         builder: (context, state) => const SplashScreen(),
       ),
       
-      // 홈 (일기 목록)
+      // 홈 (메인 화면 - 일기 목록 + 통계 + 설정)
       GoRoute(
         path: AppRoutes.home,
         name: 'home',
-        builder: (context, state) => const DiaryListScreen(),
+        builder: (context, state) => const MainScreen(),
       ),
       
       // 새 일기 작성
@@ -179,10 +179,10 @@ extension AppRouterExtension on BuildContext {
   void goHome() => go(AppRoutes.home);
 
   /// 새 일기 작성 화면으로 이동
-  void goNewDiary() => go(AppRoutes.diaryNew);
+  void goNewDiary() => push(AppRoutes.diaryNew);
 
   /// 일기 상세 화면으로 이동
-  void goDiaryDetail(Diary diary) => go(
+  void goDiaryDetail(Diary diary) => push(
         AppRoutes.diaryDetail.replaceFirst(':id', diary.id.toString()),
         extra: diary,
       );

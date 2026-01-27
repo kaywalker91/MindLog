@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
@@ -22,12 +24,14 @@ class DiaryDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: MindlogAppBar(
         title: const Text('일기 상세'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.white),
+            icon: Icon(Icons.delete_outline, color: colorScheme.onPrimary),
             tooltip: '일기 삭제',
             onPressed: () => DeleteDiaryDialog.show(
               context,
@@ -47,7 +51,9 @@ class DiaryDetailScreen extends ConsumerWidget {
               // 날짜 표시
               Text(
                 _dateFormatter.format(diary.createdAt),
-                style: AppTextStyles.bodySmall.copyWith(color: Colors.grey),
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -56,11 +62,11 @@ class DiaryDetailScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: colorScheme.shadow.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -99,7 +105,7 @@ class DiaryDetailScreen extends ConsumerWidget {
                 // 여기서는 단순히 pop
                 ResultCard(
                   diary: diary,
-                  onNewDiary: () => Navigator.of(context).pop(),
+                  onNewDiary: () => context.pop(),
                 ),
               ] else if (diary.status == DiaryStatus.pending) ...[
                 const Center(
@@ -111,7 +117,7 @@ class DiaryDetailScreen extends ConsumerWidget {
               ] else if (diary.status == DiaryStatus.safetyBlocked) ...[
                 const Divider(),
                 const SizedBox(height: 16),
-                SosCard(onClose: () => Navigator.of(context).pop()),
+                SosCard(onClose: () => context.pop()),
               ] else if (diary.status == DiaryStatus.failed) ...[
                 const Center(
                   child: Padding(

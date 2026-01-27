@@ -7,9 +7,9 @@ import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/splash_theme.dart';
+import '../router/app_router.dart';
 import '../widgets/splash_animation_widget.dart';
 import '../widgets/loading_indicator.dart';
-import 'main_screen.dart';
 
 /// 앱 전체 시작 화면
 class SplashScreen extends ConsumerStatefulWidget {
@@ -57,16 +57,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   }
 
   void _navigateToDiary() {
-    Navigator.of(context).pushAndRemoveUntil(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const MainScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 500),
-      ),
-      (route) => false,
-    );
+    if (mounted) {
+      context.goHome();
+    }
   }
 
   @override

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260126-perf">
+    <link rel="stylesheet" href="style.css?v=20260127-refactor">
 </head>
 <body>
     <header class="hero">
@@ -88,22 +88,32 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.24에서는 성능 최적화와 코드 아키텍처 개선에 집중했습니다.</p>
+            <p class="section-subtitle">v1.4.25에서는 위젯 분해, 네비게이션 표준화, 테마 일관성, NLP 필터 고도화를 진행했습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
-                    <span class="update-tag">Performance</span>
-                    <h3>⚡ Isolate 기반 이미지 처리</h3>
-                    <p>이미지 처리를 별도 스레드(Isolate)에서 수행하여 UI 프레임 드랍을 방지합니다. 대용량 이미지도 앱이 멈추지 않고 부드럽게 처리됩니다.</p>
-                </div>
-                <div class="update-card">
                     <span class="update-tag">Architecture</span>
-                    <h3>🏗️ 위젯 모듈화</h3>
-                    <p>SettingsScreen(1,200줄→200줄), ResultCard(800줄→100줄), EmotionCalendar(400줄→100줄) 등 대형 위젯을 컴포넌트별로 분리하여 유지보수성과 성능을 대폭 개선했습니다.</p>
+                    <h3>🧩 위젯 분해 & 패턴 추출</h3>
+                    <p>DiaryListScreen(340줄 감소)을 TappableCard, WriteFab, ExpandableText 등 재사용 가능한 공통 위젯으로 분해했습니다. Entity 표시 로직은 Extension 메서드로 분리하여 Clean Architecture를 준수합니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Refactor</span>
-                    <h3>🔄 Provider 중앙화</h3>
-                    <p>분산되어 있던 UI 상태 Provider들을 ui_state_providers.dart로 통합했습니다. 상태 관리 흐름이 명확해지고 중복 코드가 제거되었습니다.</p>
+                    <span class="update-tag">Navigation</span>
+                    <h3>🧭 go_router 네비게이션 통일</h3>
+                    <p>레거시 Navigator.push 호출을 go_router의 context.push/go로 전면 마이그레이션했습니다. 선언적 라우팅으로 딥링크 대응과 뒤로가기 동작이 일관됩니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">UX</span>
+                    <h3>🗑️ Soft Delete & Undo 패턴</h3>
+                    <p>일기 삭제 시 즉시 리스트에서 제거하되 5초 내 되돌리기가 가능한 Undo SnackBar 패턴을 적용했습니다. Timer 생명주기 관리와 낙관적 업데이트로 안정적인 UX를 제공합니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">NLP</span>
+                    <h3>🇰🇷 한국어 텍스트 필터 고도화</h3>
+                    <p>AI 응답의 한국어 품질을 향상시키는 4단계 NLP 파이프라인(문법 교정→존칭 정규화→CJK 제거→후처리)을 구축했습니다. 테스트 136건 추가로 품질을 검증합니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Theme</span>
+                    <h3>🎨 다크모드 색상 일관성</h3>
+                    <p>하드코딩된 Colors.white/black을 colorScheme.surface/onSurface로 전면 교체하여 다크모드에서도 자연스러운 색상을 보장합니다.</p>
                 </div>
             </div>
         </div>

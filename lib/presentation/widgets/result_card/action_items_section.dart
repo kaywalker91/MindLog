@@ -217,7 +217,7 @@ class ActionItemsSection extends StatelessWidget {
       case 2:
         return '📅 이번 주';
       default:
-        return '';
+        return '📌 추가 미션';
     }
   }
 }

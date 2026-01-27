@@ -101,7 +101,41 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.24 (Current)
+### v1.4.25 (Current)
+*   **위젯 분해 & 공통 컴포넌트 추출:**
+    *   **DiaryListScreen 분해:** 340줄 감소 — 목록 화면을 다수의 재사용 가능한 위젯으로 분리
+        *   `TappableCard`: scale + shadow 애니메이션이 있는 범용 탭 피드백 카드
+        *   `WriteFab`: 그라데이션 + 햅틱 피드백 FAB (오늘 기록하기)
+        *   `ExpandableText`: 점진적 공개 패턴 (더 보기/접기) 텍스트 위젯
+    *   **`DiaryDisplayExtension`:** Entity 표시 로직(이모지, 배경색 등)을 Extension 메서드로 분리
+*   **go_router 네비게이션 마이그레이션:**
+    *   **레거시 Navigator.push 전면 교체:** `diary_detail_screen`, `diary_screen`, `splash_screen`, `settings_sections` 등
+    *   **context.push / context.go 통일:** 선언적 라우팅으로 딥링크 대응 및 뒤로가기 일관성 확보
+    *   **라우트 경로 상수화:** `AppRouter.diaryPath`, `AppRouter.diaryDetailPath` 등 중앙 관리
+*   **Soft Delete & Undo 패턴:**
+    *   **DiaryListController 신규:** `AsyncNotifier` 기반 일기 목록 상태 관리
+    *   **softDelete():** 리스트 즉시 제거 + 5초 Timer 후 실제 DB 삭제
+    *   **cancelDelete():** Undo SnackBar로 삭제 취소 시 리스트 복원
+    *   **togglePin():** 낙관적 업데이트(Optimistic Update) 적용 핀 토글
+    *   **ref.onDispose():** Timer 생명주기 관리로 메모리 누수 방지
+*   **테마 색상 마이그레이션:**
+    *   **하드코딩 제거:** `Colors.white` → `colorScheme.onPrimary`, `Colors.black` → `colorScheme.shadow`
+    *   **DeleteDiaryDialog:** `colorScheme.surface`, `surfaceContainerHighest`, `error` 적용
+    *   **ResultCard 계열:** `emotion_insight_card`, `empathy_message`, `action_items_section` 테마 색상 적용
+*   **한국어 텍스트 필터 고도화:**
+    *   **4단계 NLP 파이프라인:** 문법 교정 → 존칭 정규화 → CJK 문자 제거 → 후처리
+    *   **Self-Check Protocol 프롬프트:** AI 응답 내 한자/일본어 자체 검증 지시 추가
+    *   **테스트 136건 추가:** 문법 교정, 존칭 일관성, CJK 필터링, 복합 케이스 검증
+*   **ExpandableText 품질 수정:**
+    *   **미사용 mixin 제거:** `SingleTickerProviderStateMixin` 정리
+    *   **build 내 상태 변이 수정:** `_hasOverflow` 인스턴스 필드 → `hasOverflow` 지역 변수
+*   **코드 리뷰 기반 마이너 수정 4건:**
+    *   `TappableCard` shadow color 테마 대응
+    *   `WriteFab` icon/text color 테마 대응
+    *   `ExpandableText` 미사용 코드 정리
+    *   `DiaryListController` Timer dispose 안전성
+
+### v1.4.24
 *   **성능 최적화 (Isolate & RepaintBoundary):**
     *   **Isolate 기반 이미지 처리:** `ImageService`의 이미지 압축/Base64 인코딩을 별도 Isolate에서 수행
     *   **UI 스레드 블로킹 방지:** 대용량 이미지 처리 시에도 60fps 유지

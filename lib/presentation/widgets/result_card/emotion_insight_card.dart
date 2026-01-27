@@ -4,6 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../domain/entities/diary.dart';
 import '../../extensions/emotion_emoji_extension.dart';
+import '../common/expandable_text.dart';
 
 /// 감정 인사이트 카드 (감정 범주 + 유발 요인)
 class EmotionInsightCard extends StatelessWidget {
@@ -83,8 +84,9 @@ class EmotionInsightCard extends StatelessWidget {
                           color: AppColors.statsTextSecondary,
                         ),
                       ),
-                      Text(
-                        result.emotionTrigger!.description,
+                      ExpandableText(
+                        text: result.emotionTrigger!.description,
+                        collapsedMaxLines: 3,
                         style: AppTextStyles.body.copyWith(
                           color: AppColors.statsTextPrimary,
                         ),

@@ -67,11 +67,16 @@ class PromptConstants {
   /// 시간대별 이름
   static String _getTimeSlotName() {
     switch (_getTimeSlot()) {
-      case 0: return '아침';
-      case 1: return '점심';
-      case 2: return '오후';
-      case 3: return '저녁';
-      default: return '밤';
+      case 0:
+        return '아침';
+      case 1:
+        return '점심';
+      case 2:
+        return '오후';
+      case 3:
+        return '저녁';
+      default:
+        return '밤';
     }
   }
 
@@ -113,7 +118,8 @@ class PromptConstants {
     if (cached != null) return cached;
 
     // 캐시에 없으면 생성 후 저장
-    final prompt = '''
+    final prompt =
+        '''
 [Role]
 ${_personaInstruction(character)}
 
@@ -147,19 +153,22 @@ $_commonInstruction
 
   static String _styleGuide(AiCharacter character) {
     return switch (character) {
-      AiCharacter.warmCounselor => '''
+      AiCharacter.warmCounselor =>
+        '''
 [Style Guide - 따뜻한 상담사]
 - empathy_message: 3문장 구조(공감→인정→지지). "괜찮아요" 또는 "마음" 중 하나를 반드시 포함하세요.
 - 말투: 부드럽고 안심시키는 어조, 조언은 제안형으로 표현하세요.
 - action_item: 마음챙김/휴식/감각 중심의 안정적인 행동을 제안하세요.
 ''',
-      AiCharacter.realisticCoach => '''
+      AiCharacter.realisticCoach =>
+        '''
 [Style Guide - 현실적 코치]
 - empathy_message: 2문장. 1문장=상황 요약, 2문장=지금 할 행동 제시. "우선", "지금", "해봅시다" 중 하나를 포함하세요.
 - 말투: 간결하고 명확하게, 과한 위로 표현은 피하세요.
 - action_item: 숫자/시간/횟수를 반드시 포함한 측정 가능한 행동을 제안하세요.
 ''',
-      AiCharacter.cheerfulFriend => '''
+      AiCharacter.cheerfulFriend =>
+        '''
 [Style Guide - 유쾌한 친구]
 - empathy_message: 2~3문장. 밝고 유쾌한 톤, 느낌표 1~2개 허용. "같이" 또는 "우리"를 포함하세요.
 - 말투: 친근하지만 존댓말 유지, 가볍게 넘기지 마세요.
@@ -176,6 +185,38 @@ $_commonInstruction
 - 일본어 절대 사용 금지: ひらがな, カタカナ, 漢字를 사용하지 마세요.
 - 영어 단어 사용 금지: happy, sad, stress 등의 영어를 사용하지 마세요.
 - 모든 필드는 순수 한국어만 사용하세요.
+
+[Self-Check Protocol - 출력 전 자기 점검]
+JSON을 출력하기 전, 다음 3가지를 반드시 확인하세요:
+
+1️⃣ 조사 점검 (받침 규칙)
+   - 받침 있음 + 목적격 → 을 (예: 책을, 마음을, 생각을)
+   - 받침 없음 + 목적격 → 를 (예: 나를, 우리를, 휴식을)
+   - 받침 있음 + 주격 → 이 (예: 사람이, 마음이)
+   - 받침 없음 + 주격 → 가 (예: 친구가, 내가)
+   - 받침 있음 + 주제격 → 은 (예: 오늘은, 마음은)
+   - 받침 없음 + 주제격 → 는 (예: 나는, 하루는)
+
+2️⃣ 존댓말 일관성 점검
+   - 허용 어미: -요, -세요, -습니다, -습니까
+   - 금지 어미: -해, -야, -니, -라 (반말)
+   - 예시: "괜찮아" → "괜찮아요"
+
+3️⃣ 순수 한국어 점검
+   - 한자 금지: 希望, 感情, 幸福 → 희망, 감정, 행복
+   - 영어 금지: stress, happy → 스트레스, 행복
+   - 일본어 금지: 気持ち, ストレス → 기분, 스트레스
+
+⚠️ 오류 발견 시 반드시 수정 후 출력하세요.
+
+[Grammar Error Examples - 자주 발생하는 오류]
+❌ "휴식를 취해보세요" → ✅ "휴식을 취해보세요" (받침O → 을)
+❌ "마음를 다스려보세요" → ✅ "마음을 다스려보세요" (받침O → 을)
+❌ "나은 괜찮아요" → ✅ "나는 괜찮아요" (받침X → 는)
+❌ "저은 괜찮아요" → ✅ "저는 괜찮아요" (받침X → 는)
+❌ "해봐요" → ✅ "해보세요" (존댓말)
+❌ "괜찮아." → ✅ "괜찮아요." (존댓말)
+❌ "希望을 가지세요" → ✅ "희망을 가지세요" (한자 금지)
 
 [Constraint]
 1. 반드시 JSON 포맷으로만 응답하십시오. (Markdown backticks, 코드블록 제외)
@@ -538,7 +579,8 @@ empathy_message에서 "$userName님"이라고 한 번 자연스럽게 호칭해�
 '''
         : '';
 
-    final imageSection = '''
+    final imageSection =
+        '''
 
 [첨부 이미지]
 사용자가 $imageCount개의 이미지를 첨부했습니다.

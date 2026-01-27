@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../common/expandable_text.dart';
 
 /// 공감 메시지 위젯 (인용구 스타일)
 class EmpathyMessage extends StatelessWidget {
@@ -31,8 +32,9 @@ class EmpathyMessage extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
             border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
           ),
-          child: Text(
-            message,
+          child: ExpandableText(
+            text: message,
+            collapsedMaxLines: 4,
             style: AppTextStyles.body.copyWith(
               height: 1.8,
               fontSize: 16,

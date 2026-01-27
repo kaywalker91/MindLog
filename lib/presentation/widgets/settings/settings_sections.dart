@@ -9,8 +9,7 @@ import '../../../core/services/notification_service.dart';
 import '../../../core/services/update_service.dart';
 import '../../../domain/entities/notification_settings.dart';
 import '../../providers/providers.dart';
-import '../../screens/changelog_screen.dart';
-import '../../screens/privacy_policy_screen.dart';
+import '../../router/app_router.dart';
 import '../help_dialog.dart';
 import '../mindcare_welcome_dialog.dart';
 import '../update_badge.dart';
@@ -51,8 +50,7 @@ class AppInfoSection extends ConsumerWidget {
               ),
               onTap: appInfo == null
                   ? null
-                  : () => ChangelogScreen.navigate(
-                        context,
+                  : () => context.goChangelog(
                         version: appInfo.version,
                         buildNumber: appInfo.buildNumber,
                       ),
@@ -68,7 +66,7 @@ class AppInfoSection extends ConsumerWidget {
             SettingsItem(
               icon: Icons.description_outlined,
               title: '개인정보 처리방침',
-              onTap: () => PrivacyPolicyScreen.navigate(context),
+              onTap: () => context.goPrivacyPolicy(),
             ),
           ],
         ),

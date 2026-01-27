@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../domain/entities/diary.dart';
@@ -33,11 +34,13 @@ class DeleteDiaryDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -81,10 +84,10 @@ class DeleteDiaryDialog extends ConsumerWidget {
               children: [
                 Expanded(
                   child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
+                    onPressed: () => context.pop(false),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      backgroundColor: Colors.grey.shade100,
+                      backgroundColor: colorScheme.surfaceContainerHighest,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -101,7 +104,7 @@ class DeleteDiaryDialog extends ConsumerWidget {
                 Expanded(
                   child: FilledButton(
                     onPressed: () async {
-                      Navigator.of(context).pop(true);
+                      context.pop(true);
                       await _deleteDiary(context, ref);
                     },
                     style: FilledButton.styleFrom(
@@ -136,7 +139,7 @@ class DeleteDiaryDialog extends ConsumerWidget {
       if (context.mounted) {
         // 상세 화면에서 호출된 경우 목록으로 복귀
         if (popAfterDelete) {
-          Navigator.of(context).pop();
+          context.pop();
         }
 
         ScaffoldMessenger.of(context).showSnackBar(

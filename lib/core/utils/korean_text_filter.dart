@@ -15,6 +15,29 @@ class KoreanTextFilter {
   // ============================================================
   // 한자어 대체 사전 (감정/심리 관련 자주 등장하는 한자어)
   // ============================================================
+  // ============================================================
+  // AI가 자주 틀리는 조사 오류 (직접 매핑)
+  // ============================================================
+  static const Map<String, String> _commonGrammarErrors = {
+    // 을/를 오류 (받침 있는 단어 + 를)
+    '휴식를': '휴식을',
+    '마음를': '마음을',
+    '생각를': '생각을',
+    '감정를': '감정을',
+    '기분를': '기분을',
+    '운동를': '운동을',
+    '시간를': '시간을',
+    '명상를': '명상을',
+    '호흡를': '호흡을',
+    '산책를': '산책을',
+    // 은/는 오류 (받침 없는 단어 + 은)
+    '하루은': '하루는',
+    '나은': '나는',
+    '저은': '저는',
+    '너은': '너는',
+    '우리은': '우리는',
+  };
+
   static const Map<String, String> _chineseToKorean = {
     // 감정 관련
     '希望': '희망',
@@ -72,17 +95,35 @@ class KoreanTextFilter {
   ];
 
   // ============================================================
+  // 안전한 은/는 교정 패턴 (대명사 및 고빈도 오류)
+  // 오탐 가능성이 매우 낮은 패턴만 포함
+  // ============================================================
+  static final List<(RegExp, String)> _topicMarkerCorrections = [
+    // 대명사 (오탐 가능성 매우 낮음)
+    (RegExp(r'나은([\s.,!?~\-)":\u0027]|$)'), r'나는$1'),
+    (RegExp(r'저은([\s.,!?~\-)":\u0027]|$)'), r'저는$1'),
+    (RegExp(r'너은([\s.,!?~\-)":\u0027]|$)'), r'너는$1'),
+    // 고빈도 오류 (LLM이 자주 틀리는 패턴)
+    (RegExp(r'하루은([\s.,!?~\-)":\u0027]|$)'), r'하루는$1'),
+    (RegExp(r'우리은([\s.,!?~\-)":\u0027]|$)'), r'우리는$1'),
+    (RegExp(r'여기은([\s.,!?~\-)":\u0027]|$)'), r'여기는$1'),
+    (RegExp(r'거기은([\s.,!?~\-)":\u0027]|$)'), r'거기는$1'),
+  ];
+
+  // ============================================================
   // 안전한 조사 교정 패턴 (구분자 기반)
   // 받침O + 를 + (구분자) → 받침O + 을 + (구분자)
   // 받침X + 을 + (구분자) → 받침X + 를 + (구분자)
   // ============================================================
   /// 받침 있는 글자 + 를 + 구분자 → 을로 교정
-  static final RegExp _wrongReulPattern =
-      RegExp(r'([\uAC00-\uD7AF])를([\s.,!?~\-)":\u0027]|$)');
+  static final RegExp _wrongReulPattern = RegExp(
+    r'([\uAC00-\uD7AF])를([\s.,!?~\-)":\u0027]|$)',
+  );
 
   /// 받침 없는 글자 + 을 + 구분자 → 를로 교정
-  static final RegExp _wrongEulPattern =
-      RegExp(r'([\uAC00-\uD7AF])을([\s.,!?~\-)":\u0027]|$)');
+  static final RegExp _wrongEulPattern = RegExp(
+    r'([\uAC00-\uD7AF])을([\s.,!?~\-)":\u0027]|$)',
+  );
 
   // 주의: 이/가 주격조사 교정은 오인식 가능성이 높아 비활성화
   // 예: "나이가" 같은 정상적인 단어를 "나가가"로 잘못 바꿀 수 있음
@@ -104,12 +145,14 @@ class KoreanTextFilter {
   static final RegExp _englishWordPattern = RegExp(r'\b[a-zA-Z]{2,}\b');
 
   /// 허용되는 문자: 한글, 숫자, 공백, 기본 구두점 (영문 제외)
-  static final RegExp _koreanOnlyAllowedPattern =
-      RegExp(r'[\uAC00-\uD7AF\u1100-\u11FF0-9\s.,!?()~\-"\u0027\u00B7:;]');
+  static final RegExp _koreanOnlyAllowedPattern = RegExp(
+    r'[\uAC00-\uD7AF\u1100-\u11FF0-9\s.,!?()~\-"\u0027\u00B7:;]',
+  );
 
   /// 허용되는 문자: 한글, 영문, 숫자, 공백, 기본 구두점 (레거시 호환용)
-  static final RegExp _allowedPattern =
-      RegExp(r'[\uAC00-\uD7AF\u1100-\u11FFa-zA-Z0-9\s.,!?()~\-"\u0027\u00B7:;]');
+  static final RegExp _allowedPattern = RegExp(
+    r'[\uAC00-\uD7AF\u1100-\u11FFa-zA-Z0-9\s.,!?()~\-"\u0027\u00B7:;]',
+  );
 
   /// 텍스트에 한문(중국어)이 포함되어 있는지 확인
   static bool containsChinese(String text) {
@@ -128,7 +171,9 @@ class KoreanTextFilter {
 
   /// 텍스트에 비한글 외국어(한문, 일본어, 영어)가 포함되어 있는지 확인
   static bool containsForeignLanguage(String text) {
-    return containsChinese(text) || containsJapanese(text) || containsEnglishWord(text);
+    return containsChinese(text) ||
+        containsJapanese(text) ||
+        containsEnglishWord(text);
   }
 
   /// 텍스트에 한글이 포함되어 있는지 확인
@@ -138,7 +183,10 @@ class KoreanTextFilter {
 
   /// 텍스트에서 영어 단어를 제거
   static String removeEnglishWords(String text) {
-    return text.replaceAll(_englishWordPattern, '').replaceAll(RegExp(r'\s+'), ' ').trim();
+    return text
+        .replaceAll(_englishWordPattern, '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
   }
 
   /// 이모지 패턴 (기본 이모지 범위)
@@ -243,33 +291,124 @@ class KoreanTextFilter {
     return result;
   }
 
+  /// 공통 문법 오류 사전 적용
+  ///
+  /// AI가 자주 틀리는 조사 오류를 직접 매핑으로 교정합니다.
+  static String _applyCommonErrorFixes(String text) {
+    if (text.isEmpty) return text;
+
+    String result = text;
+    for (final entry in _commonGrammarErrors.entries) {
+      result = result.replaceAll(entry.key, entry.value);
+    }
+    return result;
+  }
+
+  /// 은/는 주제격 조사 교정
+  ///
+  /// 대명사 및 고빈도 오류 패턴만 교정하여 오탐을 최소화합니다.
+  static String _correctTopicMarkers(String text) {
+    if (text.isEmpty) return text;
+
+    String result = text;
+    for (final (pattern, replacement) in _topicMarkerCorrections) {
+      result = result.replaceAllMapped(pattern, (match) {
+        final delimiter = match.groupCount >= 1 ? (match.group(1) ?? '') : '';
+        return replacement.replaceAll(r'$1', delimiter);
+      });
+    }
+    return result;
+  }
+
+  /// 반말 어미를 존댓말로 교정
+  ///
+  /// 일반적인 반말 어미를 존댓말로 변환합니다.
+  /// 주의: 문장 끝이나 구분자 직전의 패턴만 교정합니다.
+  static String normalizeHonorific(String text) {
+    if (text.isEmpty) return text;
+
+    return text
+        // 해봐 → 해보세요
+        .replaceAllMapped(
+          RegExp(r'해봐([\s.,!?]|$)'),
+          (m) => '해보세요${m.group(1) ?? ""}',
+        )
+        // 괜찮아 → 괜찮아요 (문장 끝에서만)
+        .replaceAllMapped(
+          RegExp(r'괜찮아([.\s!?]|$)'),
+          (m) => '괜찮아요${m.group(1) ?? ""}',
+        )
+        // 가져봐 → 가져보세요
+        .replaceAllMapped(
+          RegExp(r'가져봐([\s.,!?]|$)'),
+          (m) => '가져보세요${m.group(1) ?? ""}',
+        )
+        // 쉬어봐 → 쉬어보세요
+        .replaceAllMapped(
+          RegExp(r'쉬어봐([\s.,!?]|$)'),
+          (m) => '쉬어보세요${m.group(1) ?? ""}',
+        )
+        // 먹어봐 → 먹어보세요
+        .replaceAllMapped(
+          RegExp(r'먹어봐([\s.,!?]|$)'),
+          (m) => '먹어보세요${m.group(1) ?? ""}',
+        )
+        // 해봐요 → 해보세요 (어색한 존댓말 교정)
+        .replaceAllMapped(
+          RegExp(r'해봐요([\s.,!?]|$)'),
+          (m) => '해보세요${m.group(1) ?? ""}',
+        )
+        // 들어봐 → 들어보세요
+        .replaceAllMapped(
+          RegExp(r'들어봐([\s.,!?]|$)'),
+          (m) => '들어보세요${m.group(1) ?? ""}',
+        )
+        // 써봐 → 써보세요
+        .replaceAllMapped(
+          RegExp(r'써봐([\s.,!?]|$)'),
+          (m) => '써보세요${m.group(1) ?? ""}',
+        );
+  }
+
   /// 한글 텍스트 종합 처리 파이프라인
   ///
   /// 처리 순서:
-  /// 1. 한자어 → 한글 대체 (사전 기반)
-  /// 2. 잔여 한자/일본어 제거
-  /// 3. 중복 조사 제거
-  /// 4. 안전한 조사 교정 (구분자 패턴 기반)
-  /// 5. 연속 공백 정리
+  /// 1. 공통 오류 사전 적용 (직접 매핑)
+  /// 2. 한자어 → 한글 대체 (사전 기반)
+  /// 3. 잔여 한자/일본어 제거
+  /// 4. 중복 조사 제거
+  /// 5. 은/는 주제격 조사 교정
+  /// 6. 을/를 목적격 조사 교정 (구분자 패턴 기반)
+  /// 7. 존댓말 정규화
+  /// 8. 연속 공백 정리
   ///
   /// [text] 처리할 텍스트
   /// [preserveEmoji] true면 이모지도 보존 (기본값: true)
   static String processKoreanText(String text, {bool preserveEmoji = true}) {
     if (text.isEmpty) return text;
 
-    // 1. 한자어 대체 (사전 기반 - 문맥 보존)
-    String processed = _replaceChineseWithKorean(text);
+    // 1. 공통 오류 사전 적용 (가장 먼저 - 확실한 오류 교정)
+    String processed = _applyCommonErrorFixes(text);
 
-    // 2. 잔여 한자/일본어 제거 (영어도 제거)
+    // 2. 한자어 대체 (사전 기반 - 문맥 보존)
+    processed = _replaceChineseWithKorean(processed);
+
+    // 3. 잔여 한자/일본어 제거 (영어도 제거)
     processed = filterToKorean(processed, preserveEmoji: preserveEmoji);
 
-    // 3. 중복 조사 제거
+    // 4. 중복 조사 제거
     processed = _removeDuplicateParticles(processed);
 
-    // 4. 안전한 조사 교정
+    // 5. 은/는 주제격 조사 교정 (대명사 및 고빈도 오류)
+    processed = _correctTopicMarkers(processed);
+
+    // 6. 을/를 목적격 조사 교정 (구분자 패턴 기반)
     processed = _correctParticlesWithDelimiter(processed);
 
-    // 5. 연속 공백 정리
+    // 7. 존댓말 정규화
+    processed = normalizeHonorific(processed);
+
+    // 8. 연속 공백 정리
     return processed.replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
@@ -278,7 +417,11 @@ class KoreanTextFilter {
   /// [text] 필터링할 텍스트
   /// [preserveEnglish] true면 영문/숫자도 보존 (기본값: false로 변경)
   /// [preserveEmoji] true면 이모지도 보존 (기본값: true)
-  static String filterToKorean(String text, {bool preserveEnglish = false, bool preserveEmoji = true}) {
+  static String filterToKorean(
+    String text, {
+    bool preserveEnglish = false,
+    bool preserveEmoji = true,
+  }) {
     if (text.isEmpty) return text;
 
     // 먼저 영어 단어 제거
@@ -288,8 +431,10 @@ class KoreanTextFilter {
     }
 
     final buffer = StringBuffer();
-    final pattern = preserveEnglish ? _allowedPattern : _koreanOnlyAllowedPattern;
-    
+    final pattern = preserveEnglish
+        ? _allowedPattern
+        : _koreanOnlyAllowedPattern;
+
     // 문자열을 grapheme cluster 단위로 처리 (이모지 안전)
     final characters = processed.characters;
     for (final char in characters) {
@@ -298,14 +443,14 @@ class KoreanTextFilter {
         buffer.write(char);
         continue;
       }
-      
+
       // 한문/일본어 제거
-      if (_chinesePattern.hasMatch(char) || 
-          _hiraganaPattern.hasMatch(char) || 
+      if (_chinesePattern.hasMatch(char) ||
+          _hiraganaPattern.hasMatch(char) ||
           _katakanaPattern.hasMatch(char)) {
         continue;
       }
-      
+
       // 허용된 문자인지 확인
       if (pattern.hasMatch(char)) {
         buffer.write(char);
@@ -357,14 +502,18 @@ class KoreanTextFilter {
       return fallbackText ?? '';
     }
 
-    // 외국어가 없어도 조사 오류가 있을 수 있으므로 항상 파이프라인 적용
-    // (다만 외국어가 없고 중복 조사도 없으면 빠르게 반환)
-    final hasIssue = containsForeignLanguage(text) ||
-        _duplicateParticles.any((p) => p.$1.hasMatch(text));
+    // 외국어, 조사 오류, 반말 등을 검사하여 처리 필요 여부 판단
+    final hasIssue =
+        containsForeignLanguage(text) ||
+        _duplicateParticles.any((p) => p.$1.hasMatch(text)) ||
+        _topicMarkerCorrections.any((p) => p.$1.hasMatch(text)) ||
+        _commonGrammarErrors.keys.any((k) => text.contains(k));
 
     if (!hasIssue) {
-      // 조사 교정만 적용 (경미한 오류 교정)
-      final corrected = _correctParticlesWithDelimiter(text);
+      // 조사 및 존댓말 교정만 적용 (경미한 오류 교정)
+      String corrected = _correctTopicMarkers(text);
+      corrected = _correctParticlesWithDelimiter(corrected);
+      corrected = normalizeHonorific(corrected);
       return corrected;
     }
 
@@ -384,7 +533,8 @@ class KoreanTextFilter {
   /// [json] 파싱된 AI 응답 JSON
   /// 반환값: 필터링된 JSON (원본 수정 없음)
   static Map<String, dynamic> filterAnalysisResponse(
-      Map<String, dynamic> json) {
+    Map<String, dynamic> json,
+  ) {
     final result = Map<String, dynamic>.from(json);
 
     // keywords 필터링

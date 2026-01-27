@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../router/app_router.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
@@ -8,6 +10,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../core/utils/validators.dart';
 import '../providers/diary_analysis_controller.dart';
+import '../providers/diary_list_controller.dart';
 import '../widgets/result_card.dart';
 import '../widgets/sos_card.dart';
 import '../widgets/loading_indicator.dart';
@@ -124,14 +127,12 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
   }
 
   void _onReset() {
-    // 분석 완료 후 '확인'을 누르면 목록 화면으로 돌아감
-    if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
+    // 목록 새로고침 후 돌아감
+    ref.read(diaryListControllerProvider.notifier).refresh();
+    if (context.canPop()) {
+      context.pop();
     } else {
-      // 혹시 pop할 수 없는 상황이면 초기화 (예외 케이스)
-      _textController.clear();
-      _hideNetworkFeedback();
-      ref.read(diaryAnalysisControllerProvider.notifier).reset();
+      context.goHome();
     }
   }
 
