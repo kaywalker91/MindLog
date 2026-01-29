@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260128-review">
+    <link rel="stylesheet" href="style.css?v=20260129-v1427">
 </head>
 <body>
     <header class="hero">
@@ -88,32 +88,32 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.26에서는 코드 리뷰 기반 아키텍처 개선, DI 계층 분리, 안전성 강화를 진행했습니다.</p>
+            <p class="section-subtitle">v1.4.27에서는 저녁 알림 추가, KST 시간대 수정, CI/CD Fastlane 통합을 진행했습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
-                    <span class="update-tag">Architecture</span>
-                    <h3>🏗️ DI 계층 분리 & main.dart 리팩토링</h3>
-                    <p>infra_providers.dart를 presentation → core/di/로 이전하여 Clean Architecture 의존성 방향을 준수합니다. main.dart에서 data layer 직접 참조를 제거하고 초기화 로직을 _initializeApp()으로 추출했습니다.</p>
+                    <span class="update-tag">Notification</span>
+                    <h3>🌙 저녁 마음케어 알림</h3>
+                    <p>기존 아침 9시 알림에 더해 저녁 9시 알림이 추가되었습니다. "오늘 하루는 어떠셨나요?", "마음 정리할 시간이에요" 등 하루를 마무리하는 따뜻한 메시지를 받아보세요.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Safety</span>
-                    <h3>🛡️ Null Safety & Force Unwrap 제거</h3>
-                    <p>FCMService의 _messaging! force unwrap을 로컬 변수 캡처 패턴으로 교체했습니다. statistics_screen의 period.days! 위험 코드도 안전한 패턴으로 수정했습니다.</p>
+                    <span class="update-tag">Timezone</span>
+                    <h3>🕐 KST 시간대 정확도 개선</h3>
+                    <p>Firebase Functions가 UTC에서 실행되는 점을 고려하여 명시적 KST 변환 로직을 추가했습니다. Intl.DateTimeFormat을 사용해 한국 시간 기준으로 정확하게 동작합니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Stability</span>
-                    <h3>⏱️ 초기화 타임아웃 & FCM 최적화</h3>
-                    <p>앱 초기화에 15초 안전 타임아웃을 적용하여 무한 대기를 방지합니다. FCM APNS 토큰 재시도를 10회→3회로 최적화하고, 비차단(unawaited) 초기화로 앱 시작 속도를 개선했습니다.</p>
+                    <span class="update-tag">CI/CD</span>
+                    <h3>🚀 Fastlane 배포 통합</h3>
+                    <p>GitHub Actions에서 Fastlane 기반 배포로 전환했습니다. Flutter 빌드부터 Play Store 업로드까지 Fastfile에서 통합 관리하며, 스크린샷 자동 업로드도 지원합니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Theme</span>
-                    <h3>🎨 하드코딩 색상 중앙화</h3>
-                    <p>SOS 긴급 카드, 행동 추천 UI, 감정 정원의 하드코딩 색상(Colors.red/amber/green 등)을 AppColors 상수로 통합했습니다. 16개 신규 색상 상수를 추가하여 테마 일관성을 확보합니다.</p>
+                    <span class="update-tag">Idempotency</span>
+                    <h3>🔒 시간대별 중복 방지</h3>
+                    <p>아침/저녁 알림이 각각 독립적으로 중복 발송을 방지합니다. "2024-01-15_morning", "2024-01-15_evening" 형식의 키로 시간대별 발송 이력을 관리합니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Router</span>
-                    <h3>🧭 GoRouter 완전 통합</h3>
-                    <p>MaterialApp → MaterialApp.router로 전환하고, NavigatorObserver와 navigatorKey를 GoRouter에서 관리하도록 이전했습니다. NotificationActionHandler도 GoRouter 기반으로 마이그레이션했습니다.</p>
+                    <span class="update-tag">Screenshots</span>
+                    <h3>📸 스크린샷 v3 개편</h3>
+                    <p>앱 스크린샷이 v3로 새롭게 업데이트되었습니다. 시맨틱 파일명과 Fastlane metadata 구조로 Play Store 스크린샷 관리가 자동화되었습니다.</p>
                 </div>
             </div>
         </div>
@@ -124,28 +124,36 @@
             <h2 class="section-title">스크린샷</h2>
             <div class="screenshots-grid">
                 <div class="screenshot-item">
-                    <img src="assets/images/mindlog_main.jpeg" alt="MindLog 일기 목록 화면" loading="lazy">
+                    <img src="assets/images/01_splash_onboarding.jpeg" alt="MindLog 온보딩 화면" loading="lazy">
+                    <p>온보딩</p>
+                </div>
+                <div class="screenshot-item">
+                    <img src="assets/images/02_diary_list.jpeg" alt="MindLog 일기 목록 화면" loading="lazy">
                     <p>일기 목록</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="assets/images/mindlog_write.jpeg" alt="MindLog 일기 작성 화면" loading="lazy">
+                    <img src="assets/images/03_diary_write.jpeg" alt="MindLog 일기 작성 화면" loading="lazy">
                     <p>일기 작성</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="assets/images/mindlog_stat.jpeg" alt="MindLog 감정 통계 화면" loading="lazy">
-                    <p>감정 통계</p>
+                    <img src="assets/images/04_stats_calendar.jpeg" alt="MindLog 마음 달력 화면" loading="lazy">
+                    <p>마음 달력</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="assets/images/mindlog_stat_2.jpeg" alt="MindLog 감정 통계 상세 화면" loading="lazy">
-                    <p>통계 상세</p>
+                    <img src="assets/images/05_stats_chart.jpeg" alt="MindLog 감정 추이 차트" loading="lazy">
+                    <p>감정 추이</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="assets/images/mindlog_setting.jpeg" alt="MindLog 설정 화면" loading="lazy">
+                    <img src="assets/images/06_stats_keywords.jpeg" alt="MindLog 키워드 분석 화면" loading="lazy">
+                    <p>키워드 분석</p>
+                </div>
+                <div class="screenshot-item">
+                    <img src="assets/images/08_ai_character.jpeg" alt="MindLog AI 캐릭터 선택 화면" loading="lazy">
+                    <p>AI 캐릭터</p>
+                </div>
+                <div class="screenshot-item">
+                    <img src="assets/images/07_settings_top.jpeg" alt="MindLog 설정 화면" loading="lazy">
                     <p>설정</p>
-                </div>
-                <div class="screenshot-item">
-                    <img src="assets/images/mindlog_guide.jpeg" alt="MindLog 사용 가이드 화면" loading="lazy">
-                    <p>사용 가이드</p>
                 </div>
             </div>
         </div>

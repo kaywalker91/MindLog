@@ -4,13 +4,14 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.github/ISSUE_TEMPLATE/**'
+      - "**.md"
+      - "docs/**"
+      - ".github/ISSUE_TEMPLATE/**"
 
 env:
-  FLUTTER_VERSION: '3.38.x'
-  JAVA_VERSION: '17'
+  FLUTTER_VERSION: "3.38.x"
+  JAVA_VERSION: "17"
+  RUBY_VERSION: "3.2"
 
 jobs:
   test:
@@ -24,7 +25,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
+          channel: "stable"
           cache: true
 
       - name: Get Dependencies
@@ -42,7 +43,7 @@ jobs:
         run: flutter test
 
   build-and-deploy:
-    name: Build & Deploy
+    name: Build & Deploy with Fastlane
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -52,28 +53,28 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: "temurin"
           java-version: ${{ env.JAVA_VERSION }}
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
+          channel: "stable"
           cache: true
 
-      - name: Get Dependencies
-        run: flutter pub get
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: android
 
       # 환경 변수 파일 생성
       - name: Create .env file
         run: |
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
           echo "GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}" >> .env
-
-      # 코드 생성
-      - name: Generate Code
-        run: dart run build_runner build --delete-conflicting-outputs
 
       # 서명 키 디코딩
       - name: Decode Keystore
@@ -90,30 +91,16 @@ jobs:
           storeFile=upload-keystore.jks
           EOF
 
-      # AAB 빌드
-      - name: Build App Bundle (Release)
+      # Play Store JSON key 생성
+      - name: Create Play Store JSON key
         run: |
-          flutter build appbundle --release \
-            --dart-define=GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
-            --dart-define=ENVIRONMENT=production
+          echo '${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}' > android/fastlane/play-store-key.json
 
-      # APK도 함께 빌드 (테스트 배포용)
-      - name: Build APK (Release)
-        run: |
-          flutter build apk --release \
-            --dart-define=GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
-            --dart-define=ENVIRONMENT=production
-
-      # Play Store 배포
-      - name: Deploy to Play Store (Internal Track)
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
-          packageName: com.mindlog.mindlog
-          releaseFiles: build/app/outputs/bundle/release/app-release.aab
-          track: internal
-          status: completed
-        continue-on-error: true  # 첫 배포 전까지는 실패 허용
+      # Fastlane으로 배포
+      - name: Deploy with Fastlane
+        run: bundle exec fastlane deploy_internal
+        working-directory: android
+        continue-on-error: true # 첫 배포 전까지는 실패 허용
 
       # 빌드 아티팩트 저장 (AAB)
       - name: Upload AAB Artifact
@@ -139,6 +126,7 @@ jobs:
           echo "- **Package**: com.mindlog.mindlog" >> $GITHUB_STEP_SUMMARY
           echo "- **Track**: Internal" >> $GITHUB_STEP_SUMMARY
           echo "- **Flutter**: ${{ env.FLUTTER_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Fastlane**: Enabled ✅" >> $GITHUB_STEP_SUMMARY
           echo "- **Build Time**: $(date)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Artifacts:**" >> $GITHUB_STEP_SUMMARY

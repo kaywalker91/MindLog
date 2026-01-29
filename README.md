@@ -7,22 +7,22 @@ MindLog는 사용자의 일기를 분석하여 감정 상태를 파악하고, �
 ## 📱 스크린샷
 
 <p align="center">
-  <img src="assets/screenshots/v2/mindlog_main.jpeg" width="250" alt="일기 목록 화면"/>
-  <img src="assets/screenshots/v2/mindlog_write.jpeg" width="250" alt="일기 작성 화면"/>
-  <img src="assets/screenshots/v2/mindlog_stat.jpeg" width="250" alt="감정 통계 화면"/>
+  <img src="assets/screenshots/v3/02_diary_list.jpeg" width="250" alt="일기 목록 화면"/>
+  <img src="assets/screenshots/v3/03_diary_write.jpeg" width="250" alt="일기 작성 화면"/>
+  <img src="assets/screenshots/v3/04_stats_calendar.jpeg" width="250" alt="마음 달력 화면"/>
   <br/>
-  <img src="assets/screenshots/v2/mindlog_stat_2.jpeg" width="250" alt="감정 통계 상세 화면"/>
-  <img src="assets/screenshots/v2/mindlog_setting.jpeg" width="250" alt="설정 화면"/>
-  <img src="assets/screenshots/v2/mindlog_guide.jpeg" width="250" alt="사용 가이드 화면"/>
+  <img src="assets/screenshots/v3/05_stats_chart.jpeg" width="250" alt="감정 추이 차트"/>
+  <img src="assets/screenshots/v3/06_stats_keywords.jpeg" width="250" alt="키워드 분석 화면"/>
+  <img src="assets/screenshots/v3/08_ai_character.jpeg" width="250" alt="AI 캐릭터 선택 화면"/>
 </p>
 
-| 일기 목록 | 일기 작성 | 감정 통계 |
+| 일기 목록 | 일기 작성 | 마음 달력 |
 |:---:|:---:|:---:|
-| 날짜별 일기 목록과 감정 키워드 태그 | 오늘의 마음을 기록하는 작성 화면 | 히트맵, 감정 추이 차트, 연속 작성 스트릭 |
+| 날짜별 일기 목록과 감정 키워드 태그 | 오늘의 마음을 기록하는 작성 화면 | 감정 점수를 식물 성장으로 시각화 |
 
-| 통계 상세 | 설정 | 사용 가이드 |
+| 감정 추이 | 키워드 분석 | AI 캐릭터 |
 |:---:|:---:|:---:|
-| 기간별 통계 요약과 인사이트 | 앱 정보, 데이터 관리, 지원 | 시작 안내 및 사용 흐름 안내 |
+| 시간에 따른 감정 변화 차트 | 자주 등장하는 감정 키워드 시각화 | 공감 스타일을 선택하는 캐릭터 설정 |
 
 ## ✨ 주요 기능
 
@@ -101,7 +101,28 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.26 (Current)
+### v1.4.27 (Current)
+*   **저녁 마음케어 알림 추가 (Firebase Functions):**
+    *   **2회 알림 시스템:** 기존 아침 9시 + 신규 저녁 9시 알림 스케줄 구성
+    *   **`scheduledEveningNotification` 함수 신규:** 저녁 전용 메시지 ("오늘 하루는 어떠셨나요?", "마음 정리할 시간이에요" 등)
+    *   **시간대별 Idempotency:** 아침/저녁 각각 독립적인 중복 발송 방지 (`2024-01-15_morning`, `2024-01-15_evening` 키)
+    *   **`getMessageByTimeSlot()` 함수:** 시간대 파라미터로 적합한 메시지 선택
+*   **KST 시간대 버그 수정:**
+    *   **명시적 KST 변환:** Firebase Functions가 UTC에서 실행되므로 `Intl.DateTimeFormat` 사용
+    *   **`getKSTHour()` 함수:** UTC→KST 시간 변환으로 정확한 시간대 판별
+    *   **`getTodayKey()` 수정:** `toISOString()` → `Intl.DateTimeFormat('en-CA', {timeZone})` 패턴
+*   **CI/CD Fastlane 통합:**
+    *   **cd.yml 리팩토링:** `r0adkll/upload-google-play` GitHub Action → Fastlane `deploy_internal` lane
+    *   **Ruby/Bundler 설정 추가:** `ruby/setup-ruby@v1` + bundler-cache 설정
+    *   **빌드 프로세스 통합:** Flutter 빌드 + Play Store 업로드를 Fastfile에서 통합 관리
+    *   **서비스 계정 키 동적 생성:** CI에서 `play-store-key.json` 파일 생성
+*   **스크린샷 v3 개편:**
+    *   **9개 스크린샷 리네이밍:** KakaoTalk 파일명 → 시맨틱 네이밍 (`01_splash_onboarding.jpeg` ~ `09_settings_bottom.jpeg`)
+    *   **Fastlane metadata 구조:** `android/fastlane/metadata/android/{ko,en-US}/images/phoneScreenshots/`
+    *   **README/GitHub Pages 업데이트:** v2→v3 스크린샷 경로 변경
+    *   **`upload_screenshots` lane 추가:** Play Store 스크린샷 자동 업로드 지원
+
+### v1.4.26
 *   **코드 리뷰 기반 아키텍처 개선 (HIGH~LOW 이슈 수정):**
     *   **DI 계층 분리:** `infra_providers.dart`를 `presentation/providers/` → `core/di/`로 이전
         *   Clean Architecture 의존성 방향 준수 (presentation → domain ← data)

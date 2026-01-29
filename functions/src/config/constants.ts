@@ -25,10 +25,19 @@ export const COLLECTIONS = {
 
 /** 기본 스케줄 설정 */
 export const SCHEDULE = {
-  /** 일일 발송 시간 (KST 기준, 24시간제) */
+  /** 아침 발송 시간 (KST 기준, 24시간제) */
+  MORNING_HOUR: 9,
+  MORNING_MINUTE: 0,
+  /** cron 표현식: 매일 오전 9시 */
+  MORNING_CRON: "0 9 * * *",
+  /** 저녁 발송 시간 (KST 기준, 24시간제) */
+  EVENING_HOUR: 21,
+  EVENING_MINUTE: 0,
+  /** cron 표현식: 매일 오후 9시 */
+  EVENING_CRON: "0 21 * * *",
+  /** @deprecated DAILY_CRON 대신 MORNING_CRON 사용 */
   DAILY_HOUR: 9,
   DAILY_MINUTE: 0,
-  /** cron 표현식: 매일 오전 9시 */
   DAILY_CRON: "0 9 * * *",
 } as const;
 

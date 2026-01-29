@@ -69,3 +69,12 @@ keystore-base64.txt
 
 # Claude Code local settings
 CLAUDE.local.md
+
+# Fastlane
+android/fastlane/report.xml
+android/fastlane/README.md
+android/fastlane/play-store-key.json
+android/fastlane/mindlog-*.json
+android/vendor/bundle/
+android/Gemfile.lock
+android/.bundle/

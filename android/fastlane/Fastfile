@@ -1,0 +1,96 @@
+# Fastlane configuration for MindLog Android
+# Documentation: https://docs.fastlane.tools
+
+default_platform(:android)
+
+platform :android do
+  desc "Run Flutter tests"
+  lane :test do
+    Dir.chdir("..") do
+      sh("flutter", "test")
+    end
+  end
+
+  desc "Build release AAB and APK"
+  lane :build do
+    # Ensure dependencies are installed
+    Dir.chdir("..") do
+      sh("flutter", "pub", "get")
+      sh("dart", "run", "build_runner", "build", "--delete-conflicting-outputs")
+    end
+
+    # Build AAB
+    Dir.chdir("..") do
+      sh("flutter", "build", "appbundle", "--release")
+    end
+
+    # Build APK
+    Dir.chdir("..") do
+      sh("flutter", "build", "apk", "--release")
+    end
+
+    UI.success("Build completed!")
+    UI.message("AAB: build/app/outputs/bundle/release/app-release.aab")
+    UI.message("APK: build/app/outputs/flutter-apk/app-release.apk")
+  end
+
+  desc "Deploy to Play Store Internal track"
+  lane :deploy_internal do
+    build
+
+    upload_to_play_store(
+      track: "internal",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+
+    UI.success("Deployed to Internal track!")
+  end
+
+  desc "Deploy to Play Store Beta track"
+  lane :deploy_beta do
+    build
+
+    upload_to_play_store(
+      track: "beta",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+
+    UI.success("Deployed to Beta track!")
+  end
+
+  desc "Deploy to Play Store Production"
+  lane :deploy_production do
+    build
+
+    upload_to_play_store(
+      track: "production",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+
+    UI.success("Deployed to Production!")
+  end
+
+  desc "Upload screenshots to Play Store"
+  lane :upload_screenshots do
+    upload_to_play_store(
+      track: "internal",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: false,
+      skip_upload_changelogs: true
+    )
+
+    UI.success("Screenshots uploaded!")
+  end
+end

@@ -7,17 +7,38 @@
 
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
-import { COLLECTIONS, DEFAULT_MORNING_MESSAGES, DEFAULT_EVENING_MESSAGES } from "../config/constants";
+import {
+  COLLECTIONS,
+  DEFAULT_MORNING_MESSAGES,
+  DEFAULT_EVENING_MESSAGES,
+  TIMEZONE,
+} from "../config/constants";
 import { MindcareMessage, MindcareStats } from "../types";
 
 const db = admin.firestore();
 
 /**
- * 오늘 날짜 키 생성 (YYYY-MM-DD)
+ * KST 기준 현재 시간(hour) 반환
+ * Firebase Functions는 UTC에서 실행되므로 명시적 변환 필요
+ */
+function getKSTHour(): number {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIMEZONE,
+    hour: "numeric",
+    hour12: false,
+  });
+  return parseInt(formatter.format(new Date()), 10);
+}
+
+/**
+ * 오늘 날짜 키 생성 (YYYY-MM-DD, KST 기준)
+ * Firebase Functions는 UTC에서 실행되므로 명시적 변환 필요
  */
 export function getTodayKey(): string {
-  const now = new Date();
-  return now.toISOString().split("T")[0];
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+  });
+  return formatter.format(new Date());
 }
 
 /**
@@ -27,9 +48,7 @@ export function getTodayKey(): string {
  * - 그 외: 저녁 메시지 (하루 마무리)
  */
 function getDefaultMessageByTimeOfDay(): { title: string; body: string } {
-  const now = new Date();
-  // KST 기준 (Firebase Functions asia-northeast3 리전 사용)
-  const hour = now.getHours();
+  const hour = getKSTHour();
 
   // 오전 5시 ~ 11시: 아침 메시지
   const messages = (hour >= 5 && hour < 12)
@@ -41,18 +60,46 @@ function getDefaultMessageByTimeOfDay(): { title: string; body: string } {
 }
 
 /**
- * 오늘 이미 발송했는지 확인 (Idempotency)
+ * 지정된 시간대의 기본 메시지 선택
  *
+ * @param timeSlot - "morning" | "evening"
+ */
+export function getMessageByTimeSlot(
+  timeSlot: "morning" | "evening"
+): { title: string; body: string } {
+  const messages = timeSlot === "morning"
+    ? DEFAULT_MORNING_MESSAGES
+    : DEFAULT_EVENING_MESSAGES;
+
+  const randomIndex = Math.floor(Math.random() * messages.length);
+  return { title: messages[randomIndex].title, body: messages[randomIndex].body };
+}
+
+/**
+ * 발송 로그 키 생성 (날짜 + 시간대)
+ * - 아침: "2024-01-15_morning"
+ * - 저녁: "2024-01-15_evening"
+ */
+function getSentLogKey(timeSlot: "morning" | "evening"): string {
+  return `${getTodayKey()}_${timeSlot}`;
+}
+
+/**
+ * 오늘 특정 시간대에 이미 발송했는지 확인 (Idempotency)
+ *
+ * @param timeSlot - 시간대 ("morning" | "evening")
  * @returns true면 이미 발송됨, false면 미발송
  */
-export async function checkIfSentToday(): Promise<boolean> {
-  const today = getTodayKey();
+export async function checkIfSentToday(
+  timeSlot: "morning" | "evening" = "morning"
+): Promise<boolean> {
+  const logKey = getSentLogKey(timeSlot);
 
   try {
-    const doc = await db.collection(COLLECTIONS.SENT_LOG).doc(today).get();
+    const doc = await db.collection(COLLECTIONS.SENT_LOG).doc(logKey).get();
     return doc.exists;
   } catch (error) {
-    logger.warn("[Firestore] Failed to check sent log", { error, today });
+    logger.warn("[Firestore] Failed to check sent log", { error, logKey });
     return false; // 확인 실패 시 발송 시도
   }
 }
@@ -62,27 +109,31 @@ export async function checkIfSentToday(): Promise<boolean> {
  *
  * @param messageId - FCM 메시지 ID
  * @param messageContent - 발송된 메시지 내용
+ * @param timeSlot - 시간대 ("morning" | "evening")
  */
 export async function markAsSent(
   messageId: string,
-  messageContent: { title: string; body: string }
+  messageContent: { title: string; body: string },
+  timeSlot: "morning" | "evening" = "morning"
 ): Promise<void> {
+  const logKey = getSentLogKey(timeSlot);
   const today = getTodayKey();
 
   try {
-    await db.collection(COLLECTIONS.SENT_LOG).doc(today).set({
+    await db.collection(COLLECTIONS.SENT_LOG).doc(logKey).set({
       messageId,
       title: messageContent.title,
       body: messageContent.body,
+      timeSlot,
       sentAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     // 통계 업데이트
     await updateStats(today);
 
-    logger.info("[Firestore] Marked as sent", { today, messageId });
+    logger.info("[Firestore] Marked as sent", { logKey, messageId, timeSlot });
   } catch (error) {
-    logger.error("[Firestore] Failed to mark as sent", { error, today });
+    logger.error("[Firestore] Failed to mark as sent", { error, logKey });
     throw error;
   }
 }

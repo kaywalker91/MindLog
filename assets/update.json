@@ -1,0 +1,31 @@
+{
+  "latestVersion": "1.4.27",
+  "minimumVersion": "1.4.0",
+  "releaseNotes": {
+    "ko": {
+      "title": "v1.4.27 업데이트 안내",
+      "features": [
+        "저녁 마음케어 알림이 추가되었어요! 오후 9시에 하루를 정리하는 따뜻한 메시지를 받아보세요.",
+        "아침/저녁 시간대별로 다른 응원 메시지를 보내드려요.",
+        "앱 스크린샷이 v3로 새롭게 단장되었어요."
+      ],
+      "improvements": [
+        "알림 시간이 한국 시간(KST) 기준으로 정확하게 동작해요.",
+        "Play Store 배포 시스템이 Fastlane으로 개선되었어요."
+      ]
+    },
+    "en": {
+      "title": "v1.4.27 Update",
+      "features": [
+        "Evening mindcare notification added! Receive warm messages at 9 PM to wrap up your day.",
+        "Different encouraging messages for morning and evening.",
+        "App screenshots updated to v3."
+      ],
+      "improvements": [
+        "Notification timing now works accurately based on KST timezone.",
+        "Play Store deployment improved with Fastlane integration."
+      ]
+    }
+  },
+  "storeUrl": "https://play.google.com/store/apps/details?id=com.mindlog.mindlog"
+}

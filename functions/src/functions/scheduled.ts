@@ -6,7 +6,9 @@
  * - cron 표현식으로 정확한 시간 지정
  * - 내장 재시도 메커니즘 활용
  *
- * 실행 시간: 매일 오전 9시 (KST)
+ * 실행 시간:
+ * - 아침: 매일 오전 9시 (KST) - 활기찬 하루 시작 메시지
+ * - 저녁: 매일 오후 9시 (KST) - 하루 마무리 메시지
  */
 
 import { onSchedule, ScheduledEvent } from "firebase-functions/v2/scheduler";
@@ -18,18 +20,21 @@ import {
   getTodayMessage,
   markAsSent,
   getTodayKey,
+  getMessageByTimeSlot,
 } from "../services/firestore.service";
 
 /**
- * 매일 오전 9시 (KST) 마음케어 알림 발송
+ * 매일 오전 9시 (KST) 아침 마음케어 알림 발송
+ *
+ * 메시지 유형: 활기찬 하루 시작 (좋은 아침이에요!, 상쾌한 아침이에요 등)
  *
  * Idempotency 보장:
- * - 발송 전 오늘 발송 여부 확인
+ * - 발송 전 오늘 아침 발송 여부 확인
  * - 중복 발송 방지
  */
 export const scheduledMindcareNotification = onSchedule(
   {
-    schedule: SCHEDULE.DAILY_CRON,
+    schedule: SCHEDULE.MORNING_CRON,
     timeZone: TIMEZONE,
     retryCount: RETRY.MAX_ATTEMPTS,
     // 한국 리전 사용 (latency 최소화)
@@ -37,16 +42,17 @@ export const scheduledMindcareNotification = onSchedule(
   },
   async (_event: ScheduledEvent) => {
     const today = getTodayKey();
-    logger.info("[Scheduled] Starting daily mindcare notification", { today });
+    const timeSlot = "morning";
+    logger.info("[Scheduled] Starting morning mindcare notification", { today, timeSlot });
 
     // Step 1: 중복 발송 방지 (Idempotency)
-    const alreadySent = await checkIfSentToday();
+    const alreadySent = await checkIfSentToday(timeSlot);
     if (alreadySent) {
-      logger.info("[Scheduled] Already sent today, skipping", { today });
+      logger.info("[Scheduled] Already sent morning notification, skipping", { today });
       return;
     }
 
-    // Step 2: 오늘의 메시지 조회
+    // Step 2: 오늘의 메시지 조회 (Firestore 우선, fallback은 아침 메시지)
     const message = await getTodayMessage();
     if (!message) {
       logger.warn("[Scheduled] No message available", { today });
@@ -60,23 +66,83 @@ export const scheduledMindcareNotification = onSchedule(
       data: {
         date: today,
         source: "scheduled",
+        timeSlot,
       },
     });
 
     // Step 4: 결과 처리
     if (result.success && result.messageId) {
-      await markAsSent(result.messageId, message);
-      logger.info("[Scheduled] Successfully sent", {
+      await markAsSent(result.messageId, message, timeSlot);
+      logger.info("[Scheduled] Successfully sent morning notification", {
         today,
         messageId: result.messageId,
         title: message.title,
       });
     } else {
-      logger.error("[Scheduled] Failed to send", {
+      logger.error("[Scheduled] Failed to send morning notification", {
         today,
         error: result.error,
       });
-      // 재시도를 위해 에러 throw
+      throw new Error(`FCM send failed: ${result.error}`);
+    }
+  }
+);
+
+/**
+ * 매일 오후 9시 (KST) 저녁 마음케어 알림 발송
+ *
+ * 메시지 유형: 하루 마무리 (오늘 하루는 어떠셨나요?, 마음 정리할 시간이에요 등)
+ *
+ * Idempotency 보장:
+ * - 발송 전 오늘 저녁 발송 여부 확인
+ * - 중복 발송 방지
+ */
+export const scheduledEveningNotification = onSchedule(
+  {
+    schedule: SCHEDULE.EVENING_CRON,
+    timeZone: TIMEZONE,
+    retryCount: RETRY.MAX_ATTEMPTS,
+    region: "asia-northeast3",
+  },
+  async (_event: ScheduledEvent) => {
+    const today = getTodayKey();
+    const timeSlot = "evening";
+    logger.info("[Scheduled] Starting evening mindcare notification", { today, timeSlot });
+
+    // Step 1: 중복 발송 방지 (Idempotency)
+    const alreadySent = await checkIfSentToday(timeSlot);
+    if (alreadySent) {
+      logger.info("[Scheduled] Already sent evening notification, skipping", { today });
+      return;
+    }
+
+    // Step 2: 저녁 메시지 선택 (항상 저녁 메시지 사용)
+    const message = getMessageByTimeSlot(timeSlot);
+
+    // Step 3: FCM 토픽 발송
+    const result = await sendToMindcareTopic({
+      title: message.title,
+      body: message.body,
+      data: {
+        date: today,
+        source: "scheduled",
+        timeSlot,
+      },
+    });
+
+    // Step 4: 결과 처리
+    if (result.success && result.messageId) {
+      await markAsSent(result.messageId, message, timeSlot);
+      logger.info("[Scheduled] Successfully sent evening notification", {
+        today,
+        messageId: result.messageId,
+        title: message.title,
+      });
+    } else {
+      logger.error("[Scheduled] Failed to send evening notification", {
+        today,
+        error: result.error,
+      });
       throw new Error(`FCM send failed: ${result.error}`);
     }
   }
