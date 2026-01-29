@@ -1,0 +1,9 @@
+MindLog is an AI-powered emotion diary app.
+
+Key Features:
+• Easy diary writing
+• AI emotion analysis
+• Emotion statistics and pattern analysis
+• Dark mode support
+
+Record your emotions daily and check the insights analyzed by AI.
