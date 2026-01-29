@@ -100,7 +100,6 @@ jobs:
       - name: Deploy with Fastlane
         run: bundle exec fastlane deploy_internal
         working-directory: android
-        continue-on-error: true # 첫 배포 전까지는 실패 허용
 
       # 빌드 아티팩트 저장 (AAB)
       - name: Upload AAB Artifact
