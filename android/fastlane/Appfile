@@ -1,7 +1,7 @@
-# Play Store JSON key file path (from GitHub Secrets in CI, or local path for development)
-# For CI: Set PLAY_STORE_JSON_KEY env variable
-# For local: Place your service account JSON in android/fastlane/
-json_key_file(ENV["PLAY_STORE_JSON_KEY"] || "fastlane/mindlog-482401-8425dfda7aca.json")
+# Play Store JSON key file path
+# CI: Created from PLAY_STORE_SERVICE_ACCOUNT_JSON secret
+# Local: Place play-store-key.json in android/fastlane/
+json_key_file("fastlane/play-store-key.json")
 
 # App package name
 package_name("com.mindlog.mindlog")
