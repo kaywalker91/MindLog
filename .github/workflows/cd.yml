@@ -8,6 +8,10 @@ on:
       - "docs/**"
       - ".github/ISSUE_TEMPLATE/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   FLUTTER_VERSION: "3.38.x"
   JAVA_VERSION: "17"
@@ -100,6 +104,8 @@ jobs:
       - name: Deploy with Fastlane
         run: bundle exec fastlane deploy_internal
         working-directory: android
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
       # 빌드 아티팩트 저장 (AAB)
       - name: Upload AAB Artifact

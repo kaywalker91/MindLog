@@ -18,19 +18,6 @@ import { MindcareMessage, MindcareStats } from "../types";
 const db = admin.firestore();
 
 /**
- * KST 기준 현재 시간(hour) 반환
- * Firebase Functions는 UTC에서 실행되므로 명시적 변환 필요
- */
-function getKSTHour(): number {
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: TIMEZONE,
-    hour: "numeric",
-    hour12: false,
-  });
-  return parseInt(formatter.format(new Date()), 10);
-}
-
-/**
  * 오늘 날짜 키 생성 (YYYY-MM-DD, KST 기준)
  * Firebase Functions는 UTC에서 실행되므로 명시적 변환 필요
  */
@@ -39,24 +26,6 @@ export function getTodayKey(): string {
     timeZone: TIMEZONE,
   });
   return formatter.format(new Date());
-}
-
-/**
- * 시간대에 따른 기본 메시지 선택
- *
- * - 오전 5시 ~ 11시: 아침 메시지 (활기찬 하루 시작)
- * - 그 외: 저녁 메시지 (하루 마무리)
- */
-function getDefaultMessageByTimeOfDay(): { title: string; body: string } {
-  const hour = getKSTHour();
-
-  // 오전 5시 ~ 11시: 아침 메시지
-  const messages = (hour >= 5 && hour < 12)
-    ? DEFAULT_MORNING_MESSAGES
-    : DEFAULT_EVENING_MESSAGES;
-
-  const randomIndex = Math.floor(Math.random() * messages.length);
-  return { title: messages[randomIndex].title, body: messages[randomIndex].body };
 }
 
 /**
@@ -145,8 +114,12 @@ export async function markAsSent(
  * 1. Firestore에 오늘 예정된 메시지
  * 2. 상태가 pending인 메시지 중 가장 오래된 것
  * 3. 기본 메시지 (랜덤)
+ *
+ * @param timeSlot - 시간대 ("morning" | "evening"), fallback 메시지 선택에 사용
  */
-export async function getTodayMessage(): Promise<{ title: string; body: string } | null> {
+export async function getTodayMessage(
+  timeSlot: "morning" | "evening" = "morning"
+): Promise<{ title: string; body: string } | null> {
   try {
     // 1. 오늘 날짜에 예정된 메시지 찾기
     const today = new Date();
@@ -195,13 +168,13 @@ export async function getTodayMessage(): Promise<{ title: string; body: string }
       return { title: message.title, body: message.body };
     }
 
-    // 3. 시간대에 맞는 기본 메시지 (랜덤)
-    return getDefaultMessageByTimeOfDay();
+    // 3. 지정된 시간대의 기본 메시지 (랜덤)
+    return getMessageByTimeSlot(timeSlot);
   } catch (error) {
     logger.error("[Firestore] Failed to get today message", { error });
 
-    // 에러 시 시간대에 맞는 기본 메시지 반환
-    return getDefaultMessageByTimeOfDay();
+    // 에러 시 지정된 시간대의 기본 메시지 반환
+    return getMessageByTimeSlot(timeSlot);
   }
 }
 

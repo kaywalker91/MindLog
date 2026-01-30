@@ -101,7 +101,24 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.27 (Current)
+### v1.4.28 (Current)
+*   **CI/CD 배포 파이프라인 안정화:**
+    *   **Concurrency 설정 추가:** `cd.yml`에 concurrency 그룹 설정으로 동일 브랜치 중복 배포 방지
+    *   **cancel-in-progress: false:** 진행 중인 배포는 취소하지 않고 순차 실행
+*   **Fastlane API 키 주입 개선:**
+    *   **GROQ_API_KEY 환경변수 전달:** cd.yml에서 Fastlane deploy 단계에 GROQ_API_KEY 전달
+    *   **프로덕션 빌드 검증:** Fastfile에서 API 키 누락 시 빌드 실패로 품질 보장
+    *   **dart-define 주입:** `flutter build appbundle/apk`에 `--dart-define=GROQ_API_KEY` 적용
+*   **Firebase Functions 코드 정리:**
+    *   **timeSlot 파라미터 추가:** `getTodayMessage(timeSlot)` 호출로 시간대별 정확한 메시지 선택
+    *   **데드 코드 제거:** `getKSTHour()`, `getDefaultMessageByTimeOfDay()` 미사용 함수 삭제
+    *   **`getMessageByTimeSlot()` 통일:** 모든 시간대 메시지 선택을 단일 함수로 처리
+*   **스킬 카탈로그 업데이트:**
+    *   **CI/CD Commands 섹션 추가:** `/cd-diagnose`, `/fastlane-audit` 커맨드 문서화
+    *   **TIL 저장 커맨드 추가:** `/til-save [topic]` 커맨드 문서화
+    *   **CD 트러블슈팅 워크플로우:** `/fastlane-audit` → `/cd-diagnose` → 수정 → 재배포 가이드
+
+### v1.4.27
 *   **저녁 마음케어 알림 추가 (Firebase Functions):**
     *   **2회 알림 시스템:** 기존 아침 9시 + 신규 저녁 9시 알림 스케줄 구성
     *   **`scheduledEveningNotification` 함수 신규:** 저녁 전용 메시지 ("오늘 하루는 어떠셨나요?", "마음 정리할 시간이에요" 등)

@@ -27,6 +27,14 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 | `/provider-centralize` | `provider-centralize.md` | Provider 중복/분산 분석 및 중앙화 |
 | `/refactor-plan [scope]` | `refactor-plan.md` | 리팩토링 계획서 생성 |
 | `/session-wrap` | `session-wrap.md` | 세션 마무리 자동화 |
+| `/til-save [topic]` | `til-save.md` | TIL 문서 메모리 저장 |
+
+## CI/CD Commands
+
+| Command | Skill File | Purpose |
+|---------|-----------|---------|
+| `/cd-diagnose [run_id]` | `cd-diagnose.md` | CD 워크플로우 실패 근본 원인 분석 |
+| `/fastlane-audit` | `fastlane-audit.md` | Fastlane 설정 사전 검증 |
 
 ## Swarm Orchestration Commands
 
@@ -45,4 +53,5 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 - **Refactoring**: `/arch-check` -> `/provider-centralize` -> `/refactor-plan` -> `/widget-decompose`
 - **Refactoring (swarm)**: `/refactor-plan` -> `/swarm-refactor [scope] [strategy]`
 - **Deep review**: `/swarm-review [path]` (보안+성능+아키텍처 병렬)
-- **Session end**: `/session-wrap`
+- **CD troubleshoot**: `/fastlane-audit` -> `/cd-diagnose [run_id]` -> 수정 -> 재배포
+- **Session end**: `/session-wrap` -> `/til-save [topic]` (TIL 메모리화)

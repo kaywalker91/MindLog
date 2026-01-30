@@ -13,20 +13,32 @@ platform :android do
 
   desc "Build release AAB and APK"
   lane :build do
+    # Get API key from environment variable
+    groq_key = ENV["GROQ_API_KEY"]
+
+    # Validate API key for production builds
+    if groq_key.nil? || groq_key.empty?
+      UI.user_error!("GROQ_API_KEY is required for production builds")
+    end
+
     # Ensure dependencies are installed
     Dir.chdir("..") do
       sh("flutter", "pub", "get")
       sh("dart", "run", "build_runner", "build", "--delete-conflicting-outputs")
     end
 
-    # Build AAB
+    # Build AAB with dart-define for API key injection
     Dir.chdir("..") do
-      sh("flutter", "build", "appbundle", "--release")
+      sh("flutter", "build", "appbundle", "--release",
+         "--dart-define=GROQ_API_KEY=#{groq_key}",
+         "--dart-define=ENVIRONMENT=production")
     end
 
-    # Build APK
+    # Build APK with dart-define for API key injection
     Dir.chdir("..") do
-      sh("flutter", "build", "apk", "--release")
+      sh("flutter", "build", "apk", "--release",
+         "--dart-define=GROQ_API_KEY=#{groq_key}",
+         "--dart-define=ENVIRONMENT=production")
     end
 
     UI.success("Build completed!")

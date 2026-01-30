@@ -53,7 +53,7 @@ export const scheduledMindcareNotification = onSchedule(
     }
 
     // Step 2: 오늘의 메시지 조회 (Firestore 우선, fallback은 아침 메시지)
-    const message = await getTodayMessage();
+    const message = await getTodayMessage(timeSlot);
     if (!message) {
       logger.warn("[Scheduled] No message available", { today });
       return;
