@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/services/notification_permission_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -72,7 +73,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         notes: data.changelogNotes,
         onDismiss: () {
           ref.read(appUpgradeCheckProvider.notifier).markWhatsNewShown();
-          Navigator.of(context).pop();
+          context.pop();
         },
       );
     } catch (e) {
@@ -100,11 +101,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => context.pop(false),
               child: const Text('나중에'),
             ),
             FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
+              onPressed: () => context.pop(true),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.statsPrimary,
                 foregroundColor: Colors.white,

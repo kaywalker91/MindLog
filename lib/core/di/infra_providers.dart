@@ -125,7 +125,19 @@ final getStatisticsUseCaseProvider = Provider<GetStatisticsUseCase>((ref) {
 ///
 /// DB 복원이 감지되면 모든 데이터 관련 Provider를 무효화하여
 /// 새로운 DB 데이터를 반영합니다.
+///
+/// 주의: Repository Provider들이 ref.read()를 사용하여 SqliteLocalDataSource를
+/// 의존하고 있어 의존성 추적이 되지 않습니다. 따라서 데이터 소스뿐만 아니라
+/// 모든 관련 Provider를 명시적으로 무효화해야 합니다.
 void invalidateDataProviders(ProviderContainer container) {
-  // 데이터 소스 Provider 무효화 → 의존하는 모든 Provider 자동 갱신
+  // 1. 데이터 소스 Provider 무효화
   container.invalidate(sqliteLocalDataSourceProvider);
+
+  // 2. Repository Provider 무효화 (ref.read()로 인한 의존성 미추적 보완)
+  container.invalidate(diaryRepositoryProvider);
+  container.invalidate(statisticsRepositoryProvider);
+
+  // 3. UseCase Provider 무효화 (statisticsProvider가 watch하는 대상)
+  container.invalidate(getStatisticsUseCaseProvider);
+  container.invalidate(analyzeDiaryUseCaseProvider);
 }

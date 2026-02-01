@@ -57,9 +57,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
   }
 
   void _navigateToDiary() {
-    if (mounted) {
+    if (!mounted) return;
+
+    // 프레임 완료 후 GoRouter가 준비된 상태에서 안전하게 navigation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.goHome();
-    }
+    });
   }
 
   @override

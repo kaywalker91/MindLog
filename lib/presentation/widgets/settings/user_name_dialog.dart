@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../providers/providers.dart';
 
 /// 사용자 이름 설정 다이얼로그
@@ -44,7 +45,7 @@ class _UserNameDialogState extends ConsumerState<UserNameDialog> {
   Future<void> _handleReset() async {
     await ref.read(userNameProvider.notifier).setUserName(null);
     if (mounted) {
-      Navigator.of(context).pop();
+      context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('이름이 초기화되었습니다.')),
       );
@@ -57,7 +58,7 @@ class _UserNameDialogState extends ConsumerState<UserNameDialog> {
           name.isEmpty ? null : name,
         );
     if (mounted) {
-      Navigator.of(context).pop();
+      context.pop();
       if (name.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('$name님으로 설정되었습니다.')),

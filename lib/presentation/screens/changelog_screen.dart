@@ -16,21 +16,6 @@ class ChangelogScreen extends ConsumerWidget {
     this.buildNumber,
   });
 
-  static void navigate(
-    BuildContext context, {
-    required String version,
-    String? buildNumber,
-  }) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ChangelogScreen(
-          version: version,
-          buildNumber: buildNumber,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;

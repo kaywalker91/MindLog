@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import '../../firebase_options.dart';
+import 'crashlytics_service.dart';
 import 'notification_service.dart';
 
 /// Firebase Cloud Messaging 서비스
@@ -12,6 +13,8 @@ class FCMService {
   static FirebaseMessaging? _messaging;
   static String? _fcmToken;
   static void Function(Map<String, dynamic> data)? _onMessageOpened;
+  static bool _initialized = false;
+  static bool _handlersSetup = false;
 
   static String? get fcmToken => _fcmToken;
 
@@ -19,6 +22,8 @@ class FCMService {
   static Future<void> initialize({
     void Function(Map<String, dynamic> data)? onMessageOpened,
   }) async {
+    if (_initialized) return;
+
     final messaging = FirebaseMessaging.instance;
     _messaging = messaging;
     _onMessageOpened = onMessageOpened;
@@ -38,8 +43,19 @@ class FCMService {
         settings.authorizationStatus == AuthorizationStatus.provisional) {
       await _getToken();
 
-      messaging.onTokenRefresh.listen(_onTokenRefresh);
+      messaging.onTokenRefresh.listen(
+        _onTokenRefresh,
+        onError: (error, stackTrace) async {
+          await CrashlyticsService.recordError(
+            error,
+            stackTrace,
+            reason: 'fcm_token_refresh_error',
+            fatal: false,
+          );
+        },
+      );
       _setupMessageHandlers();
+      _initialized = true;
     }
   }
 
@@ -74,8 +90,19 @@ class FCMService {
       }
     }
 
-    _fcmToken = await _messaging?.getToken();
-    if (kDebugMode) debugPrint('[FCM] Token: $_fcmToken');
+    try {
+      _fcmToken = await _messaging?.getToken();
+      if (kDebugMode) debugPrint('[FCM] Token: $_fcmToken');
+    } catch (e, stack) {
+      await CrashlyticsService.recordError(
+        e,
+        stack,
+        reason: 'fcm_gettoken_error',
+        fatal: false,
+      );
+      if (kDebugMode) debugPrint('[FCM] Token retrieval failed: $e');
+      // onTokenRefresh가 다음 앱 시작 시 복구
+    }
   }
 
   static void _onTokenRefresh(String token) {
@@ -84,9 +111,11 @@ class FCMService {
   }
 
   static void _setupMessageHandlers() {
+    if (_handlersSetup) return;
     FirebaseMessaging.onMessage.listen(_onForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_onMessageOpenedApp);
     _checkInitialMessage();
+    _handlersSetup = true;
   }
 
   static Future<void> _onForegroundMessage(RemoteMessage message) async {

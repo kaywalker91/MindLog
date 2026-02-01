@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/providers.dart';
 
 /// 모든 일기 삭제 확인 다이얼로그
@@ -35,12 +36,12 @@ class DeleteAllDiariesDialog extends ConsumerWidget {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
           child: const Text('취소'),
         ),
         FilledButton(
           onPressed: () async {
-            Navigator.of(context).pop();
+            context.pop();
             await _deleteAllDiaries(context, ref);
           },
           style: FilledButton.styleFrom(

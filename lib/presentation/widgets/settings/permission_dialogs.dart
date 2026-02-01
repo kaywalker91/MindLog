@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 /// 정확한 알람 권한 안내 다이얼로그
 class ExactAlarmPermissionDialog extends StatelessWidget {
@@ -32,11 +33,11 @@ class ExactAlarmPermissionDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => context.pop(false),
           child: const Text('나중에'),
         ),
         FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
+          onPressed: () => context.pop(true),
           style: FilledButton.styleFrom(
             backgroundColor: colorScheme.primary,
           ),
@@ -80,11 +81,11 @@ class BatteryOptimizationDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
+          onPressed: () => context.pop(false),
           child: const Text('나중에'),
         ),
         FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
+          onPressed: () => context.pop(true),
           style: FilledButton.styleFrom(
             backgroundColor: colorScheme.primary,
           ),

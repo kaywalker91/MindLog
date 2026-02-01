@@ -10,14 +10,6 @@ import '../widgets/mindlog_app_bar.dart';
 class PrivacyPolicyScreen extends StatefulWidget {
   const PrivacyPolicyScreen({super.key});
 
-  static void navigate(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const PrivacyPolicyScreen(),
-      ),
-    );
-  }
-
   @override
   State<PrivacyPolicyScreen> createState() => _PrivacyPolicyScreenState();
 }

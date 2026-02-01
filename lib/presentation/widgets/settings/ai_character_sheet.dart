@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/ai_character.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../providers/providers.dart';
@@ -73,7 +74,7 @@ class AiCharacterSheet extends ConsumerWidget {
                     .read(aiCharacterProvider.notifier)
                     .setCharacter(value);
                 if (context.mounted) {
-                  Navigator.of(context).pop();
+                  context.pop();
                 }
               },
               child: Column(

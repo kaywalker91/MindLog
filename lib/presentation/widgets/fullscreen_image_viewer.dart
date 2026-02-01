@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 
 /// 전체화면 이미지 뷰어
@@ -92,7 +93,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
           // 아래로 스와이프하면 닫기
           if (details.primaryVelocity != null &&
               details.primaryVelocity! > 300) {
-            Navigator.of(context).pop();
+            context.pop();
           }
         },
         child: Stack(
@@ -131,7 +132,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
               top: MediaQuery.of(context).padding.top + 8,
               right: 8,
               child: IconButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
                 icon: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: const BoxDecoration(

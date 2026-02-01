@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 
 class UpdateUpToDateDialog extends StatelessWidget {
@@ -55,7 +56,7 @@ class UpdateUpToDateDialog extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: FilledButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     child: const Text('확인'),
                   ),
                 ),
