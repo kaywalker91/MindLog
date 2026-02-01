@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/ai_character.dart';
 import '../../../core/services/analytics_service.dart';
@@ -298,7 +299,7 @@ class NotificationSection extends ConsumerWidget {
             SettingsToggleItem(
               icon: Icons.favorite_border,
               title: '마음 케어 알림',
-              subtitle: '매일 아침 따뜻한 마음 케어 메시지를 받아요.',
+              subtitle: '매일 저녁 9시에 하루 마무리 메시지를 받아요.',
               value: notificationSettings.isMindcareTopicEnabled,
               enabled: notificationsReady,
               onChanged: (value) {
@@ -513,12 +514,12 @@ class DataManagementSection extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => context.pop(),
             child: const Text('취소'),
           ),
           FilledButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              context.pop();
               await _deleteAllDiaries(context, ref);
             },
             style: FilledButton.styleFrom(

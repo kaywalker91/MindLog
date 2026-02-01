@@ -18,7 +18,7 @@ import {
   getTodayKey,
   checkIfSentToday,
   markAsSent,
-  getTodayMessage,
+  getEveningMessage,
 } from "../services/firestore.service";
 import { ApiResponse } from "../types";
 
@@ -58,15 +58,8 @@ export const sendMindcareNotification = onRequest(
         title = req.body.title;
         body = req.body.body;
       } else {
-        const message = await getTodayMessage();
-        if (!message) {
-          res.status(404).json({
-            success: false,
-            error: "No message available",
-            timestamp: new Date().toISOString(),
-          } as ApiResponse);
-          return;
-        }
+        // 커스텀 메시지가 없으면 저녁 메시지 풀에서 랜덤 선택
+        const message = getEveningMessage();
         title = message.title;
         body = message.body;
       }

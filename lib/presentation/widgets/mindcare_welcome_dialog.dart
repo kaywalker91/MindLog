@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 /// 마음 케어 알림 첫 활성화 시 표시되는 환영 다이얼로그
 class MindcareWelcomeDialog extends StatelessWidget {
@@ -44,7 +45,7 @@ class MindcareWelcomeDialog extends StatelessWidget {
             child: Column(
               children: [
                 Icon(
-                  Icons.favorite,
+                  Icons.nightlight_round,
                   size: 48,
                   color: colorScheme.primary,
                 ),
@@ -67,8 +68,8 @@ class MindcareWelcomeDialog extends StatelessWidget {
               children: [
                 _buildInfoRow(
                   context,
-                  icon: Icons.wb_sunny_outlined,
-                  text: '매일 아침 따뜻한 메시지가 도착해요',
+                  icon: Icons.nightlight_outlined,
+                  text: '매일 저녁 9시, 하루 마무리 메시지가 도착해요',
                 ),
                 const SizedBox(height: 16),
                 _buildSampleMessage(context),
@@ -76,7 +77,7 @@ class MindcareWelcomeDialog extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     child: const Text('시작하기'),
                   ),
                 ),
@@ -137,7 +138,7 @@ class MindcareWelcomeDialog extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '"오늘도 당신은 충분히 잘하고 있어요"',
+              '"오늘 하루는 어떠셨나요? 마음을 돌아봐요"',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontStyle: FontStyle.italic,

@@ -9,11 +9,10 @@ import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 import {
   COLLECTIONS,
-  DEFAULT_MORNING_MESSAGES,
   DEFAULT_EVENING_MESSAGES,
   TIMEZONE,
 } from "../config/constants";
-import { MindcareMessage, MindcareStats } from "../types";
+import { MindcareStats } from "../types";
 
 const db = admin.firestore();
 
@@ -29,38 +28,33 @@ export function getTodayKey(): string {
 }
 
 /**
- * 지정된 시간대의 기본 메시지 선택
- *
- * @param timeSlot - "morning" | "evening"
+ * 저녁 마음케어 메시지 선택 (랜덤)
  */
-export function getMessageByTimeSlot(
-  timeSlot: "morning" | "evening"
-): { title: string; body: string } {
-  const messages = timeSlot === "morning"
-    ? DEFAULT_MORNING_MESSAGES
-    : DEFAULT_EVENING_MESSAGES;
-
-  const randomIndex = Math.floor(Math.random() * messages.length);
-  return { title: messages[randomIndex].title, body: messages[randomIndex].body };
+export function getEveningMessage(): { title: string; body: string } {
+  const randomIndex = Math.floor(Math.random() * DEFAULT_EVENING_MESSAGES.length);
+  return {
+    title: DEFAULT_EVENING_MESSAGES[randomIndex].title,
+    body: DEFAULT_EVENING_MESSAGES[randomIndex].body,
+  };
 }
 
 /**
  * 발송 로그 키 생성 (날짜 + 시간대)
- * - 아침: "2024-01-15_morning"
  * - 저녁: "2024-01-15_evening"
+ * - manual: "2024-01-15_manual" (수동 발송)
  */
-function getSentLogKey(timeSlot: "morning" | "evening"): string {
+function getSentLogKey(timeSlot: "evening" | "manual"): string {
   return `${getTodayKey()}_${timeSlot}`;
 }
 
 /**
  * 오늘 특정 시간대에 이미 발송했는지 확인 (Idempotency)
  *
- * @param timeSlot - 시간대 ("morning" | "evening")
+ * @param timeSlot - 시간대 ("evening" | "manual")
  * @returns true면 이미 발송됨, false면 미발송
  */
 export async function checkIfSentToday(
-  timeSlot: "morning" | "evening" = "morning"
+  timeSlot: "evening" | "manual" = "evening"
 ): Promise<boolean> {
   const logKey = getSentLogKey(timeSlot);
 
@@ -78,12 +72,12 @@ export async function checkIfSentToday(
  *
  * @param messageId - FCM 메시지 ID
  * @param messageContent - 발송된 메시지 내용
- * @param timeSlot - 시간대 ("morning" | "evening")
+ * @param timeSlot - 시간대 ("evening" | "manual")
  */
 export async function markAsSent(
   messageId: string,
   messageContent: { title: string; body: string },
-  timeSlot: "morning" | "evening" = "morning"
+  timeSlot: "evening" | "manual" = "evening"
 ): Promise<void> {
   const logKey = getSentLogKey(timeSlot);
   const today = getTodayKey();
@@ -104,77 +98,6 @@ export async function markAsSent(
   } catch (error) {
     logger.error("[Firestore] Failed to mark as sent", { error, logKey });
     throw error;
-  }
-}
-
-/**
- * 오늘의 메시지 조회
- *
- * 우선순위:
- * 1. Firestore에 오늘 예정된 메시지
- * 2. 상태가 pending인 메시지 중 가장 오래된 것
- * 3. 기본 메시지 (랜덤)
- *
- * @param timeSlot - 시간대 ("morning" | "evening"), fallback 메시지 선택에 사용
- */
-export async function getTodayMessage(
-  timeSlot: "morning" | "evening" = "morning"
-): Promise<{ title: string; body: string } | null> {
-  try {
-    // 1. 오늘 날짜에 예정된 메시지 찾기
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const scheduledQuery = await db
-      .collection(COLLECTIONS.MESSAGES)
-      .where("scheduledAt", ">=", admin.firestore.Timestamp.fromDate(today))
-      .where("scheduledAt", "<", admin.firestore.Timestamp.fromDate(tomorrow))
-      .where("status", "==", "pending")
-      .limit(1)
-      .get();
-
-    if (!scheduledQuery.empty) {
-      const doc = scheduledQuery.docs[0];
-      const message = doc.data() as MindcareMessage;
-
-      // 상태 업데이트
-      await doc.ref.update({
-        status: "sent",
-        sentAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      return { title: message.title, body: message.body };
-    }
-
-    // 2. pending 상태의 가장 오래된 메시지
-    const pendingQuery = await db
-      .collection(COLLECTIONS.MESSAGES)
-      .where("status", "==", "pending")
-      .orderBy("createdAt", "asc")
-      .limit(1)
-      .get();
-
-    if (!pendingQuery.empty) {
-      const doc = pendingQuery.docs[0];
-      const message = doc.data() as MindcareMessage;
-
-      await doc.ref.update({
-        status: "sent",
-        sentAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      return { title: message.title, body: message.body };
-    }
-
-    // 3. 지정된 시간대의 기본 메시지 (랜덤)
-    return getMessageByTimeSlot(timeSlot);
-  } catch (error) {
-    logger.error("[Firestore] Failed to get today message", { error });
-
-    // 에러 시 지정된 시간대의 기본 메시지 반환
-    return getMessageByTimeSlot(timeSlot);
   }
 }
 
