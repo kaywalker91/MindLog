@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mindlog/presentation/widgets/mindcare_welcome_dialog.dart';
 
 void main() {
@@ -16,14 +17,14 @@ void main() {
       // 제목 확인
       expect(find.text('마음 케어 알림 시작!'), findsOneWidget);
 
-      // 아이콘 확인 (하트 아이콘)
-      expect(find.byIcon(Icons.favorite), findsOneWidget);
+      // 아이콘 확인 (저녁 달 아이콘)
+      expect(find.byIcon(Icons.nightlight_round), findsOneWidget);
 
       // 정보 텍스트 확인
-      expect(find.text('매일 아침 따뜻한 메시지가 도착해요'), findsOneWidget);
+      expect(find.text('매일 저녁 9시, 하루 마무리 메시지가 도착해요'), findsOneWidget);
 
       // 샘플 메시지 확인
-      expect(find.text('"오늘도 당신은 충분히 잘하고 있어요"'), findsOneWidget);
+      expect(find.text('"오늘 하루는 어떠셨나요? 마음을 돌아봐요"'), findsOneWidget);
 
       // 시작하기 버튼 확인
       expect(find.text('시작하기'), findsOneWidget);
@@ -57,16 +58,27 @@ void main() {
     });
 
     testWidgets('dialog closes when 시작하기 button is tapped', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => ElevatedButton(
-                onPressed: () => MindcareWelcomeDialog.show(context),
-                child: const Text('Show Dialog'),
+      // go_router를 사용하는 위젯 테스트용 설정
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => MindcareWelcomeDialog.show(context),
+                  child: const Text('Show Dialog'),
+                ),
               ),
             ),
           ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp.router(
+          routerConfig: router,
         ),
       );
 
@@ -94,8 +106,8 @@ void main() {
         ),
       );
 
-      // 해 아이콘 확인 (정보 행)
-      expect(find.byIcon(Icons.wb_sunny_outlined), findsOneWidget);
+      // 저녁 아이콘 확인 (정보 행)
+      expect(find.byIcon(Icons.nightlight_outlined), findsOneWidget);
 
       // 메일 아이콘 확인 (샘플 메시지)
       expect(find.byIcon(Icons.mail_outline), findsOneWidget);
@@ -142,7 +154,7 @@ void main() {
 
       // 기본 요소 확인 (다크 모드에서도 동일하게 렌더링)
       expect(find.text('마음 케어 알림 시작!'), findsOneWidget);
-      expect(find.text('매일 아침 따뜻한 메시지가 도착해요'), findsOneWidget);
+      expect(find.text('매일 저녁 9시, 하루 마무리 메시지가 도착해요'), findsOneWidget);
       expect(find.text('시작하기'), findsOneWidget);
     });
   });
