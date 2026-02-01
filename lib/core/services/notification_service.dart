@@ -99,13 +99,16 @@ class NotificationService {
   /// [hour] 시간 (0-23)
   /// [minute] 분 (0-59)
   /// [payload] 알림 클릭 시 전달할 데이터
+  /// [scheduleMode] Android 스케줄 모드 (기본: exactAllowWhileIdle)
   ///
-  /// Throws:
-  /// - [NotificationScheduleException] 스케줄링 실패 시
-  static Future<void> scheduleDailyReminder({
+  /// Returns:
+  /// - `true` 스케줄링 성공
+  /// - `false` 스케줄링 실패 (크래시 없이 graceful 실패)
+  static Future<bool> scheduleDailyReminder({
     required int hour,
     required int minute,
     String? payload,
+    AndroidScheduleMode scheduleMode = AndroidScheduleMode.exactAllowWhileIdle,
   }) async {
     try {
       await cancelDailyReminder();
@@ -155,23 +158,25 @@ class NotificationService {
         payload: payload,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: scheduleMode,
         matchDateTimeComponents: DateTimeComponents.time,
       );
 
       if (kDebugMode) {
         debugPrint('[Notification] Daily reminder scheduled for: $scheduledDate');
         debugPrint('[Notification] Message: "${message.title}" / "${message.body}"');
+        debugPrint('[Notification] Schedule mode: $scheduleMode');
         debugPrint('[Notification] Current time: $now');
         debugPrint('[Notification] Timezone: ${tz.local.name}');
       }
+      return true;
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint('[Notification] Failed to schedule daily reminder: $e');
         debugPrint('[Notification] Stack trace: $stackTrace');
       }
-      // 에러를 전파하여 호출자가 처리할 수 있게 함
-      rethrow;
+      // 크래시 방지: 에러 시 false 반환
+      return false;
     }
   }
 

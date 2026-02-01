@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mindlog/core/services/notification_settings_service.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
@@ -44,7 +45,17 @@ class NotificationSettingsController
     final useCase = ref.read(setNotificationSettingsUseCaseProvider);
     await useCase.execute(settings);
     state = AsyncValue.data(settings);
-    await NotificationSettingsService.applySettings(settings, source: source);
+
+    // 안전망: 설정은 저장됨, 스케줄링 실패 시 크래시 방지
+    try {
+      await NotificationSettingsService.applySettings(settings, source: source);
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[NotificationSettingsController] applySettings failed: $e');
+        debugPrint('[NotificationSettingsController] Stack trace: $stackTrace');
+      }
+      // 설정 저장됨, 스케줄링만 실패 - 앱 크래시 방지
+    }
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../domain/entities/notification_settings.dart';
 import 'analytics_service.dart';
 import 'fcm_service.dart';
@@ -59,14 +60,25 @@ class NotificationSettingsService {
         }
       }
 
-      // 스케줄링 실행
-      try {
-        await NotificationService.scheduleDailyReminder(
-          hour: settings.reminderHour,
-          minute: settings.reminderMinute,
-          payload: reminderPayload,
-        );
+      // 권한 기반 스케줄 모드 자동 선택 (Android 14+ 대응)
+      // exact alarm 권한이 없으면 inexact 모드로 fallback (최대 15분 지연)
+      final scheduleMode = (canScheduleExact == true)
+          ? AndroidScheduleMode.exactAllowWhileIdle
+          : AndroidScheduleMode.inexactAllowWhileIdle;
 
+      if (kDebugMode) {
+        debugPrint('[NotificationSettings]   • Schedule Mode: ${canScheduleExact == true ? "EXACT" : "INEXACT (fallback)"}');
+      }
+
+      // 스케줄링 실행
+      final success = await NotificationService.scheduleDailyReminder(
+        hour: settings.reminderHour,
+        minute: settings.reminderMinute,
+        payload: reminderPayload,
+        scheduleMode: scheduleMode,
+      );
+
+      if (success) {
         // Analytics 이벤트: 스케줄링 성공
         await AnalyticsService.logReminderScheduled(
           hour: settings.reminderHour,
@@ -77,17 +89,16 @@ class NotificationSettingsService {
         if (kDebugMode) {
           debugPrint('[NotificationSettings] ✅ Schedule call completed successfully');
         }
-      } catch (e, stackTrace) {
+      } else {
         // Analytics 이벤트: 스케줄링 실패
         await AnalyticsService.logReminderScheduleFailed(
-          errorType: e.runtimeType.toString(),
+          errorType: 'schedule_returned_false',
         );
 
         if (kDebugMode) {
-          debugPrint('[NotificationSettings] ❌ Schedule FAILED: $e');
-          debugPrint('[NotificationSettings] Stack trace: $stackTrace');
+          debugPrint('[NotificationSettings] ❌ Schedule failed (returned false)');
         }
-        rethrow;
+        // 크래시 방지: rethrow 제거 - 설정은 저장됨, 스케줄링만 실패
       }
 
       // 예약된 알림 확인

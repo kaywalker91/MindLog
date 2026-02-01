@@ -101,7 +101,30 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.28 (Current)
+### v1.4.29 (Current)
+*   **통계 화면 위젯 분해 (501줄 삭감):**
+    *   **StatisticsScreen 모듈화:** 단일 파일에서 4개 독립 위젯으로 분리
+        *   `StatisticsSummaryRow`: 요약 + 스트릭 Row 위젯
+        *   `StatisticsHeatmapCard`: 감정 달력/히트맵 카드 (기간 필터 포함)
+        *   `StatisticsChartCard`: 감정 추이 라인 차트
+        *   `StatisticsKeywordCard`: 자주 느낀 감정 키워드 태그
+    *   **Import 정리:** 개별 위젯 import → barrel export (`statistics.dart`) 단일 import
+    *   **빌드 성능 향상:** 각 위젯 독립 rebuild로 불필요한 리렌더링 방지
+*   **알림 스케줄링 안정화 (Android 14+ 대응):**
+    *   **Graceful 실패 처리:** `scheduleDailyReminder()` 반환값 `Future<void>` → `Future<bool>`로 변경
+    *   **rethrow 제거:** 알림 스케줄링 실패 시 앱 크래시 방지 (false 반환)
+    *   **Schedule Mode 자동 선택:** exact alarm 권한 없으면 `inexactAllowWhileIdle`로 fallback
+    *   **디버그 로깅 강화:** Schedule mode 정보 출력 추가
+*   **go_router 마이그레이션 완료:**
+    *   **Navigator.pop → context.pop():** 7개 파일에서 레거시 Navigator 호출 제거
+        *   `changelog_screen.dart`, `main_screen.dart`, `privacy_policy_screen.dart`
+        *   `diary_image_gallery.dart`, `help_dialog.dart`, `loading_indicator.dart`
+        *   `keywords_section.dart`
+    *   **일관된 뒤로가기 동작:** 딥링크 및 시스템 back button 동작 통일
+*   **테스트 추가:**
+    *   **app_router_test.dart 신규:** 라우터 경로 및 리다이렉트 로직 검증
+
+### v1.4.28
 *   **CI/CD 배포 파이프라인 안정화:**
     *   **Concurrency 설정 추가:** `cd.yml`에 concurrency 그룹 설정으로 동일 브랜치 중복 배포 방지
     *   **cancel-in-progress: false:** 진행 중인 배포는 취소하지 않고 순차 실행

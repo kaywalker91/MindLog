@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260130-v1428">
+    <link rel="stylesheet" href="style.css?v=20260202-v1429">
 </head>
 <body>
     <header class="hero">
@@ -88,32 +88,27 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.28에서는 CI/CD 안정성 강화, Fastlane API 키 주입, Firebase Functions 코드 정리를 진행했습니다.</p>
+            <p class="section-subtitle">v1.4.29에서는 통계 화면 위젯 모듈화, Android 14 알림 호환성, go_router 마이그레이션을 완료했습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
-                    <span class="update-tag">CI/CD</span>
-                    <h3>🔄 배포 파이프라인 안정화</h3>
-                    <p>GitHub Actions에 concurrency 설정을 추가하여 동일 브랜치의 중복 배포를 방지합니다. 동시 실행으로 인한 충돌 없이 안정적으로 배포됩니다.</p>
+                    <span class="update-tag">Performance</span>
+                    <h3>📊 통계 화면 위젯 분해</h3>
+                    <p>501줄의 단일 파일을 4개의 독립적인 위젯(SummaryRow, HeatmapCard, ChartCard, KeywordCard)으로 분리했습니다. 코드 유지보수성과 빌드 성능이 향상되었습니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Fastlane</span>
-                    <h3>🔑 API 키 주입 개선</h3>
-                    <p>Fastlane 빌드 시 GROQ_API_KEY를 dart-define으로 주입합니다. 프로덕션 빌드에서 API 키 누락을 사전에 검증하여 빌드 품질을 보장합니다.</p>
+                    <span class="update-tag">Android 14+</span>
+                    <h3>🔔 알림 스케줄링 안정화</h3>
+                    <p>Android 14에서 정확한 알람 권한이 거부되어도 앱이 크래시하지 않습니다. 자동으로 inexact 모드로 전환하여 최대 15분 오차 내 알림을 발송합니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Firebase</span>
-                    <h3>⏰ 시간대별 메시지 정확도</h3>
-                    <p>getTodayMessage()에 timeSlot 파라미터를 추가하여 아침/저녁 알림에 맞는 메시지를 정확하게 선택합니다. 시간대별 맞춤 메시지를 받아보세요.</p>
+                    <span class="update-tag">Navigation</span>
+                    <h3>🔙 go_router 전면 마이그레이션</h3>
+                    <p>모든 화면의 Navigator.pop()을 context.pop()으로 통일했습니다. 딥링크 대응과 뒤로가기 동작이 더욱 일관성 있게 동작합니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Refactor</span>
-                    <h3>🧹 데드 코드 정리</h3>
-                    <p>Firebase Functions에서 미사용 함수(getKSTHour, getDefaultMessageByTimeOfDay)를 제거했습니다. 코드베이스가 더 깔끔하고 유지보수하기 쉬워졌습니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">Skills</span>
-                    <h3>📚 CI/CD 스킬 추가</h3>
-                    <p>Claude Code 스킬 카탈로그에 /cd-diagnose와 /fastlane-audit 커맨드가 추가되었습니다. CD 워크플로우 문제를 빠르게 진단할 수 있습니다.</p>
+                    <span class="update-tag">Testing</span>
+                    <h3>🧪 라우터 테스트 추가</h3>
+                    <p>AppRouter의 모든 경로와 리다이렉트 로직을 검증하는 테스트가 추가되었습니다. 화면 전환 안정성이 자동으로 검증됩니다.</p>
                 </div>
             </div>
         </div>

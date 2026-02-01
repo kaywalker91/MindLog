@@ -18,15 +18,16 @@ class KeywordsSection extends StatelessWidget {
       runSpacing: 8,
       alignment: WrapAlignment.center,
       children: keywords.map((keyword) {
+        final colorScheme = Theme.of(context).colorScheme;
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: colorScheme.shadow.withValues(alpha: 0.03),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
