@@ -17,8 +17,10 @@ class SosCard extends StatefulWidget {
 }
 
 class _SosCardState extends State<SosCard> {
-  static const String _suicidePreventionCenter = '1577-0199';
-  static const String _mentalHealthCounsel = '1644-0199';
+  /// 자살예방 통합 상담전화 (2024년 1월 1일부터 109로 통합)
+  static const String _suicidePreventionCenter = '109';
+  /// 정신건강 상담전화
+  static const String _mentalHealthCounsel = '1577-0199';
 
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri launchUri = Uri(
@@ -138,12 +140,12 @@ class _SosCardState extends State<SosCard> {
             ),
             const SizedBox(height: 16),
             
-            // 자살예방 상담센터
+            // 자살예방 통합 상담전화 (109)
             _buildContactCard(
               context: context,
               icon: Icons.phone_in_talk,
-              title: '자살예방 상담센터',
-              subtitle: '24시간 무료 상담',
+              title: '자살예방 상담전화',
+              subtitle: '24시간 무료 상담 (109)',
               phoneNumber: _suicidePreventionCenter,
               color: AppColors.error,
               isEmergency: true,

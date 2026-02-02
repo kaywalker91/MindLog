@@ -50,8 +50,8 @@ class SOSCard extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           const _EmergencyButton(
-            label: '24시간 자살예방상담전화',
-            number: '1393',
+            label: '24시간 자살예방상담전화 (109)',
+            number: '109',
             icon: Icons.phone_in_talk,
           ),
           const SizedBox(height: 12),
