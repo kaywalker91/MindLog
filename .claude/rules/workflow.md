@@ -1,12 +1,52 @@
 # Workflow & Conventions
 
 ## Build/Test Commands
+- `./scripts/run.sh quality` — full quality gates (lint + format + test)
+- `./scripts/run.sh test` — run all tests with coverage
+- `./scripts/run.sh lint` — static analysis
+- `./scripts/run.sh format` — format code
 - `flutter pub get` — install dependencies
-- `flutter run` — launch app
-- `flutter test` — run all tests
-- `flutter analyze` — static analysis
-- `dart format .` — format code
-- `flutter build apk` / `flutter build appbundle` — release build
+- `flutter build appbundle` — release build
+
+## Progress File Pattern (claude-progress.txt)
+세션 간 연속성을 위해 `.claude/progress/current.md` 파일을 활용합니다.
+
+**세션 시작 시:**
+```bash
+# progress 파일 확인
+cat .claude/progress/current.md
+```
+
+**세션 중:**
+- 작업 완료 시 progress 파일 업데이트
+- 컨텍스트 70% 도달 시 `/session-wrap` 실행
+
+**세션 종료 시:**
+- progress 파일에 다음 세션 TODO 기록
+- 미완료 작업은 GitHub Issue로 추적
+
+**Progress 파일 구조:**
+```markdown
+# Current Progress
+
+## 현재 작업
+- [작업 내용]
+
+## 완료된 항목
+- [x] 항목 1
+- [x] 항목 2
+
+## 다음 단계
+1. [TODO 1]
+2. [TODO 2]
+
+## 주의사항
+- [컨텍스트 공유 필요 정보]
+
+## 마지막 업데이트
+- 날짜: YYYY-MM-DD HH:MM
+- 세션: [세션 식별자]
+```
 
 ## Commit Convention
 Conventional Commits: `feat:`, `fix:`, `docs:`, `ci:`, `refactor:`, `test:`, `chore:`

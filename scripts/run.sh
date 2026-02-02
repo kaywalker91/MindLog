@@ -60,21 +60,98 @@ case "$1" in
             --dart-define=GROQ_API_KEY="${GROQ_API_KEY:-}" \
             --dart-define=ENVIRONMENT=production
         ;;
-    
+
+    # Development Commands (no API key required)
+    test)
+        echo -e "${GREEN}Running tests with coverage...${NC}"
+        flutter test --coverage
+        ;;
+
+    test-unit)
+        echo -e "${GREEN}Running unit tests only...${NC}"
+        flutter test test/unit/ --coverage
+        ;;
+
+    test-widget)
+        echo -e "${GREEN}Running widget tests only...${NC}"
+        flutter test test/widget/ --coverage
+        ;;
+
+    lint)
+        echo -e "${GREEN}Running static analysis...${NC}"
+        flutter analyze --fatal-infos
+        ;;
+
+    format)
+        echo -e "${GREEN}Formatting code...${NC}"
+        dart format .
+        ;;
+
+    format-check)
+        echo -e "${GREEN}Checking code format...${NC}"
+        dart format --set-exit-if-changed .
+        ;;
+
+    quality)
+        echo -e "${GREEN}Running full quality gates...${NC}"
+        echo ""
+        echo -e "${YELLOW}Step 1/3: Static analysis${NC}"
+        flutter analyze --fatal-infos || exit 1
+        echo ""
+        echo -e "${YELLOW}Step 2/3: Format check${NC}"
+        dart format --set-exit-if-changed . || exit 1
+        echo ""
+        echo -e "${YELLOW}Step 3/3: Tests${NC}"
+        flutter test --coverage || exit 1
+        echo ""
+        echo -e "${GREEN}✓ All quality gates passed${NC}"
+        ;;
+
+    clean)
+        echo -e "${GREEN}Cleaning build artifacts...${NC}"
+        flutter clean
+        flutter pub get
+        ;;
+
+    deps)
+        echo -e "${GREEN}Installing dependencies...${NC}"
+        flutter pub get
+        ;;
+
+    outdated)
+        echo -e "${GREEN}Checking for outdated packages...${NC}"
+        flutter pub outdated
+        ;;
+
     *)
         echo "MindLog Build Script"
         echo ""
         echo "Usage: ./scripts/run.sh [command]"
         echo ""
-        echo "Commands:"
+        echo "Build Commands (require GROQ_API_KEY):"
         echo "  run             Run app in debug mode"
         echo "  build-apk       Build release APK"
         echo "  build-ios       Build iOS release"
         echo "  build-appbundle Build release App Bundle (Play Store)"
         echo ""
-        echo "Environment Variables:"
-        echo "  GROQ_API_KEY    Required - Groq API key"
+        echo "Development Commands:"
+        echo "  test            Run all tests with coverage"
+        echo "  test-unit       Run unit tests only"
+        echo "  test-widget     Run widget tests only"
+        echo "  lint            Run static analysis (flutter analyze)"
+        echo "  format          Format all Dart code"
+        echo "  format-check    Check code formatting without changes"
+        echo "  quality         Run full quality gates (lint + format + test)"
+        echo "  clean           Clean and reinstall dependencies"
+        echo "  deps            Install dependencies (flutter pub get)"
+        echo "  outdated        Check for outdated packages"
         echo ""
-        echo "Set these as environment variables before running the script."
+        echo "Environment Variables:"
+        echo "  GROQ_API_KEY    Required for build commands"
+        echo ""
+        echo "Examples:"
+        echo "  ./scripts/run.sh quality           # Run all quality checks"
+        echo "  ./scripts/run.sh test              # Run tests with coverage"
+        echo "  GROQ_API_KEY=xxx ./scripts/run.sh run  # Run app"
         ;;
 esac
