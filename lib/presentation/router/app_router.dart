@@ -193,20 +193,20 @@ extension AppRouterExtension on BuildContext {
         extra: diary,
       );
 
-  /// 통계 화면으로 이동
-  void goStatistics() => go(AppRoutes.statistics);
+  /// 통계 화면으로 이동 (push - 뒤로가기 지원)
+  void pushStatistics() => push(AppRoutes.statistics);
 
-  /// 설정 화면으로 이동
-  void goSettings() => go(AppRoutes.settings);
+  /// 설정 화면으로 이동 (push - 뒤로가기 지원)
+  void pushSettings() => push(AppRoutes.settings);
 
-  /// 개인정보 처리방침으로 이동
-  void goPrivacyPolicy() => go(AppRoutes.privacyPolicy);
+  /// 개인정보 처리방침으로 이동 (push - 뒤로가기 지원)
+  void pushPrivacyPolicy() => push(AppRoutes.privacyPolicy);
 
-  /// 변경사항 화면으로 이동
-  void goChangelog({required String version, String? buildNumber}) {
+  /// 변경사항 화면으로 이동 (push - 뒤로가기 지원)
+  void pushChangelog({required String version, String? buildNumber}) {
     final query = buildNumber != null
         ? '?version=$version&build=$buildNumber'
         : '?version=$version';
-    go('${AppRoutes.changelog}$query');
+    push('${AppRoutes.changelog}$query');
   }
 }

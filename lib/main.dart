@@ -17,6 +17,8 @@ import 'core/theme/app_theme.dart';
 import 'domain/entities/notification_settings.dart' as app;
 import 'l10n/app_localizations.dart';
 import 'core/di/infra_providers.dart';
+import 'presentation/providers/statistics_providers.dart';
+import 'presentation/providers/diary_list_controller.dart';
 import 'presentation/services/notification_action_handler.dart';
 import 'presentation/router/app_router.dart';
 import 'presentation/providers/app_info_provider.dart';
@@ -106,10 +108,16 @@ Future<void> _initializeApp() async {
   final dataSource = appContainer.read(sqliteLocalDataSourceProvider);
   final wasRecovered = await DbRecoveryService.checkAndRecoverIfNeeded(dataSource);
   if (wasRecovered) {
-    // 복원 감지 시 Provider 캐시 무효화
+    // 1. Core layer Provider 무효화 (DataSource, Repository, UseCase)
     invalidateDataProviders(appContainer);
+
+    // 2. Presentation layer Provider 무효화 (복원된 DB 데이터 재로드)
+    appContainer.invalidate(statisticsProvider);
+    appContainer.invalidate(topKeywordsProvider);
+    appContainer.invalidate(diaryListControllerProvider);
+
     if (kDebugMode) {
-      debugPrint('[Main] DB recovery detected, providers invalidated');
+      debugPrint('[Main] DB recovery detected, all data providers invalidated');
     }
   }
 

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/constants/app_strings.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -13,6 +12,7 @@ import '../providers/diary_list_controller.dart';
 import '../router/app_router.dart';
 import '../widgets/diary_list/diary_item_card.dart';
 import '../widgets/diary_list/write_fab.dart';
+import '../widgets/home/home_header_title.dart';
 import '../widgets/mindlog_app_bar.dart';
 
 /// 일기 목록 화면 (메인)
@@ -43,15 +43,12 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
     final diaryListState = ref.watch(diaryListControllerProvider);
 
     return Scaffold(
+      // ignore: prefer_const_constructors
       appBar: MindlogAppBar(
-        title: const Text(AppStrings.appName),
+        // ignore: prefer_const_constructors
+        title: HomeHeaderTitle(), // Uses DateTime.now() for greeting
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.goSettings(),
-          ),
-        ],
+        leading: const SizedBox.shrink(),
       ),
       body: diaryListState.when(
         data: (diaries) => _buildList(diaries),

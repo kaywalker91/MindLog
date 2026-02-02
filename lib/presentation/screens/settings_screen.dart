@@ -18,6 +18,7 @@ class SettingsScreen extends ConsumerWidget {
       backgroundColor: colorScheme.surfaceContainerLowest,
       appBar: const MindlogAppBar(
         title: Text('설정'),
+        leading: SizedBox.shrink(),
       ),
       body: ListView(
         padding: EdgeInsets.only(

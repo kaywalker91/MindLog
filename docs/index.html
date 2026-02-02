@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260202-v1429">
+    <link rel="stylesheet" href="style.css?v=20260202-v1430">
 </head>
 <body>
     <header class="hero">
@@ -88,27 +88,27 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.29에서는 통계 화면 위젯 모듈화, Android 14 알림 호환성, go_router 마이그레이션을 완료했습니다.</p>
+            <p class="section-subtitle">v1.4.30에서는 시간대별 인사말, 뒤로가기 UX 개선, DB 복구 시 Provider 동기화를 강화했습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
-                    <span class="update-tag">Performance</span>
-                    <h3>📊 통계 화면 위젯 분해</h3>
-                    <p>501줄의 단일 파일을 4개의 독립적인 위젯(SummaryRow, HeatmapCard, ChartCard, KeywordCard)으로 분리했습니다. 코드 유지보수성과 빌드 성능이 향상되었습니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">Android 14+</span>
-                    <h3>🔔 알림 스케줄링 안정화</h3>
-                    <p>Android 14에서 정확한 알람 권한이 거부되어도 앱이 크래시하지 않습니다. 자동으로 inexact 모드로 전환하여 최대 15분 오차 내 알림을 발송합니다.</p>
+                    <span class="update-tag">UX</span>
+                    <h3>👋 시간대별 인사말</h3>
+                    <p>홈 화면 헤더에 시간대에 맞는 인사말이 표시됩니다. '좋은 아침이에요', '좋은 오후예요', '좋은 저녁이에요' 등 친근한 메시지로 사용자를 맞이합니다.</p>
                 </div>
                 <div class="update-card">
                     <span class="update-tag">Navigation</span>
-                    <h3>🔙 go_router 전면 마이그레이션</h3>
-                    <p>모든 화면의 Navigator.pop()을 context.pop()으로 통일했습니다. 딥링크 대응과 뒤로가기 동작이 더욱 일관성 있게 동작합니다.</p>
+                    <h3>🔙 뒤로가기 UX 안정화</h3>
+                    <p>시스템 뒤로가기 버튼에 PopScope를 적용하여 앱이 갑자기 종료되는 것을 방지합니다. 홈 화면에서는 종료 확인 다이얼로그가 표시됩니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Testing</span>
-                    <h3>🧪 라우터 테스트 추가</h3>
-                    <p>AppRouter의 모든 경로와 리다이렉트 로직을 검증하는 테스트가 추가되었습니다. 화면 전환 안정성이 자동으로 검증됩니다.</p>
+                    <span class="update-tag">Architecture</span>
+                    <h3>🔄 go_router 네비게이션 개선</h3>
+                    <p>설정, 개인정보 처리방침 등 서브화면에서 go() 대신 push()를 사용하여 자연스러운 뒤로가기 스택을 지원합니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Stability</span>
+                    <h3>💾 DB 복구 Provider 동기화</h3>
+                    <p>앱 재설치 후 데이터 복원 시 통계와 일기 목록이 즉시 갱신됩니다. Core와 Presentation 계층의 Provider 무효화가 동기화되었습니다.</p>
                 </div>
             </div>
         </div>

@@ -51,7 +51,7 @@ class AppInfoSection extends ConsumerWidget {
               ),
               onTap: appInfo == null
                   ? null
-                  : () => context.goChangelog(
+                  : () => context.pushChangelog(
                         version: appInfo.version,
                         buildNumber: appInfo.buildNumber,
                       ),
@@ -67,7 +67,7 @@ class AppInfoSection extends ConsumerWidget {
             SettingsItem(
               icon: Icons.description_outlined,
               title: '개인정보 처리방침',
-              onTap: () => context.goPrivacyPolicy(),
+              onTap: () => context.pushPrivacyPolicy(),
             ),
           ],
         ),

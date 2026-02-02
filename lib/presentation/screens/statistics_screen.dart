@@ -43,6 +43,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
       backgroundColor: AppColors.statsBackground,
       appBar: const MindlogAppBar(
         title: Text('감정 통계'),
+        leading: SizedBox.shrink(),
       ),
       body: statisticsAsync.when(
         loading: () => const Center(

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/notification_permission_service.dart';
@@ -135,33 +136,71 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isCompact = screenWidth < 360;
 
-    return Scaffold(
-      body: IndexedStack(
-        index: selectedIndex,
-        children: const [
-          DiaryListScreen(),
-          StatisticsScreen(),
-          SettingsScreen(),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            isCompact ? 12 : 16,
-            0,
-            isCompact ? 12 : 16,
-            isCompact ? 8 : 12,
-          ),
-          child: _buildNavigationBar(
-            context,
-            selectedIndex: selectedIndex,
-            onSelected: (index) {
-              ref.read(selectedTabIndexProvider.notifier).state = index;
-            },
-            isCompact: isCompact,
+    return PopScope(
+      canPop: false, // 모든 pop 이벤트 인터셉트
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        // 런타임에 스택 상태 확인
+        if (GoRouter.of(context).canPop()) {
+          context.pop(); // 서브화면 → 정상 pop
+          return;
+        }
+
+        // 홈 화면 → 종료 다이얼로그
+        final shouldExit = await _showExitConfirmDialog(context);
+        if (shouldExit == true && context.mounted) {
+          unawaited(SystemNavigator.pop());
+        }
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: selectedIndex,
+          children: const [
+            DiaryListScreen(),
+            StatisticsScreen(),
+            SettingsScreen(),
+          ],
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              isCompact ? 12 : 16,
+              0,
+              isCompact ? 12 : 16,
+              isCompact ? 8 : 12,
+            ),
+            child: _buildNavigationBar(
+              context,
+              selectedIndex: selectedIndex,
+              onSelected: (index) {
+                ref.read(selectedTabIndexProvider.notifier).state = index;
+              },
+              isCompact: isCompact,
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  Future<bool?> _showExitConfirmDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('앱 종료'),
+        content: const Text('마인드로그를 종료하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('종료'),
+          ),
+        ],
       ),
     );
   }

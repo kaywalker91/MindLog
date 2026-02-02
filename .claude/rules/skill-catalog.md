@@ -25,9 +25,17 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 | `/arch-check` | `arch-check.md` | Clean Architecture 의존성 위반 검사 |
 | `/widget-decompose [file]` | `widget-decompose.md` | 대형 위젯 분해 자동화 |
 | `/provider-centralize` | `provider-centralize.md` | Provider 중복/분산 분석 및 중앙화 |
+| `/provider-invalidate-chain [trigger]` | `provider-invalidate-chain.md` | Provider 무효화 체인 분석 및 코드 생성 |
+| `/provider-invalidation-audit` | `provider-invalidation-audit.md` | Provider 무효화 누락 정적 분석 |
 | `/refactor-plan [scope]` | `refactor-plan.md` | 리팩토링 계획서 생성 |
 | `/session-wrap` | `session-wrap.md` | 세션 마무리 자동화 |
 | `/til-save [topic]` | `til-save.md` | TIL 문서 메모리 저장 |
+
+## Testing & Recovery Commands
+
+| Command | Skill File | Purpose |
+|---------|-----------|---------|
+| `/db-state-recovery [action]` | `db-state-recovery.md` | DB 복원 시나리오 테스트 자동화 |
 
 ## CI/CD Commands
 
@@ -52,6 +60,8 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 - **DB change**: `/db add-column` -> `/db schema-report` -> `/test-unit-gen`
 - **Refactoring**: `/arch-check` -> `/provider-centralize` -> `/refactor-plan` -> `/widget-decompose`
 - **Refactoring (swarm)**: `/refactor-plan` -> `/swarm-refactor [scope] [strategy]`
+- **Provider audit**: `/provider-invalidation-audit` -> `/provider-invalidate-chain [trigger]` -> 코드 적용
+- **DB recovery test**: `/db-state-recovery verify` -> `/db-state-recovery test-gen` -> `/db-state-recovery checklist`
 - **Deep review**: `/swarm-review [path]` (보안+성능+아키텍처 병렬)
 - **CD troubleshoot**: `/fastlane-audit` -> `/cd-diagnose [run_id]` -> 수정 -> 재배포
 - **Session end**: `/session-wrap` -> `/til-save [topic]` (TIL 메모리화)

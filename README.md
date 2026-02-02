@@ -101,7 +101,27 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.29 (Current)
+### v1.4.30 (Current)
+*   **홈 화면 헤더 UX 개선:**
+    *   **시간대별 인사말 표시:** '좋은 아침이에요', '좋은 오후예요', '좋은 저녁이에요', '늦은 밤이에요' 동적 표시
+    *   **HomeHeaderTitle 위젯 신규:** 앱 로고 + 앱 이름 + 시간대 인사말 구성
+    *   **설정 아이콘 제거:** 앱바에서 설정 아이콘을 제거하고 하단 네비게이션에 집중
+*   **뒤로가기 UX 안정화:**
+    *   **PopScope 적용:** 시스템 뒤로가기 버튼에 대한 일관된 동작 보장
+    *   **앱 종료 확인 다이얼로그:** 홈 화면에서 뒤로가기 시 종료 확인 다이얼로그 표시
+    *   **서브화면 스택 정상 처리:** `GoRouter.of(context).canPop()` 런타임 체크로 안전한 네비게이션
+*   **go_router 네비게이션 패턴 개선:**
+    *   **go() → push() 마이그레이션:** 설정, 개인정보 처리방침, 변경사항 화면 뒤로가기 스택 지원
+    *   **Extension 메서드 일관성:** `goSettings()` → `pushSettings()`, `goPrivacyPolicy()` → `pushPrivacyPolicy()` 등
+*   **DB 복구 시 Provider 무효화 강화:**
+    *   **Presentation Layer Provider 추가:** `statisticsProvider`, `topKeywordsProvider`, `diaryListControllerProvider` 무효화
+    *   **Core → Presentation 계층 동기화:** DB 복원 감지 시 모든 데이터 Provider 새로고침
+*   **스킬 카탈로그 업데이트:**
+    *   **Testing & Recovery 섹션 추가:** `/db-state-recovery` 커맨드
+    *   **Quality & Refactoring 추가:** `/provider-invalidate-chain`, `/provider-invalidation-audit` 커맨드
+    *   **TIL 메모리 문서화:** `mindlog-til-gorouter-popscope.md`, `til-riverpod-multilayer-invalidation.md`
+
+### v1.4.29
 *   **통계 화면 위젯 분해 (501줄 삭감):**
     *   **StatisticsScreen 모듈화:** 단일 파일에서 4개 독립 위젯으로 분리
         *   `StatisticsSummaryRow`: 요약 + 스트릭 Row 위젯
