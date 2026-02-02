@@ -17,6 +17,8 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 | `/coverage` | `test-coverage-report.md` | Test coverage report |
 | `/review [file]` | `code-reviewer.md` | Code review |
 | `/widget-test [file]` | `widget-test-gen.md` | Widget test generation |
+| `/suppress-pattern [entity] [duration]` | `suppress-pattern.md` | Time-based suppression (24h, 7d, etc) |
+| `/periodic-timer [name] [interval]` | `periodic-timer.md` | Periodic background task with cleanup |
 
 ## Quality & Refactoring Commands
 
@@ -24,8 +26,13 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 |---------|-----------|---------|
 | `/arch-check` | `arch-check.md` | Clean Architecture 의존성 위반 검사 |
 | `/widget-decompose [file]` | `widget-decompose.md` | 대형 위젯 분해 자동화 |
+| `/barrel-export-gen [dir]` | `barrel-export-gen.md` | 배럴 export 파일 자동 생성 |
+| `/color-migrate [file]` | `color-migrate.md` | 하드코딩 색상 → theme-aware 마이그레이션 |
 | `/provider-centralize` | `provider-centralize.md` | Provider 중복/분산 분석 및 중앙화 |
 | `/provider-invalidate-chain [trigger]` | `provider-invalidate-chain.md` | Provider 무효화 체인 분석 및 코드 생성 |
+| `/provider-invalidate-chain --validate` | `provider-invalidate-chain.md` | 기존 무효화 체인 검증 |
+| `/provider-ref-fix [path]` | `provider-ref-fix.md` | Provider 정의 내 ref.read() → ref.watch() 자동 변환 |
+| `/defensive-recovery-gen [trigger]` | `defensive-recovery-gen.md` | DB 복원 방어적 코드 패턴 생성 |
 | `/provider-invalidation-audit` | `provider-invalidation-audit.md` | Provider 무효화 누락 정적 분석 |
 | `/refactor-plan [scope]` | `refactor-plan.md` | 리팩토링 계획서 생성 |
 | `/session-wrap` | `session-wrap.md` | 세션 마무리 자동화 |
@@ -35,6 +42,7 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 
 | Command | Skill File | Purpose |
 |---------|-----------|---------|
+| `/riverpod-widget-test-gen [file]` | `riverpod-widget-test-gen.md` | Riverpod 위젯 테스트 자동 생성 |
 | `/db-state-recovery [action]` | `db-state-recovery.md` | DB 복원 시나리오 테스트 자동화 |
 
 ## CI/CD Commands
@@ -60,7 +68,11 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 - **DB change**: `/db add-column` -> `/db schema-report` -> `/test-unit-gen`
 - **Refactoring**: `/arch-check` -> `/provider-centralize` -> `/refactor-plan` -> `/widget-decompose`
 - **Refactoring (swarm)**: `/refactor-plan` -> `/swarm-refactor [scope] [strategy]`
+- **Widget decompose**: `/widget-decompose [file]` -> `/barrel-export-gen [dir]` -> `/riverpod-widget-test-gen [file]`
+- **Color migration**: `/color-migrate [file]` -> `/lint-fix` -> `flutter test`
 - **Provider audit**: `/provider-invalidation-audit` -> `/provider-invalidate-chain [trigger]` -> 코드 적용
+- **Provider ref fix**: `/provider-ref-fix --dry-run` -> `/provider-ref-fix [path]` -> `flutter test`
+- **DB recovery defense**: `/defensive-recovery-gen [trigger]` -> 코드 적용 -> 디바이스 테스트
 - **DB recovery test**: `/db-state-recovery verify` -> `/db-state-recovery test-gen` -> `/db-state-recovery checklist`
 - **Deep review**: `/swarm-review [path]` (보안+성능+아키텍처 병렬)
 - **CD troubleshoot**: `/fastlane-audit` -> `/cd-diagnose [run_id]` -> 수정 -> 재배포
