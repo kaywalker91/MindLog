@@ -87,11 +87,11 @@ class _EmergencyButton extends StatelessWidget {
           await launchUrl(launchUri);
         }
       },
-      icon: Icon(icon, color: Colors.white),
+      icon: Icon(icon, color: Theme.of(context).colorScheme.onError),
       label: Text(label),
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.sosButton,
-        foregroundColor: Colors.white,
+        foregroundColor: Theme.of(context).colorScheme.onError,
         padding: const EdgeInsets.symmetric(vertical: 16),
         minimumSize: const Size(double.infinity, 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

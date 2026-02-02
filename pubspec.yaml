@@ -47,6 +47,9 @@ dependencies:
   # App Info
   package_info_plus: ^8.0.0
 
+  # In-App Update (Android Play Store)
+  in_app_update: ^4.2.3
+
   # Firebase
   firebase_core: ^3.8.0
   firebase_analytics: ^11.4.0

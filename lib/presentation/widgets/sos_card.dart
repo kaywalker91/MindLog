@@ -86,7 +86,7 @@ class _SosCardState extends State<SosCard> {
                       Text(
                         '전문가의 도움을 받아보세요',
                         style: AppTextStyles.bodySmall.copyWith(
-                          color: Colors.grey.shade600,
+                          color: AppColors.textSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -133,29 +133,31 @@ class _SosCardState extends State<SosCard> {
             Text(
               '긴급 상담 연락처',
               style: AppTextStyles.subtitle.copyWith(
-                color: Colors.grey.shade700,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
             
             // 자살예방 상담센터
             _buildContactCard(
+              context: context,
               icon: Icons.phone_in_talk,
               title: '자살예방 상담센터',
               subtitle: '24시간 무료 상담',
               phoneNumber: _suicidePreventionCenter,
-              color: Colors.red.shade500,
+              color: AppColors.error,
               isEmergency: true,
             ),
             const SizedBox(height: 12),
 
             // 정신건강 상담센터
             _buildContactCard(
+              context: context,
               icon: Icons.psychology,
               title: '정신건강 상담센터',
               subtitle: '전문가 상담',
               phoneNumber: _mentalHealthCounsel,
-              color: Colors.blue.shade500,
+              color: Theme.of(context).colorScheme.primary,
               isEmergency: false,
             ),
             const SizedBox(height: 24),
@@ -164,14 +166,14 @@ class _SosCardState extends State<SosCard> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
                   const Icon(
                     Icons.info_outline,
-                    color: Colors.grey,
+                    color: AppColors.textHint,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -180,7 +182,7 @@ class _SosCardState extends State<SosCard> {
                       'AI가 안전상의 이유로 분석을 중단했습니다.'
                       ' 위 연락처는 언제든 도움을 받으실 수 있습니다.',
                       style: AppTextStyles.bodySmall.copyWith(
-                        color: Colors.grey.shade700,
+                        color: AppColors.textPrimary,
                         height: 1.4,
                       ),
                     ),
@@ -215,7 +217,7 @@ class _SosCardState extends State<SosCard> {
                     onPressed: () => _makePhoneCall(_suicidePreventionCenter),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.error,
-                      foregroundColor: Colors.white,
+                      foregroundColor: Theme.of(context).colorScheme.onError,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     child: const Text(
@@ -235,6 +237,7 @@ class _SosCardState extends State<SosCard> {
   }
 
   Widget _buildContactCard({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
@@ -242,6 +245,7 @@ class _SosCardState extends State<SosCard> {
     required Color color,
     required bool isEmergency,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: () => _makePhoneCall(phoneNumber),
       borderRadius: BorderRadius.circular(12),
@@ -249,12 +253,12 @@ class _SosCardState extends State<SosCard> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isEmergency ? AppColors.error.withValues(alpha: 0.5) : Colors.grey.shade300,
+            color: isEmergency ? AppColors.error.withValues(alpha: 0.5) : colorScheme.outlineVariant,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: isEmergency 
-            ? AppColors.error.withValues(alpha: 0.05) 
-            : Colors.white,
+          color: isEmergency
+            ? AppColors.error.withValues(alpha: 0.05)
+            : colorScheme.surface,
         ),
         child: Row(
           children: [
@@ -299,10 +303,10 @@ class _SosCardState extends State<SosCard> {
                             color: AppColors.error,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text(
+                          child: Text(
                             '긴급',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: colorScheme.onError,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -314,7 +318,7 @@ class _SosCardState extends State<SosCard> {
                   Text(
                     subtitle,
                     style: AppTextStyles.bodySmall.copyWith(
-                      color: Colors.grey.shade600,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],

@@ -157,14 +157,14 @@ class _UpdatePromptDialogState extends State<UpdatePromptDialog> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               widget.isRequired
                   ? Icons.warning_amber_rounded
                   : Icons.system_update_alt_rounded,
-              color: Colors.white,
+              color: theme.colorScheme.onPrimary,
               size: 22,
             ),
           ),
@@ -181,14 +181,15 @@ class _UpdatePromptDialogState extends State<UpdatePromptDialog> {
                     Text(
                       '업데이트',
                       style: theme.textTheme.titleSmall?.copyWith(
-                        color: Colors.white,
+                        color: theme.colorScheme.onPrimary,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     if (widget.isRequired)
                       _buildChip(
+                        theme,
                         '필수',
-                        backgroundColor: Colors.white.withValues(alpha: 0.22),
+                        backgroundColor: theme.colorScheme.onPrimary.withValues(alpha: 0.22),
                       ),
                   ],
                 ),
@@ -198,7 +199,7 @@ class _UpdatePromptDialogState extends State<UpdatePromptDialog> {
                       ? '최신 버전으로 업데이트가 필요해요.'
                       : '새 버전이 준비되었어요.',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -211,7 +212,7 @@ class _UpdatePromptDialogState extends State<UpdatePromptDialog> {
     );
   }
 
-  Widget _buildChip(String text, {required Color backgroundColor}) {
+  Widget _buildChip(ThemeData theme, String text, {required Color backgroundColor}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -220,10 +221,10 @@ class _UpdatePromptDialogState extends State<UpdatePromptDialog> {
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Colors.white,
+          color: theme.colorScheme.onPrimary,
         ),
       ),
     );
@@ -346,7 +347,7 @@ class _UpdatePromptDialogState extends State<UpdatePromptDialog> {
                 style: widget.isRequired
                     ? FilledButton.styleFrom(
                         backgroundColor: AppColors.warning,
-                        foregroundColor: Colors.white,
+                        foregroundColor: colorScheme.onError,
                       )
                     : null,
                 child: Text(widget.primaryLabel),

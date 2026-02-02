@@ -96,7 +96,7 @@ class SentimentDashboard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -121,7 +121,7 @@ class SentimentDashboard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             '오늘의 마음 온도: ${score * 10}°C',
-            style: AppTextStyles.bodySmall.copyWith(color: Colors.grey),
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
           ),
           const SizedBox(height: 24),
           _buildGaugeBar(context, color),
@@ -213,7 +213,7 @@ class SentimentDashboard extends StatelessWidget {
           height: 16,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(8),
           ),
         ),
@@ -258,7 +258,7 @@ class SentimentDashboard extends StatelessWidget {
                 .then(delay: 200.ms)
                 .shimmer(
                   duration: 1500.ms,
-                  color: Colors.white.withValues(alpha: 0.35),
+                  color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.35),
                 );
           },
         ),
@@ -270,8 +270,8 @@ class SentimentDashboard extends StatelessWidget {
     final emoji = level <= 3 ? '🔋' : (level <= 6 ? '⚡' : '💪');
     final label = level <= 3 ? '에너지 부족' : (level <= 6 ? '보통' : '활력 넘침');
     final color = level <= 3
-        ? Colors.orange
-        : (level <= 6 ? Colors.blue : Colors.green);
+        ? AppColors.warning
+        : (level <= 6 ? AppColors.statsPrimary : AppColors.success);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

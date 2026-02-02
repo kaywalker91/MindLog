@@ -74,7 +74,7 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
     return Positioned.fill(
       child: SafeArea(
         child: Container(
-          color: Colors.black.withValues(alpha: 0.7),
+          color: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.7),
           child: Center(
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -98,7 +98,7 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -189,12 +189,12 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: Colors.orange.withValues(alpha: 0.1),
+            color: AppColors.warning.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(32),
           ),
           child: const Icon(
             Icons.error_outline,
-            color: Colors.orange,
+            color: AppColors.warning,
             size: 32,
           ),
         )
@@ -267,7 +267,7 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
         onPressed: widget.onDismiss,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.success,
-          foregroundColor: Colors.white,
+          foregroundColor: colorScheme.onPrimary,
           padding: const EdgeInsets.symmetric(vertical: 16),
           minimumSize: const Size(double.infinity, 0),
         ),
@@ -301,7 +301,7 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: _getStatusColor(),
-                foregroundColor: Colors.white,
+                foregroundColor: colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 minimumSize: const Size(double.infinity, 0),
               ),
@@ -333,7 +333,7 @@ class _NetworkStatusOverlayState extends State<NetworkStatusOverlay>
       case NetworkStatusType.networkError:
         return AppColors.error;
       case NetworkStatusType.apiError:
-        return Colors.orange;
+        return AppColors.warning;
       case NetworkStatusType.retrySuccess:
         return AppColors.success;
       case NetworkStatusType.loading:

@@ -24,7 +24,7 @@ class EmpathyMessage extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 AppColors.primary.withValues(alpha: 0.05),
-                Colors.white,
+                Theme.of(context).colorScheme.surface,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -48,8 +48,8 @@ class EmpathyMessage extends StatelessWidget {
           left: 20,
           child: Container(
             padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
               shape: BoxShape.circle,
             ),
             child: const Icon(

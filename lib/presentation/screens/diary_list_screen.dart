@@ -43,12 +43,11 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
     final diaryListState = ref.watch(diaryListControllerProvider);
 
     return Scaffold(
-      // ignore: prefer_const_constructors
-      appBar: MindlogAppBar(
-        // ignore: prefer_const_constructors
-        title: HomeHeaderTitle(), // Uses DateTime.now() for greeting
+      appBar: const MindlogAppBar(
+        title: HomeHeaderTitle(),
         centerTitle: false,
-        leading: const SizedBox.shrink(),
+        leading: SizedBox.shrink(),
+        leadingWidth: 16,
       ),
       body: diaryListState.when(
         data: (diaries) => _buildList(diaries),

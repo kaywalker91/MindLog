@@ -24,7 +24,7 @@ class ActionItemsSection extends StatelessWidget {
 
     // 단일 행동인 경우 기존 스타일 사용
     if (actions.length == 1) {
-      return _buildSingleActionItem(actions.first);
+      return _buildSingleActionItem(context, actions.first);
     }
 
     // 다단계 행동인 경우 새 스타일 사용
@@ -62,7 +62,7 @@ class ActionItemsSection extends StatelessWidget {
     ).animate().fadeIn(delay: 200.ms, duration: 500.ms);
   }
 
-  Widget _buildSingleActionItem(String actionItem) {
+  Widget _buildSingleActionItem(BuildContext context, String actionItem) {
     return GestureDetector(
       onTap: () => onActionCheck(!isActionCompleted),
       child: AnimatedContainer(
@@ -82,22 +82,25 @@ class ActionItemsSection extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isActionCompleted ? AppColors.success : Colors.white,
-                border: Border.all(
-                  color: isActionCompleted ? AppColors.success : AppColors.actionAmber,
-                  width: 2,
+            Builder(builder: (context) {
+              final colorScheme = Theme.of(context).colorScheme;
+              return Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isActionCompleted ? AppColors.success : colorScheme.surface,
+                  border: Border.all(
+                    color: isActionCompleted ? AppColors.success : AppColors.actionAmber,
+                    width: 2,
+                  ),
                 ),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: Icon(
-                Icons.check,
-                size: 16,
-                color: isActionCompleted ? Colors.white : Colors.transparent,
-              ),
-            ),
+                padding: const EdgeInsets.all(4),
+                child: Icon(
+                  Icons.check,
+                  size: 16,
+                  color: isActionCompleted ? colorScheme.onPrimary : Colors.transparent,
+                ),
+              );
+            }),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -132,7 +135,7 @@ class ActionItemsSection extends StatelessWidget {
         ),
       ).animate(target: isActionCompleted ? 1 : 0).shimmer(
             duration: 400.ms,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onPrimary,
           ),
     );
   }

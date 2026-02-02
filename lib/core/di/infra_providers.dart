@@ -47,29 +47,29 @@ final groqRemoteDataSourceProvider = Provider<GroqRemoteDataSource>((ref) {
   final apiKey = EnvironmentService.groqApiKey;
   return GroqRemoteDataSource(
     apiKey,
-    circuitBreaker: ref.read(circuitBreakerProvider),
+    circuitBreaker: ref.watch(circuitBreakerProvider),
   );
 });
 
 /// DiaryRepository Provider
 final diaryRepositoryProvider = Provider<DiaryRepository>((ref) {
   return DiaryRepositoryImpl(
-    localDataSource: ref.read(sqliteLocalDataSourceProvider),
-    remoteDataSource: ref.read(groqRemoteDataSourceProvider),
+    localDataSource: ref.watch(sqliteLocalDataSourceProvider),
+    remoteDataSource: ref.watch(groqRemoteDataSourceProvider),
   );
 });
 
 /// SettingsRepository Provider
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepositoryImpl(
-    localDataSource: ref.read(preferencesLocalDataSourceProvider),
+    localDataSource: ref.watch(preferencesLocalDataSourceProvider),
   );
 });
 
 /// StatisticsRepository Provider
 final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {
   return StatisticsRepositoryImpl(
-    localDataSource: ref.read(sqliteLocalDataSourceProvider),
+    localDataSource: ref.watch(sqliteLocalDataSourceProvider),
   );
 });
 
@@ -86,39 +86,39 @@ final validateDiaryContentUseCaseProvider =
 /// AnalyzeDiaryUseCase Provider
 final analyzeDiaryUseCaseProvider = Provider<AnalyzeDiaryUseCase>((ref) {
   return AnalyzeDiaryUseCase(
-    ref.read(diaryRepositoryProvider),
-    ref.read(settingsRepositoryProvider),
-    validateUseCase: ref.read(validateDiaryContentUseCaseProvider),
+    ref.watch(diaryRepositoryProvider),
+    ref.watch(settingsRepositoryProvider),
+    validateUseCase: ref.watch(validateDiaryContentUseCaseProvider),
   );
 });
 
 /// GetSelectedAiCharacterUseCase Provider
 final getSelectedAiCharacterUseCaseProvider =
     Provider<GetSelectedAiCharacterUseCase>((ref) {
-  return GetSelectedAiCharacterUseCase(ref.read(settingsRepositoryProvider));
+  return GetSelectedAiCharacterUseCase(ref.watch(settingsRepositoryProvider));
 });
 
 /// SetSelectedAiCharacterUseCase Provider
 final setSelectedAiCharacterUseCaseProvider =
     Provider<SetSelectedAiCharacterUseCase>((ref) {
-  return SetSelectedAiCharacterUseCase(ref.read(settingsRepositoryProvider));
+  return SetSelectedAiCharacterUseCase(ref.watch(settingsRepositoryProvider));
 });
 
 /// GetNotificationSettingsUseCase Provider
 final getNotificationSettingsUseCaseProvider =
     Provider<GetNotificationSettingsUseCase>((ref) {
-  return GetNotificationSettingsUseCase(ref.read(settingsRepositoryProvider));
+  return GetNotificationSettingsUseCase(ref.watch(settingsRepositoryProvider));
 });
 
 /// SetNotificationSettingsUseCase Provider
 final setNotificationSettingsUseCaseProvider =
     Provider<SetNotificationSettingsUseCase>((ref) {
-  return SetNotificationSettingsUseCase(ref.read(settingsRepositoryProvider));
+  return SetNotificationSettingsUseCase(ref.watch(settingsRepositoryProvider));
 });
 
 /// GetStatisticsUseCase Provider
 final getStatisticsUseCaseProvider = Provider<GetStatisticsUseCase>((ref) {
-  return GetStatisticsUseCase(ref.read(statisticsRepositoryProvider));
+  return GetStatisticsUseCase(ref.watch(statisticsRepositoryProvider));
 });
 
 /// DB 복원 후 Provider 캐시 무효화
@@ -126,14 +126,14 @@ final getStatisticsUseCaseProvider = Provider<GetStatisticsUseCase>((ref) {
 /// DB 복원이 감지되면 모든 데이터 관련 Provider를 무효화하여
 /// 새로운 DB 데이터를 반영합니다.
 ///
-/// 주의: Repository Provider들이 ref.read()를 사용하여 SqliteLocalDataSource를
-/// 의존하고 있어 의존성 추적이 되지 않습니다. 따라서 데이터 소스뿐만 아니라
-/// 모든 관련 Provider를 명시적으로 무효화해야 합니다.
+/// ref.watch()로 의존성 추적이 활성화되어 있어 sqliteLocalDataSourceProvider
+/// 무효화 시 의존 Provider들이 자동으로 재생성됩니다.
+/// 명시적 무효화는 타이밍 경합 조건에 대한 추가 안전장치로 유지합니다.
 void invalidateDataProviders(ProviderContainer container) {
-  // 1. 데이터 소스 Provider 무효화
+  // 1. 데이터 소스 Provider 무효화 (의존 Provider들 자동 갱신됨)
   container.invalidate(sqliteLocalDataSourceProvider);
 
-  // 2. Repository Provider 무효화 (ref.read()로 인한 의존성 미추적 보완)
+  // 2. Repository Provider 무효화 (방어적 프로그래밍)
   container.invalidate(diaryRepositoryProvider);
   container.invalidate(statisticsRepositoryProvider);
 

@@ -11,6 +11,7 @@ class PreferencesLocalDataSource {
       'notification_mindcare_topic_enabled';
   static const String _userNameKey = 'user_name';
   static const String _dismissedUpdateVersionKey = 'dismissed_update_version';
+  static const String _dismissedUpdateTimestampKey = 'dismissed_update_timestamp';
   static const String _lastSeenAppVersionKey = 'last_seen_app_version';
 
   Future<AiCharacter> getSelectedAiCharacter() async {
@@ -77,10 +78,27 @@ class PreferencesLocalDataSource {
     await prefs.setString(_dismissedUpdateVersionKey, version);
   }
 
-  /// dismiss된 업데이트 버전 삭제
+  /// dismiss된 업데이트 버전 저장 (timestamp 포함)
+  Future<void> setDismissedUpdateVersionWithTimestamp(String version) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_dismissedUpdateVersionKey, version);
+    await prefs.setInt(
+      _dismissedUpdateTimestampKey,
+      DateTime.now().millisecondsSinceEpoch,
+    );
+  }
+
+  /// dismiss된 업데이트 timestamp 조회
+  Future<int?> getDismissedUpdateTimestamp() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_dismissedUpdateTimestampKey);
+  }
+
+  /// dismiss된 업데이트 버전 삭제 (timestamp도 함께 삭제)
   Future<void> clearDismissedUpdateVersion() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_dismissedUpdateVersionKey);
+    await prefs.remove(_dismissedUpdateTimestampKey);
   }
 
   /// 마지막으로 확인한 앱 버전 조회 (업그레이드 감지용)

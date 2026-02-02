@@ -36,7 +36,7 @@ class CharacterBanner extends StatelessWidget {
                 return Container(
                   width: 44,
                   height: 44,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   child: const Icon(
                     Icons.auto_awesome,
                     color: AppColors.statsPrimaryDark,

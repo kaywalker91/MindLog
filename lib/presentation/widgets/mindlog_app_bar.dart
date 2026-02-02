@@ -9,6 +9,7 @@ class MindlogAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
   final PreferredSizeWidget? bottom;
   final Widget? leading;
+  final double? leadingWidth;
   final double toolbarHeight;
 
   const MindlogAppBar({
@@ -18,25 +19,28 @@ class MindlogAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.bottom,
     this.leading,
+    this.leadingWidth,
     this.toolbarHeight = kToolbarHeight,
   });
 
   @override
   Widget build(BuildContext context) {
+    final onPrimary = Theme.of(context).colorScheme.onPrimary;
     return AppBar(
       title: title,
       centerTitle: centerTitle,
       actions: actions,
       leading: leading,
+      leadingWidth: leadingWidth,
       toolbarHeight: toolbarHeight,
       elevation: 0,
       scrolledUnderElevation: 0,
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
-      iconTheme: const IconThemeData(color: Colors.white),
-      actionsIconTheme: const IconThemeData(color: Colors.white),
+      iconTheme: IconThemeData(color: onPrimary),
+      actionsIconTheme: IconThemeData(color: onPrimary),
       titleTextStyle: AppTextStyles.appBarTitle.copyWith(
-        color: Colors.white,
+        color: onPrimary,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.2,
       ),
@@ -60,7 +64,7 @@ class MindlogAppBar extends StatelessWidget implements PreferredSizeWidget {
             right: -28,
             top: -20,
             child: _buildAccentBubble(
-              color: Colors.white.withValues(alpha: 0.16),
+              color: onPrimary.withValues(alpha: 0.16),
               size: 90,
             ),
           ),
@@ -68,7 +72,7 @@ class MindlogAppBar extends StatelessWidget implements PreferredSizeWidget {
             left: -18,
             bottom: -26,
             child: _buildAccentBubble(
-              color: Colors.white.withValues(alpha: 0.12),
+              color: onPrimary.withValues(alpha: 0.12),
               size: 76,
             ),
           ),
@@ -81,9 +85,9 @@ class MindlogAppBar extends StatelessWidget implements PreferredSizeWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Colors.white.withValues(alpha: 0.0),
-                    Colors.white.withValues(alpha: 0.35),
-                    Colors.white.withValues(alpha: 0.0),
+                    onPrimary.withValues(alpha: 0.0),
+                    onPrimary.withValues(alpha: 0.35),
+                    onPrimary.withValues(alpha: 0.0),
                   ],
                 ),
               ),

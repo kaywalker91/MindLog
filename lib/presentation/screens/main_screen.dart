@@ -9,6 +9,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../providers/app_info_provider.dart';
 import '../providers/app_upgrade_check_provider.dart';
 import '../providers/ui_state_providers.dart';
+import '../providers/update_check_timer_provider.dart';
 import '../services/notification_action_handler.dart';
 import '../widgets/whats_new_dialog.dart';
 import 'diary_list_screen.dart';
@@ -36,7 +37,13 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       unawaited(_maybeShowWhatsNewDialog().then((_) {
         unawaited(_maybeRequestNotificationPermission());
       }));
+      // 주기적 업데이트 체크 타이머 시작
+      _initializeUpdateCheckTimer();
     });
+  }
+
+  void _initializeUpdateCheckTimer() {
+    ref.read(updateCheckTimerProvider).start();
   }
 
   /// 앱 업그레이드 후 What's New 다이얼로그 표시

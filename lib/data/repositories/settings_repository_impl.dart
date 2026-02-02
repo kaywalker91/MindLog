@@ -78,6 +78,22 @@ class SettingsRepositoryImpl
   }
 
   @override
+  Future<void> setDismissedUpdateVersionWithTimestamp(String version) async {
+    return guardFailure(
+      'dismiss 버전(timestamp 포함) 저장 실패',
+      () => _localDataSource.setDismissedUpdateVersionWithTimestamp(version),
+    );
+  }
+
+  @override
+  Future<int?> getDismissedUpdateTimestamp() async {
+    return guardFailure(
+      'dismiss timestamp 조회 실패',
+      _localDataSource.getDismissedUpdateTimestamp,
+    );
+  }
+
+  @override
   Future<void> clearDismissedUpdateVersion() async {
     return guardFailure(
       'dismiss 버전 삭제 실패',

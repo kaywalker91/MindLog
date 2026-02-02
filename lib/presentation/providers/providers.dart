@@ -14,3 +14,6 @@ export 'update_provider.dart';
 export 'app_info_provider.dart';
 export 'app_upgrade_check_provider.dart';
 export 'firebase_providers.dart';
+export 'today_emotion_provider.dart';
+export 'in_app_update_provider.dart';
+export 'update_check_timer_provider.dart';

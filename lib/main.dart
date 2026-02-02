@@ -12,6 +12,7 @@ import 'core/services/fcm_service.dart';
 import 'core/services/firebase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/db_recovery_service.dart';
+import 'data/datasources/local/sqlite_local_datasource.dart';
 import 'core/services/notification_settings_service.dart';
 import 'core/theme/app_theme.dart';
 import 'domain/entities/notification_settings.dart' as app;
@@ -115,6 +116,9 @@ Future<void> _initializeApp() async {
     appContainer.invalidate(statisticsProvider);
     appContainer.invalidate(topKeywordsProvider);
     appContainer.invalidate(diaryListControllerProvider);
+
+    // 3. DB 연결 최종 확인 (타이밍 경합 조건에 대한 안전장치)
+    await SqliteLocalDataSource.forceReconnect();
 
     if (kDebugMode) {
       debugPrint('[Main] DB recovery detected, all data providers invalidated');

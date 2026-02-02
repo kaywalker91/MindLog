@@ -177,6 +177,7 @@ class MockSettingsRepository implements SettingsRepository {
   NotificationSettings _notificationSettings = NotificationSettings.defaults();
   String? _userName;
   String? _dismissedUpdateVersion;
+  int? _dismissedUpdateTimestamp;
   String? _lastSeenAppVersion;
 
   /// 상태 초기화
@@ -188,6 +189,7 @@ class MockSettingsRepository implements SettingsRepository {
     _notificationSettings = NotificationSettings.defaults();
     _userName = null;
     _dismissedUpdateVersion = null;
+    _dismissedUpdateTimestamp = null;
     _lastSeenAppVersion = null;
   }
 
@@ -256,11 +258,31 @@ class MockSettingsRepository implements SettingsRepository {
   }
 
   @override
+  Future<void> setDismissedUpdateVersionWithTimestamp(String version) async {
+    if (shouldThrowOnSet) {
+      throw failureToThrow ??
+          const Failure.cache(message: 'dismiss 버전(timestamp) 저장 실패');
+    }
+    _dismissedUpdateVersion = version;
+    _dismissedUpdateTimestamp = DateTime.now().millisecondsSinceEpoch;
+  }
+
+  @override
+  Future<int?> getDismissedUpdateTimestamp() async {
+    if (shouldThrowOnGet) {
+      throw failureToThrow ??
+          const Failure.cache(message: 'dismiss timestamp 조회 실패');
+    }
+    return _dismissedUpdateTimestamp;
+  }
+
+  @override
   Future<void> clearDismissedUpdateVersion() async {
     if (shouldThrowOnSet) {
       throw failureToThrow ?? const Failure.cache(message: 'dismiss 버전 삭제 실패');
     }
     _dismissedUpdateVersion = null;
+    _dismissedUpdateTimestamp = null;
   }
 
   // 테스트 헬퍼 메서드
@@ -270,6 +292,8 @@ class MockSettingsRepository implements SettingsRepository {
   void setMockUserName(String? name) => _userName = name;
   void setMockDismissedVersion(String? version) =>
       _dismissedUpdateVersion = version;
+  void setMockDismissedTimestamp(int? timestamp) =>
+      _dismissedUpdateTimestamp = timestamp;
   void setMockLastSeenVersion(String? version) => _lastSeenAppVersion = version;
 
   @override

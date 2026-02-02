@@ -53,11 +53,11 @@ class _ResultCardState extends State<ResultCard> {
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Row(
+        content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white),
-            SizedBox(width: 8),
-            Text('작은 성공을 축하해요! 🎉'),
+            Icon(Icons.check_circle, color: Theme.of(context).colorScheme.onPrimary),
+            const SizedBox(width: 8),
+            const Text('작은 성공을 축하해요! 🎉'),
           ],
         ),
         behavior: SnackBarBehavior.floating,
@@ -154,7 +154,7 @@ class _ResultCardState extends State<ResultCard> {
       onPressed: widget.onNewDiary,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         padding: const EdgeInsets.symmetric(vertical: 18),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),

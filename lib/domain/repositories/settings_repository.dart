@@ -19,6 +19,12 @@ abstract class SettingsRepository {
   /// dismiss된 업데이트 버전 저장
   Future<void> setDismissedUpdateVersion(String version);
 
+  /// dismiss된 업데이트 버전 저장 (timestamp 포함, 24시간 suppress용)
+  Future<void> setDismissedUpdateVersionWithTimestamp(String version);
+
+  /// dismiss된 업데이트 timestamp 조회
+  Future<int?> getDismissedUpdateTimestamp();
+
   /// dismiss된 업데이트 버전 삭제
   Future<void> clearDismissedUpdateVersion();
 

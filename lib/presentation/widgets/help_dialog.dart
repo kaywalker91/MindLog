@@ -85,12 +85,12 @@ class _HelpHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: theme.colorScheme.onPrimary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.help_outline,
-              color: Colors.white,
+              color: theme.colorScheme.onPrimary,
               size: 22,
             ),
           ),
@@ -102,7 +102,7 @@ class _HelpHeader extends StatelessWidget {
                 Text(
                   '도움말',
                   style: theme.textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
+                    color: theme.colorScheme.onPrimary,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -110,7 +110,7 @@ class _HelpHeader extends StatelessWidget {
                 Text(
                   '마음로그 사용 흐름을 1분 요약',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
