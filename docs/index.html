@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260202-v1430">
+    <link rel="stylesheet" href="style.css?v=20260203-v1431">
 </head>
 <body>
     <header class="hero">
@@ -88,27 +88,27 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.30에서는 시간대별 인사말, 뒤로가기 UX 개선, DB 복구 시 Provider 동기화를 강화했습니다.</p>
+            <p class="section-subtitle">v1.4.31에서는 인앱 업데이트, 설정 화면 모듈화, 대형 위젯 분해로 성능과 유지보수성을 크게 향상시켰습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
-                    <span class="update-tag">UX</span>
-                    <h3>👋 시간대별 인사말</h3>
-                    <p>홈 화면 헤더에 시간대에 맞는 인사말이 표시됩니다. '좋은 아침이에요', '좋은 오후예요', '좋은 저녁이에요' 등 친근한 메시지로 사용자를 맞이합니다.</p>
+                    <span class="update-tag">Feature</span>
+                    <h3>📲 인앱 업데이트</h3>
+                    <p>Google Play In-App Update API를 통합하여 유연 업데이트(Flexible)와 즉시 업데이트(Immediate)를 지원합니다. 1시간 주기로 자동 체크됩니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Navigation</span>
-                    <h3>🔙 뒤로가기 UX 안정화</h3>
-                    <p>시스템 뒤로가기 버튼에 PopScope를 적용하여 앱이 갑자기 종료되는 것을 방지합니다. 홈 화면에서는 종료 확인 다이얼로그가 표시됩니다.</p>
+                    <span class="update-tag">Refactor</span>
+                    <h3>⚙️ 설정 화면 모듈화</h3>
+                    <p>600줄 이상의 설정 화면을 5개 독립 섹션(앱 정보, 알림, 감정 케어, 데이터 관리, 지원)으로 분해하여 코드 가독성과 성능을 개선했습니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Architecture</span>
-                    <h3>🔄 go_router 네비게이션 개선</h3>
-                    <p>설정, 개인정보 처리방침 등 서브화면에서 go() 대신 push()를 사용하여 자연스러운 뒤로가기 스택을 지원합니다.</p>
+                    <span class="update-tag">Performance</span>
+                    <h3>🧩 위젯 분해 (1,132줄 → 14파일)</h3>
+                    <p>NetworkStatusOverlay, UpdatePromptDialog, KeywordTags 등 대형 위젯을 작은 단위로 분리하여 빌드 성능이 향상되었습니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Stability</span>
-                    <h3>💾 DB 복구 Provider 동기화</h3>
-                    <p>앱 재설치 후 데이터 복원 시 통계와 일기 목록이 즉시 갱신됩니다. Core와 Presentation 계층의 Provider 무효화가 동기화되었습니다.</p>
+                    <span class="update-tag">Safety</span>
+                    <h3>📞 SOS 긴급 전화번호 변경</h3>
+                    <p>자살예방 통합번호 109로 업데이트되었습니다. 2024년 1월 1일부터 시행된 한국 자살예방상담전화 표준을 적용했습니다.</p>
                 </div>
             </div>
         </div>

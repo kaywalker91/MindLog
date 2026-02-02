@@ -101,7 +101,33 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.30 (Current)
+### v1.4.31 (Current)
+*   **인앱 업데이트 시스템 도입:**
+    *   **Google Play In-App Update:** 유연 업데이트(Flexible) 및 즉시 업데이트(Immediate) 지원
+    *   **InAppUpdateService 신규:** Play Store 업데이트 상태 확인 및 트리거 서비스
+    *   **1시간 주기 자동 체크:** `UpdateCheckTimerProvider`로 백그라운드 업데이트 확인
+    *   **업데이트 해제 상태 저장:** SharedPreferences 기반 사용자 선택 유지
+*   **설정 화면 위젯 분해 (600줄 → 5개 파일):**
+    *   **AppInfoSection:** 버전 정보, 업데이트 확인, 변경사항
+    *   **NotificationSection:** FCM 권한, 마음케어 알림 설정
+    *   **EmotionCareSection:** AI 캐릭터 선택
+    *   **DataManagementSection:** 백업/복원, 데이터 삭제
+    *   **SupportSection:** 도움말, 개인정보 처리방침, 이용약관
+*   **대형 위젯 분해 (총 3개 위젯 → 14개 파일):**
+    *   **NetworkStatusOverlay (393줄 → 5파일):** StatusIcon, StatusCard, ActionButtons 분리
+    *   **UpdatePromptDialog (381줄 → 5파일):** UpdateHeader, VersionComparison, ExpandableNotes 분리
+    *   **KeywordTags (358줄 → 4파일):** SummaryChips, TopEmotionCard, KeywordRankRow 분리
+*   **Provider 패턴 개선:**
+    *   **ref.read() → ref.watch() 전환:** Provider 정의 내 의존성 추적 정상화
+    *   **todayEmotionProvider 신규:** 홈 화면 감정 인사말 로직 분리
+    *   **업데이트 해제 추적:** `lastUpdateDismissedAt` 필드로 상태 관리
+*   **SOS 긴급 전화번호 변경:**
+    *   **109 자살예방 통합번호:** 한국 자살예방상담전화 109 적용 (2024.1.1 시행)
+*   **테스트 추가:**
+    *   **신규 28개 테스트:** AppInfoSection, ResultCard, TodayEmotionProvider, UpdateStateProvider
+    *   **전체 테스트 903개 통과**
+
+### v1.4.30
 *   **홈 화면 헤더 UX 개선:**
     *   **시간대별 인사말 표시:** '좋은 아침이에요', '좋은 오후예요', '좋은 저녁이에요', '늦은 밤이에요' 동적 표시
     *   **HomeHeaderTitle 위젯 신규:** 앱 로고 + 앱 이름 + 시간대 인사말 구성
