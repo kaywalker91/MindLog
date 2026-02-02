@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
+import 'package:mindlog/presentation/providers/app_info_provider.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
 import 'package:mindlog/presentation/widgets/settings/settings_sections.dart';
 
@@ -12,6 +15,180 @@ import '../../../mocks/mock_repositories.dart';
 ///
 /// 분해된 5개 Section 위젯의 렌더링 및 상호작용 테스트
 void main() {
+  group('AppInfoSection', () {
+    late ProviderContainer container;
+
+    Widget buildTestWidget() {
+      return UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: const AppInfoSection(),
+            ),
+          ),
+        ),
+      );
+    }
+
+    group('렌더링', () {
+      testWidgets('앱 정보 섹션 헤더가 표시되어야 한다', (tester) async {
+        // Arrange
+        container = ProviderContainer(
+          overrides: [
+            appInfoProvider.overrideWith(
+              (ref) async => const AppVersionInfo(
+                version: '1.4.31',
+                buildNumber: '123',
+              ),
+            ),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('앱 정보'), findsOneWidget);
+      });
+
+      testWidgets('앱 버전 항목이 표시되어야 한다', (tester) async {
+        // Arrange
+        container = ProviderContainer(
+          overrides: [
+            appInfoProvider.overrideWith(
+              (ref) async => const AppVersionInfo(
+                version: '1.4.31',
+                buildNumber: '123',
+              ),
+            ),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('앱 버전'), findsOneWidget);
+        expect(find.text('v1.4.31 (123)'), findsOneWidget);
+      });
+
+      testWidgets('업데이트 확인 항목이 표시되어야 한다', (tester) async {
+        // Arrange
+        container = ProviderContainer(
+          overrides: [
+            appInfoProvider.overrideWith(
+              (ref) async => const AppVersionInfo(
+                version: '1.4.31',
+                buildNumber: '123',
+              ),
+            ),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('업데이트 확인'), findsOneWidget);
+      });
+
+      testWidgets('개인정보 처리방침 항목이 표시되어야 한다', (tester) async {
+        // Arrange
+        container = ProviderContainer(
+          overrides: [
+            appInfoProvider.overrideWith(
+              (ref) async => const AppVersionInfo(
+                version: '1.4.31',
+                buildNumber: '123',
+              ),
+            ),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('개인정보 처리방침'), findsOneWidget);
+      });
+    });
+
+    group('로딩 상태', () {
+      testWidgets('버전 정보 로딩 중 상태가 표시되어야 한다', (tester) async {
+        // Arrange - Completer를 사용하여 로딩 상태 유지
+        final completer = Completer<AppVersionInfo>();
+        container = ProviderContainer(
+          overrides: [
+            appInfoProvider.overrideWith((ref) => completer.future),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(buildTestWidget());
+        // 로딩 상태 확인 (pump() 한 번만)
+
+        // Assert
+        expect(find.text('불러오는 중...'), findsOneWidget);
+
+        // 테스트 종료 전 future 완료 (타이머 경고 방지)
+        completer.complete(const AppVersionInfo(version: '1.0.0', buildNumber: '1'));
+        await tester.pumpAndSettle();
+      });
+
+      testWidgets('버전 정보 로딩 실패 시 에러 메시지가 표시되어야 한다', (tester) async {
+        // Arrange
+        container = ProviderContainer(
+          overrides: [
+            appInfoProvider.overrideWith((ref) async {
+              throw Exception('Platform error');
+            }),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('버전 확인 실패'), findsOneWidget);
+      });
+    });
+
+    group('아이콘', () {
+      testWidgets('각 항목에 올바른 아이콘이 표시되어야 한다', (tester) async {
+        // Arrange
+        container = ProviderContainer(
+          overrides: [
+            appInfoProvider.overrideWith(
+              (ref) async => const AppVersionInfo(
+                version: '1.4.31',
+                buildNumber: '123',
+              ),
+            ),
+          ],
+        );
+
+        // Act
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.byIcon(Icons.info_outline), findsOneWidget);
+        expect(find.byIcon(Icons.system_update), findsOneWidget);
+        expect(find.byIcon(Icons.description_outlined), findsOneWidget);
+      });
+    });
+
+    tearDown(() {
+      container.dispose();
+    });
+  });
+
   group('EmotionCareSection', () {
     late ProviderContainer container;
     late MockSettingsRepository mockSettingsRepo;
