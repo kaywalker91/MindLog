@@ -1,66 +1,72 @@
 # Current Progress
 
 ## 현재 작업
-- DB 복원 시 통계 미표시 버그 수정 완료 ✓
+- 엔터프라이즈 리팩토링 Phase 0-2 완료 ✓
 
 ## 완료된 항목 (이번 세션)
 
-### Phase 1: Provider 의존성 추적 수정 (핵심)
-- [x] `infra_providers.dart`: 10개 Provider에서 ref.read() → ref.watch() 변환
-  - groqRemoteDataSourceProvider
-  - diaryRepositoryProvider (2곳)
-  - settingsRepositoryProvider
-  - statisticsRepositoryProvider
-  - analyzeDiaryUseCaseProvider (3곳)
-  - getSelectedAiCharacterUseCaseProvider
-  - setSelectedAiCharacterUseCaseProvider
-  - getNotificationSettingsUseCaseProvider
-  - setNotificationSettingsUseCaseProvider
-  - getStatisticsUseCaseProvider
+### Phase 0: 현재 상태 안정화
+- [x] 정적 분석 통과 (1 info 경고만)
+- [x] 테스트 883개 → 903개 모두 통과
+- [x] 2개 커밋 생성:
+  - `feat(v1.4.31)`: in-app update, settings 위젯 분해, provider sync
+  - `docs(dx)`: TIL 메모리, 스킬 카탈로그 업데이트
 
-### Phase 2: 방어적 프로그래밍 추가
-- [x] `main.dart`: DB 복원 후 forceReconnect() 안전장치 추가
-- [x] `invalidateDataProviders()` 주석 업데이트
+### Phase 1: 테스트 기반 강화
+- [x] Settings 섹션 테스트 추가 (15개 테스트)
+  - AppInfoSection: 버전 표시, 로딩 상태, 에러 상태
+  - EmotionCareSection, NotificationSection, DataManagementSection, SupportSection
+- [x] Result Card 테스트 추가 (13개 테스트)
+  - CharacterBanner: 캐릭터 표시, 다양한 캐릭터 타입
+  - EmotionAnimationConfig: 점수별 애니메이션 설정 검증
 
-### 검증
-- [x] 정적 분석: 통과 ("No issues found!")
-- [x] 테스트: 883개 모두 통과
+### Phase 2: SOS Card 업데이트
+- [x] 자살예방 상담전화 번호 업데이트: 1393/1577-0199 → 109
+  - 2024년 1월 1일부터 통합번호 '109' 운영
+  - `sos_card.dart`와 `result_card/sos_card.dart` 모두 수정
+- [x] 두 SOS Card는 서로 다른 용도로 통합 불필요 확인
 
-## 핵심 학습 (TIL)
-- **ref.read() vs ref.watch()**: read()는 의존성 추적 안 함 → Provider 무효화 시 자동 재생성 실패
-- **IndexedStack**: 모든 자식을 즉시 빌드 (lazy 아님) → 초기화 타이밍 주의
-- **방어적 코딩**: forceReconnect()로 타이밍 경합 조건 대비
+### Phase 3: 색상 테마화 (분석 완료)
+- [x] Colors.* 사용 현황 분석 완료
+- [x] 결론: 대부분 의도적 디자인 선택 (흰색 버튼 텍스트, 어두운 오버레이)
+- [x] 추가 마이그레이션 불필요
 
-## 수정 파일
+## 커밋 히스토리 (이번 세션)
 ```
-lib/core/di/infra_providers.dart   # ref.read() → ref.watch() 10곳
-lib/main.dart                       # forceReconnect() 추가
+ba80145 fix(sos): update emergency phone numbers to 109
+b7263dd test(widgets): add AppInfoSection and ResultCard component tests
+ff8fdac docs(dx): add TIL memories, skill catalog updates, refactoring analysis
+79bb295 feat(v1.4.31): in-app update, settings widget decomposition, provider sync fixes
 ```
+
+## 테스트 커버리지
+- 전체: 903개 테스트 통과
+- 신규 추가: 28개 테스트
+  - settings_sections_test.dart: 15개
+  - result_card_widgets_test.dart: 13개
 
 ## 다음 단계 (우선순위)
 
 ### 필수 (P0)
-1. **커밋 생성**: 변경사항 git commit + push
-   ```bash
-   git add lib/core/di/infra_providers.dart lib/main.dart
-   git commit -m "fix(db-recovery): enable provider dependency tracking with ref.watch()"
-   git push
-   ```
-2. **DB 복원 QA 테스트**: 실제 디바이스에서 복원 시나리오 검증
+1. **원격 푸시**: `git push` (4개 커밋)
+2. **디바이스 QA**: SOS 카드 전화 연결 테스트
 
 ### 권장 (P1)
-3. **ref.read() 추가 검토**: 12개 파일에서 유사 패턴 발견
-4. **Integration Test**: DB 복원 시나리오 자동화 테스트
+3. **Phase 4**: 대형 위젯 분해
+   - network_status_overlay.dart (393줄)
+   - update_prompt_dialog.dart (381줄)
+   - keyword_tags.dart (358줄)
 
 ### 선택 (P2)
-5. **Provider 패턴 문서화**: 의존성 추적 가이드라인 작성
+4. **flutter_animate 테스트 개선**: 타이머 이슈 해결 방안 연구
+5. **문자열 중앙화**: 한국어 하드코딩 정리
 
 ## 주의사항
-- Provider 캐시 정책: ref.watch() 변경 후 자동 관리됨
-- DB 복원 테스트는 에뮬레이터/디바이스에서만 시뮬레이션 가능
-- 26개 수정 파일 중 2개만 이번 버그픽스 관련 (나머지는 이전 세션)
+- flutter_animate 위젯 테스트: 타이머 lifecycle 이슈로 일부 제외
+- SOS 전화번호 109: 한국 자살예방 통합번호 (2024.1.1~)
+- 두 SOS Card 구현체: 서로 다른 용도 (전체화면 대체 vs 카드 내 삽입)
 
 ## 마지막 업데이트
 - 날짜: 2026-02-02
-- 세션: db-recovery-statistics-fix
-- 작업: Provider 의존성 추적 수정 (ref.read → ref.watch)
+- 세션: enterprise-refactoring-phase0-2
+- 작업: 테스트 강화, SOS 전화번호 업데이트
