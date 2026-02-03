@@ -98,21 +98,23 @@ void main() {
 
       test('오늘 여러 일기가 있으면 가장 최근 일기의 감정을 반환해야 한다', () async {
         // Arrange
+        // 정오 기준으로 시간을 설정하여 타임존에 관계없이 같은 날짜로 인식되도록 함
         final now = DateTime.now();
+        final todayNoon = DateTime(now.year, now.month, now.day, 12, 0);
         mockRepository.diaries = [
           DiaryFixtures.analyzed(
             id: 'today-1',
-            createdAt: now.subtract(const Duration(hours: 2)),
+            createdAt: todayNoon.subtract(const Duration(hours: 2)), // 10:00
             sentimentScore: 3,
           ),
           DiaryFixtures.analyzed(
             id: 'today-latest',
-            createdAt: now,
+            createdAt: todayNoon, // 12:00
             sentimentScore: 9,
           ),
           DiaryFixtures.analyzed(
             id: 'today-2',
-            createdAt: now.subtract(const Duration(hours: 1)),
+            createdAt: todayNoon.subtract(const Duration(hours: 1)), // 11:00
             sentimentScore: 5,
           ),
         ];
@@ -206,14 +208,16 @@ void main() {
     group('혼합 상태 테스트', () {
       test('오늘+어제 일기가 섞여 있을 때 오늘 일기만 카운트해야 한다', () async {
         // Arrange
+        // 정오 기준으로 시간을 설정하여 타임존에 관계없이 같은 날짜로 인식되도록 함
         final now = DateTime.now();
-        final yesterday = now.subtract(const Duration(days: 1));
+        final todayNoon = DateTime(now.year, now.month, now.day, 12, 0);
+        final yesterday = todayNoon.subtract(const Duration(days: 1));
         mockRepository.diaries = [
-          DiaryFixtures.analyzed(id: 'today-1', createdAt: now, sentimentScore: 7),
+          DiaryFixtures.analyzed(id: 'today-1', createdAt: todayNoon, sentimentScore: 7),
           DiaryFixtures.analyzed(id: 'yesterday-1', createdAt: yesterday),
           DiaryFixtures.analyzed(
             id: 'today-2',
-            createdAt: now.subtract(const Duration(hours: 1)),
+            createdAt: todayNoon.subtract(const Duration(hours: 1)), // 11:00
             sentimentScore: 5,
           ),
         ];
