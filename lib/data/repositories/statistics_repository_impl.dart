@@ -18,6 +18,8 @@ class StatisticsRepositoryImpl
   Future<EmotionStatistics> getStatistics(StatisticsPeriod period) async {
     return guardFailure('통계 조회 실패', () async {
       final now = DateTime.now();
+      // endDate를 오늘 23:59:59.999로 정규화하여 오늘 작성된 모든 일기 포함
+      final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
       DateTime? startDate;
 
       // 기간에 따른 시작일 계산
@@ -29,7 +31,7 @@ class StatisticsRepositoryImpl
       // SQL 레벨에서 필터링된 일기 조회 (성능 최적화)
       final analyzedDiaries = await _localDataSource.getAnalyzedDiariesInRange(
         startDate: startDate,
-        endDate: now,
+        endDate: endOfDay,
       );
 
       if (analyzedDiaries.isEmpty) {
@@ -50,7 +52,7 @@ class StatisticsRepositoryImpl
         totalDiaries: analyzedDiaries.length,
         overallAverageScore: overallAverage,
         periodStart: startDate,
-        periodEnd: now,
+        periodEnd: endOfDay,
       );
     });
   }
@@ -68,24 +70,6 @@ class StatisticsRepositoryImpl
       );
 
       return _calculateDailyEmotions(filteredDiaries);
-    });
-  }
-
-  @override
-  Future<Map<String, int>> getKeywordFrequency({int? limit}) async {
-    return guardFailure('키워드 빈도 조회 실패', () async {
-      // SQL 레벨에서 필터링 (성능 최적화)
-      final analyzedDiaries = await _localDataSource.getAnalyzedDiariesInRange();
-
-      final frequency = _calculateKeywordFrequency(analyzedDiaries);
-
-      if (limit == null) return frequency;
-
-      // 상위 N개만 반환
-      final sorted = frequency.entries.toList()
-        ..sort((a, b) => b.value.compareTo(a.value));
-
-      return Map.fromEntries(sorted.take(limit));
     });
   }
 

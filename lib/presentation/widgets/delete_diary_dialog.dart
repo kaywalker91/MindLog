@@ -128,13 +128,8 @@ class DeleteDiaryDialog extends ConsumerWidget {
 
   Future<void> _deleteDiary(BuildContext context, WidgetRef ref) async {
     try {
-      final repository = ref.read(diaryRepositoryProvider);
-      await repository.deleteDiary(diary.id);
-
-      // 목록 새로고침
-      await ref.read(diaryListControllerProvider.notifier).refresh();
-      // 통계 새로고침
-      ref.invalidate(statisticsProvider);
+      // Controller를 통해 삭제 (통계 갱신 포함)
+      await ref.read(diaryListControllerProvider.notifier).deleteImmediately(diary.id);
 
       if (context.mounted) {
         // 상세 화면에서 호출된 경우 목록으로 복귀

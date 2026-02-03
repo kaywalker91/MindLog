@@ -15,8 +15,15 @@ final statisticsProvider =
 });
 
 /// 상위 키워드 Provider (상위 10개)
+/// statisticsProvider의 keywordFrequency를 재사용하여 기간 필터 적용
 final topKeywordsProvider =
     FutureProvider.autoDispose<Map<String, int>>((ref) async {
-  final useCase = ref.watch(getStatisticsUseCaseProvider);
-  return await useCase.getKeywordFrequency(limit: 10);
+  final statistics = await ref.watch(statisticsProvider.future);
+  final frequency = statistics.keywordFrequency;
+
+  // 상위 10개만 반환
+  final sorted = frequency.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
+
+  return Map.fromEntries(sorted.take(10));
 });

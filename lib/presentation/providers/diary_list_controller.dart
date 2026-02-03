@@ -117,12 +117,38 @@ class DiaryListController extends AsyncNotifier<List<Diary>> {
     try {
       final repository = ref.read(diaryRepositoryProvider);
       await repository.deleteDiary(diaryId);
-      // 통계 갱신
+      // 통계 갱신 (topKeywordsProvider는 statisticsProvider의 파생이므로 자동 갱신)
       ref.invalidate(statisticsProvider);
     } catch (_) {
-      // 삭제 실패 시 리스트 복원
-      cancelDelete(diaryId);
+      // 삭제 실패 시 리스트 복원 (pending은 이미 제거되었으므로 직접 복원)
+      final currentList = state.value ?? [];
+      final restoredList = [...currentList, pending.diary];
+
+      // 정렬 유지: 고정된 일기 우선, 그 다음 최신순
+      restoredList.sort((a, b) {
+        if (a.isPinned != b.isPinned) {
+          return a.isPinned ? -1 : 1;
+        }
+        return b.createdAt.compareTo(a.createdAt);
+      });
+
+      state = AsyncValue.data(restoredList);
     }
+  }
+
+  /// 즉시 삭제 — 확인 다이얼로그 후 호출 (Undo 없음)
+  Future<void> deleteImmediately(String diaryId) async {
+    final currentList = state.value;
+    if (currentList == null) return;
+
+    // 리스트에서 제거 (낙관적 업데이트)
+    final updatedList = currentList.where((d) => d.id != diaryId).toList();
+    state = AsyncValue.data(updatedList);
+
+    final repository = ref.read(diaryRepositoryProvider);
+    await repository.deleteDiary(diaryId);
+    // 통계 갱신 (topKeywordsProvider는 statisticsProvider의 파생이므로 자동 갱신)
+    ref.invalidate(statisticsProvider);
   }
 }
 

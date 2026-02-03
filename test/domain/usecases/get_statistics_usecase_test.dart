@@ -154,70 +154,6 @@ void main() {
       });
     });
 
-    group('getKeywordFrequency', () {
-      test('limit 파라미터를 Repository에 전달해야 한다', () async {
-        // Arrange
-        const limit = 10;
-
-        // Act
-        await useCase.getKeywordFrequency(limit: limit);
-
-        // Assert
-        expect(mockRepository.keywordFrequencyLimits, contains(limit));
-      });
-
-      test('limit 없이 호출 시 null을 전달해야 한다', () async {
-        // Act
-        await useCase.getKeywordFrequency();
-
-        // Assert
-        expect(mockRepository.keywordFrequencyLimits, contains(null));
-      });
-
-      test('Repository 에러를 전파해야 한다', () async {
-        // Arrange
-        mockRepository.shouldThrowOnGetKeywordFrequency = true;
-
-        // Act & Assert
-        await expectLater(
-          useCase.getKeywordFrequency(),
-          throwsA(isA<Failure>()),
-        );
-      });
-
-      test('키워드 빈도 Map을 반환해야 한다', () async {
-        // Arrange
-        mockRepository.mockKeywordFrequency = {'행복': 5, '피곤': 3, '스트레스': 2};
-
-        // Act
-        final result = await useCase.getKeywordFrequency();
-
-        // Assert
-        expect(result['행복'], 5);
-        expect(result['피곤'], 3);
-      });
-
-      test('limit 적용 시 상위 N개만 반환해야 한다', () async {
-        // Arrange
-        mockRepository.mockKeywordFrequency = {
-          '행복': 10,
-          '피곤': 8,
-          '스트레스': 6,
-          '운동': 4,
-          '가족': 2,
-        };
-
-        // Act
-        final result = await useCase.getKeywordFrequency(limit: 3);
-
-        // Assert
-        expect(result.length, 3);
-        expect(result.containsKey('행복'), true);
-        expect(result.containsKey('피곤'), true);
-        expect(result.containsKey('스트레스'), true);
-      });
-    });
-
     group('getActivityMap', () {
       test('날짜 파라미터를 Repository에 전달해야 한다', () async {
         // Arrange
@@ -274,13 +210,11 @@ void main() {
         // Act
         final statistics = await useCase.execute(StatisticsPeriod.week);
         final dailyEmotions = await useCase.getDailyEmotions();
-        final keywords = await useCase.getKeywordFrequency(limit: 5);
         final activityMap = await useCase.getActivityMap();
 
         // Assert
         expect(statistics.totalDiaries, 7);
         expect(dailyEmotions.isNotEmpty, true);
-        expect(keywords.isNotEmpty, true);
         expect(activityMap.isNotEmpty, true);
       });
     });

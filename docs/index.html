@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260203-v1431">
+    <link rel="stylesheet" href="style.css?v=20260204-v1432">
 </head>
 <body>
     <header class="hero">
@@ -88,27 +88,27 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.31에서는 인앱 업데이트, 설정 화면 모듈화, 대형 위젯 분해로 성능과 유지보수성을 크게 향상시켰습니다.</p>
+            <p class="section-subtitle">v1.4.32에서는 일기 삭제 안정성, 통계 시간 범위 버그 수정, 미사용 코드 정리로 코드 품질을 향상시켰습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
-                    <span class="update-tag">Feature</span>
-                    <h3>📲 인앱 업데이트</h3>
-                    <p>Google Play In-App Update API를 통합하여 유연 업데이트(Flexible)와 즉시 업데이트(Immediate)를 지원합니다. 1시간 주기로 자동 체크됩니다.</p>
+                    <span class="update-tag">Stability</span>
+                    <h3>🗑️ 일기 삭제 개선</h3>
+                    <p>삭제 확인 다이얼로그 후 즉시 삭제되는 deleteImmediately() 메서드를 추가했습니다. 삭제 실패 시에도 목록이 정렬을 유지하며 복원됩니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Bugfix</span>
+                    <h3>📊 통계 시간 범위 수정</h3>
+                    <p>통계 조회 시 endDate를 오늘 23:59:59로 정규화하여 당일 작성한 일기가 통계에 바로 반영됩니다.</p>
                 </div>
                 <div class="update-card">
                     <span class="update-tag">Refactor</span>
-                    <h3>⚙️ 설정 화면 모듈화</h3>
-                    <p>600줄 이상의 설정 화면을 5개 독립 섹션(앱 정보, 알림, 감정 케어, 데이터 관리, 지원)으로 분해하여 코드 가독성과 성능을 개선했습니다.</p>
+                    <h3>🧹 미사용 코드 정리</h3>
+                    <p>Repository/UseCase에서 사용되지 않던 getKeywordFrequency() 메서드를 제거하여 코드 베이스를 간결하게 정리했습니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Performance</span>
-                    <h3>🧩 위젯 분해 (1,132줄 → 14파일)</h3>
-                    <p>NetworkStatusOverlay, UpdatePromptDialog, KeywordTags 등 대형 위젯을 작은 단위로 분리하여 빌드 성능이 향상되었습니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">Safety</span>
-                    <h3>📞 SOS 긴급 전화번호 변경</h3>
-                    <p>자살예방 통합번호 109로 업데이트되었습니다. 2024년 1월 1일부터 시행된 한국 자살예방상담전화 표준을 적용했습니다.</p>
+                    <span class="update-tag">Test</span>
+                    <h3>✅ 테스트 456줄 추가</h3>
+                    <p>DiaryListController의 deleteImmediately, confirmDelete 등 삭제 관련 테스트가 대폭 추가되어 안정성이 강화되었습니다.</p>
                 </div>
             </div>
         </div>

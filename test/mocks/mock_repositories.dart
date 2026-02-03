@@ -320,36 +320,30 @@ class MockStatisticsRepository implements StatisticsRepository {
   // 상태 제어 변수
   bool shouldThrowOnGetStatistics = false;
   bool shouldThrowOnGetDailyEmotions = false;
-  bool shouldThrowOnGetKeywordFrequency = false;
   bool shouldThrowOnGetActivityMap = false;
   Failure? failureToThrow;
 
   // Mock 데이터
   EmotionStatistics? mockStatistics;
   List<DailyEmotion>? mockDailyEmotions;
-  Map<String, int>? mockKeywordFrequency;
   Map<DateTime, double>? mockActivityMap;
 
   // 호출 추적
   final List<StatisticsPeriod> requestedPeriods = [];
   final List<Map<String, DateTime?>> dailyEmotionRequests = [];
-  final List<int?> keywordFrequencyLimits = [];
   final List<Map<String, DateTime?>> activityMapRequests = [];
 
   /// 상태 초기화
   void reset() {
     shouldThrowOnGetStatistics = false;
     shouldThrowOnGetDailyEmotions = false;
-    shouldThrowOnGetKeywordFrequency = false;
     shouldThrowOnGetActivityMap = false;
     failureToThrow = null;
     mockStatistics = null;
     mockDailyEmotions = null;
-    mockKeywordFrequency = null;
     mockActivityMap = null;
     requestedPeriods.clear();
     dailyEmotionRequests.clear();
-    keywordFrequencyLimits.clear();
     activityMapRequests.clear();
   }
 
@@ -372,20 +366,6 @@ class MockStatisticsRepository implements StatisticsRepository {
       throw failureToThrow ?? const Failure.cache(message: '일별 감정 조회 실패');
     }
     return mockDailyEmotions ?? StatisticsFixtures.weekly().dailyEmotions;
-  }
-
-  @override
-  Future<Map<String, int>> getKeywordFrequency({int? limit}) async {
-    keywordFrequencyLimits.add(limit);
-    if (shouldThrowOnGetKeywordFrequency) {
-      throw failureToThrow ?? const Failure.cache(message: '키워드 빈도 조회 실패');
-    }
-    final frequency = mockKeywordFrequency ?? StatisticsFixtures.weekly().keywordFrequency;
-    if (limit == null) return frequency;
-
-    final sorted = frequency.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return Map.fromEntries(sorted.take(limit));
   }
 
   @override

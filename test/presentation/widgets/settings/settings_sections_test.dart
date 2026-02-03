@@ -21,10 +21,10 @@ void main() {
     Widget buildTestWidget() {
       return UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
+        child: const MaterialApp(
           home: Scaffold(
             body: SingleChildScrollView(
-              child: const AppInfoSection(),
+              child: AppInfoSection(),
             ),
           ),
         ),
@@ -303,7 +303,7 @@ void main() {
 
     testWidgets('리마인더 토글 상태가 올바르게 표시되어야 한다', (tester) async {
       // Arrange - 리마인더 비활성화 상태
-      mockSettingsRepo.setMockNotificationSettings(NotificationSettings(
+      mockSettingsRepo.setMockNotificationSettings(const NotificationSettings(
         isReminderEnabled: false,
         reminderHour: 21,
         reminderMinute: 0,

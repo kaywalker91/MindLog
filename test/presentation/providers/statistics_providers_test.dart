@@ -9,26 +9,33 @@ import 'package:mindlog/presentation/providers/ui_state_providers.dart';
 
 import '../../fixtures/statistics_fixtures.dart';
 
+/// 커스텀 키워드로 EmotionStatistics 생성 헬퍼
+EmotionStatistics _createStatisticsWithKeywords(Map<String, int> keywords) {
+  final base = StatisticsFixtures.weekly();
+  return EmotionStatistics(
+    dailyEmotions: base.dailyEmotions,
+    keywordFrequency: keywords,
+    activityMap: base.activityMap,
+    totalDiaries: base.totalDiaries,
+    overallAverageScore: base.overallAverageScore,
+    periodStart: base.periodStart,
+    periodEnd: base.periodEnd,
+  );
+}
 
 /// Mock GetStatisticsUseCase
 class MockGetStatisticsUseCase implements GetStatisticsUseCase {
   EmotionStatistics? mockStatistics;
-  Map<String, int>? mockKeywordFrequency;
   bool shouldThrow = false;
-  bool shouldThrowOnKeyword = false;
   Failure? failureToThrow;
 
   final List<StatisticsPeriod> requestedPeriods = [];
-  final List<int?> requestedLimits = [];
 
   void reset() {
     mockStatistics = null;
-    mockKeywordFrequency = null;
     shouldThrow = false;
-    shouldThrowOnKeyword = false;
     failureToThrow = null;
     requestedPeriods.clear();
-    requestedLimits.clear();
   }
 
   @override
@@ -48,21 +55,8 @@ class MockGetStatisticsUseCase implements GetStatisticsUseCase {
     if (shouldThrow) {
       throw failureToThrow ?? const Failure.cache(message: '일별 감정 조회 실패');
     }
-    return mockStatistics?.dailyEmotions ?? StatisticsFixtures.weekly().dailyEmotions;
-  }
-
-  @override
-  Future<Map<String, int>> getKeywordFrequency({int? limit}) async {
-    requestedLimits.add(limit);
-    if (shouldThrowOnKeyword) {
-      throw failureToThrow ?? const Failure.cache(message: '키워드 조회 실패');
-    }
-    final frequency = mockKeywordFrequency ?? StatisticsFixtures.weekly().keywordFrequency;
-    if (limit == null) return frequency;
-
-    final sorted = frequency.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return Map.fromEntries(sorted.take(limit));
+    return mockStatistics?.dailyEmotions ??
+        StatisticsFixtures.weekly().dailyEmotions;
   }
 
   @override
@@ -235,8 +229,8 @@ void main() {
 
   group('topKeywordsProvider', () {
     test('상위 10개 키워드를 조회해야 한다', () async {
-      // Arrange
-      mockUseCase.mockKeywordFrequency = {
+      // Arrange - statisticsProvider가 반환하는 keywordFrequency 설정
+      mockUseCase.mockStatistics = _createStatisticsWithKeywords({
         '행복': 10,
         '감사': 8,
         '기쁨': 7,
@@ -249,23 +243,23 @@ void main() {
         '목표': 1,
         '여행': 1,
         '음악': 1,
-      };
+      });
 
       // Act
       final keywords = await container.read(topKeywordsProvider.future);
 
-      // Assert
-      expect(mockUseCase.requestedLimits, contains(10));
+      // Assert - 상위 10개만 반환
       expect(keywords.length, lessThanOrEqualTo(10));
+      expect(keywords.keys.first, '행복'); // 가장 빈도가 높은 키워드
     });
 
     test('키워드가 빈도순으로 정렬되어야 한다', () async {
       // Arrange
-      mockUseCase.mockKeywordFrequency = {
+      mockUseCase.mockStatistics = _createStatisticsWithKeywords({
         '행복': 10,
         '감사': 5,
         '기쁨': 8,
-      };
+      });
 
       // Act
       final keywords = await container.read(topKeywordsProvider.future);
@@ -280,7 +274,7 @@ void main() {
 
     test('키워드가 없으면 빈 맵을 반환해야 한다', () async {
       // Arrange
-      mockUseCase.mockKeywordFrequency = {};
+      mockUseCase.mockStatistics = _createStatisticsWithKeywords({});
 
       // Act
       final keywords = await container.read(topKeywordsProvider.future);
@@ -289,10 +283,10 @@ void main() {
       expect(keywords, isEmpty);
     });
 
-    test('조회 에러 시 AsyncError 상태여야 한다', () async {
-      // Arrange
-      mockUseCase.shouldThrowOnKeyword = true;
-      mockUseCase.failureToThrow = const Failure.cache(message: '키워드 조회 실패');
+    test('statisticsProvider 에러 시 AsyncError 상태여야 한다', () async {
+      // Arrange - statisticsProvider가 실패하면 topKeywordsProvider도 실패
+      mockUseCase.shouldThrow = true;
+      mockUseCase.failureToThrow = const Failure.cache(message: '통계 조회 실패');
 
       // Act
       await container.read(topKeywordsProvider.future)

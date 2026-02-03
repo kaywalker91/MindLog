@@ -13,11 +13,6 @@ abstract class StatisticsRepository {
     DateTime? endDate,
   });
 
-  /// 키워드 빈도 조회
-  ///
-  /// [limit] 상위 N개 키워드만 반환 (null이면 전체)
-  Future<Map<String, int>> getKeywordFrequency({int? limit});
-
   /// 날짜별 활동 맵 조회 (히트맵용)
   Future<Map<DateTime, double>> getActivityMap({
     DateTime? startDate,

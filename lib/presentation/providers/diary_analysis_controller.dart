@@ -78,8 +78,8 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
       }
       if (diary.status == DiaryStatus.analyzed ||
           diary.status == DiaryStatus.safetyBlocked) {
+        // topKeywordsProvider는 statisticsProvider의 파생이므로 자동 갱신
         _ref.invalidate(statisticsProvider);
-        _ref.invalidate(topKeywordsProvider);
       }
     } on Failure catch (failure) {
       if (failure is SafetyBlockedFailure) {

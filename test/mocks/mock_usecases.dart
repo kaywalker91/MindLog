@@ -140,7 +140,6 @@ class MockGetStatisticsUseCase implements GetStatisticsUseCase {
   Failure? failureToThrow;
   EmotionStatistics? mockStatistics;
   List<DailyEmotion>? mockDailyEmotions;
-  Map<String, int>? mockKeywordFrequency;
   Map<DateTime, double>? mockActivityMap;
 
   final List<StatisticsPeriod> requestedPeriods = [];
@@ -150,7 +149,6 @@ class MockGetStatisticsUseCase implements GetStatisticsUseCase {
     failureToThrow = null;
     mockStatistics = null;
     mockDailyEmotions = null;
-    mockKeywordFrequency = null;
     mockActivityMap = null;
     requestedPeriods.clear();
   }
@@ -173,18 +171,6 @@ class MockGetStatisticsUseCase implements GetStatisticsUseCase {
       throw failureToThrow ?? const Failure.cache(message: '일별 감정 조회 실패');
     }
     return mockDailyEmotions ?? StatisticsFixtures.weekly().dailyEmotions;
-  }
-
-  @override
-  Future<Map<String, int>> getKeywordFrequency({int? limit}) async {
-    if (shouldThrow) {
-      throw failureToThrow ?? const Failure.cache(message: '키워드 빈도 조회 실패');
-    }
-    final frequency = mockKeywordFrequency ?? StatisticsFixtures.weekly().keywordFrequency;
-    if (limit == null) return frequency;
-    final sorted = frequency.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    return Map.fromEntries(sorted.take(limit));
   }
 
   @override

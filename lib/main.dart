@@ -113,8 +113,8 @@ Future<void> _initializeApp() async {
     invalidateDataProviders(appContainer);
 
     // 2. Presentation layer Provider 무효화 (복원된 DB 데이터 재로드)
+    // topKeywordsProvider는 statisticsProvider의 파생이므로 자동 갱신
     appContainer.invalidate(statisticsProvider);
-    appContainer.invalidate(topKeywordsProvider);
     appContainer.invalidate(diaryListControllerProvider);
 
     // 3. DB 연결 최종 확인 (타이밍 경합 조건에 대한 안전장치)

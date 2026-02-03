@@ -23,11 +23,6 @@ class GetStatisticsUseCase {
     );
   }
 
-  /// 키워드 빈도 조회
-  Future<Map<String, int>> getKeywordFrequency({int? limit}) async {
-    return await _repository.getKeywordFrequency(limit: limit);
-  }
-
   /// 활동 맵 조회 (히트맵용)
   Future<Map<DateTime, double>> getActivityMap({
     DateTime? startDate,

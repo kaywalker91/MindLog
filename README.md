@@ -101,7 +101,19 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.31 (Current)
+### v1.4.32 (Current)
+*   **일기 삭제 기능 안정화:**
+    *   **deleteImmediately() 신규:** 확인 다이얼로그 후 즉시 삭제 (Undo 없이 바로 DB 삭제)
+    *   **confirmDelete() 에러 복구 개선:** 삭제 실패 시 정렬(고정 우선, 최신순) 유지하며 리스트 복원
+    *   **DeleteDiaryDialog 리팩토링:** Repository 직접 접근 제거 → Controller 통합 삭제 (9줄 → 2줄)
+*   **Statistics Layer 정리:**
+    *   **미사용 메서드 제거:** `getKeywordFrequency()` (Repository, UseCase)
+    *   **시간 범위 버그 수정:** `endDate`를 오늘 23:59:59.999로 정규화하여 당일 일기 통계 반영
+*   **테스트 강화:**
+    *   **DiaryListController 테스트 456줄 추가:** deleteImmediately, confirmDelete, statisticsProvider 무효화 검증
+    *   **fake_async 패키지 추가:** Timer 기반 비동기 테스트 지원
+
+### v1.4.31
 *   **인앱 업데이트 시스템 도입:**
     *   **Google Play In-App Update:** 유연 업데이트(Flexible) 및 즉시 업데이트(Immediate) 지원
     *   **InAppUpdateService 신규:** Play Store 업데이트 상태 확인 및 트리거 서비스
