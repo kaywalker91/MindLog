@@ -101,7 +101,30 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.32 (Current)
+### v1.4.33 (Current)
+*   **SOS 카드 소프트 랜딩 (정서적 안전감 강화):**
+    *   **색상 변경:** 빨간색 배경 → 따뜻한 amber 톤(`sosBackground/sosBorder`)으로 변경
+    *   **단계적 페이드인:** 공감 메시지 → 정보 → 액션 버튼 순으로 순차적 등장 애니메이션
+    *   **공감 우선 표시:** "많이 힘드셨군요" 같은 공감 메시지가 먼저 표시되어 안정감 제공
+    *   **긴급 버튼 강조:** 실제 도움이 필요한 긴급 버튼에만 빨간색 유지
+*   **분석 대기 메시지 로테이션:**
+    *   **LoadingIndicator 확장:** Timer + AnimatedSwitcher 기반 메시지 로테이션 기능
+    *   **2초 간격 전환:** 분석 대기 중 안심 메시지가 자동으로 변경
+    *   **안심 메시지 포함:** "어떤 결과가 나와도 괜찮아요" 등 불안감 완화 메시지
+    *   **DiaryScreen 적용:** 일기 분석 시 로테이션 메시지 활성화
+*   **최초 사용자 온보딩:**
+    *   **OnboardingScreen 신규:** 3단계 PageView 기반 온보딩 화면
+    *   **smooth_page_indicator 패키지 추가:** 부드러운 페이지 인디케이터 적용
+    *   **PreferencesLocalDataSource 확장:** `onboarding_completed` 키로 완료 상태 관리
+    *   **SplashScreen 분기 처리:** 온보딩 미완료 시 온보딩 화면으로 라우팅
+    *   **Analytics 이벤트:** `onboarding_started/completed/skipped` 추적
+*   **공감적 에러 메시지:**
+    *   **statistics_screen.dart:** 에러 메시지를 공감적 톤으로 변경 ("네트워크 문제로 불러오지 못했어요")
+    *   **diary_list_screen.dart:** 에러 상황 안내 문구 개선
+    *   **아이콘 변경:** `error_outline` → `cloud_off_outlined`로 부드러운 느낌 적용
+    *   **버튼 스타일 개선:** "다시 시도해볼게요" 버튼의 시각적 피드백 강화
+
+### v1.4.32
 *   **일기 삭제 기능 안정화:**
     *   **deleteImmediately() 신규:** 확인 다이얼로그 후 즉시 삭제 (Undo 없이 바로 DB 삭제)
     *   **confirmDelete() 에러 복구 개선:** 삭제 실패 시 정렬(고정 우선, 최신순) 유지하며 리스트 복원

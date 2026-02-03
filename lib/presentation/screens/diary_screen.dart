@@ -261,7 +261,7 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: const LoadingIndicator(
-                  message: '마음을 읽고 있어요...',
+                  rotatingMessages: LoadingIndicator.analysisMessages,
                   centerContent: false,
                 ),
               ),
@@ -333,7 +333,7 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
 
   Widget _buildLoadingState() {
     return const LoadingIndicator(
-      message: '마음을 읽고 있어요...',
+      rotatingMessages: LoadingIndicator.analysisMessages,
     );
   }
 

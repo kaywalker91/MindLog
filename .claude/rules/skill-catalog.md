@@ -59,6 +59,8 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 | `/swarm-review [path]` | `swarm-review.md` | 보안·성능·아키텍처 3명 병렬 리뷰 |
 | `/feature-pipeline [name]` | `feature-pipeline.md` | Research→Plan→Scaffold→Test→Review 자동 파이프라인 |
 | `/swarm-refactor [scope] [strategy]` | `swarm-refactor.md` | 대규모 리팩토링 병렬 에이전트 분담 |
+| `/parallel-dev [task]` | `parallel-dev.md` | 일상 작업 병렬화 (탐색+구현+검증) |
+| `/explore-creative [goal]` | `explore-creative.md` | 모호한 목표로 창의적 해결책 탐색 |
 
 ## Workflows
 - **New feature**: `/scaffold` -> `/usecase` -> `/test-unit-gen` -> `/coverage`
@@ -77,3 +79,5 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 - **Deep review**: `/swarm-review [path]` (보안+성능+아키텍처 병렬)
 - **CD troubleshoot**: `/fastlane-audit` -> `/cd-diagnose [run_id]` -> 수정 -> 재배포
 - **Session end**: `/session-wrap` -> `/til-save [topic]` (TIL 메모리화)
+- **Parallel development**: `/parallel-dev [task]` (탐색+구현+검증 병렬)
+- **Creative exploration**: `/explore-creative [goal]` -> 선택 -> `/parallel-dev` 또는 `/feature-pipeline`

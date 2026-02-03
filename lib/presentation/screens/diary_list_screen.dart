@@ -52,10 +52,65 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
       body: diaryListState.when(
         data: (diaries) => _buildList(diaries),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('오류 발생: $error')),
+        error: (error, stack) => _buildErrorState(ref),
       ),
       floatingActionButton: WriteFab(
         onPressed: () => context.goNewDiary(),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(WidgetRef ref) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.cloud_off_outlined,
+                size: 40,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              '잠시 문제가 생겼어요',
+              style: AppTextStyles.subtitle.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '일기를 불러오는 중 문제가 발생했어요',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: () {
+                ref.read(diaryListControllerProvider.notifier).refresh();
+              },
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('다시 시도해볼게요'),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

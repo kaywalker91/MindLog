@@ -183,6 +183,18 @@ class AnalyticsService {
     _debugLog('mindcare_disabled', {});
   }
 
+  /// 일반 이벤트 로깅
+  static Future<void> logEvent(
+    String eventName, {
+    Map<String, Object>? parameters,
+  }) async {
+    await _instance()?.logEvent(
+      name: eventName,
+      parameters: parameters,
+    );
+    _debugLog(eventName, parameters ?? {});
+  }
+
   /// 사용자 속성 설정
   static Future<void> setUserProperty({
     required String name,

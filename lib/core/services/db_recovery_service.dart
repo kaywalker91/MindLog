@@ -101,14 +101,14 @@ class DbRecoveryService {
     await dataSource.setMetadata(_sessionIdKey, newSessionId);
   }
 
-  /// 복원 처리: DB 리셋 + 세션 재초기화
+  /// 복원 처리: 세션 재초기화
+  ///
+  /// Note: forceReconnect()는 checkAndRecoverIfNeeded() 시작 시 이미 호출됨.
+  /// 중복 호출 제거로 불필요한 DB 연결 재설정 방지.
   static Future<void> _handleRecovery(
     SharedPreferences prefs,
     SqliteLocalDataSource dataSource,
   ) async {
-    // DB 연결 강제 리셋
-    await SqliteLocalDataSource.forceReconnect();
-
     // 새 세션 ID 생성 및 저장
     final newSessionId = _generateSessionId();
     await prefs.setString(_sessionIdKey, newSessionId);

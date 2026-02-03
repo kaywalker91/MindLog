@@ -7,6 +7,7 @@ import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/splash_theme.dart';
+import '../../data/datasources/local/preferences_local_datasource.dart';
 import '../router/app_router.dart';
 import '../widgets/splash_animation_widget.dart';
 import '../widgets/loading_indicator.dart';
@@ -21,6 +22,7 @@ class SplashScreen extends ConsumerStatefulWidget {
 
 class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
+  bool _isOnboardingCompleted = true; // 기본값: 온보딩 완료 (기존 유저 보호)
 
   @override
   void initState() {
@@ -33,7 +35,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
     // 환경 변수는 main.dart에서 이미 로드됨
     unawaited(AnalyticsService.logAppOpen());
     _startAnimations();
-    _loadContent();
+    _checkOnboardingAndNavigate();
   }
 
   @override
@@ -47,22 +49,30 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
     _animationController.forward();
   }
 
-  void _loadContent() {
-    // 2초 후 자동으로 메인 화면으로 이동
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        _navigateToDiary();
-      }
-    });
+  Future<void> _checkOnboardingAndNavigate() async {
+    // 온보딩 완료 여부 확인
+    _isOnboardingCompleted =
+        await PreferencesLocalDataSource().isOnboardingCompleted();
+
+    // 2초 후 자동으로 적절한 화면으로 이동
+    await Future.delayed(const Duration(seconds: 2));
+    if (mounted) {
+      _navigateToNextScreen();
+    }
   }
 
-  void _navigateToDiary() {
+  void _navigateToNextScreen() {
     if (!mounted) return;
 
     // 프레임 완료 후 GoRouter가 준비된 상태에서 안전하게 navigation
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.goHome();
+
+      if (_isOnboardingCompleted) {
+        context.goHome();
+      } else {
+        context.goOnboarding();
+      }
     });
   }
 
@@ -174,7 +184,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
       child: InkWell(
         onTap: () {
           if (mounted) {
-            _navigateToDiary();
+            _navigateToNextScreen();
           }
         },
         borderRadius: borderRadius,

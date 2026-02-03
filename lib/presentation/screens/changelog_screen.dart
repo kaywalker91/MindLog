@@ -29,7 +29,7 @@ class ChangelogScreen extends ConsumerWidget {
       body: configAsync.when(
         loading: () => _buildLoadingState(context),
         error: (_, _) => _buildErrorState(context, ref),
-        data: (config) => _buildContent(context, config),
+        data: (config) => _buildContent(context, ref, config),
       ),
     );
   }
@@ -82,61 +82,146 @@ class ChangelogScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, UpdateConfig config) {
-    final versions = _sortedVersions(config.changelog.keys);
+  Widget _buildContent(BuildContext context, WidgetRef ref, UpdateConfig config) {
+    final paginatedVersions = ref.watch(paginatedVersionsProvider);
+    final hasMore = ref.watch(hasMoreChangelogProvider);
     final latestVersion = config.latestVersion;
-    final primaryVersion =
-        versions.contains(latestVersion) ? latestVersion : (versions.isNotEmpty ? versions.first : latestVersion);
-    final primaryNotes = config.notesFor(primaryVersion);
-    final previousVersions = versions.where((v) => v != primaryVersion).toList();
 
-    return ListView(
+    // 최신 버전은 항상 첫 번째에 고정
+    final primaryVersion = paginatedVersions.contains(latestVersion)
+        ? latestVersion
+        : (paginatedVersions.isNotEmpty ? paginatedVersions.first : latestVersion);
+    final primaryNotes = config.notesFor(primaryVersion);
+    final previousVersions =
+        paginatedVersions.where((v) => v != primaryVersion).toList();
+
+    // 아이템 개수: Header(1) + Latest Card(1) + Section Title(1, 조건부) + Previous Cards + Bottom Buttons(1, 항상)
+    final hasPreviousVersions = previousVersions.isNotEmpty;
+    final hasLoadedMore = ref.watch(hasLoadedMoreChangelogProvider);
+    final showBottomButtons = hasMore || hasLoadedMore;
+    final itemCount = 2 + // Header + Latest
+        (hasPreviousVersions ? 1 : 0) + // Section Title
+        previousVersions.length +
+        (showBottomButtons ? 1 : 0); // Bottom Buttons
+
+    return ListView.builder(
       padding: EdgeInsets.only(
         left: 16,
         right: 16,
         top: 16,
         bottom: ResponsiveUtils.bottomSafeAreaPadding(context, extra: 32),
       ),
-      children: [
-        _VersionHeader(
-          latestVersion: primaryVersion,
-          currentVersion: version,
-          buildNumber: buildNumber,
-        ),
-        const SizedBox(height: 16),
-        if (primaryNotes.isEmpty)
-          _buildEmptyState(
-            context,
-            title: '변경사항 준비 중',
-            message: '최신 버전의 변경사항이 아직 등록되지 않았어요.',
-          )
-        else
-          _ChangelogCard(
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        // Index 0: Header
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _VersionHeader(
+              latestVersion: primaryVersion,
+              currentVersion: version,
+              buildNumber: buildNumber,
+            ),
+          );
+        }
+
+        // Index 1: Latest Card or Empty State
+        if (index == 1) {
+          if (primaryNotes.isEmpty) {
+            return _buildEmptyState(
+              context,
+              title: '변경사항 준비 중',
+              message: '최신 버전의 변경사항이 아직 등록되지 않았어요.',
+            );
+          }
+          return _ChangelogCard(
             version: primaryVersion,
             items: primaryNotes,
             isLatest: true,
-          ),
-        if (previousVersions.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          _buildSectionTitle(context, '이전 변경사항'),
-          const SizedBox(height: 12),
-          ...previousVersions.map(
-            (version) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _ChangelogCard(
-                version: version,
-                items: config.notesFor(version),
-                isExpandable: true,
-                initiallyExpanded: false,
-              ),
+          );
+        }
+
+        // Index 2: Section Title (if previous versions exist)
+        if (index == 2 && hasPreviousVersions) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 20, bottom: 12),
+            child: _buildSectionHeader(context, ref, '이전 변경사항'),
+          );
+        }
+
+        // Previous version cards
+        final previousIndex = index - (hasPreviousVersions ? 3 : 2);
+        if (previousIndex >= 0 && previousIndex < previousVersions.length) {
+          final versionStr = previousVersions[previousIndex];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _ChangelogCard(
+              version: versionStr,
+              items: config.notesFor(versionStr),
+              isExpandable: true,
             ),
-          ),
-        ],
-      ],
+          );
+        }
+
+        // Bottom buttons (Load More / Collapse)
+        if (showBottomButtons) {
+          return _buildBottomButtons(context, ref);
+        }
+
+        return const SizedBox.shrink();
+      },
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title) {
+  Widget _buildBottomButtons(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final hasMore = ref.watch(hasMoreChangelogProvider);
+    final hasLoadedMore = ref.watch(hasLoadedMoreChangelogProvider);
+
+    // 둘 다 표시할 것이 없으면 빈 위젯
+    if (!hasMore && !hasLoadedMore) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // "다시 접기" 버튼 (pageIndex > 0일 때만)
+          if (hasLoadedMore)
+            TextButton.icon(
+              onPressed: () {
+                ref.read(changelogPageIndexProvider.notifier).state = 0;
+              },
+              icon: const Text('^', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              label: const Text('다시 접기'),
+              style: TextButton.styleFrom(
+                foregroundColor: colorScheme.outline,
+              ),
+            ),
+
+          // 버튼 사이 간격
+          if (hasLoadedMore && hasMore) const SizedBox(width: 8),
+
+          // "이전 버전 더보기" 버튼 (더 불러올 데이터가 있을 때만)
+          if (hasMore)
+            TextButton.icon(
+              onPressed: () {
+                ref.read(changelogPageIndexProvider.notifier).state++;
+              },
+              icon: const Icon(Icons.expand_more),
+              label: const Text('이전 버전 더보기'),
+              style: TextButton.styleFrom(
+                foregroundColor: colorScheme.primary,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, WidgetRef ref, String title) {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleSmall?.copyWith(
@@ -181,41 +266,6 @@ class ChangelogScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  List<String> _sortedVersions(Iterable<String> versions) {
-    final list = versions.map((version) => version.trim()).where((v) => v.isNotEmpty).toList();
-    list.sort((a, b) => _compareVersions(b, a));
-    return list;
-  }
-
-  int _compareVersions(String current, String target) {
-    final currentParts = _parseVersion(current);
-    final targetParts = _parseVersion(target);
-    final length = currentParts.length > targetParts.length
-        ? currentParts.length
-        : targetParts.length;
-
-    for (var i = 0; i < length; i++) {
-      final currentValue = i < currentParts.length ? currentParts[i] : 0;
-      final targetValue = i < targetParts.length ? targetParts[i] : 0;
-      if (currentValue != targetValue) {
-        return currentValue.compareTo(targetValue);
-      }
-    }
-    return 0;
-  }
-
-  List<int> _parseVersion(String version) {
-    final normalized = version.split('+').first.trim();
-    if (normalized.isEmpty) {
-      return const [0];
-    }
-    return normalized.split('.').map((part) {
-      final match = RegExp(r'\d+').firstMatch(part);
-      if (match == null) return 0;
-      return int.parse(match.group(0)!);
-    }).toList();
   }
 }
 
@@ -334,14 +384,12 @@ class _ChangelogCard extends StatefulWidget {
   final List<String> items;
   final bool isLatest;
   final bool isExpandable;
-  final bool initiallyExpanded;
 
   const _ChangelogCard({
     required this.version,
     required this.items,
     this.isLatest = false,
     this.isExpandable = false,
-    this.initiallyExpanded = false,
   });
 
   @override
@@ -355,16 +403,8 @@ class _ChangelogCardState extends State<_ChangelogCard>
   @override
   void initState() {
     super.initState();
-    _isExpanded = widget.isExpandable ? widget.initiallyExpanded : true;
-  }
-
-  @override
-  void didUpdateWidget(covariant _ChangelogCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.isExpandable != widget.isExpandable ||
-        oldWidget.initiallyExpanded != widget.initiallyExpanded) {
-      _isExpanded = widget.isExpandable ? widget.initiallyExpanded : true;
-    }
+    // 확장 가능한 카드는 처음에 접힌 상태로 시작
+    _isExpanded = !widget.isExpandable;
   }
 
   void _toggleExpanded() {
@@ -422,9 +462,7 @@ class _ChangelogCardState extends State<_ChangelogCard>
                     const Spacer(),
                     if (widget.isExpandable)
                       Icon(
-                        _isExpanded
-                            ? Icons.expand_less
-                            : Icons.expand_more,
+                        _isExpanded ? Icons.expand_less : Icons.expand_more,
                         color: colorScheme.outline,
                       ),
                   ],

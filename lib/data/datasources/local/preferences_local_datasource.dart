@@ -13,6 +13,7 @@ class PreferencesLocalDataSource {
   static const String _dismissedUpdateVersionKey = 'dismissed_update_version';
   static const String _dismissedUpdateTimestampKey = 'dismissed_update_timestamp';
   static const String _lastSeenAppVersionKey = 'last_seen_app_version';
+  static const String _onboardingCompletedKey = 'onboarding_completed';
 
   Future<AiCharacter> getSelectedAiCharacter() async {
     final prefs = await SharedPreferences.getInstance();
@@ -111,5 +112,17 @@ class PreferencesLocalDataSource {
   Future<void> setLastSeenAppVersion(String version) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_lastSeenAppVersionKey, version);
+  }
+
+  /// 온보딩 완료 여부 조회
+  Future<bool> isOnboardingCompleted() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_onboardingCompletedKey) ?? false;
+  }
+
+  /// 온보딩 완료 저장
+  Future<void> setOnboardingCompleted() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_onboardingCompletedKey, true);
   }
 }

@@ -12,7 +12,6 @@ import 'core/services/fcm_service.dart';
 import 'core/services/firebase_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/db_recovery_service.dart';
-import 'data/datasources/local/sqlite_local_datasource.dart';
 import 'core/services/notification_settings_service.dart';
 import 'core/theme/app_theme.dart';
 import 'domain/entities/notification_settings.dart' as app;
@@ -94,6 +93,35 @@ Future<void> _rescheduleNotificationsIfNeeded() async {
   }
 }
 
+/// DB 복원 후 핵심 Provider warm-up
+///
+/// UI 렌더링 전 데이터 로딩을 보장하여 통계 화면이 빈 상태로 표시되는 문제 방지.
+/// IndexedStack에서 모든 탭이 동시에 빌드되므로, 데이터가 준비되지 않으면
+/// 빈 화면이 표시될 수 있음.
+Future<void> _warmUpCriticalProviders(ProviderContainer container) async {
+  try {
+    await Future.wait<void>([
+      container.read(statisticsProvider.future).then((_) {}),
+      container.read(diaryListControllerProvider.future).then((_) {}),
+    ]).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        if (kDebugMode) {
+          debugPrint('[Main] Provider warm-up timeout');
+        }
+        return <void>[];
+      },
+    );
+    if (kDebugMode) {
+      debugPrint('[Main] Critical providers warmed up successfully');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('[Main] Provider warm-up failed: $e');
+    }
+  }
+}
+
 Future<void> _initializeApp() async {
   // 환경 변수 초기화 (dart-define only)
   await EnvironmentService.initialize();
@@ -117,11 +145,12 @@ Future<void> _initializeApp() async {
     appContainer.invalidate(statisticsProvider);
     appContainer.invalidate(diaryListControllerProvider);
 
-    // 3. DB 연결 최종 확인 (타이밍 경합 조건에 대한 안전장치)
-    await SqliteLocalDataSource.forceReconnect();
+    // 3. 핵심 Provider warm-up (데이터 로딩 보장)
+    // UI 렌더링 전에 데이터가 준비되도록 함
+    await _warmUpCriticalProviders(appContainer);
 
     if (kDebugMode) {
-      debugPrint('[Main] DB recovery detected, all data providers invalidated');
+      debugPrint('[Main] DB recovery completed, providers warmed up');
     }
   }
 

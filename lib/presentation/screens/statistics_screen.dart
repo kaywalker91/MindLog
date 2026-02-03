@@ -102,32 +102,56 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
 
   Widget _buildErrorState(BuildContext context, WidgetRef ref) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.error_outline,
-            size: 48,
-            color: AppColors.error,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            '통계를 불러올 수 없어요',
-            style: TextStyle(
-              color: AppColors.statsTextPrimary,
-              fontSize: 16,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.statsPrimary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.cloud_off_outlined,
+                size: 40,
+                color: AppColors.statsPrimary,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          TextButton.icon(
-            onPressed: () => ref.refresh(statisticsProvider),
-            icon: const Icon(Icons.refresh, color: AppColors.statsPrimary),
-            label: const Text(
-              '다시 시도',
-              style: TextStyle(color: AppColors.statsPrimary),
+            const SizedBox(height: 20),
+            const Text(
+              '잠시 연결이 어려워요',
+              style: TextStyle(
+                color: AppColors.statsTextPrimary,
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            const Text(
+              '인터넷 연결을 확인해주세요',
+              style: TextStyle(
+                color: AppColors.statsTextSecondary,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: () => ref.refresh(statisticsProvider),
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('다시 시도해볼게요'),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.statsPrimary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

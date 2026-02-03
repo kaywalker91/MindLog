@@ -1,16 +1,36 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_text_styles.dart';
 
+/// 로딩 메시지 데이터
+class LoadingMessage {
+  final String message;
+  final String subMessage;
+
+  const LoadingMessage({
+    required this.message,
+    required this.subMessage,
+  });
+}
+
 /// 로딩 인디케이터 위젯
-/// 일기 분석 중 표시되는 로딩 온보딩 화면
-class LoadingIndicator extends StatelessWidget {
+/// 일기 분석 중 표시되는 로딩 화면
+///
+/// [rotatingMessages]가 제공되면 2초마다 메시지가 로테이션됨
+class LoadingIndicator extends StatefulWidget {
   final String message;
   final String subMessage;
   final Color? accentColor;
   final Color? cardColor;
   final Color? subTextColor;
   final bool centerContent;
+
+  /// 로테이션할 메시지 목록 (제공 시 자동 로테이션)
+  final List<LoadingMessage>? rotatingMessages;
+
+  /// 메시지 전환 간격 (기본 2초)
+  final Duration rotationInterval;
 
   const LoadingIndicator({
     super.key,
@@ -20,16 +40,82 @@ class LoadingIndicator extends StatelessWidget {
     this.cardColor,
     this.subTextColor,
     this.centerContent = true,
+    this.rotatingMessages,
+    this.rotationInterval = const Duration(seconds: 2),
   });
+
+  /// 분석용 기본 로테이션 메시지
+  static const List<LoadingMessage> analysisMessages = [
+    LoadingMessage(
+      message: '마음을 읽고 있어요',
+      subMessage: '당신의 이야기를 천천히 들어볼게요',
+    ),
+    LoadingMessage(
+      message: '감정을 이해하는 중...',
+      subMessage: '어떤 결과가 나와도 괜찮아요',
+    ),
+    LoadingMessage(
+      message: '거의 다 됐어요',
+      subMessage: '따뜻한 마음 케어를 준비하고 있어요',
+    ),
+  ];
+
+  @override
+  State<LoadingIndicator> createState() => _LoadingIndicatorState();
+}
+
+class _LoadingIndicatorState extends State<LoadingIndicator> {
+  int _currentMessageIndex = 0;
+  Timer? _rotationTimer;
+
+  String get _currentMessage {
+    if (widget.rotatingMessages != null && widget.rotatingMessages!.isNotEmpty) {
+      return widget.rotatingMessages![_currentMessageIndex].message;
+    }
+    return widget.message;
+  }
+
+  String get _currentSubMessage {
+    if (widget.rotatingMessages != null && widget.rotatingMessages!.isNotEmpty) {
+      return widget.rotatingMessages![_currentMessageIndex].subMessage;
+    }
+    return widget.subMessage;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _startRotationTimer();
+  }
+
+  @override
+  void dispose() {
+    _rotationTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startRotationTimer() {
+    if (widget.rotatingMessages == null || widget.rotatingMessages!.isEmpty) {
+      return;
+    }
+
+    _rotationTimer = Timer.periodic(widget.rotationInterval, (_) {
+      if (!mounted) return;
+      setState(() {
+        _currentMessageIndex =
+            (_currentMessageIndex + 1) % widget.rotatingMessages!.length;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final accent = accentColor ?? colorScheme.primary;
-    final surface = cardColor ?? colorScheme.surface;
+    final accent = widget.accentColor ?? colorScheme.primary;
+    final surface = widget.cardColor ?? colorScheme.surface;
     final subText =
-        subTextColor ?? colorScheme.onSurface.withValues(alpha: 0.6);
-    
+        widget.subTextColor ?? colorScheme.onSurface.withValues(alpha: 0.6);
+
     // 반응형 크기 계산
     final screenWidth = MediaQuery.of(context).size.width;
     final iconSize = screenWidth < 360 ? 70.0 : 90.0;
@@ -57,7 +143,7 @@ class LoadingIndicator extends StatelessWidget {
       ),
     );
 
-    if (!centerContent) {
+    if (!widget.centerContent) {
       return content;
     }
 
@@ -117,7 +203,7 @@ class LoadingIndicator extends StatelessWidget {
                 duration: const Duration(milliseconds: 1500),
                 curve: Curves.easeInOut,
               ),
-          
+
           // 내부 원 (더 밝은 색상)
           Container(
             width: size * 0.7,
@@ -134,7 +220,7 @@ class LoadingIndicator extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // 뇌 아이콘
           Icon(
             Icons.psychology_rounded,
@@ -157,7 +243,7 @@ class LoadingIndicator extends StatelessWidget {
                 duration: const Duration(milliseconds: 1200),
                 curve: Curves.easeInOut,
               ),
-          
+
           // 회전하는 점들 (파티클 효과)
           ...List.generate(4, (index) {
             final angle = (index * 90.0) * (3.14159 / 180);
@@ -251,32 +337,59 @@ class LoadingIndicator extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 주 메시지
-          Text(
-            message,
-            style: AppTextStyles.title.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
+          // 주 메시지 (AnimatedSwitcher로 부드러운 전환)
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.1),
+                    end: Offset.zero,
+                  ).animate(animation),
+                  child: child,
+                ),
+              );
+            },
+            child: Text(
+              _currentMessage,
+              key: ValueKey<String>(_currentMessage),
+              style: AppTextStyles.title.copyWith(
+                color: accent,
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
+              textAlign: TextAlign.center,
+              softWrap: true,
             ),
-            textAlign: TextAlign.center,
-            softWrap: true,
           ),
           const SizedBox(height: 12),
-          
-          // 서브 메시지 (타이핑 효과)
-          Text(
-            subMessage,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: subText,
-              height: 1.5,
+
+          // 서브 메시지 (AnimatedSwitcher로 부드러운 전환)
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+            child: Text(
+              _currentSubMessage,
+              key: ValueKey<String>(_currentSubMessage),
+              style: AppTextStyles.bodySmall.copyWith(
+                color: subText,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+              softWrap: true,
             ),
-            textAlign: TextAlign.center,
-            softWrap: true,
-          )
-              .animate(delay: const Duration(milliseconds: 200))
-              .fadeIn(duration: const Duration(milliseconds: 600))
-              .slideY(begin: 0.15, end: 0, duration: const Duration(milliseconds: 500)),
+          ),
         ],
       ),
     )

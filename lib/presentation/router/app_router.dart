@@ -7,6 +7,7 @@ import 'package:mindlog/presentation/screens/changelog_screen.dart';
 import 'package:mindlog/presentation/screens/diary_detail_screen.dart';
 import 'package:mindlog/presentation/screens/diary_screen.dart';
 import 'package:mindlog/presentation/screens/main_screen.dart';
+import 'package:mindlog/presentation/screens/onboarding_screen.dart';
 import 'package:mindlog/presentation/screens/privacy_policy_screen.dart';
 import 'package:mindlog/presentation/screens/settings_screen.dart';
 import 'package:mindlog/presentation/screens/splash_screen.dart';
@@ -18,6 +19,7 @@ class AppRoutes {
 
   // 라우트 경로 상수
   static const String splash = '/';
+  static const String onboarding = '/onboarding';
   static const String home = '/home';
   static const String diary = '/diary';
   static const String diaryNew = '/diary/new';
@@ -52,7 +54,14 @@ class AppRouter {
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
       ),
-      
+
+      // 온보딩 화면
+      GoRoute(
+        path: AppRoutes.onboarding,
+        name: 'onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+
       // 홈 (메인 화면 - 일기 목록 + 통계 + 설정)
       GoRoute(
         path: AppRoutes.home,
@@ -181,6 +190,9 @@ class _ErrorPage extends StatelessWidget {
 
 /// 라우팅 헬퍼 확장 메서드
 extension AppRouterExtension on BuildContext {
+  /// 온보딩 화면으로 이동
+  void goOnboarding() => go(AppRoutes.onboarding);
+
   /// 홈 화면으로 이동
   void goHome() => go(AppRoutes.home);
 

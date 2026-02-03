@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260204-v1432">
+    <link rel="stylesheet" href="style.css?v=20260205-v1433">
 </head>
 <body>
     <header class="hero">
@@ -88,27 +88,27 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.32에서는 일기 삭제 안정성, 통계 시간 범위 버그 수정, 미사용 코드 정리로 코드 품질을 향상시켰습니다.</p>
+            <p class="section-subtitle">v1.4.33에서는 정서적 안전감을 강화하여 SOS 카드 소프트 랜딩, 분석 메시지 로테이션, 온보딩 화면, 공감적 에러 메시지를 추가했습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
-                    <span class="update-tag">Stability</span>
-                    <h3>🗑️ 일기 삭제 개선</h3>
-                    <p>삭제 확인 다이얼로그 후 즉시 삭제되는 deleteImmediately() 메서드를 추가했습니다. 삭제 실패 시에도 목록이 정렬을 유지하며 복원됩니다.</p>
+                    <span class="update-tag">UX</span>
+                    <h3>🧡 SOS 카드 소프트 랜딩</h3>
+                    <p>긴급 상황 카드를 빨간색에서 따뜻한 amber 톤으로 변경하고, 공감 메시지 → 정보 → 액션 순으로 단계적 페이드인 애니메이션을 적용했습니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Bugfix</span>
-                    <h3>📊 통계 시간 범위 수정</h3>
-                    <p>통계 조회 시 endDate를 오늘 23:59:59로 정규화하여 당일 작성한 일기가 통계에 바로 반영됩니다.</p>
+                    <span class="update-tag">UX</span>
+                    <h3>💬 분석 대기 메시지 로테이션</h3>
+                    <p>AI 분석 중 "어떤 결과가 나와도 괜찮아요" 같은 안심 메시지가 2초마다 전환되어 사용자의 불안감을 줄여줍니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Refactor</span>
-                    <h3>🧹 미사용 코드 정리</h3>
-                    <p>Repository/UseCase에서 사용되지 않던 getKeywordFrequency() 메서드를 제거하여 코드 베이스를 간결하게 정리했습니다.</p>
+                    <span class="update-tag">Feature</span>
+                    <h3>👋 최초 사용자 온보딩</h3>
+                    <p>처음 앱을 실행하는 사용자를 위해 3단계 PageView 온보딩 화면을 추가하여 앱 사용법을 직관적으로 안내합니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Test</span>
-                    <h3>✅ 테스트 456줄 추가</h3>
-                    <p>DiaryListController의 deleteImmediately, confirmDelete 등 삭제 관련 테스트가 대폭 추가되어 안정성이 강화되었습니다.</p>
+                    <span class="update-tag">UX</span>
+                    <h3>🤗 공감적 에러 메시지</h3>
+                    <p>통계, 일기 목록 등에서 에러 발생 시 "네트워크 문제로 불러오지 못했어요" 같은 친근한 톤의 메시지로 변경했습니다.</p>
                 </div>
             </div>
         </div>
