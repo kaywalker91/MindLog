@@ -6,6 +6,7 @@ void main() {
   group('AppRoutes', () {
     test('should have correct route paths', () {
       expect(AppRoutes.splash, '/');
+      expect(AppRoutes.onboarding, '/onboarding');
       expect(AppRoutes.home, '/home');
       expect(AppRoutes.diaryNew, '/diary/new');
       expect(AppRoutes.diaryDetail, '/diary/:id');
@@ -15,10 +16,11 @@ void main() {
       expect(AppRoutes.changelog, '/changelog');
     });
 
-    test('should have 9 route path constants defined', () {
+    test('should have 10 route path constants defined', () {
       // 모든 라우트 경로 상수 확인 (diary는 상수로 정의되어 있지만 라우트로 미사용)
       final routes = [
         AppRoutes.splash,
+        AppRoutes.onboarding,
         AppRoutes.home,
         AppRoutes.diary,
         AppRoutes.diaryNew,
@@ -29,7 +31,7 @@ void main() {
         AppRoutes.changelog,
       ];
 
-      expect(routes.length, 9);
+      expect(routes.length, 10);
     });
   });
 
@@ -38,10 +40,10 @@ void main() {
       expect(AppRouter.router, isA<GoRouter>());
     });
 
-    test('should have 8 routes defined', () {
-      // 최상위 라우트 개수 확인
+    test('should have 9 routes defined', () {
+      // 최상위 라우트 개수 확인 (onboarding 추가로 9개)
       final routes = AppRouter.router.configuration.routes;
-      expect(routes.length, 8);
+      expect(routes.length, 9);
     });
 
     test('routes should contain GoRoute instances', () {
@@ -60,6 +62,7 @@ void main() {
       final paths = goRoutes.map((r) => r.path).toSet();
 
       expect(paths, contains(AppRoutes.splash));
+      expect(paths, contains(AppRoutes.onboarding));
       expect(paths, contains(AppRoutes.home));
       expect(paths, contains(AppRoutes.diaryNew));
       expect(paths, contains(AppRoutes.diaryDetail));
@@ -76,6 +79,7 @@ void main() {
       final names = goRoutes.map((r) => r.name).whereType<String>().toSet();
 
       expect(names, contains('splash'));
+      expect(names, contains('onboarding'));
       expect(names, contains('home'));
       expect(names, contains('diaryNew'));
       expect(names, contains('diaryDetail'));
