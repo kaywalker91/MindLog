@@ -80,10 +80,12 @@ class NotificationSection extends ConsumerWidget {
                   : null,
             ),
             const SettingsDivider(),
+            // v1.4.35: 감정 기반 개인화 기능 설명 반영
+            // 관련: NotificationMessages.getMindcareMessageByEmotion()
             SettingsToggleItem(
               icon: Icons.favorite_border,
               title: '마음 케어 알림',
-              subtitle: '매일 저녁 9시에 하루 마무리 메시지를 받아요.',
+              subtitle: '매일 저녁 9시, 나만을 위한 마음 케어 메시지가 도착해요.',
               value: notificationSettings.isMindcareTopicEnabled,
               enabled: notificationsReady,
               onChanged: (value) {

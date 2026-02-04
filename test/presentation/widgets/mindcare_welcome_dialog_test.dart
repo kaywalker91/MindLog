@@ -94,11 +94,20 @@ void main() {
         const MaterialApp(home: Scaffold(body: MindcareWelcomeDialog())),
       );
 
-      // 저녁 아이콘 확인 (정보 행)
+      // 저녁 아이콘 확인 (정보 행 1)
       expect(find.byIcon(Icons.nightlight_outlined), findsOneWidget);
+
+      // 하트 아이콘 확인 (정보 행 2: 감정 기반 맞춤 메시지)
+      expect(find.byIcon(Icons.favorite_outlined), findsOneWidget);
 
       // 메일 아이콘 확인 (샘플 메시지)
       expect(find.byIcon(Icons.mail_outline), findsOneWidget);
+
+      // 감정 기반 맞춤 메시지 텍스트 확인
+      expect(
+        find.text('내 감정 상태에 따라 맞춤 메시지를 보내드려요'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('has rounded border radius', (tester) async {

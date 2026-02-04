@@ -71,6 +71,12 @@ class MindcareWelcomeDialog extends StatelessWidget {
                   icon: Icons.nightlight_outlined,
                   text: '매일 저녁 9시, 하루 마무리 메시지가 도착해요',
                 ),
+                const SizedBox(height: 12),
+                _buildInfoRow(
+                  context,
+                  icon: Icons.favorite_outlined,
+                  text: '내 감정 상태에 따라 맞춤 메시지를 보내드려요',
+                ),
                 const SizedBox(height: 16),
                 _buildSampleMessage(context),
                 const SizedBox(height: 24),
