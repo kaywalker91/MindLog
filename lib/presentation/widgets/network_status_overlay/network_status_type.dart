@@ -1,10 +1,5 @@
 /// 네트워크 상태 타입
-enum NetworkStatusType {
-  loading,
-  networkError,
-  apiError,
-  retrySuccess,
-}
+enum NetworkStatusType { loading, networkError, apiError, retrySuccess }
 
 /// NetworkStatusType 확장 메서드
 extension NetworkStatusTypeExtension on NetworkStatusType {

@@ -27,7 +27,10 @@ void main() {
 
       test('9-10점은 sentimentVeryPositive를 반환해야 한다', () {
         expect(AppColors.getSentimentColor(9), AppColors.sentimentVeryPositive);
-        expect(AppColors.getSentimentColor(10), AppColors.sentimentVeryPositive);
+        expect(
+          AppColors.getSentimentColor(10),
+          AppColors.sentimentVeryPositive,
+        );
       });
 
       test('경계값 테스트', () {

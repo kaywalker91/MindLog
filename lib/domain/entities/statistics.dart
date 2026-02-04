@@ -82,14 +82,18 @@ class EmotionStatistics {
 
   /// 특정 기간의 평균 감정 점수 계산
   double getAverageScoreForPeriod(DateTime start, DateTime end) {
-    final periodEmotions = dailyEmotions.where((e) =>
-        e.date.isAfter(start.subtract(const Duration(days: 1))) &&
-        e.date.isBefore(end.add(const Duration(days: 1))));
+    final periodEmotions = dailyEmotions.where(
+      (e) =>
+          e.date.isAfter(start.subtract(const Duration(days: 1))) &&
+          e.date.isBefore(end.add(const Duration(days: 1))),
+    );
 
     if (periodEmotions.isEmpty) return 0;
 
-    final totalScore =
-        periodEmotions.fold<double>(0, (sum, e) => sum + e.averageScore);
+    final totalScore = periodEmotions.fold<double>(
+      0,
+      (sum, e) => sum + e.averageScore,
+    );
     return totalScore / periodEmotions.length;
   }
 }

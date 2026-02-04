@@ -8,9 +8,7 @@ void main() {
     return MaterialApp(
       theme: ThemeData.light(useMaterial3: true),
       home: Scaffold(
-        body: Center(
-          child: DiaryImageIndicator(count: count),
-        ),
+        body: Center(child: DiaryImageIndicator(count: count)),
       ),
     );
   }

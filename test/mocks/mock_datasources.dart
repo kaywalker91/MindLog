@@ -103,9 +103,7 @@ class MockSqliteLocalDataSource extends SqliteLocalDataSource {
       throw DataNotFoundException('일기를 찾을 수 없습니다: $diaryId');
     }
     // 기존 상태 유지, 분석 결과만 업데이트
-    _diaries[diaryId] = diary.copyWith(
-      analysisResult: analysisResult,
-    );
+    _diaries[diaryId] = diary.copyWith(analysisResult: analysisResult);
   }
 
   @override
@@ -320,11 +318,13 @@ class MockPreferencesLocalDataSource extends PreferencesLocalDataSource {
   }
 
   // 테스트용 헬퍼 메서드
-  void setMockCharacter(AiCharacter character) => _selectedCharacter = character;
+  void setMockCharacter(AiCharacter character) =>
+      _selectedCharacter = character;
   void setMockNotificationSettings(NotificationSettings settings) =>
       _notificationSettings = settings;
   void setMockUserName(String? name) => _userName = name;
-  void setMockLastSeenAppVersion(String? version) => _lastSeenAppVersion = version;
+  void setMockLastSeenAppVersion(String? version) =>
+      _lastSeenAppVersion = version;
 }
 
 /// Mock GroqRemoteDataSource
@@ -400,6 +400,7 @@ class MockGroqRemoteDataSource extends GroqRemoteDataSource {
     shouldThrow = true;
     errorMessage = message;
   }
+
   void setCustomException(Exception exception) {
     shouldThrow = true;
     customException = exception;

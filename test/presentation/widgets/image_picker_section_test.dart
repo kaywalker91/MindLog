@@ -30,28 +30,32 @@ void main() {
     group('초기 상태', () {
       testWidgets('이미지가 없을 때 안내 텍스트를 표시한다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: [],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Assert
         expect(find.text('사진 첨부'), findsOneWidget);
-        expect(find.text('0/${AppConstants.maxImagesPerDiary}'), findsOneWidget);
         expect(
-          find.text('사진을 첨부하면 AI가 이미지도 함께 분석해요'),
+          find.text('0/${AppConstants.maxImagesPerDiary}'),
           findsOneWidget,
         );
+        expect(find.text('사진을 첨부하면 AI가 이미지도 함께 분석해요'), findsOneWidget);
       });
 
       testWidgets('추가 버튼이 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: [],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Assert
         expect(find.text('추가'), findsOneWidget);
@@ -60,11 +64,13 @@ void main() {
 
       testWidgets('사진 아이콘이 헤더에 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: [],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Assert
         expect(find.byIcon(Icons.photo_library_outlined), findsOneWidget);
@@ -74,45 +80,54 @@ void main() {
     group('이미지 카운터', () {
       testWidgets('이미지 1개일 때 카운터가 올바르게 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: ['/fake/path/image1.jpg'],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Assert
-        expect(find.text('1/${AppConstants.maxImagesPerDiary}'), findsOneWidget);
+        expect(
+          find.text('1/${AppConstants.maxImagesPerDiary}'),
+          findsOneWidget,
+        );
       });
 
       testWidgets('이미지 3개일 때 카운터가 올바르게 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [
-            '/fake/path/image1.jpg',
-            '/fake/path/image2.jpg',
-            '/fake/path/image3.jpg',
-          ],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: [
+              '/fake/path/image1.jpg',
+              '/fake/path/image2.jpg',
+              '/fake/path/image3.jpg',
+            ],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Assert
-        expect(find.text('3/${AppConstants.maxImagesPerDiary}'), findsOneWidget);
+        expect(
+          find.text('3/${AppConstants.maxImagesPerDiary}'),
+          findsOneWidget,
+        );
       });
 
       testWidgets('이미지가 있으면 안내 텍스트가 숨겨진다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: ['/fake/path/image.jpg'],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: ['/fake/path/image.jpg'],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Assert
-        expect(
-          find.text('사진을 첨부하면 AI가 이미지도 함께 분석해요'),
-          findsNothing,
-        );
+        expect(find.text('사진을 첨부하면 AI가 이미지도 함께 분석해요'), findsNothing);
       });
     });
 
@@ -125,16 +140,20 @@ void main() {
         );
 
         // Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: imagePaths,
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: imagePaths,
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Assert
         expect(find.text('추가'), findsNothing);
         expect(
-          find.text('${AppConstants.maxImagesPerDiary}/${AppConstants.maxImagesPerDiary}'),
+          find.text(
+            '${AppConstants.maxImagesPerDiary}/${AppConstants.maxImagesPerDiary}',
+          ),
           findsOneWidget,
         );
       });
@@ -147,11 +166,13 @@ void main() {
         );
 
         // Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: imagePaths,
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: imagePaths,
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Assert
         expect(find.text('추가'), findsOneWidget);
@@ -161,12 +182,14 @@ void main() {
     group('로딩 상태', () {
       testWidgets('로딩 중에는 추가 버튼이 숨겨진다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-          isLoading: true,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: [],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+            isLoading: true,
+          ),
+        );
 
         // Assert
         expect(find.text('추가'), findsNothing);
@@ -174,12 +197,14 @@ void main() {
 
       testWidgets('로딩 중에는 삭제 버튼이 비활성화된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: ['/fake/path/image.jpg'],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-          isLoading: true,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: ['/fake/path/image.jpg'],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+            isLoading: true,
+          ),
+        );
 
         // Assert - 삭제 버튼(X 아이콘)이 표시되지 않아야 함
         expect(find.byIcon(Icons.close), findsNothing);
@@ -187,12 +212,14 @@ void main() {
 
       testWidgets('로딩 중이 아니면 삭제 버튼이 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: ['/fake/path/image.jpg'],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-          isLoading: false,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: ['/fake/path/image.jpg'],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+            isLoading: false,
+          ),
+        );
 
         // Assert - 삭제 버튼 표시
         expect(find.byIcon(Icons.close), findsOneWidget);
@@ -204,11 +231,13 @@ void main() {
         // Arrange
         int? removedIndex;
 
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: ['/fake/path/image.jpg'],
-          onImageAdded: (_) {},
-          onImageRemoved: (index) => removedIndex = index,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: ['/fake/path/image.jpg'],
+            onImageAdded: (_) {},
+            onImageRemoved: (index) => removedIndex = index,
+          ),
+        );
 
         // Act - 삭제 버튼 탭
         await tester.tap(find.byIcon(Icons.close));
@@ -222,15 +251,17 @@ void main() {
         // Arrange
         int? removedIndex;
 
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [
-            '/fake/path/image1.jpg',
-            '/fake/path/image2.jpg',
-            '/fake/path/image3.jpg',
-          ],
-          onImageAdded: (_) {},
-          onImageRemoved: (index) => removedIndex = index,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: [
+              '/fake/path/image1.jpg',
+              '/fake/path/image2.jpg',
+              '/fake/path/image3.jpg',
+            ],
+            onImageAdded: (_) {},
+            onImageRemoved: (index) => removedIndex = index,
+          ),
+        );
 
         // Act - 두 번째 삭제 버튼 탭 (인덱스 1)
         final closeButtons = find.byIcon(Icons.close);
@@ -243,11 +274,13 @@ void main() {
 
       testWidgets('추가 버튼 탭 시 바텀시트가 표시된다', (tester) async {
         // Arrange
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: [],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Act
         await tester.tap(find.text('추가'));
@@ -260,11 +293,13 @@ void main() {
 
       testWidgets('바텀시트에 아이콘이 표시된다', (tester) async {
         // Arrange
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: [],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Act
         await tester.tap(find.text('추가'));
@@ -276,11 +311,13 @@ void main() {
 
       testWidgets('바텀시트 갤러리 옵션 탭 시 시트가 닫힌다', (tester) async {
         // Arrange
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: [],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Act - 추가 버튼 탭 후 갤러리 옵션 탭
         await tester.tap(find.text('추가'));
@@ -295,11 +332,13 @@ void main() {
 
       testWidgets('바텀시트 카메라 옵션 탭 시 시트가 닫힌다', (tester) async {
         // Arrange
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: [],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Act
         await tester.tap(find.text('추가'));
@@ -316,15 +355,17 @@ void main() {
     group('여러 이미지 표시', () {
       testWidgets('여러 이미지만큼 삭제 버튼이 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [
-            '/fake/path/image1.jpg',
-            '/fake/path/image2.jpg',
-            '/fake/path/image3.jpg',
-          ],
-          onImageAdded: (_) {},
-          onImageRemoved: (_) {},
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: [
+              '/fake/path/image1.jpg',
+              '/fake/path/image2.jpg',
+              '/fake/path/image3.jpg',
+            ],
+            onImageAdded: (_) {},
+            onImageRemoved: (_) {},
+          ),
+        );
 
         // Assert - 이미지 수만큼 삭제 버튼이 존재
         expect(find.byIcon(Icons.close), findsNWidgets(3));

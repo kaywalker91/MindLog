@@ -28,11 +28,8 @@ class WhatsNewDialog extends StatelessWidget {
     return showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => WhatsNewDialog(
-        version: version,
-        notes: notes,
-        onDismiss: onDismiss,
-      ),
+      builder: (context) =>
+          WhatsNewDialog(version: version, notes: notes, onDismiss: onDismiss),
     );
   }
 
@@ -92,10 +89,7 @@ class WhatsNewDialog extends StatelessWidget {
   Widget _buildHeader(ThemeData theme) {
     // 축하 분위기의 그래디언트 (파랑→보라)
     const gradient = LinearGradient(
-      colors: [
-        AppColors.statsPrimary,
-        AppColors.statsSecondary,
-      ],
+      colors: [AppColors.statsPrimary, AppColors.statsSecondary],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
@@ -195,9 +189,7 @@ class WhatsNewDialog extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.12),
-        ),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

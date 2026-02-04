@@ -6,18 +6,12 @@ void main() {
   group('EmotionGarden', () {
     group('이모지 매핑 테스트', () {
       testWidgets('점수 1-2는 씨앗(🌱)을 표시해야 한다', (tester) async {
-        final testData = {
-          DateTime(2024, 1, 1): 1.5,
-          DateTime(2024, 1, 2): 2.0,
-        };
+        final testData = {DateTime(2024, 1, 1): 1.5, DateTime(2024, 1, 2): 2.0};
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: EmotionGarden(
-                activityMap: testData,
-                weeksToShow: 1,
-              ),
+              body: EmotionGarden(activityMap: testData, weeksToShow: 1),
             ),
           ),
         );
@@ -26,17 +20,12 @@ void main() {
       });
 
       testWidgets('점수 3-4는 새싹(🌿)을 표시해야 한다', (tester) async {
-        final testData = {
-          DateTime(2024, 1, 1): 3.5,
-        };
+        final testData = {DateTime(2024, 1, 1): 3.5};
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: EmotionGarden(
-                activityMap: testData,
-                weeksToShow: 1,
-              ),
+              body: EmotionGarden(activityMap: testData, weeksToShow: 1),
             ),
           ),
         );
@@ -45,17 +34,12 @@ void main() {
       });
 
       testWidgets('점수 5-6은 꽃봉오리(🌷)를 표시해야 한다', (tester) async {
-        final testData = {
-          DateTime(2024, 1, 1): 5.5,
-        };
+        final testData = {DateTime(2024, 1, 1): 5.5};
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: EmotionGarden(
-                activityMap: testData,
-                weeksToShow: 1,
-              ),
+              body: EmotionGarden(activityMap: testData, weeksToShow: 1),
             ),
           ),
         );
@@ -64,17 +48,12 @@ void main() {
       });
 
       testWidgets('점수 7-8은 꽃(🌸)을 표시해야 한다', (tester) async {
-        final testData = {
-          DateTime(2024, 1, 1): 7.5,
-        };
+        final testData = {DateTime(2024, 1, 1): 7.5};
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: EmotionGarden(
-                activityMap: testData,
-                weeksToShow: 1,
-              ),
+              body: EmotionGarden(activityMap: testData, weeksToShow: 1),
             ),
           ),
         );
@@ -83,17 +62,12 @@ void main() {
       });
 
       testWidgets('점수 9-10은 해바라기(🌻)를 표시해야 한다', (tester) async {
-        final testData = {
-          DateTime(2024, 1, 1): 9.5,
-        };
+        final testData = {DateTime(2024, 1, 1): 9.5};
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: EmotionGarden(
-                activityMap: testData,
-                weeksToShow: 1,
-              ),
+              body: EmotionGarden(activityMap: testData, weeksToShow: 1),
             ),
           ),
         );
@@ -107,10 +81,7 @@ void main() {
         await tester.pumpWidget(
           const MaterialApp(
             home: Scaffold(
-              body: EmotionGarden(
-                activityMap: {},
-                weeksToShow: 1,
-              ),
+              body: EmotionGarden(activityMap: {}, weeksToShow: 1),
             ),
           ),
         );
@@ -127,10 +98,7 @@ void main() {
         await tester.pumpWidget(
           const MaterialApp(
             home: Scaffold(
-              body: EmotionGarden(
-                activityMap: {},
-                weeksToShow: 1,
-              ),
+              body: EmotionGarden(activityMap: {}, weeksToShow: 1),
             ),
           ),
         );
@@ -146,10 +114,7 @@ void main() {
         await tester.pumpWidget(
           const MaterialApp(
             home: Scaffold(
-              body: EmotionGarden(
-                activityMap: {},
-                weeksToShow: 1,
-              ),
+              body: EmotionGarden(activityMap: {}, weeksToShow: 1),
             ),
           ),
         );
@@ -176,10 +141,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: EmotionGarden(
-                activityMap: testData,
-                weeksToShow: 4,
-              ),
+              body: EmotionGarden(activityMap: testData, weeksToShow: 4),
             ),
           ),
         );
@@ -194,10 +156,7 @@ void main() {
         await tester.pumpWidget(
           const MaterialApp(
             home: Scaffold(
-              body: EmotionGarden(
-                activityMap: {},
-                weeksToShow: 8,
-              ),
+              body: EmotionGarden(activityMap: {}, weeksToShow: 8),
             ),
           ),
         );
@@ -213,10 +172,7 @@ void main() {
             themeMode: ThemeMode.dark,
             darkTheme: ThemeData.dark(useMaterial3: true),
             home: const Scaffold(
-              body: EmotionGarden(
-                activityMap: {},
-                weeksToShow: 4,
-              ),
+              body: EmotionGarden(activityMap: {}, weeksToShow: 4),
             ),
           ),
         );

@@ -45,7 +45,9 @@ class DbRecoveryService {
       if (prefsSessionId == null && dbSessionId == null) {
         await _initializeSession(prefs, dataSource);
         if (kDebugMode) {
-          debugPrint('[DbRecoveryService] New install detected, session initialized');
+          debugPrint(
+            '[DbRecoveryService] New install detected, session initialized',
+          );
         }
         return false;
       }
@@ -54,7 +56,9 @@ class DbRecoveryService {
       if (prefsSessionId != null && dbSessionId == null) {
         await _handleRecovery(prefs, dataSource);
         if (kDebugMode) {
-          debugPrint('[DbRecoveryService] DB restored (empty), session reinitialized');
+          debugPrint(
+            '[DbRecoveryService] DB restored (empty), session reinitialized',
+          );
         }
         return true;
       }
@@ -63,7 +67,9 @@ class DbRecoveryService {
       if (prefsSessionId == null && dbSessionId != null) {
         await _handleRecovery(prefs, dataSource);
         if (kDebugMode) {
-          debugPrint('[DbRecoveryService] Prefs cleared, DB restored - recovery triggered');
+          debugPrint(
+            '[DbRecoveryService] Prefs cleared, DB restored - recovery triggered',
+          );
         }
         return true;
       }
@@ -72,7 +78,9 @@ class DbRecoveryService {
       if (prefsSessionId != dbSessionId) {
         await _handleRecovery(prefs, dataSource);
         if (kDebugMode) {
-          debugPrint('[DbRecoveryService] Session mismatch - recovery triggered');
+          debugPrint(
+            '[DbRecoveryService] Session mismatch - recovery triggered',
+          );
         }
         return true;
       }

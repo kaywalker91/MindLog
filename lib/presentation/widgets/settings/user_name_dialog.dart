@@ -7,16 +7,10 @@ import '../../providers/providers.dart';
 class UserNameDialog extends ConsumerStatefulWidget {
   final String? currentName;
 
-  const UserNameDialog({
-    super.key,
-    this.currentName,
-  });
+  const UserNameDialog({super.key, this.currentName});
 
   /// 다이얼로그 표시 유틸리티 메서드
-  static Future<void> show(
-    BuildContext context, {
-    String? currentName,
-  }) {
+  static Future<void> show(BuildContext context, {String? currentName}) {
     return showDialog(
       context: context,
       builder: (context) => UserNameDialog(currentName: currentName),
@@ -46,23 +40,23 @@ class _UserNameDialogState extends ConsumerState<UserNameDialog> {
     await ref.read(userNameProvider.notifier).setUserName(null);
     if (mounted) {
       context.pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이름이 초기화되었습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('이름이 초기화되었습니다.')));
     }
   }
 
   Future<void> _handleSave() async {
     final name = _controller.text.trim();
-    await ref.read(userNameProvider.notifier).setUserName(
-          name.isEmpty ? null : name,
-        );
+    await ref
+        .read(userNameProvider.notifier)
+        .setUserName(name.isEmpty ? null : name);
     if (mounted) {
       context.pop();
       if (name.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$name님으로 설정되었습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$name님으로 설정되었습니다.')));
       }
     }
   }
@@ -105,15 +99,9 @@ class _UserNameDialogState extends ConsumerState<UserNameDialog> {
       actions: [
         TextButton(
           onPressed: _handleReset,
-          child: Text(
-            '초기화',
-            style: TextStyle(color: colorScheme.error),
-          ),
+          child: Text('초기화', style: TextStyle(color: colorScheme.error)),
         ),
-        FilledButton(
-          onPressed: _handleSave,
-          child: const Text('저장'),
-        ),
+        FilledButton(onPressed: _handleSave, child: const Text('저장')),
       ],
     );
   }

@@ -16,10 +16,7 @@ class AppChangelogSection {
   final String title;
   final List<String> items;
 
-  const AppChangelogSection({
-    required this.title,
-    required this.items,
-  });
+  const AppChangelogSection({required this.title, required this.items});
 }
 
 class AppChangelog {
@@ -39,10 +36,7 @@ class AppChangelog {
         ),
         AppChangelogSection(
           title: '통계 화면',
-          items: [
-            '감정 통계 화면의 섹션 카피와 배지를 개선했어요.',
-            '히트맵 셀과 범례를 리디자인했어요.',
-          ],
+          items: ['감정 통계 화면의 섹션 카피와 배지를 개선했어요.', '히트맵 셀과 범례를 리디자인했어요.'],
         ),
       ],
     ),
@@ -68,10 +62,7 @@ class AppChangelog {
         ),
         AppChangelogSection(
           title: '기능 추가',
-          items: [
-            '인앱 웹뷰로 공지사항과 약관을 확인할 수 있어요.',
-            '설정 화면에서 개인정보 처리방침을 연결했어요.',
-          ],
+          items: ['인앱 웹뷰로 공지사항과 약관을 확인할 수 있어요.', '설정 화면에서 개인정보 처리방침을 연결했어요.'],
         ),
       ],
     ),

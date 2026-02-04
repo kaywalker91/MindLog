@@ -15,8 +15,10 @@ import '../widgets/sos_card.dart';
 /// 일기 상세 조회 화면
 class DiaryDetailScreen extends ConsumerWidget {
   // DateFormat 인스턴스 재사용 (생성 비용 최적화)
-  static final DateFormat _dateFormatter =
-      DateFormat('yyyy년 MM월 dd일 (E) a hh:mm', 'ko_KR');
+  static final DateFormat _dateFormatter = DateFormat(
+    'yyyy년 MM월 dd일 (E) a hh:mm',
+    'ko_KR',
+  );
 
   final Diary diary;
 
@@ -103,10 +105,7 @@ class DiaryDetailScreen extends ConsumerWidget {
                 // onNewDiary 콜백은 상세 화면에서는 필요 없으므로 빈 함수 전달하거나 숨김 처리 필요
                 // 하지만 ResultCard 구조상 필수이므로, 상세 화면에서는 '목록으로' 등의 동작으로 대체 가능
                 // 여기서는 단순히 pop
-                ResultCard(
-                  diary: diary,
-                  onNewDiary: () => context.pop(),
-                ),
+                ResultCard(diary: diary, onNewDiary: () => context.pop()),
               ] else if (diary.status == DiaryStatus.pending) ...[
                 const Center(
                   child: Padding(

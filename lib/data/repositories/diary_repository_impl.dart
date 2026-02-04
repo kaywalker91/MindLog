@@ -9,7 +9,9 @@ import '../datasources/local/sqlite_local_datasource.dart';
 import '../datasources/remote/groq_remote_datasource.dart';
 
 /// 일기 Repository 구현체
-class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryRepository {
+class DiaryRepositoryImpl
+    with RepositoryFailureHandler
+    implements DiaryRepository {
   final SqliteLocalDataSource _localDataSource;
   final GroqRemoteDataSource _remoteDataSource;
 
@@ -17,7 +19,7 @@ class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryReposito
     required SqliteLocalDataSource localDataSource,
     required GroqRemoteDataSource remoteDataSource,
   }) : _localDataSource = localDataSource,
-        _remoteDataSource = remoteDataSource;
+       _remoteDataSource = remoteDataSource;
 
   @override
   Future<Diary> createDiary(String content, {List<String>? imagePaths}) async {
@@ -53,7 +55,8 @@ class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryReposito
 
         // 이미지가 있으면 Vision API 사용, 없으면 텍스트 전용 API 사용
         final effectiveImagePaths = imagePaths ?? diary.imagePaths;
-        final hasImages = effectiveImagePaths != null && effectiveImagePaths.isNotEmpty;
+        final hasImages =
+            effectiveImagePaths != null && effectiveImagePaths.isNotEmpty;
 
         final analysisDto = hasImages
             ? await _remoteDataSource.analyzeDiaryWithImages(
@@ -120,18 +123,12 @@ class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryReposito
 
   @override
   Future<List<Diary>> getAllDiaries() async {
-    return guardFailure(
-      '일기 목록 조회 실패',
-      _localDataSource.getAllDiaries,
-    );
+    return guardFailure('일기 목록 조회 실패', _localDataSource.getAllDiaries);
   }
 
   @override
   Future<List<Diary>> getTodayDiaries() async {
-    return guardFailure(
-      '오늘 일기 조회 실패',
-      _localDataSource.getTodayDiaries,
-    );
+    return guardFailure('오늘 일기 조회 실패', _localDataSource.getTodayDiaries);
   }
 
   @override
@@ -146,7 +143,10 @@ class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryReposito
         final updatedAnalysis = diary.analysisResult!.copyWith(
           isActionCompleted: true,
         );
-        await _localDataSource.updateDiaryWithAnalysis(diaryId, updatedAnalysis);
+        await _localDataSource.updateDiaryWithAnalysis(
+          diaryId,
+          updatedAnalysis,
+        );
       }
     });
   }
@@ -169,10 +169,7 @@ class DiaryRepositoryImpl with RepositoryFailureHandler implements DiaryReposito
 
   @override
   Future<void> deleteAllDiaries() async {
-    return guardFailure(
-      '모든 일기 삭제 실패',
-      _localDataSource.deleteAllDiaries,
-    );
+    return guardFailure('모든 일기 삭제 실패', _localDataSource.deleteAllDiaries);
   }
 
   String _generateId() => const Uuid().v4();

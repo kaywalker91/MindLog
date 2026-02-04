@@ -25,10 +25,8 @@ class DeleteDiaryDialog extends ConsumerWidget {
   }) {
     return showDialog<bool>(
       context: context,
-      builder: (ctx) => DeleteDiaryDialog(
-        diary: diary,
-        popAfterDelete: popAfterDelete,
-      ),
+      builder: (ctx) =>
+          DeleteDiaryDialog(diary: diary, popAfterDelete: popAfterDelete),
     );
   }
 
@@ -37,9 +35,7 @@ class DeleteDiaryDialog extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       backgroundColor: colorScheme.surface,
       elevation: 0,
       child: Padding(
@@ -62,7 +58,7 @@ class DeleteDiaryDialog extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // 제목
             const Text(
               '소중한 기록을 지우시겠어요?',
@@ -70,7 +66,7 @@ class DeleteDiaryDialog extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            
+
             // 내용
             Text(
               '삭제 후에는 되돌릴 수 없어요.\n정말로 삭제하시겠습니까?',
@@ -78,7 +74,7 @@ class DeleteDiaryDialog extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 28),
-            
+
             // 버튼 영역
             Row(
               children: [
@@ -129,7 +125,9 @@ class DeleteDiaryDialog extends ConsumerWidget {
   Future<void> _deleteDiary(BuildContext context, WidgetRef ref) async {
     try {
       // Controller를 통해 삭제 (통계 갱신 포함)
-      await ref.read(diaryListControllerProvider.notifier).deleteImmediately(diary.id);
+      await ref
+          .read(diaryListControllerProvider.notifier)
+          .deleteImmediately(diary.id);
 
       if (context.mounted) {
         // 상세 화면에서 호출된 경우 목록으로 복귀
@@ -137,15 +135,15 @@ class DeleteDiaryDialog extends ConsumerWidget {
           context.pop();
         }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('일기가 삭제되었습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('일기가 삭제되었습니다.')));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('삭제 중 오류가 발생했습니다: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('삭제 중 오류가 발생했습니다: $e')));
       }
     }
   }

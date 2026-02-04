@@ -13,12 +13,11 @@ class DiaryValidationResult {
     required this.sanitizedContent,
   });
 
-  factory DiaryValidationResult.valid(String content) => DiaryValidationResult(
-        isValid: true,
-        sanitizedContent: content.trim(),
-      );
+  factory DiaryValidationResult.valid(String content) =>
+      DiaryValidationResult(isValid: true, sanitizedContent: content.trim());
 
-  factory DiaryValidationResult.invalid(String message) => DiaryValidationResult(
+  factory DiaryValidationResult.invalid(String message) =>
+      DiaryValidationResult(
         isValid: false,
         errorMessage: message,
         sanitizedContent: '',

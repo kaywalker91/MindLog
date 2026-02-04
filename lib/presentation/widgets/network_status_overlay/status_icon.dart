@@ -41,10 +41,7 @@ class StatusIcon extends StatelessWidget {
         borderRadius: BorderRadius.circular(32),
       ),
       child: Center(
-        child: CircularProgressIndicator(
-          color: primary,
-          strokeWidth: 3,
-        ),
+        child: CircularProgressIndicator(color: primary, strokeWidth: 3),
       ),
     );
 
@@ -67,11 +64,7 @@ class StatusIcon extends StatelessWidget {
         color: AppColors.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(32),
       ),
-      child: const Icon(
-        Icons.wifi_off,
-        color: AppColors.error,
-        size: 32,
-      ),
+      child: const Icon(Icons.wifi_off, color: AppColors.error, size: 32),
     );
 
     if (animationController == null) return icon;
@@ -83,10 +76,16 @@ class StatusIcon extends StatelessWidget {
           delay: const Duration(milliseconds: 100),
         )
         .scaleX(
-            begin: 0.8, end: 1.2, duration: const Duration(milliseconds: 500))
+          begin: 0.8,
+          end: 1.2,
+          duration: const Duration(milliseconds: 500),
+        )
         .then()
         .scaleX(
-            begin: 1.2, end: 1.0, duration: const Duration(milliseconds: 300));
+          begin: 1.2,
+          end: 1.0,
+          duration: const Duration(milliseconds: 300),
+        );
   }
 
   Widget _buildApiErrorIcon() {
@@ -113,10 +112,16 @@ class StatusIcon extends StatelessWidget {
           delay: const Duration(milliseconds: 100),
         )
         .scaleY(
-            begin: 0.8, end: 1.2, duration: const Duration(milliseconds: 500))
+          begin: 0.8,
+          end: 1.2,
+          duration: const Duration(milliseconds: 500),
+        )
         .then()
         .scaleY(
-            begin: 1.2, end: 1.0, duration: const Duration(milliseconds: 300));
+          begin: 1.2,
+          end: 1.0,
+          duration: const Duration(milliseconds: 300),
+        );
   }
 
   Widget _buildSuccessIcon() {
@@ -127,11 +132,7 @@ class StatusIcon extends StatelessWidget {
         color: AppColors.success.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(32),
       ),
-      child: const Icon(
-        Icons.check_circle,
-        color: AppColors.success,
-        size: 32,
-      ),
+      child: const Icon(Icons.check_circle, color: AppColors.success, size: 32),
     );
 
     if (animationController == null) return icon;
@@ -143,9 +144,10 @@ class StatusIcon extends StatelessWidget {
           delay: const Duration(milliseconds: 100),
         )
         .scale(
-            begin: const Offset(0, 0),
-            end: const Offset(1, 1),
-            duration: const Duration(milliseconds: 400));
+          begin: const Offset(0, 0),
+          end: const Offset(1, 1),
+          duration: const Duration(milliseconds: 400),
+        );
   }
 
   Widget _buildDefaultIcon(Color primary) {
@@ -156,11 +158,7 @@ class StatusIcon extends StatelessWidget {
         color: primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(32),
       ),
-      child: Icon(
-        _getDefaultIconData(),
-        color: primary,
-        size: 32,
-      ),
+      child: Icon(_getDefaultIconData(), color: primary, size: 32),
     );
   }
 

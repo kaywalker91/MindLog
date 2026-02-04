@@ -36,10 +36,8 @@ class EmotionCareSection extends ConsumerWidget {
               icon: Icons.mood_outlined,
               title: 'AI 캐릭터',
               trailing: AiCharacterTrailing(label: characterLabel),
-              onTap: () => AiCharacterSheet.show(
-                context,
-                selected: selectedCharacter,
-              ),
+              onTap: () =>
+                  AiCharacterSheet.show(context, selected: selectedCharacter),
             ),
             const SettingsDivider(),
             SettingsItem(

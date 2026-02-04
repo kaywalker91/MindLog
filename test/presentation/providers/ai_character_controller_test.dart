@@ -8,7 +8,8 @@ import 'package:mindlog/presentation/providers/ai_character_controller.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
 
 /// Mock GetSelectedAiCharacterUseCase
-class MockGetSelectedAiCharacterUseCase implements GetSelectedAiCharacterUseCase {
+class MockGetSelectedAiCharacterUseCase
+    implements GetSelectedAiCharacterUseCase {
   AiCharacter mockCharacter = AiCharacter.warmCounselor;
   bool shouldThrow = false;
   Failure? failureToThrow;
@@ -29,7 +30,8 @@ class MockGetSelectedAiCharacterUseCase implements GetSelectedAiCharacterUseCase
 }
 
 /// Mock SetSelectedAiCharacterUseCase
-class MockSetSelectedAiCharacterUseCase implements SetSelectedAiCharacterUseCase {
+class MockSetSelectedAiCharacterUseCase
+    implements SetSelectedAiCharacterUseCase {
   bool shouldThrow = false;
   Failure? failureToThrow;
   final List<AiCharacter> savedCharacters = [];
@@ -99,7 +101,9 @@ void main() {
         mockGetUseCase.failureToThrow = const Failure.cache(message: '조회 실패');
 
         // Act
-        await container.read(aiCharacterProvider.future).catchError((_) => AiCharacter.warmCounselor);
+        await container
+            .read(aiCharacterProvider.future)
+            .catchError((_) => AiCharacter.warmCounselor);
 
         // Assert
         final state = container.read(aiCharacterProvider);
@@ -117,7 +121,10 @@ void main() {
         await notifier.setCharacter(AiCharacter.cheerfulFriend);
 
         // Assert
-        expect(mockSetUseCase.savedCharacters, contains(AiCharacter.cheerfulFriend));
+        expect(
+          mockSetUseCase.savedCharacters,
+          contains(AiCharacter.cheerfulFriend),
+        );
       });
 
       test('설정 후 상태가 업데이트되어야 한다', () async {
@@ -140,15 +147,24 @@ void main() {
 
         // Act & Assert - warmCounselor
         await notifier.setCharacter(AiCharacter.warmCounselor);
-        expect(container.read(aiCharacterProvider).value, AiCharacter.warmCounselor);
+        expect(
+          container.read(aiCharacterProvider).value,
+          AiCharacter.warmCounselor,
+        );
 
         // realisticCoach
         await notifier.setCharacter(AiCharacter.realisticCoach);
-        expect(container.read(aiCharacterProvider).value, AiCharacter.realisticCoach);
+        expect(
+          container.read(aiCharacterProvider).value,
+          AiCharacter.realisticCoach,
+        );
 
         // cheerfulFriend
         await notifier.setCharacter(AiCharacter.cheerfulFriend);
-        expect(container.read(aiCharacterProvider).value, AiCharacter.cheerfulFriend);
+        expect(
+          container.read(aiCharacterProvider).value,
+          AiCharacter.cheerfulFriend,
+        );
       });
 
       test('UseCase 에러 시 예외를 전파해야 한다', () async {
@@ -177,7 +193,10 @@ void main() {
 
         // Assert
         expect(mockSetUseCase.savedCharacters.length, 3);
-        expect(container.read(aiCharacterProvider).value, AiCharacter.cheerfulFriend);
+        expect(
+          container.read(aiCharacterProvider).value,
+          AiCharacter.cheerfulFriend,
+        );
       });
     });
   });

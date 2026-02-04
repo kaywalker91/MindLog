@@ -43,11 +43,7 @@ class SettingsItem extends StatelessWidget {
                 ),
               ),
             ),
-            trailing ??
-                Icon(
-                  Icons.chevron_right,
-                  color: colorScheme.outline,
-                ),
+            trailing ?? Icon(Icons.chevron_right, color: colorScheme.outline),
           ],
         ),
       ),
@@ -79,8 +75,9 @@ class SettingsToggleItem extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textColor = enabled ? colorScheme.onSurface : colorScheme.outline;
-    final subtitleColor =
-        enabled ? colorScheme.onSurfaceVariant : colorScheme.outline;
+    final subtitleColor = enabled
+        ? colorScheme.onSurfaceVariant
+        : colorScheme.outline;
 
     return InkWell(
       onTap: enabled ? () => onChanged(!value) : null,
@@ -92,7 +89,9 @@ class SettingsToggleItem extends StatelessWidget {
             Icon(
               icon,
               size: 24,
-              color: enabled ? colorScheme.onSurfaceVariant : colorScheme.outline,
+              color: enabled
+                  ? colorScheme.onSurfaceVariant
+                  : colorScheme.outline,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -117,10 +116,7 @@ class SettingsToggleItem extends StatelessWidget {
                 ],
               ),
             ),
-            Switch(
-              value: value,
-              onChanged: enabled ? onChanged : null,
-            ),
+            Switch(value: value, onChanged: enabled ? onChanged : null),
           ],
         ),
       ),

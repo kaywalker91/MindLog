@@ -34,12 +34,12 @@ class ActivityHeatmap extends StatelessWidget {
     // RepaintBoundary: 168개 셀(24주×7일) 그리드의 불필요한 repaint 방지
     return RepaintBoundary(
       child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildHeatmap(context, startDate, now, normalizedActivityMap),
-        const SizedBox(height: 12),
-        _buildLegend(context),
-      ],
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeatmap(context, startDate, now, normalizedActivityMap),
+          const SizedBox(height: 12),
+          _buildLegend(context),
+        ],
       ),
     );
   }
@@ -164,7 +164,12 @@ class ActivityHeatmap extends StatelessWidget {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: week.map((date) {
-                        return _buildCell(context, date, endDate, normalizedActivityMap);
+                        return _buildCell(
+                          context,
+                          date,
+                          endDate,
+                          normalizedActivityMap,
+                        );
                       }).toList(),
                     );
                   }).toList(),
@@ -215,10 +220,7 @@ class ActivityHeatmap extends StatelessWidget {
         color: AppColors.statsTextPrimary,
         borderRadius: BorderRadius.circular(8),
       ),
-      textStyle: const TextStyle(
-        color: Colors.white,
-        fontSize: 12,
-      ),
+      textStyle: const TextStyle(color: Colors.white, fontSize: 12),
       child: Container(
         width: _cellSize,
         height: _cellSize,
@@ -259,16 +261,10 @@ class ActivityHeatmap extends StatelessWidget {
       children: [
         const Text(
           '기분 온도',
-          style: TextStyle(
-            color: AppColors.statsTextTertiary,
-            fontSize: 10,
-          ),
+          style: TextStyle(color: AppColors.statsTextTertiary, fontSize: 10),
         ),
         const SizedBox(width: 6),
-        const Text(
-          '🙂',
-          style: TextStyle(fontSize: 11),
-        ),
+        const Text('🙂', style: TextStyle(fontSize: 11)),
         const SizedBox(width: 4),
         // 5단계 색상 범례
         ...AppColors.heatmapLegendColors.map((color) {
@@ -283,10 +279,7 @@ class ActivityHeatmap extends StatelessWidget {
           );
         }),
         const SizedBox(width: 4),
-        const Text(
-          '😊',
-          style: TextStyle(fontSize: 11),
-        ),
+        const Text('😊', style: TextStyle(fontSize: 11)),
       ],
     );
   }
@@ -314,10 +307,9 @@ class ActivityHeatmap extends StatelessWidget {
         currentMonth = month;
         weekSpan = 1;
       } else if (month != currentMonth) {
-        labels.add(_MonthLabel(
-          month: _getMonthName(currentMonth),
-          weekSpan: weekSpan,
-        ));
+        labels.add(
+          _MonthLabel(month: _getMonthName(currentMonth), weekSpan: weekSpan),
+        );
         currentMonth = month;
         weekSpan = 1;
       } else {
@@ -327,18 +319,30 @@ class ActivityHeatmap extends StatelessWidget {
 
     // 마지막 월 추가
     if (currentMonth != null) {
-      labels.add(_MonthLabel(
-        month: _getMonthName(currentMonth),
-        weekSpan: weekSpan,
-      ));
+      labels.add(
+        _MonthLabel(month: _getMonthName(currentMonth), weekSpan: weekSpan),
+      );
     }
 
     return labels.reversed.toList();
   }
 
   String _getMonthName(int month) {
-    const months = ['', '1월', '2월', '3월', '4월', '5월', '6월',
-                    '7월', '8월', '9월', '10월', '11월', '12월'];
+    const months = [
+      '',
+      '1월',
+      '2월',
+      '3월',
+      '4월',
+      '5월',
+      '6월',
+      '7월',
+      '8월',
+      '9월',
+      '10월',
+      '11월',
+      '12월',
+    ];
     return months[month];
   }
 }

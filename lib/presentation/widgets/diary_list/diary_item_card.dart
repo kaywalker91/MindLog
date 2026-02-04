@@ -50,11 +50,7 @@ class DiaryItemCard extends ConsumerWidget {
                 ],
               ),
             ),
-            Positioned(
-              top: 4,
-              right: 4,
-              child: _buildPinButton(ref),
-            ),
+            Positioned(top: 4, right: 4, child: _buildPinButton(ref)),
           ],
         ),
       ),
@@ -70,10 +66,7 @@ class DiaryItemCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
-        child: Text(
-          diary.emotionEmoji,
-          style: const TextStyle(fontSize: 24),
-        ),
+        child: Text(diary.emotionEmoji, style: const TextStyle(fontSize: 24)),
       ),
     );
   }
@@ -141,8 +134,9 @@ class DiaryItemCard extends ConsumerWidget {
         size: 20,
       ),
       onPressed: () {
-        ref.read(diaryListControllerProvider.notifier)
-           .togglePin(diary.id, !diary.isPinned);
+        ref
+            .read(diaryListControllerProvider.notifier)
+            .togglePin(diary.id, !diary.isPinned);
       },
     );
   }

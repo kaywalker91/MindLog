@@ -23,9 +23,7 @@ class AnalysisResponseParser {
           // 3. 자연어 응답에서 키워드 추출
           return _parseAsNaturalLanguage(text);
         } catch (e) {
-          throw ApiException(
-            message: 'AI 응답 파싱에 실패했습니다: $text',
-          );
+          throw ApiException(message: 'AI 응답 파싱에 실패했습니다: $text');
         }
       }
     }
@@ -40,22 +38,28 @@ class AnalysisResponseParser {
 
     try {
       final decoded = jsonDecode(trimmedText) as Map<String, dynamic>;
-      
+
       // 디버그: 파싱 직후 action_items 확인
       assert(() {
-        debugPrint('🔍 [PARSER] After jsonDecode, action_items: ${decoded['action_items']}');
-        debugPrint('🔍 [PARSER] action_items type: ${decoded['action_items']?.runtimeType}');
+        debugPrint(
+          '🔍 [PARSER] After jsonDecode, action_items: ${decoded['action_items']}',
+        );
+        debugPrint(
+          '🔍 [PARSER] action_items type: ${decoded['action_items']?.runtimeType}',
+        );
         return true;
       }());
-      
+
       _validateJsonStructure(decoded);
-      
+
       // 디버그: 검증 후 action_items 확인
       assert(() {
-        debugPrint('🔍 [PARSER] After validation, action_items: ${decoded['action_items']}');
+        debugPrint(
+          '🔍 [PARSER] After validation, action_items: ${decoded['action_items']}',
+        );
         return true;
       }());
-      
+
       return decoded;
     } catch (e) {
       debugPrint('⚠️ [PARSER] First parse failed: $e, trying sanitize...');
@@ -98,7 +102,7 @@ class AnalysisResponseParser {
   /// 자연어 응답에서 키워드 추출
   static Map<String, dynamic> _parseAsNaturalLanguage(String text) {
     final lines = text.split('\n').where((line) => line.trim().isNotEmpty);
-    
+
     List<String> keywords = [];
     int sentimentScore = 5;
     String empathyMessage = '';
@@ -107,27 +111,33 @@ class AnalysisResponseParser {
     try {
       for (final line in lines) {
         final lowerLine = line.toLowerCase().trim();
-        
+
         // 키워드 추출
         if (lowerLine.contains('키워드') || lowerLine.contains('감정')) {
           keywords = _extractKeywords(line);
         }
-        
+
         // 감정 점수 추출
-        if (lowerLine.contains('점수') || lowerLine.contains('점수는') || 
-            lowerLine.contains('sentiment') || lowerLine.contains('평가')) {
+        if (lowerLine.contains('점수') ||
+            lowerLine.contains('점수는') ||
+            lowerLine.contains('sentiment') ||
+            lowerLine.contains('평가')) {
           sentimentScore = _extractSentimentScore(line);
         }
-        
+
         // 공감 메시지 추출
-        if (lowerLine.contains('공감') || lowerLine.contains('위로') ||
-            lowerLine.contains('empathy') || lowerLine.contains('위로')) {
+        if (lowerLine.contains('공감') ||
+            lowerLine.contains('위로') ||
+            lowerLine.contains('empathy') ||
+            lowerLine.contains('위로')) {
           empathyMessage = _extractMessage(line);
         }
-        
+
         // 추천 행동 추출
-        if (lowerLine.contains('추천') || lowerLine.contains('행동') ||
-            lowerLine.contains('action') || lowerLine.contains('제안')) {
+        if (lowerLine.contains('추천') ||
+            lowerLine.contains('행동') ||
+            lowerLine.contains('action') ||
+            lowerLine.contains('제안')) {
           final action = _extractMessage(line);
           if (action.isNotEmpty) actionItems.add(action);
         }
@@ -153,15 +163,11 @@ class AnalysisResponseParser {
       'sentiment_score': sentimentScore.clamp(1, 10),
       'empathy_message': empathyMessage.trim(),
       'action_items': actionItems.take(3).toList(),
-      'action_item': actionItems.isNotEmpty ? actionItems.first : '잠시 휴식을 취해보세요.',
-      'emotion_category': {
-        'primary': '평온',
-        'secondary': '일상',
-      },
-      'emotion_trigger': {
-        'category': '기타',
-        'description': '일기 내용에서 파악',
-      },
+      'action_item': actionItems.isNotEmpty
+          ? actionItems.first
+          : '잠시 휴식을 취해보세요.',
+      'emotion_category': {'primary': '평온', 'secondary': '일상'},
+      'emotion_trigger': {'category': '기타', 'description': '일기 내용에서 파악'},
       'energy_level': 5,
       'is_emergency': false,
     };
@@ -174,12 +180,12 @@ class AnalysisResponseParser {
     sanitized = sanitized.replaceAll(RegExp(r'(\w+) :'), r'\1:');
     sanitized = sanitized.replaceAll(RegExp(r': (\w+)'), r': "\1"');
     sanitized = sanitized.replaceAll(RegExp(r'(\w+),'), r'\1",');
-    
+
     // 이스케이프된 문자 처리
     sanitized = sanitized.replaceAll('\\n', '\n');
     sanitized = sanitized.replaceAll('\\"', '"');
     sanitized = sanitized.replaceAll('\\/', '/');
-    
+
     return sanitized;
   }
 
@@ -265,7 +271,7 @@ class AnalysisResponseParser {
     final rawActionItems = json['action_items'];
     if (rawActionItems != null) {
       List<String> actionItemsList = [];
-      
+
       if (rawActionItems is List) {
         // 정상적인 배열
         actionItemsList = rawActionItems.map((e) => e.toString()).toList();
@@ -286,7 +292,7 @@ class AnalysisResponseParser {
           actionItemsList = [rawActionItems];
         }
       }
-      
+
       // 각 항목에 한글 필터링 적용
       json['action_items'] = actionItemsList.map((item) {
         return KoreanTextFilter.filterMessage(
@@ -335,27 +341,34 @@ class AnalysisResponseParser {
     if (lowerLine.contains('긍정') || lowerLine.contains('좋')) return 7;
     if (lowerLine.contains('부정') || lowerLine.contains('안')) return 3;
     if (lowerLine.contains('매우 부정') || lowerLine.contains('매우 괴')) return 2;
-    
+
     return 5; // 기본값
   }
 
   /// 메시지 추출
   static String _extractMessage(String line) {
     // 콜론 뒤의 메시지 부분 추출
-    final cleanLine = line
-        .replaceAll(RegExp(r'^[^:：]*[:：]?\s*'), '')
-        .trim();
-    
+    final cleanLine = line.replaceAll(RegExp(r'^[^:：]*[:：]?\s*'), '').trim();
+
     // 따옴표 제거
     return cleanLine.replaceAll(RegExp(r'''^['"]+|['"]+$'''), '');
   }
 
   static List<String> _extractLikelyKeywords(String text) {
-
     // 감정 관련 단어 필터링
     final emotionWords = [
-      '불안', '스트레스', '기억', '감사', '힘듦', '즐거움',
-      '걱정', '설렘', '후회', '기대', '만족', '피곤'
+      '불안',
+      '스트레스',
+      '기억',
+      '감사',
+      '힘듦',
+      '즐거움',
+      '걱정',
+      '설렘',
+      '후회',
+      '기대',
+      '만족',
+      '피곤',
     ];
 
     final foundKeywords = <String>[];
@@ -381,14 +394,8 @@ class AnalysisResponseParser {
         '📅 이번 주에 좋아하는 일 하나 해보세요',
       ],
       'action_item': '따뜻한 차 한 잔의 여유를 가져보세요.',
-      'emotion_category': {
-        'primary': '평온',
-        'secondary': '일상',
-      },
-      'emotion_trigger': {
-        'category': '기타',
-        'description': '일상적인 하루',
-      },
+      'emotion_category': {'primary': '평온', 'secondary': '일상'},
+      'emotion_trigger': {'category': '기타', 'description': '일상적인 하루'},
       'energy_level': 5,
       'is_emergency': false,
     };

@@ -29,7 +29,10 @@ void main() {
         final result = await useCase.execute(StatisticsPeriod.week);
 
         // Assert
-        expect(mockRepository.requestedPeriods, contains(StatisticsPeriod.week));
+        expect(
+          mockRepository.requestedPeriods,
+          contains(StatisticsPeriod.week),
+        );
         expect(result.totalDiaries, 7);
       });
 
@@ -41,7 +44,10 @@ void main() {
         final result = await useCase.execute(StatisticsPeriod.month);
 
         // Assert
-        expect(mockRepository.requestedPeriods, contains(StatisticsPeriod.month));
+        expect(
+          mockRepository.requestedPeriods,
+          contains(StatisticsPeriod.month),
+        );
         expect(result.totalDiaries, 30);
       });
 
@@ -60,7 +66,9 @@ void main() {
       test('Repository 에러를 전파해야 한다', () async {
         // Arrange
         mockRepository.shouldThrowOnGetStatistics = true;
-        mockRepository.failureToThrow = const Failure.cache(message: '통계 조회 실패');
+        mockRepository.failureToThrow = const Failure.cache(
+          message: '통계 조회 실패',
+        );
 
         // Act & Assert
         await expectLater(
@@ -116,7 +124,10 @@ void main() {
 
         // Assert
         expect(mockRepository.dailyEmotionRequests.length, 1);
-        expect(mockRepository.dailyEmotionRequests.first['startDate'], startDate);
+        expect(
+          mockRepository.dailyEmotionRequests.first['startDate'],
+          startDate,
+        );
         expect(mockRepository.dailyEmotionRequests.first['endDate'], endDate);
       });
 
@@ -135,15 +146,14 @@ void main() {
         mockRepository.shouldThrowOnGetDailyEmotions = true;
 
         // Act & Assert
-        await expectLater(
-          useCase.getDailyEmotions(),
-          throwsA(isA<Failure>()),
-        );
+        await expectLater(useCase.getDailyEmotions(), throwsA(isA<Failure>()));
       });
 
       test('DailyEmotion 리스트를 반환해야 한다', () async {
         // Arrange
-        mockRepository.mockDailyEmotions = StatisticsFixtures.dailyEmotions(days: 7);
+        mockRepository.mockDailyEmotions = StatisticsFixtures.dailyEmotions(
+          days: 7,
+        );
 
         // Act
         final result = await useCase.getDailyEmotions();
@@ -165,7 +175,10 @@ void main() {
 
         // Assert
         expect(mockRepository.activityMapRequests.length, 1);
-        expect(mockRepository.activityMapRequests.first['startDate'], startDate);
+        expect(
+          mockRepository.activityMapRequests.first['startDate'],
+          startDate,
+        );
         expect(mockRepository.activityMapRequests.first['endDate'], endDate);
       });
 
@@ -183,10 +196,7 @@ void main() {
         mockRepository.shouldThrowOnGetActivityMap = true;
 
         // Act & Assert
-        await expectLater(
-          useCase.getActivityMap(),
-          throwsA(isA<Failure>()),
-        );
+        await expectLater(useCase.getActivityMap(), throwsA(isA<Failure>()));
       });
 
       test('활동 맵을 반환해야 한다', () async {

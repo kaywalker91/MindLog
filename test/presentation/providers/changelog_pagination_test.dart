@@ -37,7 +37,7 @@ void main() {
       });
 
       test('버전이 내림차순으로 정렬되어야 한다', () {
-        final mockConfig = UpdateConfig(
+        const mockConfig = UpdateConfig(
           latestVersion: '1.5.0',
           minSupportedVersion: '1.0.0',
           forceUpdate: false,
@@ -53,15 +53,13 @@ void main() {
 
         final testContainer = ProviderContainer(
           overrides: [
-            updateConfigProvider.overrideWith(
-              (ref) async => mockConfig,
-            ),
+            updateConfigProvider.overrideWith((ref) async => mockConfig),
           ],
         );
         addTearDown(testContainer.dispose);
 
         // FutureProvider를 동기적으로 완료시키기 위해 listen 후 대기
-        testContainer.listen(updateConfigProvider, (_, __) {});
+        testContainer.listen(updateConfigProvider, (previous, next) {});
 
         // 비동기 완료를 위해 테스트
         expectLater(
@@ -90,9 +88,7 @@ void main() {
 
         final testContainer = ProviderContainer(
           overrides: [
-            updateConfigProvider.overrideWith(
-              (ref) async => mockConfig,
-            ),
+            updateConfigProvider.overrideWith((ref) async => mockConfig),
           ],
         );
         addTearDown(testContainer.dispose);
@@ -122,9 +118,7 @@ void main() {
 
         final testContainer = ProviderContainer(
           overrides: [
-            updateConfigProvider.overrideWith(
-              (ref) async => mockConfig,
-            ),
+            updateConfigProvider.overrideWith((ref) async => mockConfig),
           ],
         );
         addTearDown(testContainer.dispose);
@@ -251,9 +245,7 @@ void main() {
 
         final testContainer = ProviderContainer(
           overrides: [
-            updateConfigProvider.overrideWith(
-              (ref) async => mockConfig,
-            ),
+            updateConfigProvider.overrideWith((ref) async => mockConfig),
           ],
         );
         addTearDown(testContainer.dispose);
@@ -280,9 +272,7 @@ void main() {
 
         final testContainer = ProviderContainer(
           overrides: [
-            updateConfigProvider.overrideWith(
-              (ref) async => mockConfig,
-            ),
+            updateConfigProvider.overrideWith((ref) async => mockConfig),
           ],
         );
         addTearDown(testContainer.dispose);
@@ -296,7 +286,7 @@ void main() {
       });
 
       test('전체 데이터가 페이지 크기보다 작으면 false를 반환해야 한다', () async {
-        final mockConfig = UpdateConfig(
+        const mockConfig = UpdateConfig(
           latestVersion: '1.0.3',
           minSupportedVersion: '1.0.1',
           forceUpdate: false,
@@ -311,9 +301,7 @@ void main() {
 
         final testContainer = ProviderContainer(
           overrides: [
-            updateConfigProvider.overrideWith(
-              (ref) async => mockConfig,
-            ),
+            updateConfigProvider.overrideWith((ref) async => mockConfig),
           ],
         );
         addTearDown(testContainer.dispose);

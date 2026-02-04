@@ -13,17 +13,11 @@ void main() {
   group('ValidateDiaryContentUseCase', () {
     group('execute - 예외를 던지는 유효성 검사', () {
       test('빈 내용은 ValidationFailure를 던져야 한다', () {
-        expect(
-          () => useCase.execute(''),
-          throwsA(isA<ValidationFailure>()),
-        );
+        expect(() => useCase.execute(''), throwsA(isA<ValidationFailure>()));
       });
 
       test('공백만 있는 내용은 ValidationFailure를 던져야 한다', () {
-        expect(
-          () => useCase.execute('   '),
-          throwsA(isA<ValidationFailure>()),
-        );
+        expect(() => useCase.execute('   '), throwsA(isA<ValidationFailure>()));
       });
 
       test('탭과 개행만 있는 내용은 ValidationFailure를 던져야 한다', () {

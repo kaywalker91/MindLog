@@ -20,5 +20,5 @@ class AiCharacterController extends AsyncNotifier<AiCharacter> {
 
 final aiCharacterProvider =
     AsyncNotifierProvider<AiCharacterController, AiCharacter>(() {
-  return AiCharacterController();
-});
+      return AiCharacterController();
+    });

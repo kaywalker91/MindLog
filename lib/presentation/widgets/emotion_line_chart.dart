@@ -33,139 +33,136 @@ class EmotionLineChart extends StatelessWidget {
       child: SizedBox(
         height: 200,
         child: LineChart(
-        LineChartData(
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            horizontalInterval: 2,
-            getDrawingHorizontalLine: (value) {
-              return const FlLine(
-                color: AppColors.statsCardBorder,
-                strokeWidth: 1,
-              );
-            },
-          ),
-          titlesData: FlTitlesData(
-            show: true,
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
+          LineChartData(
+            gridData: FlGridData(
+              show: true,
+              drawVerticalLine: false,
+              horizontalInterval: 2,
+              getDrawingHorizontalLine: (value) {
+                return const FlLine(
+                  color: AppColors.statsCardBorder,
+                  strokeWidth: 1,
+                );
+              },
             ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 30,
-                interval: _calculateInterval(sortedEmotions.length),
-                getTitlesWidget: (value, meta) {
-                  final index = value.toInt();
-                  if (index >= 0 && index < sortedEmotions.length) {
-                    final date = sortedEmotions[index].date;
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        _shortDateFormatter.format(date),
-                        style: const TextStyle(
-                          color: AppColors.statsTextTertiary,
-                          fontSize: 10,
+            titlesData: FlTitlesData(
+              show: true,
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 30,
+                  interval: _calculateInterval(sortedEmotions.length),
+                  getTitlesWidget: (value, meta) {
+                    final index = value.toInt();
+                    if (index >= 0 && index < sortedEmotions.length) {
+                      final date = sortedEmotions[index].date;
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          _shortDateFormatter.format(date),
+                          style: const TextStyle(
+                            color: AppColors.statsTextTertiary,
+                            fontSize: 10,
+                          ),
                         ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  interval: 2,
+                  reservedSize: 28,
+                  getTitlesWidget: (value, meta) {
+                    if (value == 0 || value > 10) {
+                      return const SizedBox.shrink();
+                    }
+                    return Text(
+                      value.toInt().toString(),
+                      style: const TextStyle(
+                        color: AppColors.statsTextTertiary,
+                        fontSize: 10,
                       ),
                     );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-            ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                interval: 2,
-                reservedSize: 28,
-                getTitlesWidget: (value, meta) {
-                  if (value == 0 || value > 10) {
-                    return const SizedBox.shrink();
-                  }
-                  return Text(
-                    value.toInt().toString(),
-                    style: const TextStyle(
-                      color: AppColors.statsTextTertiary,
-                      fontSize: 10,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          borderData: FlBorderData(show: false),
-          minX: 0,
-          maxX: (sortedEmotions.length - 1).toDouble(),
-          minY: 0,
-          maxY: 10,
-          lineBarsData: [
-            LineChartBarData(
-              spots: sortedEmotions.asMap().entries.map((entry) {
-                return FlSpot(
-                  entry.key.toDouble(),
-                  entry.value.averageScore,
-                );
-              }).toList(),
-              isCurved: true,
-              curveSmoothness: 0.3,
-              color: AppColors.statsPrimary,
-              barWidth: 3,
-              isStrokeCapRound: true,
-              dotData: FlDotData(
-                show: sortedEmotions.length <= 14,
-                getDotPainter: (spot, percent, bar, index) {
-                  return FlDotCirclePainter(
-                    radius: 4,
-                    color: AppColors.statsPrimaryDark,
-                    strokeWidth: 2,
-                    strokeColor: Colors.white,
-                  );
-                },
-              ),
-              belowBarData: BarAreaData(
-                show: true,
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.statsPrimary.withValues(alpha: 0.3),
-                    AppColors.statsPrimary.withValues(alpha: 0.0),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+                  },
                 ),
               ),
             ),
-          ],
-          lineTouchData: LineTouchData(
-            enabled: true,
-            touchTooltipData: LineTouchTooltipData(
-              getTooltipColor: (touchedSpot) => AppColors.statsTextPrimary,
-              tooltipRoundedRadius: 8,
-              getTooltipItems: (touchedSpots) {
-                return touchedSpots.map((spot) {
-                  final index = spot.x.toInt();
-                  if (index >= 0 && index < sortedEmotions.length) {
-                    final emotion = sortedEmotions[index];
-                    return LineTooltipItem(
-                      '${_tooltipDateFormatter.format(emotion.date)}\n'
-                      '평균 ${emotion.averageScore.toStringAsFixed(1)}점',
-                      const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+            borderData: FlBorderData(show: false),
+            minX: 0,
+            maxX: (sortedEmotions.length - 1).toDouble(),
+            minY: 0,
+            maxY: 10,
+            lineBarsData: [
+              LineChartBarData(
+                spots: sortedEmotions.asMap().entries.map((entry) {
+                  return FlSpot(entry.key.toDouble(), entry.value.averageScore);
+                }).toList(),
+                isCurved: true,
+                curveSmoothness: 0.3,
+                color: AppColors.statsPrimary,
+                barWidth: 3,
+                isStrokeCapRound: true,
+                dotData: FlDotData(
+                  show: sortedEmotions.length <= 14,
+                  getDotPainter: (spot, percent, bar, index) {
+                    return FlDotCirclePainter(
+                      radius: 4,
+                      color: AppColors.statsPrimaryDark,
+                      strokeWidth: 2,
+                      strokeColor: Colors.white,
                     );
-                  }
-                  return null;
-                }).toList();
-              },
+                  },
+                ),
+                belowBarData: BarAreaData(
+                  show: true,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.statsPrimary.withValues(alpha: 0.3),
+                      AppColors.statsPrimary.withValues(alpha: 0.0),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+            ],
+            lineTouchData: LineTouchData(
+              enabled: true,
+              touchTooltipData: LineTouchTooltipData(
+                getTooltipColor: (touchedSpot) => AppColors.statsTextPrimary,
+                tooltipRoundedRadius: 8,
+                getTooltipItems: (touchedSpots) {
+                  return touchedSpots.map((spot) {
+                    final index = spot.x.toInt();
+                    if (index >= 0 && index < sortedEmotions.length) {
+                      final emotion = sortedEmotions[index];
+                      return LineTooltipItem(
+                        '${_tooltipDateFormatter.format(emotion.date)}\n'
+                        '평균 ${emotion.averageScore.toStringAsFixed(1)}점',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      );
+                    }
+                    return null;
+                  }).toList();
+                },
+              ),
             ),
           ),
         ),
-      ),
       ),
     );
   }

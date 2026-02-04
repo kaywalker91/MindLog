@@ -8,7 +8,7 @@ class SplashTheme {
   static const Color backgroundColor = AppColors.statsBackground;
   static const Color textColor = AppColors.statsTextPrimary;
   static const Color secondaryTextColor = AppColors.statsTextSecondary;
-  
+
   /// 스플래시스크린 화면 설정
   static ThemeData createSplashTheme() {
     return ThemeData(

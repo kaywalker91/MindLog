@@ -39,7 +39,11 @@ class MockHttpClient implements http.Client {
   }
 
   /// 에러 응답 설정 헬퍼
-  void setErrorResponse(int statusCode, {String? body, Map<String, String>? headers}) {
+  void setErrorResponse(
+    int statusCode, {
+    String? body,
+    Map<String, String>? headers,
+  }) {
     mockResponse = http.Response(
       body ?? '',
       statusCode,
@@ -66,7 +70,8 @@ class MockHttpClient implements http.Client {
     calledBodies.add(body);
 
     // 순차적 예외 처리
-    if (exceptionsSequence != null && _exceptionIndex < exceptionsSequence!.length) {
+    if (exceptionsSequence != null &&
+        _exceptionIndex < exceptionsSequence!.length) {
       throw exceptionsSequence![_exceptionIndex++];
     }
 

@@ -22,9 +22,7 @@ class ExactAlarmPermissionDialog extends StatelessWidget {
         children: [
           Icon(Icons.alarm_outlined, size: 24),
           SizedBox(width: 8),
-          Expanded(
-            child: Text('정확한 알람 권한 필요'),
-          ),
+          Expanded(child: Text('정확한 알람 권한 필요')),
         ],
       ),
       content: const Text(
@@ -38,9 +36,7 @@ class ExactAlarmPermissionDialog extends StatelessWidget {
         ),
         FilledButton(
           onPressed: () => context.pop(true),
-          style: FilledButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-          ),
+          style: FilledButton.styleFrom(backgroundColor: colorScheme.primary),
           child: const Text('설정으로 이동'),
         ),
       ],
@@ -69,9 +65,7 @@ class BatteryOptimizationDialog extends StatelessWidget {
         children: [
           Icon(Icons.battery_alert_outlined, size: 24),
           SizedBox(width: 8),
-          Expanded(
-            child: Text('배터리 최적화 설정'),
-          ),
+          Expanded(child: Text('배터리 최적화 설정')),
         ],
       ),
       content: const Text(
@@ -86,9 +80,7 @@ class BatteryOptimizationDialog extends StatelessWidget {
         ),
         FilledButton(
           onPressed: () => context.pop(true),
-          style: FilledButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-          ),
+          style: FilledButton.styleFrom(backgroundColor: colorScheme.primary),
           child: const Text('허용'),
         ),
       ],

@@ -27,14 +27,14 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<StatisticsPeriod>(
-      selectedStatisticsPeriodProvider,
-      (previous, next) {
-        if (previous != next) {
-          unawaited(AnalyticsService.logStatisticsViewed(period: next.name));
-        }
-      },
-    );
+    ref.listen<StatisticsPeriod>(selectedStatisticsPeriodProvider, (
+      previous,
+      next,
+    ) {
+      if (previous != next) {
+        unawaited(AnalyticsService.logStatisticsViewed(period: next.name));
+      }
+    });
 
     final statisticsAsync = ref.watch(statisticsProvider);
     final selectedPeriod = ref.watch(selectedStatisticsPeriodProvider);
@@ -47,9 +47,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
       ),
       body: statisticsAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(
-            color: AppColors.statsPrimary,
-          ),
+          child: CircularProgressIndicator(color: AppColors.statsPrimary),
         ),
         error: (error, stack) => _buildErrorState(context, ref),
         data: (statistics) => RefreshIndicator(
@@ -144,7 +142,10 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.statsPrimary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

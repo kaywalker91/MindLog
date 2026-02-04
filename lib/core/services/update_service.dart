@@ -30,15 +30,19 @@ class UpdateConfig {
     final latestVersion = latestRaw.trim();
 
     final minRaw = json['minSupportedVersion'];
-    final minSupportedVersion =
-        (minRaw is String && minRaw.trim().isNotEmpty) ? minRaw.trim() : latestVersion;
+    final minSupportedVersion = (minRaw is String && minRaw.trim().isNotEmpty)
+        ? minRaw.trim()
+        : latestVersion;
 
     final androidRaw = json['androidUrl'];
-    final androidUrl =
-        (androidRaw is String && androidRaw.trim().isNotEmpty) ? androidRaw.trim() : null;
+    final androidUrl = (androidRaw is String && androidRaw.trim().isNotEmpty)
+        ? androidRaw.trim()
+        : null;
 
     final iosRaw = json['iosUrl'];
-    final iosUrl = (iosRaw is String && iosRaw.trim().isNotEmpty) ? iosRaw.trim() : null;
+    final iosUrl = (iosRaw is String && iosRaw.trim().isNotEmpty)
+        ? iosRaw.trim()
+        : null;
 
     final changelog = <String, List<String>>{};
     final changelogRaw = json['changelog'];
@@ -171,8 +175,10 @@ class UpdateService {
     final storeUrl = config.storeUrlFor(effectivePlatform);
     final notes = config.notesFor(config.latestVersion);
 
-    final belowMin = _compareVersions(currentVersion, config.minSupportedVersion) < 0;
-    final belowLatest = _compareVersions(currentVersion, config.latestVersion) < 0;
+    final belowMin =
+        _compareVersions(currentVersion, config.minSupportedVersion) < 0;
+    final belowLatest =
+        _compareVersions(currentVersion, config.latestVersion) < 0;
 
     UpdateAvailability availability = UpdateAvailability.upToDate;
     if (belowMin || (config.forceUpdate && belowLatest)) {

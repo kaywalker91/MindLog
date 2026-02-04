@@ -63,18 +63,22 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
       }
       state = DiaryAnalysisSuccess(diary);
       final analysisResult = diary.analysisResult;
-      unawaited(AnalyticsService.logDiaryCreated(
-        contentLength: diary.content.length,
-        aiCharacterId: analysisResult?.aiCharacterId,
-      ));
+      unawaited(
+        AnalyticsService.logDiaryCreated(
+          contentLength: diary.content.length,
+          aiCharacterId: analysisResult?.aiCharacterId,
+        ),
+      );
       if (diary.status == DiaryStatus.analyzed && analysisResult != null) {
         final energyLevel =
             analysisResult.energyLevel ?? analysisResult.sentimentScore;
-        unawaited(AnalyticsService.logDiaryAnalyzed(
-          aiCharacterId: analysisResult.aiCharacterId ?? 'default',
-          sentimentScore: analysisResult.sentimentScore,
-          energyLevel: energyLevel,
-        ));
+        unawaited(
+          AnalyticsService.logDiaryAnalyzed(
+            aiCharacterId: analysisResult.aiCharacterId ?? 'default',
+            sentimentScore: analysisResult.sentimentScore,
+            energyLevel: energyLevel,
+          ),
+        );
       }
       if (diary.status == DiaryStatus.analyzed ||
           diary.status == DiaryStatus.safetyBlocked) {
@@ -100,6 +104,9 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
 
 /// 일기 분석 컨트롤러 Provider
 final diaryAnalysisControllerProvider =
-    StateNotifierProvider.autoDispose<DiaryAnalysisNotifier, DiaryAnalysisState>((ref) {
-  return DiaryAnalysisNotifier(ref);
-});
+    StateNotifierProvider.autoDispose<
+      DiaryAnalysisNotifier,
+      DiaryAnalysisState
+    >((ref) {
+      return DiaryAnalysisNotifier(ref);
+    });

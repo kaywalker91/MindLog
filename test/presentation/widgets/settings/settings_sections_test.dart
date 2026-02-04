@@ -22,11 +22,7 @@ void main() {
       return UncontrolledProviderScope(
         container: container,
         child: const MaterialApp(
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: AppInfoSection(),
-            ),
-          ),
+          home: Scaffold(body: SingleChildScrollView(child: AppInfoSection())),
         ),
       );
     }
@@ -37,10 +33,8 @@ void main() {
         container = ProviderContainer(
           overrides: [
             appInfoProvider.overrideWith(
-              (ref) async => const AppVersionInfo(
-                version: '1.4.31',
-                buildNumber: '123',
-              ),
+              (ref) async =>
+                  const AppVersionInfo(version: '1.4.31', buildNumber: '123'),
             ),
           ],
         );
@@ -58,10 +52,8 @@ void main() {
         container = ProviderContainer(
           overrides: [
             appInfoProvider.overrideWith(
-              (ref) async => const AppVersionInfo(
-                version: '1.4.31',
-                buildNumber: '123',
-              ),
+              (ref) async =>
+                  const AppVersionInfo(version: '1.4.31', buildNumber: '123'),
             ),
           ],
         );
@@ -80,10 +72,8 @@ void main() {
         container = ProviderContainer(
           overrides: [
             appInfoProvider.overrideWith(
-              (ref) async => const AppVersionInfo(
-                version: '1.4.31',
-                buildNumber: '123',
-              ),
+              (ref) async =>
+                  const AppVersionInfo(version: '1.4.31', buildNumber: '123'),
             ),
           ],
         );
@@ -101,10 +91,8 @@ void main() {
         container = ProviderContainer(
           overrides: [
             appInfoProvider.overrideWith(
-              (ref) async => const AppVersionInfo(
-                version: '1.4.31',
-                buildNumber: '123',
-              ),
+              (ref) async =>
+                  const AppVersionInfo(version: '1.4.31', buildNumber: '123'),
             ),
           ],
         );
@@ -123,9 +111,7 @@ void main() {
         // Arrange - Completer를 사용하여 로딩 상태 유지
         final completer = Completer<AppVersionInfo>();
         container = ProviderContainer(
-          overrides: [
-            appInfoProvider.overrideWith((ref) => completer.future),
-          ],
+          overrides: [appInfoProvider.overrideWith((ref) => completer.future)],
         );
 
         // Act
@@ -136,7 +122,9 @@ void main() {
         expect(find.text('불러오는 중...'), findsOneWidget);
 
         // 테스트 종료 전 future 완료 (타이머 경고 방지)
-        completer.complete(const AppVersionInfo(version: '1.0.0', buildNumber: '1'));
+        completer.complete(
+          const AppVersionInfo(version: '1.0.0', buildNumber: '1'),
+        );
         await tester.pumpAndSettle();
       });
 
@@ -165,10 +153,8 @@ void main() {
         container = ProviderContainer(
           overrides: [
             appInfoProvider.overrideWith(
-              (ref) async => const AppVersionInfo(
-                version: '1.4.31',
-                buildNumber: '123',
-              ),
+              (ref) async =>
+                  const AppVersionInfo(version: '1.4.31', buildNumber: '123'),
             ),
           ],
         );
@@ -217,9 +203,7 @@ void main() {
           container: container,
           child: const MaterialApp(
             home: Scaffold(
-              body: SingleChildScrollView(
-                child: EmotionCareSection(),
-              ),
+              body: SingleChildScrollView(child: EmotionCareSection()),
             ),
           ),
         ),
@@ -242,9 +226,7 @@ void main() {
           container: container,
           child: const MaterialApp(
             home: Scaffold(
-              body: SingleChildScrollView(
-                child: EmotionCareSection(),
-              ),
+              body: SingleChildScrollView(child: EmotionCareSection()),
             ),
           ),
         ),
@@ -276,7 +258,9 @@ void main() {
 
     testWidgets('알림 섹션이 렌더링되어야 한다', (tester) async {
       // Arrange
-      mockSettingsRepo.setMockNotificationSettings(NotificationSettings.defaults());
+      mockSettingsRepo.setMockNotificationSettings(
+        NotificationSettings.defaults(),
+      );
 
       // Act
       await tester.pumpWidget(
@@ -284,9 +268,7 @@ void main() {
           container: container,
           child: const MaterialApp(
             home: Scaffold(
-              body: SingleChildScrollView(
-                child: NotificationSection(),
-              ),
+              body: SingleChildScrollView(child: NotificationSection()),
             ),
           ),
         ),
@@ -303,12 +285,14 @@ void main() {
 
     testWidgets('리마인더 토글 상태가 올바르게 표시되어야 한다', (tester) async {
       // Arrange - 리마인더 비활성화 상태
-      mockSettingsRepo.setMockNotificationSettings(const NotificationSettings(
-        isReminderEnabled: false,
-        reminderHour: 21,
-        reminderMinute: 0,
-        isMindcareTopicEnabled: false,
-      ));
+      mockSettingsRepo.setMockNotificationSettings(
+        const NotificationSettings(
+          isReminderEnabled: false,
+          reminderHour: 21,
+          reminderMinute: 0,
+          isMindcareTopicEnabled: false,
+        ),
+      );
 
       // Act
       await tester.pumpWidget(
@@ -316,9 +300,7 @@ void main() {
           container: container,
           child: const MaterialApp(
             home: Scaffold(
-              body: SingleChildScrollView(
-                child: NotificationSection(),
-              ),
+              body: SingleChildScrollView(child: NotificationSection()),
             ),
           ),
         ),
@@ -339,9 +321,7 @@ void main() {
     setUp(() {
       mockDiaryRepo = MockDiaryRepository();
       container = ProviderContainer(
-        overrides: [
-          diaryRepositoryProvider.overrideWithValue(mockDiaryRepo),
-        ],
+        overrides: [diaryRepositoryProvider.overrideWithValue(mockDiaryRepo)],
       );
     });
 
@@ -356,9 +336,7 @@ void main() {
           container: container,
           child: const MaterialApp(
             home: Scaffold(
-              body: SingleChildScrollView(
-                child: DataManagementSection(),
-              ),
+              body: SingleChildScrollView(child: DataManagementSection()),
             ),
           ),
         ),
@@ -377,9 +355,7 @@ void main() {
           container: container,
           child: const MaterialApp(
             home: Scaffold(
-              body: SingleChildScrollView(
-                child: DataManagementSection(),
-              ),
+              body: SingleChildScrollView(child: DataManagementSection()),
             ),
           ),
         ),
@@ -402,11 +378,7 @@ void main() {
       // Act
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: SupportSection(),
-            ),
-          ),
+          home: Scaffold(body: SingleChildScrollView(child: SupportSection())),
         ),
       );
 
@@ -420,11 +392,7 @@ void main() {
       // Act
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: SingleChildScrollView(
-              child: SupportSection(),
-            ),
-          ),
+          home: Scaffold(body: SingleChildScrollView(child: SupportSection())),
         ),
       );
 

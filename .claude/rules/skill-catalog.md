@@ -20,6 +20,27 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 | `/suppress-pattern [entity] [duration]` | `suppress-pattern.md` | Time-based suppression (24h, 7d, etc) |
 | `/periodic-timer [name] [interval]` | `periodic-timer.md` | Periodic background task with cleanup |
 
+## Mental Health & Safety Commands (NEW)
+
+| Command | Skill File | Purpose |
+|---------|-----------|---------|
+| `/crisis-check [action]` | `crisis-detection.md` | 위기 감지 및 안전 개입 프로토콜 (P0 Critical) |
+| `/emotion-analyze [action]` | `emotion-analyze.md` | 감정 분석 심화 및 Mental Health 패턴 |
+
+## Flutter Advanced Commands (NEW)
+
+| Command | Skill File | Purpose |
+|---------|-----------|---------|
+| `/flutter-advanced [action]` | `flutter-advanced.md` | Riverpod 심화 패턴 및 성능 최적화 |
+| `/ui-dark-mode [action]` | `ui-dark-mode.md` | Dark Theme 최적화 및 디자인 시스템 |
+
+## AI & Optimization Commands (NEW)
+
+| Command | Skill File | Purpose |
+|---------|-----------|---------|
+| `/prompt-opt [action]` | `prompt-optimization.md` | LLM 프롬프트 체계적 최적화 |
+| `/db-migrate-validate [action]` | `db-migration-validator.md` | SQLite 마이그레이션 검증 자동화 |
+
 ## Quality & Refactoring Commands
 
 | Command | Skill File | Purpose |
@@ -67,16 +88,22 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 - **New feature (auto)**: `/feature-pipeline [name]` (위 워크플로우 자동화)
 - **Release**: `/lint-fix` -> `/review` -> `/version-bump` -> `/changelog`
 - **AI improvement**: `/groq analyze-prompt` -> `/groq optimize-tokens`
+- **AI prompt optimization (NEW)**: `/prompt-opt analyze` -> `/prompt-opt compress` -> `/prompt-opt validate`
 - **DB change**: `/db add-column` -> `/db schema-report` -> `/test-unit-gen`
+- **DB migration (NEW)**: `/db-migrate-validate validate` -> `/db-migrate-validate dry-run` -> `flutter test`
 - **Refactoring**: `/arch-check` -> `/provider-centralize` -> `/refactor-plan` -> `/widget-decompose`
 - **Refactoring (swarm)**: `/refactor-plan` -> `/swarm-refactor [scope] [strategy]`
 - **Widget decompose**: `/widget-decompose [file]` -> `/barrel-export-gen [dir]` -> `/riverpod-widget-test-gen [file]`
 - **Color migration**: `/color-migrate [file]` -> `/lint-fix` -> `flutter test`
+- **Dark mode audit (NEW)**: `/ui-dark-mode audit-theme` -> `/ui-dark-mode migrate-colors` -> `flutter test`
 - **Provider audit**: `/provider-invalidation-audit` -> `/provider-invalidate-chain [trigger]` -> 코드 적용
+- **Provider optimization (NEW)**: `/flutter-advanced audit-providers` -> `/flutter-advanced optimize-rebuilds`
 - **Provider ref fix**: `/provider-ref-fix --dry-run` -> `/provider-ref-fix [path]` -> `flutter test`
 - **DB recovery defense**: `/defensive-recovery-gen [trigger]` -> 코드 적용 -> 디바이스 테스트
 - **DB recovery test**: `/db-state-recovery verify` -> `/db-state-recovery test-gen` -> `/db-state-recovery checklist`
 - **Deep review**: `/swarm-review [path]` (보안+성능+아키텍처 병렬)
+- **Safety audit (NEW)**: `/crisis-check audit` -> `/crisis-check validate-prompt` -> `/crisis-check test-scenarios`
+- **Emotion analysis (NEW)**: `/emotion-analyze audit-accuracy` -> `/emotion-analyze enhance-categories` -> `/emotion-analyze test-sentiment`
 - **CD troubleshoot**: `/fastlane-audit` -> `/cd-diagnose [run_id]` -> 수정 -> 재배포
 - **Session end**: `/session-wrap` -> `/til-save [topic]` (TIL 메모리화)
 - **Parallel development**: `/parallel-dev [task]` (탐색+구현+검증 병렬)

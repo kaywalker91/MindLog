@@ -5,10 +5,7 @@ import '../../../core/theme/app_colors.dart';
 class UpdateHeader extends StatelessWidget {
   final bool isRequired;
 
-  const UpdateHeader({
-    super.key,
-    required this.isRequired,
-  });
+  const UpdateHeader({super.key, required this.isRequired});
 
   @override
   Widget build(BuildContext context) {
@@ -66,16 +63,15 @@ class UpdateHeader extends StatelessWidget {
                       _buildChip(
                         theme,
                         '필수',
-                        backgroundColor:
-                            theme.colorScheme.onPrimary.withValues(alpha: 0.22),
+                        backgroundColor: theme.colorScheme.onPrimary.withValues(
+                          alpha: 0.22,
+                        ),
                       ),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  isRequired
-                      ? '최신 버전으로 업데이트가 필요해요.'
-                      : '새 버전이 준비되었어요.',
+                  isRequired ? '최신 버전으로 업데이트가 필요해요.' : '새 버전이 준비되었어요.',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onPrimary.withValues(alpha: 0.9),
                   ),
@@ -90,8 +86,11 @@ class UpdateHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildChip(ThemeData theme, String text,
-      {required Color backgroundColor}) {
+  Widget _buildChip(
+    ThemeData theme,
+    String text, {
+    required Color backgroundColor,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(

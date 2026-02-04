@@ -9,10 +9,7 @@ class EmotionCategoryDto {
   /// 2차 감정 (세부 감정)
   final String secondary;
 
-  const EmotionCategoryDto({
-    required this.primary,
-    required this.secondary,
-  });
+  const EmotionCategoryDto({required this.primary, required this.secondary});
 
   factory EmotionCategoryDto.fromJson(Map<String, dynamic> json) {
     return EmotionCategoryDto(
@@ -21,15 +18,10 @@ class EmotionCategoryDto {
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'primary': primary,
-        'secondary': secondary,
-      };
+  Map<String, dynamic> toJson() => {'primary': primary, 'secondary': secondary};
 
-  EmotionCategory toEntity() => EmotionCategory(
-        primary: primary,
-        secondary: secondary,
-      );
+  EmotionCategory toEntity() =>
+      EmotionCategory(primary: primary, secondary: secondary);
 }
 
 /// 감정 유발 요인 DTO
@@ -40,10 +32,7 @@ class EmotionTriggerDto {
   /// 간단한 설명
   final String description;
 
-  const EmotionTriggerDto({
-    required this.category,
-    required this.description,
-  });
+  const EmotionTriggerDto({required this.category, required this.description});
 
   factory EmotionTriggerDto.fromJson(Map<String, dynamic> json) {
     return EmotionTriggerDto(
@@ -53,14 +42,12 @@ class EmotionTriggerDto {
   }
 
   Map<String, dynamic> toJson() => {
-        'category': category,
-        'description': description,
-      };
+    'category': category,
+    'description': description,
+  };
 
-  EmotionTrigger toEntity() => EmotionTrigger(
-        category: category,
-        description: description,
-      );
+  EmotionTrigger toEntity() =>
+      EmotionTrigger(category: category, description: description);
 }
 
 /// AI 분석 응답 DTO
@@ -112,7 +99,7 @@ class AnalysisResponseDto {
     // actionItems 파싱 (새 필드)
     List<String> parsedActionItems = [];
     final rawActionItems = json['action_items'];
-    
+
     if (rawActionItems != null) {
       if (rawActionItems is List) {
         // 정상적인 배열인 경우
@@ -152,11 +139,13 @@ class AnalysisResponseDto {
       isEmergency: json['is_emergency'] as bool? ?? false,
       emotionCategory: json['emotion_category'] != null
           ? EmotionCategoryDto.fromJson(
-              json['emotion_category'] as Map<String, dynamic>)
+              json['emotion_category'] as Map<String, dynamic>,
+            )
           : null,
       emotionTrigger: json['emotion_trigger'] != null
           ? EmotionTriggerDto.fromJson(
-              json['emotion_trigger'] as Map<String, dynamic>)
+              json['emotion_trigger'] as Map<String, dynamic>,
+            )
           : null,
       energyLevel: json['energy_level'] as int?,
       cognitivePattern: json['cognitive_pattern'] as String?,
@@ -171,7 +160,8 @@ class AnalysisResponseDto {
       'action_item': actionItem,
       'action_items': actionItems,
       'is_emergency': isEmergency,
-      if (emotionCategory != null) 'emotion_category': emotionCategory!.toJson(),
+      if (emotionCategory != null)
+        'emotion_category': emotionCategory!.toJson(),
       if (emotionTrigger != null) 'emotion_trigger': emotionTrigger!.toJson(),
       if (energyLevel != null) 'energy_level': energyLevel,
       if (cognitivePattern != null) 'cognitive_pattern': cognitivePattern,

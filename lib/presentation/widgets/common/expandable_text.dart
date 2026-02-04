@@ -5,6 +5,9 @@ import '../../../core/theme/app_colors.dart';
 ///
 /// 긴 텍스트를 기본적으로 [collapsedMaxLines]줄로 접어두고,
 /// "더 보기" 버튼으로 전체 내용을 펼칠 수 있음.
+///
+/// [showGradientFade]가 true이면 텍스트 하단에 그라데이션 페이드 효과를 적용하여
+/// 텍스트가 축약되었음을 시각적으로 명확하게 표시합니다.
 class ExpandableText extends StatefulWidget {
   final String text;
   final int collapsedMaxLines;
@@ -12,6 +15,9 @@ class ExpandableText extends StatefulWidget {
   final TextAlign textAlign;
   final String expandText;
   final String collapseText;
+
+  /// 축약 상태에서 텍스트 하단에 그라데이션 페이드 효과를 표시할지 여부
+  final bool showGradientFade;
 
   const ExpandableText({
     super.key,
@@ -21,6 +27,7 @@ class ExpandableText extends StatefulWidget {
     this.textAlign = TextAlign.start,
     this.expandText = '더 보기',
     this.collapseText = '접기',
+    this.showGradientFade = true,
   });
 
   @override
@@ -36,8 +43,9 @@ class _ExpandableTextState extends State<ExpandableText> {
 
     // Reduced Motion 접근성 지원
     final reduceMotion = MediaQuery.of(context).disableAnimations;
-    final animationDuration =
-        reduceMotion ? Duration.zero : const Duration(milliseconds: 200);
+    final animationDuration = reduceMotion
+        ? Duration.zero
+        : const Duration(milliseconds: 200);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -53,6 +61,9 @@ class _ExpandableTextState extends State<ExpandableText> {
 
         final hasOverflow = textPainter.didExceedMaxLines;
 
+        // 그라데이션 페이드용 색상 (테마 기반)
+        final fadeColor = Theme.of(context).colorScheme.surface;
+
         return Column(
           crossAxisAlignment: _getCrossAxisAlignment(),
           children: [
@@ -61,12 +72,10 @@ class _ExpandableTextState extends State<ExpandableText> {
               crossFadeState: _isExpanded
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,
-              firstChild: Text(
-                widget.text,
-                style: effectiveStyle,
-                textAlign: widget.textAlign,
-                maxLines: widget.collapsedMaxLines,
-                overflow: TextOverflow.ellipsis,
+              firstChild: _buildCollapsedText(
+                effectiveStyle,
+                hasOverflow,
+                fadeColor,
               ),
               secondChild: Text(
                 widget.text,
@@ -76,22 +85,74 @@ class _ExpandableTextState extends State<ExpandableText> {
             ),
             if (hasOverflow)
               Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: GestureDetector(
-                  onTap: () => setState(() => _isExpanded = !_isExpanded),
-                  child: Text(
+                padding: const EdgeInsets.only(top: 8),
+                child: TextButton.icon(
+                  onPressed: () => setState(() => _isExpanded = !_isExpanded),
+                  icon: Icon(
+                    _isExpanded ? Icons.expand_less : Icons.expand_more,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+                  label: Text(
                     _isExpanded ? widget.collapseText : widget.expandText,
                     style: const TextStyle(
                       fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.primary,
                     ),
+                  ),
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(44, 44),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.08),
                   ),
                 ),
               ),
           ],
         );
       },
+    );
+  }
+
+  /// 축약된 텍스트 위젯 빌드 (그라데이션 페이드 옵션 포함)
+  Widget _buildCollapsedText(
+    TextStyle effectiveStyle,
+    bool hasOverflow,
+    Color fadeColor,
+  ) {
+    final textWidget = Text(
+      widget.text,
+      style: effectiveStyle,
+      textAlign: widget.textAlign,
+      maxLines: widget.collapsedMaxLines,
+      overflow: TextOverflow.ellipsis,
+    );
+
+    // 그라데이션 페이드가 비활성화되거나 오버플로우가 없으면 그냥 텍스트 반환
+    if (!widget.showGradientFade || !hasOverflow) {
+      return textWidget;
+    }
+
+    // 그라데이션 페이드 효과 적용
+    return ShaderMask(
+      shaderCallback: (bounds) => LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Colors.white,
+          Colors.white,
+          Colors.white.withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.7, 1.0],
+      ).createShader(bounds),
+      blendMode: BlendMode.dstIn,
+      child: textWidget,
     );
   }
 

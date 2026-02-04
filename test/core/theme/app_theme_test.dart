@@ -200,7 +200,10 @@ void main() {
 
       test('두 테마는 같은 primaryColor seed를 사용해야 한다', () {
         // 둘 다 같은 seed color를 사용하므로 primary 계열이 유사해야 함
-        expect(AppTheme.lightTheme.useMaterial3, AppTheme.darkTheme.useMaterial3);
+        expect(
+          AppTheme.lightTheme.useMaterial3,
+          AppTheme.darkTheme.useMaterial3,
+        );
       });
 
       test('AppBar 배경색이 달라야 한다', () {

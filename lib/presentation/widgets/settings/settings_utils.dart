@@ -19,9 +19,7 @@ String formatTimeLabel(BuildContext context, int hour, int minute) {
 
 /// SnackBar 표시 유틸리티
 void showSnackBar(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(message)),
-  );
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 }
 
 /// 외부 URL 열기 (이메일, Play Store 등)
@@ -31,19 +29,16 @@ Future<bool> launchExternalUrl(String url, [BuildContext? context]) async {
   final uri = Uri.tryParse(url);
   if (uri == null) {
     if (context != null && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('잘못된 URL 형식입니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('잘못된 URL 형식입니다.')));
     }
     return false;
   }
 
   try {
     // 1차 시도: 외부 앱으로 직접 열기
-    var launched = await launchUrl(
-      uri,
-      mode: LaunchMode.externalApplication,
-    );
+    var launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
 
     // 2차 시도: 브라우저 외 외부 앱
     if (!launched) {
@@ -60,17 +55,15 @@ Future<bool> launchExternalUrl(String url, [BuildContext? context]) async {
 
     if (!launched && context != null && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('링크를 열 수 없습니다. Play Store에서 직접 검색해주세요.'),
-        ),
+        const SnackBar(content: Text('링크를 열 수 없습니다. Play Store에서 직접 검색해주세요.')),
       );
     }
     return launched;
   } catch (e) {
     if (context != null && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('링크 열기 실패: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('링크 열기 실패: $e')));
     }
     return false;
   }

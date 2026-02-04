@@ -42,9 +42,10 @@ class _DayCellState extends State<DayCell> with SingleTickerProviderStateMixin {
       vsync: this,
       duration: const Duration(milliseconds: 100),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -78,19 +79,16 @@ class _DayCellState extends State<DayCell> with SingleTickerProviderStateMixin {
             : bgColor.withValues(alpha: opacity),
         borderRadius: BorderRadius.circular(8),
         border: widget.isToday
-            ? Border.all(
-                color: AppColors.statsPrimary,
-                width: 2,
-              )
+            ? Border.all(color: AppColors.statsPrimary, width: 2)
             : hasRecord && widget.isCurrentMonth && !widget.isFuture
-                ? Border.all(
-                    color: AppColors.statsAccentMint.withValues(alpha: 0.4),
-                    width: 0.8,
-                  )
-                : Border.all(
-                    color: AppColors.gardenSoilBorder.withValues(alpha: opacity),
-                    width: 0.6,
-                  ),
+            ? Border.all(
+                color: AppColors.statsAccentMint.withValues(alpha: 0.4),
+                width: 0.8,
+              )
+            : Border.all(
+                color: AppColors.gardenSoilBorder.withValues(alpha: opacity),
+                width: 0.6,
+              ),
         // 기록 있는 셀에 Glow 효과
         boxShadow: hasRecord && widget.isCurrentMonth && !widget.isFuture
             ? [
@@ -101,14 +99,14 @@ class _DayCellState extends State<DayCell> with SingleTickerProviderStateMixin {
                 ),
               ]
             : isTodayNoRecord
-                ? [
-                    BoxShadow(
-                      color: AppColors.todayGlow.withValues(alpha: 0.4),
-                      blurRadius: 6,
-                      spreadRadius: 0,
-                    ),
-                  ]
-                : null,
+            ? [
+                BoxShadow(
+                  color: AppColors.todayGlow.withValues(alpha: 0.4),
+                  blurRadius: 6,
+                  spreadRadius: 0,
+                ),
+              ]
+            : null,
       ),
       child: FittedBox(
         fit: BoxFit.scaleDown,
@@ -123,19 +121,15 @@ class _DayCellState extends State<DayCell> with SingleTickerProviderStateMixin {
                 style: TextStyle(
                   color: _getDateTextColor().withValues(alpha: textOpacity),
                   fontSize: widget.dateFontSize,
-                  fontWeight: widget.isToday ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: widget.isToday
+                      ? FontWeight.bold
+                      : FontWeight.normal,
                 ),
               ),
               if (hasRecord && widget.isCurrentMonth && !widget.isFuture) ...[
-                Text(
-                  emoji,
-                  style: TextStyle(fontSize: widget.emojiSize),
-                ),
+                Text(emoji, style: TextStyle(fontSize: widget.emojiSize)),
               ] else if (isTodayNoRecord) ...[
-                Text(
-                  '✨',
-                  style: TextStyle(fontSize: widget.emojiSize - 2),
-                ),
+                Text('✨', style: TextStyle(fontSize: widget.emojiSize - 2)),
               ],
             ],
           ),
@@ -165,10 +159,7 @@ class _DayCellState extends State<DayCell> with SingleTickerProviderStateMixin {
           color: AppColors.statsTextPrimary,
           borderRadius: BorderRadius.circular(8),
         ),
-        textStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-        ),
+        textStyle: const TextStyle(color: Colors.white, fontSize: 12),
         child: GestureDetector(
           onTapDown: reduceMotion ? null : (_) => _controller.forward(),
           onTapUp: reduceMotion

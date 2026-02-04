@@ -72,8 +72,12 @@ void main() {
       // Arrange & Act - 3개의 일기 작성
       final analyzeUseCase = container.read(analyzeDiaryUseCaseProvider);
 
-      final diary1 = await analyzeUseCase.execute('첫 번째 일기입니다. 오늘 날씨가 정말 좋았어요.');
-      final diary2 = await analyzeUseCase.execute('두 번째 일기입니다. 친구를 만나서 즐거웠습니다.');
+      final diary1 = await analyzeUseCase.execute(
+        '첫 번째 일기입니다. 오늘 날씨가 정말 좋았어요.',
+      );
+      final diary2 = await analyzeUseCase.execute(
+        '두 번째 일기입니다. 친구를 만나서 즐거웠습니다.',
+      );
       final diary3 = await analyzeUseCase.execute('세 번째 일기입니다. 맛있는 저녁을 먹었어요.');
 
       // Mock에 작성된 일기들 추가 (실제 앱에서는 Repository가 자동 관리)
@@ -138,7 +142,10 @@ void main() {
 
       // Assert - 안전 필터링된 일기도 목록에 포함
       expect(diaries.any((d) => d.id == diary.id), true);
-      expect(diaries.firstWhere((d) => d.id == diary.id).status, DiaryStatus.safetyBlocked);
+      expect(
+        diaries.firstWhere((d) => d.id == diary.id).status,
+        DiaryStatus.safetyBlocked,
+      );
     });
   });
 
@@ -182,7 +189,9 @@ void main() {
   group('ValidateDiaryContentUseCase 단독 검증', () {
     test('UI 실시간 유효성 검사 시 예외 없이 결과를 반환해야 한다', () {
       // Arrange
-      final validateUseCase = container.read(validateDiaryContentUseCaseProvider);
+      final validateUseCase = container.read(
+        validateDiaryContentUseCaseProvider,
+      );
 
       // Act - validate() 메서드는 예외를 던지지 않음
       final emptyResult = validateUseCase.validate('');
@@ -279,7 +288,9 @@ void main() {
       // 에러 복구 후 다시 시도
       mockDiaryRepository.shouldThrowOnGet = false;
       await container.read(diaryListControllerProvider.notifier).refresh();
-      final recoveredDiaries = await container.read(diaryListControllerProvider.future);
+      final recoveredDiaries = await container.read(
+        diaryListControllerProvider.future,
+      );
 
       // Assert - 모든 일기 복구
       expect(recoveredDiaries.length, 7);
@@ -291,9 +302,15 @@ void main() {
       // Arrange
       final now = DateTime.now();
       mockDiaryRepository.diaries = [
-        DiaryFixtures.analyzed(id: 'old', createdAt: now.subtract(const Duration(days: 2))),
+        DiaryFixtures.analyzed(
+          id: 'old',
+          createdAt: now.subtract(const Duration(days: 2)),
+        ),
         DiaryFixtures.analyzed(id: 'newest', createdAt: now),
-        DiaryFixtures.analyzed(id: 'middle', createdAt: now.subtract(const Duration(days: 1))),
+        DiaryFixtures.analyzed(
+          id: 'middle',
+          createdAt: now.subtract(const Duration(days: 1)),
+        ),
       ];
 
       // Act

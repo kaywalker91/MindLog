@@ -14,7 +14,8 @@ void main() {
         'latestVersion': '1.5.0',
         'minSupportedVersion': '1.2.0',
         'forceUpdate': false,
-        'androidUrl': 'https://play.google.com/store/apps/details?id=com.example',
+        'androidUrl':
+            'https://play.google.com/store/apps/details?id=com.example',
         'iosUrl': 'https://apps.apple.com/app/id123456',
         'changelog': {
           '1.5.0': ['새로운 기능 추가', '버그 수정'],
@@ -29,17 +30,17 @@ void main() {
       expect(config.latestVersion, '1.5.0');
       expect(config.minSupportedVersion, '1.2.0');
       expect(config.forceUpdate, false);
-      expect(config.androidUrl, 'https://play.google.com/store/apps/details?id=com.example');
+      expect(
+        config.androidUrl,
+        'https://play.google.com/store/apps/details?id=com.example',
+      );
       expect(config.iosUrl, 'https://apps.apple.com/app/id123456');
       expect(config.changelog['1.5.0'], ['새로운 기능 추가', '버그 수정']);
     });
 
     test('fromJson은 minSupportedVersion 누락 시 latestVersion을 사용한다', () {
       // Given
-      final json = {
-        'latestVersion': '1.5.0',
-        'forceUpdate': false,
-      };
+      final json = {'latestVersion': '1.5.0', 'forceUpdate': false};
 
       // When
       final config = UpdateConfig.fromJson(json);
@@ -61,10 +62,7 @@ void main() {
 
     test('fromJson은 빈 latestVersion에 대해 예외를 던진다', () {
       // Given
-      final json = {
-        'latestVersion': '   ',
-        'forceUpdate': false,
-      };
+      final json = {'latestVersion': '   ', 'forceUpdate': false};
 
       // When & Then
       expect(
@@ -236,10 +234,7 @@ void main() {
           'minSupportedVersion': '1.0',
         });
 
-        final result = service.evaluate(
-          currentVersion: '1.0',
-          config: config,
-        );
+        final result = service.evaluate(currentVersion: '1.0', config: config);
 
         expect(result.availability, UpdateAvailability.upToDate);
       });
@@ -275,9 +270,7 @@ void main() {
               'forceUpdate': false,
             }),
             200,
-            headers: {
-              'content-type': 'application/json; charset=utf-8',
-            },
+            headers: {'content-type': 'application/json; charset=utf-8'},
           );
         });
 
@@ -331,9 +324,7 @@ void main() {
               },
             }),
             200,
-            headers: {
-              'content-type': 'application/json; charset=utf-8',
-            },
+            headers: {'content-type': 'application/json; charset=utf-8'},
           );
         });
 

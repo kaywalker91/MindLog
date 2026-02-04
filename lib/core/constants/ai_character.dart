@@ -1,8 +1,4 @@
-enum AiCharacter {
-  warmCounselor,
-  realisticCoach,
-  cheerfulFriend,
-}
+enum AiCharacter { warmCounselor, realisticCoach, cheerfulFriend }
 
 extension AiCharacterMetadata on AiCharacter {
   String get id {
@@ -39,9 +35,12 @@ extension AiCharacterMetadata on AiCharacter {
 
   String get imagePath {
     return switch (this) {
-      AiCharacter.warmCounselor => 'assets/images/characters/warm_counselor.png',
-      AiCharacter.realisticCoach => 'assets/images/characters/realistic_coach.png',
-      AiCharacter.cheerfulFriend => 'assets/images/characters/cheerful_friend.png',
+      AiCharacter.warmCounselor =>
+        'assets/images/characters/warm_counselor.png',
+      AiCharacter.realisticCoach =>
+        'assets/images/characters/realistic_coach.png',
+      AiCharacter.cheerfulFriend =>
+        'assets/images/characters/cheerful_friend.png',
     };
   }
 }

@@ -7,11 +7,7 @@ void main() {
   group('MindcareWelcomeDialog', () {
     testWidgets('renders correctly with all UI elements', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: MindcareWelcomeDialog(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: MindcareWelcomeDialog())),
       );
 
       // 제목 확인
@@ -76,11 +72,7 @@ void main() {
         ],
       );
 
-      await tester.pumpWidget(
-        MaterialApp.router(
-          routerConfig: router,
-        ),
-      );
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
 
       // 다이얼로그 표시
       await tester.tap(find.text('Show Dialog'));
@@ -99,11 +91,7 @@ void main() {
 
     testWidgets('has correct visual elements', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: MindcareWelcomeDialog(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: MindcareWelcomeDialog())),
       );
 
       // 저녁 아이콘 확인 (정보 행)
@@ -146,9 +134,7 @@ void main() {
         MaterialApp(
           themeMode: ThemeMode.dark,
           darkTheme: ThemeData.dark(useMaterial3: true),
-          home: const Scaffold(
-            body: MindcareWelcomeDialog(),
-          ),
+          home: const Scaffold(body: MindcareWelcomeDialog()),
         ),
       );
 

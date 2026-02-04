@@ -31,7 +31,7 @@ class AppRoutes {
 }
 
 /// AppRouter 설정
-/// 
+///
 /// go_router를 사용한 선언적 라우팅 시스템
 class AppRouter {
   AppRouter._();
@@ -46,7 +46,7 @@ class AppRouter {
 
     // 에러 페이지
     errorBuilder: (context, state) => _ErrorPage(error: state.error),
-    
+
     routes: [
       // 스플래시 화면
       GoRoute(
@@ -68,14 +68,14 @@ class AppRouter {
         name: 'home',
         builder: (context, state) => const MainScreen(),
       ),
-      
+
       // 새 일기 작성
       GoRoute(
         path: AppRoutes.diaryNew,
         name: 'diaryNew',
         builder: (context, state) => const DiaryScreen(),
       ),
-      
+
       // 일기 상세 보기
       GoRoute(
         path: AppRoutes.diaryDetail,
@@ -85,35 +85,33 @@ class AppRouter {
           final diary = state.extra as Diary?;
           if (diary == null) {
             // ID로 찾아야 하는 경우 (딥링크 등)
-            return _ErrorPage(
-              error: GoException('일기를 찾을 수 없습니다.'),
-            );
+            return _ErrorPage(error: GoException('일기를 찾을 수 없습니다.'));
           }
           return DiaryDetailScreen(diary: diary);
         },
       ),
-      
+
       // 통계 화면
       GoRoute(
         path: AppRoutes.statistics,
         name: 'statistics',
         builder: (context, state) => const StatisticsScreen(),
       ),
-      
+
       // 설정 화면
       GoRoute(
         path: AppRoutes.settings,
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
       ),
-      
+
       // 개인정보 처리방침
       GoRoute(
         path: AppRoutes.privacyPolicy,
         name: 'privacyPolicy',
         builder: (context, state) => const PrivacyPolicyScreen(),
       ),
-      
+
       // 변경사항
       GoRoute(
         path: AppRoutes.changelog,
@@ -121,10 +119,7 @@ class AppRouter {
         builder: (context, state) {
           final version = state.uri.queryParameters['version'] ?? '';
           final buildNumber = state.uri.queryParameters['build'];
-          return ChangelogScreen(
-            version: version,
-            buildNumber: buildNumber,
-          );
+          return ChangelogScreen(version: version, buildNumber: buildNumber);
         },
       ),
     ],
@@ -144,20 +139,14 @@ class _ErrorPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('페이지를 찾을 수 없습니다'),
-      ),
+      appBar: AppBar(title: const Text('페이지를 찾을 수 없습니다')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: colorScheme.error,
-              ),
+              Icon(Icons.error_outline, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
               Text(
                 '요청하신 페이지를 찾을 수 없습니다',
@@ -201,9 +190,9 @@ extension AppRouterExtension on BuildContext {
 
   /// 일기 상세 화면으로 이동
   void goDiaryDetail(Diary diary) => push(
-        AppRoutes.diaryDetail.replaceFirst(':id', diary.id.toString()),
-        extra: diary,
-      );
+    AppRoutes.diaryDetail.replaceFirst(':id', diary.id.toString()),
+    extra: diary,
+  );
 
   /// 통계 화면으로 이동 (push - 뒤로가기 지원)
   void pushStatistics() => push(AppRoutes.statistics);

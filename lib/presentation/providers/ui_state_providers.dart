@@ -11,5 +11,6 @@ import '../../domain/entities/statistics.dart';
 final selectedTabIndexProvider = StateProvider<int>((ref) => 0);
 
 /// 통계 화면 기간 선택 Provider
-final selectedStatisticsPeriodProvider =
-    StateProvider<StatisticsPeriod>((ref) => StatisticsPeriod.week);
+final selectedStatisticsPeriodProvider = StateProvider<StatisticsPeriod>(
+  (ref) => StatisticsPeriod.week,
+);

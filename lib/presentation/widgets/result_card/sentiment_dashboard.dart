@@ -121,7 +121,9 @@ class SentimentDashboard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             '오늘의 마음 온도: ${score * 10}°C',
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           const SizedBox(height: 24),
           _buildGaugeBar(context, color),
@@ -186,10 +188,10 @@ class SentimentDashboard extends StatelessWidget {
           );
     } else {
       animatedEmoji = emojiWidget.animate().scale(
-            duration: config.scaleDuration,
-            curve: config.scaleCurve,
-            begin: Offset(config.scaleBegin, config.scaleBegin),
-          );
+        duration: config.scaleDuration,
+        curve: config.scaleCurve,
+        begin: Offset(config.scaleBegin, config.scaleBegin),
+      );
     }
 
     return Semantics(
@@ -258,7 +260,9 @@ class SentimentDashboard extends StatelessWidget {
                 .then(delay: 200.ms)
                 .shimmer(
                   duration: 1500.ms,
-                  color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.35),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onPrimary.withValues(alpha: 0.35),
                 );
           },
         ),

@@ -21,10 +21,12 @@ class InAppUpdateService {
     try {
       final info = await InAppUpdate.checkForUpdate();
       if (kDebugMode) {
-        debugPrint('[InAppUpdateService] Update available: '
-            'updateAvailability=${info.updateAvailability}, '
-            'immediateAllowed=${info.immediateUpdateAllowed}, '
-            'flexibleAllowed=${info.flexibleUpdateAllowed}');
+        debugPrint(
+          '[InAppUpdateService] Update available: '
+          'updateAvailability=${info.updateAvailability}, '
+          'immediateAllowed=${info.immediateUpdateAllowed}, '
+          'flexibleAllowed=${info.flexibleUpdateAllowed}',
+        );
       }
       return info;
     } catch (e) {

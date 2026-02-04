@@ -35,10 +35,7 @@ class VersionTrailing extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
-        Icon(
-          Icons.chevron_right,
-          color: colorScheme.outline,
-        ),
+        Icon(Icons.chevron_right, color: colorScheme.outline),
       ],
     );
   }
@@ -49,16 +46,14 @@ class TimeTrailing extends StatelessWidget {
   final String label;
   final bool enabled;
 
-  const TimeTrailing({
-    super.key,
-    required this.label,
-    required this.enabled,
-  });
+  const TimeTrailing({super.key, required this.label, required this.enabled});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textColor = enabled ? colorScheme.onSurfaceVariant : colorScheme.outline;
+    final textColor = enabled
+        ? colorScheme.onSurfaceVariant
+        : colorScheme.outline;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -66,16 +61,13 @@ class TimeTrailing extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: textColor,
-                fontWeight: FontWeight.w600,
-              ),
+            color: textColor,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         if (enabled) ...[
           const SizedBox(width: 4),
-          Icon(
-            Icons.chevron_right,
-            color: colorScheme.outline,
-          ),
+          Icon(Icons.chevron_right, color: colorScheme.outline),
         ],
       ],
     );
@@ -86,10 +78,7 @@ class TimeTrailing extends StatelessWidget {
 class AiCharacterTrailing extends StatelessWidget {
   final String label;
 
-  const AiCharacterTrailing({
-    super.key,
-    required this.label,
-  });
+  const AiCharacterTrailing({super.key, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -101,15 +90,12 @@ class AiCharacterTrailing extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
+            color: colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(width: 4),
-        Icon(
-          Icons.chevron_right,
-          color: colorScheme.outline,
-        ),
+        Icon(Icons.chevron_right, color: colorScheme.outline),
       ],
     );
   }
@@ -119,10 +105,7 @@ class AiCharacterTrailing extends StatelessWidget {
 class UserNameTrailing extends StatelessWidget {
   final String? userName;
 
-  const UserNameTrailing({
-    super.key,
-    this.userName,
-  });
+  const UserNameTrailing({super.key, this.userName});
 
   @override
   Widget build(BuildContext context) {
@@ -135,17 +118,14 @@ class UserNameTrailing extends StatelessWidget {
         Text(
           displayName,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: userName != null
-                    ? colorScheme.onSurfaceVariant
-                    : colorScheme.outline,
-                fontWeight: FontWeight.w600,
-              ),
+            color: userName != null
+                ? colorScheme.onSurfaceVariant
+                : colorScheme.outline,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(width: 4),
-        Icon(
-          Icons.chevron_right,
-          color: colorScheme.outline,
-        ),
+        Icon(Icons.chevron_right, color: colorScheme.outline),
       ],
     );
   }

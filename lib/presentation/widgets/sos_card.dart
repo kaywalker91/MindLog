@@ -13,10 +13,7 @@ import '../../core/theme/app_text_styles.dart';
 class SosCard extends StatefulWidget {
   final VoidCallback onClose;
 
-  const SosCard({
-    super.key,
-    required this.onClose,
-  });
+  const SosCard({super.key, required this.onClose});
 
   @override
   State<SosCard> createState() => _SosCardState();
@@ -25,6 +22,7 @@ class SosCard extends StatefulWidget {
 class _SosCardState extends State<SosCard> with SingleTickerProviderStateMixin {
   /// 자살예방 통합 상담전화 (2024년 1월 1일부터 109로 통합)
   static const String _suicidePreventionCenter = '109';
+
   /// 정신건강 상담전화
   static const String _mentalHealthCounsel = '1577-0199';
 
@@ -47,11 +45,8 @@ class _SosCardState extends State<SosCard> with SingleTickerProviderStateMixin {
   }
 
   Future<void> _makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
-    
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+
     try {
       await launchUrl(launchUri);
     } catch (e) {
@@ -80,9 +75,7 @@ class _SosCardState extends State<SosCard> with SingleTickerProviderStateMixin {
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(
-              color: AppColors.sosBorder.withValues(alpha: 0.5),
-            ),
+            side: BorderSide(color: AppColors.sosBorder.withValues(alpha: 0.5)),
           ),
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -175,9 +168,7 @@ class _SosCardState extends State<SosCard> with SingleTickerProviderStateMixin {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.sosBorder.withValues(alpha: 0.4),
-        ),
+        border: Border.all(color: AppColors.sosBorder.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,12 +335,14 @@ class _SosCardState extends State<SosCard> with SingleTickerProviderStateMixin {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           border: Border.all(
-            color: isEmergency ? AppColors.error.withValues(alpha: 0.5) : colorScheme.outlineVariant,
+            color: isEmergency
+                ? AppColors.error.withValues(alpha: 0.5)
+                : colorScheme.outlineVariant,
           ),
           borderRadius: BorderRadius.circular(12),
           color: isEmergency
-            ? AppColors.error.withValues(alpha: 0.05)
-            : colorScheme.surface,
+              ? AppColors.error.withValues(alpha: 0.05)
+              : colorScheme.surface,
         ),
         child: Row(
           children: [
@@ -359,11 +352,7 @@ class _SosCardState extends State<SosCard> with SingleTickerProviderStateMixin {
                 color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24,
-              ),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -415,11 +404,7 @@ class _SosCardState extends State<SosCard> with SingleTickerProviderStateMixin {
                 ],
               ),
             ),
-            const Icon(
-              Icons.phone,
-              size: 20,
-              color: AppColors.primary,
-            ),
+            const Icon(Icons.phone, size: 20, color: AppColors.primary),
           ],
         ),
       ),

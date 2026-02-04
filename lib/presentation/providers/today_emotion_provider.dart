@@ -34,29 +34,35 @@ class TodayEmotionStatus {
 
 /// 오늘의 감정 상태 Provider
 /// diaryListControllerProvider를 구독하여 오늘 작성된 일기의 감정 상태를 계산
+///
+/// .select() 최적화: 오늘 일기 목록만 추출하여 불필요한 리빌드 방지
 final todayEmotionProvider = Provider<TodayEmotionStatus>((ref) {
-  final diaryListState = ref.watch(diaryListControllerProvider);
+  // .select()로 오늘 일기 목록만 추출하여 리빌드 최소화
+  final todayDiaries = ref.watch(
+    diaryListControllerProvider.select((state) {
+      return state.whenData((diaries) {
+        final now = DateTime.now();
+        final todayStart = DateTime(now.year, now.month, now.day);
+        return diaries.where((diary) {
+          return diary.createdAt.isAfter(todayStart) ||
+              (diary.createdAt.year == todayStart.year &&
+                  diary.createdAt.month == todayStart.month &&
+                  diary.createdAt.day == todayStart.day);
+        }).toList();
+      });
+    }),
+  );
 
-  return diaryListState.when(
-    data: (diaries) => _calculateTodayEmotion(diaries),
+  return todayDiaries.when(
+    data: (diaries) => _calculateTodayEmotionFromList(diaries),
     loading: () => TodayEmotionStatus.empty,
     error: (_, _) => TodayEmotionStatus.empty,
   );
 });
 
-/// 오늘 작성된 일기에서 감정 상태 계산
-TodayEmotionStatus _calculateTodayEmotion(List<Diary> diaries) {
-  final now = DateTime.now();
-  final todayStart = DateTime(now.year, now.month, now.day);
-
-  // 오늘 작성된 일기만 필터링
-  final todayDiaries = diaries.where((diary) {
-    return diary.createdAt.isAfter(todayStart) ||
-        (diary.createdAt.year == todayStart.year &&
-            diary.createdAt.month == todayStart.month &&
-            diary.createdAt.day == todayStart.day);
-  }).toList();
-
+/// 오늘 작성된 일기 목록에서 감정 상태 계산
+/// (이미 필터링된 오늘 일기 목록을 받음)
+TodayEmotionStatus _calculateTodayEmotionFromList(List<Diary> todayDiaries) {
   if (todayDiaries.isEmpty) {
     return TodayEmotionStatus.empty;
   }

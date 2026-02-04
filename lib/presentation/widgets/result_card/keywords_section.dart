@@ -6,10 +6,7 @@ import '../../../core/theme/app_colors.dart';
 class KeywordsSection extends StatelessWidget {
   final List<String> keywords;
 
-  const KeywordsSection({
-    super.key,
-    required this.keywords,
-  });
+  const KeywordsSection({super.key, required this.keywords});
 
   @override
   Widget build(BuildContext context) {

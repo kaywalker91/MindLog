@@ -40,9 +40,9 @@ void main() {
     group('헤더 표시', () {
       testWidgets('이미지가 있으면 헤더가 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(imagePaths: ['/fake/path/image1.jpg']),
+        );
 
         // Assert
         expect(find.text('첨부 사진'), findsOneWidget);
@@ -51,12 +51,11 @@ void main() {
 
       testWidgets('이미지 개수가 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [
-            '/fake/path/image1.jpg',
-            '/fake/path/image2.jpg',
-          ],
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: ['/fake/path/image1.jpg', '/fake/path/image2.jpg'],
+          ),
+        );
 
         // Assert
         expect(find.text('2장'), findsOneWidget);
@@ -64,9 +63,9 @@ void main() {
 
       testWidgets('이미지 1개일 때 "1장"으로 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(imagePaths: ['/fake/path/image1.jpg']),
+        );
 
         // Assert
         expect(find.text('1장'), findsOneWidget);
@@ -74,9 +73,11 @@ void main() {
 
       testWidgets('이미지 5개일 때 "5장"으로 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: List.generate(5, (i) => '/fake/path/image_$i.jpg'),
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: List.generate(5, (i) => '/fake/path/image_$i.jpg'),
+          ),
+        );
 
         // Assert
         expect(find.text('5장'), findsOneWidget);
@@ -86,9 +87,9 @@ void main() {
     group('그리드 레이아웃', () {
       testWidgets('이미지가 있으면 GridView가 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(imagePaths: ['/fake/path/image1.jpg']),
+        );
 
         // Assert
         expect(find.byType(GridView), findsOneWidget);
@@ -96,9 +97,11 @@ void main() {
 
       testWidgets('GridView는 스크롤되지 않는다 (shrinkWrap)', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: List.generate(5, (i) => '/fake/path/image_$i.jpg'),
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: List.generate(5, (i) => '/fake/path/image_$i.jpg'),
+          ),
+        );
 
         // Assert
         final gridView = tester.widget<GridView>(find.byType(GridView));
@@ -110,10 +113,12 @@ void main() {
     group('galleryId 설정', () {
       testWidgets('galleryId가 주어지면 Hero 태그에 사용된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-          galleryId: 'test_gallery',
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: ['/fake/path/image1.jpg'],
+            galleryId: 'test_gallery',
+          ),
+        );
 
         // Assert
         final heroFinder = find.byType(Hero);
@@ -125,9 +130,9 @@ void main() {
 
       testWidgets('galleryId가 없으면 기본값 "diary_gallery"를 사용한다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(imagePaths: ['/fake/path/image1.jpg']),
+        );
 
         // Assert
         final hero = tester.widget<Hero>(find.byType(Hero));
@@ -136,13 +141,12 @@ void main() {
 
       testWidgets('여러 이미지의 Hero 태그가 인덱스에 따라 달라진다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildTestWidget(
-          imagePaths: [
-            '/fake/path/image1.jpg',
-            '/fake/path/image2.jpg',
-          ],
-          galleryId: 'multi_gallery',
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(
+            imagePaths: ['/fake/path/image1.jpg', '/fake/path/image2.jpg'],
+            galleryId: 'multi_gallery',
+          ),
+        );
 
         // Assert
         final heroes = tester.widgetList<Hero>(find.byType(Hero)).toList();

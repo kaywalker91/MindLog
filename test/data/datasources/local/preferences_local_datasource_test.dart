@@ -53,10 +53,19 @@ void main() {
       test('기본값은 NotificationSettings.defaults()여야 한다', () async {
         final settings = await dataSource.getNotificationSettings();
 
-        expect(settings.isReminderEnabled, NotificationSettings.defaultReminderEnabled);
+        expect(
+          settings.isReminderEnabled,
+          NotificationSettings.defaultReminderEnabled,
+        );
         expect(settings.reminderHour, NotificationSettings.defaultReminderHour);
-        expect(settings.reminderMinute, NotificationSettings.defaultReminderMinute);
-        expect(settings.isMindcareTopicEnabled, NotificationSettings.defaultMindcareTopicEnabled);
+        expect(
+          settings.reminderMinute,
+          NotificationSettings.defaultReminderMinute,
+        );
+        expect(
+          settings.isMindcareTopicEnabled,
+          NotificationSettings.defaultMindcareTopicEnabled,
+        );
       });
 
       test('설정한 값을 올바르게 저장/조회해야 한다', () async {
@@ -85,8 +94,14 @@ void main() {
 
         expect(settings.isReminderEnabled, true);
         expect(settings.reminderHour, NotificationSettings.defaultReminderHour);
-        expect(settings.reminderMinute, NotificationSettings.defaultReminderMinute);
-        expect(settings.isMindcareTopicEnabled, NotificationSettings.defaultMindcareTopicEnabled);
+        expect(
+          settings.reminderMinute,
+          NotificationSettings.defaultReminderMinute,
+        );
+        expect(
+          settings.isMindcareTopicEnabled,
+          NotificationSettings.defaultMindcareTopicEnabled,
+        );
       });
 
       test('reminderHour과 reminderMinute만 설정된 경우도 처리해야 한다', () async {
@@ -96,7 +111,10 @@ void main() {
 
         final settings = await dataSource.getNotificationSettings();
 
-        expect(settings.isReminderEnabled, NotificationSettings.defaultReminderEnabled);
+        expect(
+          settings.isReminderEnabled,
+          NotificationSettings.defaultReminderEnabled,
+        );
         expect(settings.reminderHour, 8);
         expect(settings.reminderMinute, 45);
       });
@@ -206,17 +224,22 @@ void main() {
         // 모든 설정을 동시에 저장
         await dataSource.setSelectedAiCharacter(AiCharacter.realisticCoach);
         await dataSource.setUserName('테스트유저');
-        await dataSource.setNotificationSettings(const NotificationSettings(
-          isReminderEnabled: true,
-          reminderHour: 21,
-          reminderMinute: 0,
-          isMindcareTopicEnabled: true,
-        ));
+        await dataSource.setNotificationSettings(
+          const NotificationSettings(
+            isReminderEnabled: true,
+            reminderHour: 21,
+            reminderMinute: 0,
+            isMindcareTopicEnabled: true,
+          ),
+        );
         await dataSource.setDismissedUpdateVersion('1.5.0');
         await dataSource.setLastSeenAppVersion('1.4.18');
 
         // 각각 독립적으로 조회
-        expect(await dataSource.getSelectedAiCharacter(), AiCharacter.realisticCoach);
+        expect(
+          await dataSource.getSelectedAiCharacter(),
+          AiCharacter.realisticCoach,
+        );
         expect(await dataSource.getUserName(), '테스트유저');
 
         final settings = await dataSource.getNotificationSettings();

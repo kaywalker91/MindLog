@@ -38,9 +38,8 @@ ProviderContainer createTestContainer({
   MockDiaryRepository diaryRepository,
   MockSettingsRepository settingsRepository,
   MockStatisticsRepository statisticsRepository,
-}) createTestContainerWithMocks({
-  List<Override>? additionalOverrides,
-}) {
+})
+createTestContainerWithMocks({List<Override>? additionalOverrides}) {
   final diaryRepository = MockDiaryRepository();
   final settingsRepository = MockSettingsRepository();
   final statisticsRepository = MockStatisticsRepository();

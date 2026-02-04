@@ -28,7 +28,10 @@ void main() {
   group('ImageService', () {
     group('AppConstants 이미지 설정', () {
       test('groqVisionModel이 올바르게 정의되어 있다', () {
-        expect(AppConstants.groqVisionModel, 'meta-llama/llama-4-scout-17b-16e-instruct');
+        expect(
+          AppConstants.groqVisionModel,
+          'meta-llama/llama-4-scout-17b-16e-instruct',
+        );
       });
 
       test('maxImagesPerDiary가 5개로 정의되어 있다', () {
@@ -121,10 +124,7 @@ void main() {
         final nonExistentPath = path.join(tempDir.path, 'non_existent.jpg');
 
         // Act & Assert (예외 없이 완료되어야 함)
-        await expectLater(
-          ImageService.deleteImage(nonExistentPath),
-          completes,
-        );
+        await expectLater(ImageService.deleteImage(nonExistentPath), completes);
       });
     });
 

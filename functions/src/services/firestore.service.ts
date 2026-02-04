@@ -9,7 +9,7 @@ import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 import {
   COLLECTIONS,
-  DEFAULT_EVENING_MESSAGES,
+  getMessageByTimeSlot,
   TIMEZONE,
 } from "../config/constants";
 import { MindcareStats } from "../types";
@@ -29,13 +29,10 @@ export function getTodayKey(): string {
 
 /**
  * 저녁 마음케어 메시지 선택 (랜덤)
+ * constants.ts의 시간대별 메시지 사용
  */
 export function getEveningMessage(): { title: string; body: string } {
-  const randomIndex = Math.floor(Math.random() * DEFAULT_EVENING_MESSAGES.length);
-  return {
-    title: DEFAULT_EVENING_MESSAGES[randomIndex].title,
-    body: DEFAULT_EVENING_MESSAGES[randomIndex].body,
-  };
+  return getMessageByTimeSlot("evening");
 }
 
 /**

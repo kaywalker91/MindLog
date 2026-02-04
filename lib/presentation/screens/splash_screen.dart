@@ -20,7 +20,8 @@ class SplashScreen extends ConsumerStatefulWidget {
   ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends ConsumerState<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   bool _isOnboardingCompleted = true; // 기본값: 온보딩 완료 (기존 유저 보호)
 
@@ -51,8 +52,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
   Future<void> _checkOnboardingAndNavigate() async {
     // 온보딩 완료 여부 확인
-    _isOnboardingCompleted =
-        await PreferencesLocalDataSource().isOnboardingCompleted();
+    _isOnboardingCompleted = await PreferencesLocalDataSource()
+        .isOnboardingCompleted();
 
     // 2초 후 자동으로 적절한 화면으로 이동
     await Future.delayed(const Duration(seconds: 2));
@@ -123,14 +124,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
                     // 앱 이름 표시
                     Text(
-                      AppConstants.appName,
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        color: splashTheme.colorScheme.onSurface,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2,
-                      ),
-                      textAlign: TextAlign.center,
-                    )
+                          AppConstants.appName,
+                          style: Theme.of(context).textTheme.headlineLarge
+                              ?.copyWith(
+                                color: splashTheme.colorScheme.onSurface,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.2,
+                              ),
+                          textAlign: TextAlign.center,
+                        )
                         .animate(controller: _animationController)
                         .fadeIn(delay: const Duration(milliseconds: 150))
                         .slideY(begin: 0.2, end: 0),
@@ -138,12 +140,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
                     // 부제목 텍스트
                     const SizedBox(height: 6),
                     Text(
-                      '오늘의 마음을 부드럽게 기록해요',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.statsTextSecondary,
-                      ),
-                      textAlign: TextAlign.center,
-                    )
+                          '오늘의 마음을 부드럽게 기록해요',
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(color: AppColors.statsTextSecondary),
+                          textAlign: TextAlign.center,
+                        )
                         .animate(controller: _animationController)
                         .fadeIn(delay: const Duration(milliseconds: 250))
                         .slideY(begin: 0.2, end: 0),
@@ -152,12 +153,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
 
                     // 애니메이션 로딩
                     const LoadingIndicator(
-                      message: '마음 기록을 준비 중이에요',
-                      subMessage: '따뜻한 마음 케어를 준비하고 있어요',
-                      accentColor: AppColors.statsPrimaryDark,
-                      cardColor: AppColors.statsCardBackground,
-                      subTextColor: AppColors.statsTextTertiary,
-                    )
+                          message: '마음 기록을 준비 중이에요',
+                          subMessage: '따뜻한 마음 케어를 준비하고 있어요',
+                          accentColor: AppColors.statsPrimaryDark,
+                          cardColor: AppColors.statsCardBackground,
+                          subTextColor: AppColors.statsTextTertiary,
+                        )
                         .animate(controller: _animationController)
                         .fadeIn(delay: const Duration(milliseconds: 400)),
 
@@ -178,52 +179,49 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
     const borderRadius = BorderRadius.all(Radius.circular(28));
 
     return Material(
-      color: Colors.transparent,
-      elevation: 0,
-      borderRadius: borderRadius,
-      child: InkWell(
-        onTap: () {
-          if (mounted) {
-            _navigateToNextScreen();
-          }
-        },
-        borderRadius: borderRadius,
-        splashColor: Colors.white.withValues(alpha: 0.2),
-        highlightColor: Colors.white.withValues(alpha: 0.1),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [
-                AppColors.statsPrimary,
-                AppColors.statsSecondary,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+          color: Colors.transparent,
+          elevation: 0,
+          borderRadius: borderRadius,
+          child: InkWell(
+            onTap: () {
+              if (mounted) {
+                _navigateToNextScreen();
+              }
+            },
             borderRadius: borderRadius,
-            border: Border.all(
-              color: AppColors.statsPrimaryDark.withValues(alpha: 0.2),
+            splashColor: Colors.white.withValues(alpha: 0.2),
+            highlightColor: Colors.white.withValues(alpha: 0.1),
+            child: Ink(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.statsPrimary, AppColors.statsSecondary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: borderRadius,
+                border: Border.all(
+                  color: AppColors.statsPrimaryDark.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '시작하기',
+                    style: AppTextStyles.button.copyWith(color: Colors.white),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ],
+              ),
             ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '시작하기',
-                style: AppTextStyles.button.copyWith(color: Colors.white),
-              ),
-              const SizedBox(width: 8),
-              const Icon(
-                Icons.arrow_forward_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-            ],
-          ),
-        ),
-      ),
-    )
+        )
         .animate(controller: _animationController)
         .fadeIn(delay: const Duration(milliseconds: 550))
         .slideY(begin: 0.2, end: 0);
@@ -245,10 +243,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerPr
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-        ),
+        decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       ),
     );
   }

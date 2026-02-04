@@ -43,10 +43,7 @@ void main() {
 
   setUp(() {
     mockClient = MockHttpClient();
-    dataSource = GroqRemoteDataSource(
-      'test-api-key',
-      client: mockClient,
-    );
+    dataSource = GroqRemoteDataSource('test-api-key', client: mockClient);
   });
 
   tearDown(() {
@@ -56,10 +53,12 @@ void main() {
   group('GroqRemoteDataSource', () {
     group('성공 케이스', () {
       test('정상 응답을 AnalysisResponseDto로 파싱해야 한다', () async {
-        mockClient.setSuccessResponse(createValidApiResponse(
-          keywords: ['프로젝트', '성취', '자부심'],
-          sentimentScore: 8,
-        ));
+        mockClient.setSuccessResponse(
+          createValidApiResponse(
+            keywords: ['프로젝트', '성취', '자부심'],
+            sentimentScore: 8,
+          ),
+        );
 
         final result = await dataSource.analyzeDiary(
           '오늘 프로젝트를 완료했다!',
@@ -95,7 +94,9 @@ void main() {
         );
 
         expect(mockClient.callCount, 1);
-        final body = jsonDecode(mockClient.calledBodies.first as String) as Map<String, dynamic>;
+        final body =
+            jsonDecode(mockClient.calledBodies.first as String)
+                as Map<String, dynamic>;
         // 요청이 전송되었음을 확인 (프롬프트 내용은 PromptConstants에서 생성)
         expect(body['messages'], isNotEmpty);
       });
@@ -123,7 +124,9 @@ void main() {
         // 현재 구현에서는 http.Client.post()에서 발생하는 SocketException이
         // _analyzeDiaryOnce의 마지막 catch 블록에서 ApiException으로 래핑됨
         // 재시도 로직은 analyzeDiaryWithRetry에서 SocketException을 직접 catch할 때만 작동
-        mockClient.exceptionToThrow = const SocketException('Connection refused');
+        mockClient.exceptionToThrow = const SocketException(
+          'Connection refused',
+        );
 
         await expectLater(
           dataSource.analyzeDiary('테스트', character: AiCharacter.warmCounselor),
@@ -160,7 +163,11 @@ void main() {
       test('429 응답 시 RateLimitException을 발생시키고 재시도해야 한다', () async {
         // 커스텀 동작을 위해 MockHttpClient를 확장
         final customClient = _RetryMockHttpClient(
-          firstResponse: http.Response('Rate limit exceeded', 429, headers: {'retry-after': '1'}),
+          firstResponse: http.Response(
+            'Rate limit exceeded',
+            429,
+            headers: {'retry-after': '1'},
+          ),
           secondResponse: http.Response.bytes(
             utf8.encode(jsonEncode(createValidApiResponse())),
             200,
@@ -384,7 +391,9 @@ void main() {
         );
 
         // 서킷 브레이커를 열기 위해 실패 유발
-        mockClient.exceptionToThrow = const SocketException('Connection refused');
+        mockClient.exceptionToThrow = const SocketException(
+          'Connection refused',
+        );
 
         // 2번 실패 (각각 3회 재시도)
         for (var i = 0; i < 2; i++) {
@@ -412,9 +421,7 @@ void main() {
 
     group('응답 파싱', () {
       test('choices가 비어있으면 ApiException을 던져야 한다', () async {
-        mockClient.setSuccessResponse({
-          'choices': [],
-        });
+        mockClient.setSuccessResponse({'choices': []});
 
         await expectLater(
           dataSource.analyzeDiary('테스트', character: AiCharacter.warmCounselor),
@@ -423,9 +430,7 @@ void main() {
       });
 
       test('choices가 null이면 ApiException을 던져야 한다', () async {
-        mockClient.setSuccessResponse({
-          'id': 'test',
-        });
+        mockClient.setSuccessResponse({'id': 'test'});
 
         await expectLater(
           dataSource.analyzeDiary('테스트', character: AiCharacter.warmCounselor),
@@ -439,15 +444,16 @@ void main() {
         mockClient.setSuccessResponse({
           'choices': [
             {
-              'message': {
-                'content': 'not a valid json',
-              },
+              'message': {'content': 'not a valid json'},
             },
           ],
         });
 
         // 폴백 응답이 생성되므로 예외가 아닌 정상 응답을 반환
-        final result = await dataSource.analyzeDiary('테스트', character: AiCharacter.warmCounselor);
+        final result = await dataSource.analyzeDiary(
+          '테스트',
+          character: AiCharacter.warmCounselor,
+        );
 
         // 폴백 응답의 기본 키워드 확인
         expect(result, isNotNull);
@@ -455,10 +461,9 @@ void main() {
       });
 
       test('응급 상황 응답을 올바르게 파싱해야 한다', () async {
-        mockClient.setSuccessResponse(createValidApiResponse(
-          sentimentScore: 1,
-          isEmergency: true,
-        ));
+        mockClient.setSuccessResponse(
+          createValidApiResponse(sentimentScore: 1, isEmergency: true),
+        );
 
         final result = await dataSource.analyzeDiary(
           '힘든 내용',
@@ -498,7 +503,10 @@ void main() {
           ],
         );
 
-        final customDataSource = GroqRemoteDataSource('test-api-key', client: customClient);
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: customClient,
+        );
 
         final result = await customDataSource.analyzeDiary(
           '테스트',
@@ -511,12 +519,18 @@ void main() {
 
       test('Retry-After가 HTTP-date 형식이면 파싱해야 한다', () async {
         // HTTP-date 형식: "Fri, 31 Dec 2024 23:59:59 GMT"
-        final futureDate = DateTime.now().toUtc().add(const Duration(seconds: 2));
+        final futureDate = DateTime.now().toUtc().add(
+          const Duration(seconds: 2),
+        );
         final httpDateStr = HttpDate.format(futureDate);
 
         final customClient = _RetryAfterMockHttpClient(
           responses: [
-            http.Response('Rate limit', 429, headers: {'retry-after': httpDateStr}),
+            http.Response(
+              'Rate limit',
+              429,
+              headers: {'retry-after': httpDateStr},
+            ),
             http.Response.bytes(
               utf8.encode(jsonEncode(createValidApiResponse())),
               200,
@@ -525,7 +539,10 @@ void main() {
           ],
         );
 
-        final customDataSource = GroqRemoteDataSource('test-api-key', client: customClient);
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: customClient,
+        );
 
         final result = await customDataSource.analyzeDiary(
           '테스트',
@@ -538,12 +555,18 @@ void main() {
 
       test('Retry-After가 과거 HTTP-date이면 기본 지연을 사용해야 한다', () async {
         // 과거 날짜: 이 경우 _initialDelay 사용
-        final pastDate = DateTime.now().toUtc().subtract(const Duration(hours: 1));
+        final pastDate = DateTime.now().toUtc().subtract(
+          const Duration(hours: 1),
+        );
         final httpDateStr = HttpDate.format(pastDate);
 
         final customClient = _RetryAfterMockHttpClient(
           responses: [
-            http.Response('Rate limit', 429, headers: {'retry-after': httpDateStr}),
+            http.Response(
+              'Rate limit',
+              429,
+              headers: {'retry-after': httpDateStr},
+            ),
             http.Response.bytes(
               utf8.encode(jsonEncode(createValidApiResponse())),
               200,
@@ -552,7 +575,10 @@ void main() {
           ],
         );
 
-        final customDataSource = GroqRemoteDataSource('test-api-key', client: customClient);
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: customClient,
+        );
 
         final result = await customDataSource.analyzeDiary(
           '테스트',
@@ -576,15 +602,17 @@ void main() {
           ],
         );
 
-        final customDataSource = GroqRemoteDataSource('test-api-key', client: customClient);
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: customClient,
+        );
 
         // 실제로 5분 기다리지 않고, 클라이언트가 호출되었는지만 확인
         // 실제 구현에서는 Future.delayed가 발생하지만 테스트에서는 callCount로 검증
         try {
-          await customDataSource.analyzeDiary(
-            '테스트',
-            character: AiCharacter.warmCounselor,
-          ).timeout(const Duration(seconds: 3));
+          await customDataSource
+              .analyzeDiary('테스트', character: AiCharacter.warmCounselor)
+              .timeout(const Duration(seconds: 3));
         } catch (_) {
           // 타임아웃 예상됨 (5분 대기로 인해)
         }
@@ -595,7 +623,11 @@ void main() {
       test('Retry-After가 잘못된 형식이면 기본값을 사용해야 한다', () async {
         final customClient = _RetryAfterMockHttpClient(
           responses: [
-            http.Response('Rate limit', 429, headers: {'retry-after': 'invalid-format'}),
+            http.Response(
+              'Rate limit',
+              429,
+              headers: {'retry-after': 'invalid-format'},
+            ),
             http.Response.bytes(
               utf8.encode(jsonEncode(createValidApiResponse())),
               200,
@@ -604,7 +636,10 @@ void main() {
           ],
         );
 
-        final customDataSource = GroqRemoteDataSource('test-api-key', client: customClient);
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: customClient,
+        );
 
         final result = await customDataSource.analyzeDiary(
           '테스트',
@@ -626,10 +661,16 @@ void main() {
           exceptionFactory: () => const SocketException('Connection refused'),
         );
 
-        final customDataSource = GroqRemoteDataSource('test-api-key', client: directClient);
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: directClient,
+        );
 
         await expectLater(
-          customDataSource.analyzeDiary('테스트', character: AiCharacter.warmCounselor),
+          customDataSource.analyzeDiary(
+            '테스트',
+            character: AiCharacter.warmCounselor,
+          ),
           throwsA(isA<ApiException>()),
         );
         // _analyzeDiaryOnce에서 잡혀서 ApiException으로 변환, 재시도 없이 1회
@@ -641,10 +682,16 @@ void main() {
           exceptionFactory: () => TimeoutException('Request timed out'),
         );
 
-        final customDataSource = GroqRemoteDataSource('test-api-key', client: directClient);
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: directClient,
+        );
 
         await expectLater(
-          customDataSource.analyzeDiary('테스트', character: AiCharacter.warmCounselor),
+          customDataSource.analyzeDiary(
+            '테스트',
+            character: AiCharacter.warmCounselor,
+          ),
           throwsA(isA<ApiException>()),
         );
         // _analyzeDiaryOnce에서 잡혀서 ApiException으로 변환, 재시도 없이 1회
@@ -656,10 +703,16 @@ void main() {
           exceptionFactory: () => const SocketException('Connection refused'),
         );
 
-        final customDataSource = GroqRemoteDataSource('test-api-key', client: directClient);
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: directClient,
+        );
 
         try {
-          await customDataSource.analyzeDiary('테스트', character: AiCharacter.warmCounselor);
+          await customDataSource.analyzeDiary(
+            '테스트',
+            character: AiCharacter.warmCounselor,
+          );
           fail('ApiException이 발생해야 합니다');
         } catch (e) {
           expect(e, isA<ApiException>());
@@ -672,10 +725,16 @@ void main() {
           exceptionFactory: () => TimeoutException('Request timed out'),
         );
 
-        final customDataSource = GroqRemoteDataSource('test-api-key', client: directClient);
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: directClient,
+        );
 
         try {
-          await customDataSource.analyzeDiary('테스트', character: AiCharacter.warmCounselor);
+          await customDataSource.analyzeDiary(
+            '테스트',
+            character: AiCharacter.warmCounselor,
+          );
           fail('ApiException이 발생해야 합니다');
         } catch (e) {
           expect(e, isA<ApiException>());
@@ -687,7 +746,9 @@ void main() {
     group('기본 http.Client 생성', () {
       test('client가 null이면 기본 http.Client를 생성해야 한다', () {
         // client 파라미터 없이 생성
-        final dataSourceWithDefaultClient = GroqRemoteDataSource('test-api-key');
+        final dataSourceWithDefaultClient = GroqRemoteDataSource(
+          'test-api-key',
+        );
 
         // 내부 클라이언트가 생성되었는지 간접적으로 확인
         // (실제 네트워크 요청은 하지 않음)
@@ -728,17 +789,32 @@ class _RetryAfterMockHttpClient implements http.Client {
   }
 
   @override
-  Future<http.Response> put(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<http.Response> put(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<http.Response> patch(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<http.Response> patch(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<http.Response> delete(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<http.Response> delete(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
     throw UnimplementedError();
   }
 
@@ -790,17 +866,32 @@ class _DirectExceptionClient implements http.Client {
   }
 
   @override
-  Future<http.Response> put(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<http.Response> put(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<http.Response> patch(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<http.Response> patch(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<http.Response> delete(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<http.Response> delete(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
     throw UnimplementedError();
   }
 
@@ -822,8 +913,6 @@ class _DirectExceptionClient implements http.Client {
     throw UnimplementedError();
   }
 }
-
-
 
 /// 재시도 테스트를 위한 커스텀 Mock 클라이언트
 class _RetryMockHttpClient implements http.Client {
@@ -859,17 +948,32 @@ class _RetryMockHttpClient implements http.Client {
   }
 
   @override
-  Future<http.Response> put(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<http.Response> put(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<http.Response> patch(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<http.Response> patch(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<http.Response> delete(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+  Future<http.Response> delete(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
     throw UnimplementedError();
   }
 

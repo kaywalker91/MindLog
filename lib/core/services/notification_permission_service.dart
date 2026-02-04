@@ -7,11 +7,13 @@ class NotificationPermissionService {
   NotificationPermissionService._();
 
   static const String _promptedKey = 'notification_permission_prompted';
-  static const String _exactAlarmPromptedKey = 'exact_alarm_permission_prompted';
+  static const String _exactAlarmPromptedKey =
+      'exact_alarm_permission_prompted';
 
   /// MethodChannel for native Android battery optimization check
-  static const MethodChannel _channel =
-      MethodChannel('com.mindlog.mindlog/battery_optimization');
+  static const MethodChannel _channel = MethodChannel(
+    'com.mindlog.mindlog/battery_optimization',
+  );
 
   static Future<bool> shouldPromptAndroidPermission() async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
@@ -54,7 +56,9 @@ class NotificationPermissionService {
       final canSchedule = result ?? false;
 
       if (kDebugMode) {
-        debugPrint('[Permission] canScheduleExactAlarms: $canSchedule (raw: $result)');
+        debugPrint(
+          '[Permission] canScheduleExactAlarms: $canSchedule (raw: $result)',
+        );
       }
 
       return canSchedule;
@@ -114,8 +118,9 @@ class NotificationPermissionService {
     }
 
     try {
-      final result =
-          await _channel.invokeMethod<bool>('isIgnoringBatteryOptimizations');
+      final result = await _channel.invokeMethod<bool>(
+        'isIgnoringBatteryOptimizations',
+      );
 
       if (kDebugMode) {
         debugPrint('[Permission] Battery optimization ignored: $result');
@@ -142,17 +147,22 @@ class NotificationPermissionService {
     }
 
     try {
-      final result = await _channel
-          .invokeMethod<bool>('requestDisableBatteryOptimization');
+      final result = await _channel.invokeMethod<bool>(
+        'requestDisableBatteryOptimization',
+      );
 
       if (kDebugMode) {
-        debugPrint('[Permission] Battery optimization disable request: $result');
+        debugPrint(
+          '[Permission] Battery optimization disable request: $result',
+        );
       }
 
       return result ?? false;
     } catch (e) {
       if (kDebugMode) {
-        debugPrint('[Permission] Error requesting battery optimization disable: $e');
+        debugPrint(
+          '[Permission] Error requesting battery optimization disable: $e',
+        );
       }
       return false;
     }

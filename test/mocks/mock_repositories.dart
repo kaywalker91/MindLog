@@ -57,7 +57,10 @@ class MockDiaryRepository implements DiaryRepository {
       throw failureToThrow ??
           Failure.cache(message: errorMessage ?? '일기 생성 실패');
     }
-    mockDiary = DiaryFixtures.pending(id: 'created-${savedDiaries.length}', content: content);
+    mockDiary = DiaryFixtures.pending(
+      id: 'created-${savedDiaries.length}',
+      content: content,
+    );
     savedDiaries.add(mockDiary!);
     return mockDiary!;
   }
@@ -71,19 +74,17 @@ class MockDiaryRepository implements DiaryRepository {
   }) async {
     analyzedDiaryIds.add(diaryId);
     if (shouldThrowOnAnalyze) {
-      throw failureToThrow ??
-          Failure.api(message: errorMessage ?? '분석 실패');
+      throw failureToThrow ?? Failure.api(message: errorMessage ?? '분석 실패');
     }
-    mockAnalyzedDiary = mockAnalyzedDiary ??
-        DiaryFixtures.analyzed(id: diaryId);
+    mockAnalyzedDiary =
+        mockAnalyzedDiary ?? DiaryFixtures.analyzed(id: diaryId);
     return mockAnalyzedDiary!;
   }
 
   @override
   Future<void> updateDiary(Diary diary) async {
     if (shouldThrowOnUpdate) {
-      throw failureToThrow ??
-          Failure.cache(message: errorMessage ?? '업데이트 실패');
+      throw failureToThrow ?? Failure.cache(message: errorMessage ?? '업데이트 실패');
     }
     updatedDiaries.add(diary);
   }
@@ -91,8 +92,7 @@ class MockDiaryRepository implements DiaryRepository {
   @override
   Future<Diary?> getDiaryById(String diaryId) async {
     if (shouldThrowOnGet) {
-      throw failureToThrow ??
-          Failure.cache(message: errorMessage ?? '조회 실패');
+      throw failureToThrow ?? Failure.cache(message: errorMessage ?? '조회 실패');
     }
     return diaries.where((d) => d.id == diaryId).firstOrNull ?? mockDiary;
   }
@@ -103,7 +103,9 @@ class MockDiaryRepository implements DiaryRepository {
       throw failureToThrow ??
           Failure.cache(message: errorMessage ?? '목록 조회 실패');
     }
-    final result = diaries.isNotEmpty ? List<Diary>.from(diaries) : (mockDiary != null ? [mockDiary!] : <Diary>[]);
+    final result = diaries.isNotEmpty
+        ? List<Diary>.from(diaries)
+        : (mockDiary != null ? [mockDiary!] : <Diary>[]);
     // 고정 우선, 최신순 정렬
     result.sort((a, b) {
       if (a.isPinned != b.isPinned) {
@@ -148,8 +150,7 @@ class MockDiaryRepository implements DiaryRepository {
   @override
   Future<void> deleteDiary(String diaryId) async {
     if (shouldThrowOnDelete) {
-      throw failureToThrow ??
-          Failure.cache(message: errorMessage ?? '삭제 실패');
+      throw failureToThrow ?? Failure.cache(message: errorMessage ?? '삭제 실패');
     }
     deletedDiaryIds.add(diaryId);
     diaries.removeWhere((d) => d.id == diaryId);
@@ -286,7 +287,8 @@ class MockSettingsRepository implements SettingsRepository {
   }
 
   // 테스트 헬퍼 메서드
-  void setMockCharacter(AiCharacter character) => _selectedCharacter = character;
+  void setMockCharacter(AiCharacter character) =>
+      _selectedCharacter = character;
   void setMockNotificationSettings(NotificationSettings settings) =>
       _notificationSettings = settings;
   void setMockUserName(String? name) => _userName = name;
@@ -299,8 +301,7 @@ class MockSettingsRepository implements SettingsRepository {
   @override
   Future<String?> getLastSeenAppVersion() async {
     if (shouldThrowOnGet) {
-      throw failureToThrow ??
-          const Failure.cache(message: '마지막 앱 버전 조회 실패');
+      throw failureToThrow ?? const Failure.cache(message: '마지막 앱 버전 조회 실패');
     }
     return _lastSeenAppVersion;
   }
@@ -308,8 +309,7 @@ class MockSettingsRepository implements SettingsRepository {
   @override
   Future<void> setLastSeenAppVersion(String version) async {
     if (shouldThrowOnSet) {
-      throw failureToThrow ??
-          const Failure.cache(message: '마지막 앱 버전 저장 실패');
+      throw failureToThrow ?? const Failure.cache(message: '마지막 앱 버전 저장 실패');
     }
     _lastSeenAppVersion = version;
   }

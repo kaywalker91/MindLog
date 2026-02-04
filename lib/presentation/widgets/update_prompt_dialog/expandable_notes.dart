@@ -42,14 +42,14 @@ class _ExpandableNotesState extends State<ExpandableNotes> {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.12),
-        ),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.12)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ...displayNotes.map((note) => _buildNoteItem(note, colorScheme, theme)),
+          ...displayNotes.map(
+            (note) => _buildNoteItem(note, colorScheme, theme),
+          ),
           if (hasMoreNotes) _buildExpandToggle(colorScheme, theme),
         ],
       ),
@@ -97,9 +97,7 @@ class _ExpandableNotesState extends State<ExpandableNotes> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _isExpanded
-                  ? '접기'
-                  : '전체 변경사항 보기 (${widget.notes.length}개)',
+              _isExpanded ? '접기' : '전체 변경사항 보기 (${widget.notes.length}개)',
               style: theme.textTheme.labelSmall?.copyWith(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.w500,
@@ -107,9 +105,7 @@ class _ExpandableNotesState extends State<ExpandableNotes> {
             ),
             const SizedBox(width: 4),
             Icon(
-              _isExpanded
-                  ? Icons.keyboard_arrow_up
-                  : Icons.keyboard_arrow_down,
+              _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
               size: 16,
               color: colorScheme.primary,
             ),

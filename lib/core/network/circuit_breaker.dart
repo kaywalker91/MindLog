@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 
 /// 회로 상태
 enum CircuitState {
-  closed,   // 정상 상태 (닫힘 - 전류 흐름)
-  open,     // 차단 상태 (열림 - 전류 차단)
+  closed, // 정상 상태 (닫힘 - 전류 흐름)
+  open, // 차단 상태 (열림 - 전류 차단)
   halfOpen, // 반열림 상태 (테스트 - 일부 허용)
 }
 
@@ -56,9 +56,7 @@ class CircuitBreaker {
   /// Half-Open 상태에서 테스트 요청 진행 중 여부 (race condition 방지)
   bool _isTestingInHalfOpen = false;
 
-  CircuitBreaker({
-    this.config = const CircuitBreakerConfig(),
-  });
+  CircuitBreaker({this.config = const CircuitBreakerConfig()});
 
   /// 현재 상태 조회
   CircuitState get state => _state;
@@ -131,11 +129,11 @@ class CircuitBreaker {
     _state = CircuitState.open;
     _lastFailureTime = DateTime.now();
     _resetTimer?.cancel();
-    
+
     if (kDebugMode) {
       debugPrint('🔌 Circuit Breaker OPENED');
     }
-    
+
     // 타임아웃 후 반열림 전환 예약 (run 호출 없이도 자동 전환 가능하게 하려면)
     _resetTimer = Timer(config.resetTimeout, () {
       if (_state == CircuitState.open) {
@@ -164,7 +162,7 @@ class CircuitBreaker {
       debugPrint('🔌 Circuit Breaker CLOSED');
     }
   }
-  
+
   /// 상태 리셋
   void reset() {
     _transitionToClosed();

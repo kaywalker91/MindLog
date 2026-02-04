@@ -16,9 +16,7 @@ void main() {
     setUp(() {
       mockDiaryRepo = MockDiaryRepository();
       container = ProviderContainer(
-        overrides: [
-          diaryRepositoryProvider.overrideWithValue(mockDiaryRepo),
-        ],
+        overrides: [diaryRepositoryProvider.overrideWithValue(mockDiaryRepo)],
       );
     });
 
@@ -27,19 +25,11 @@ void main() {
       container.dispose();
     });
 
-    Widget buildTestWidget({
-      required Widget child,
-      bool useRouter = false,
-    }) {
+    Widget buildTestWidget({required Widget child, bool useRouter = false}) {
       if (useRouter) {
         final router = GoRouter(
           initialLocation: '/',
-          routes: [
-            GoRoute(
-              path: '/',
-              builder: (context, state) => child,
-            ),
-          ],
+          routes: [GoRoute(path: '/', builder: (context, state) => child)],
         );
         return UncontrolledProviderScope(
           container: container,
@@ -62,9 +52,7 @@ void main() {
         // Act
         await tester.pumpWidget(
           buildTestWidget(
-            child: Scaffold(
-              body: DeleteDiaryDialog(diary: diary),
-            ),
+            child: Scaffold(body: DeleteDiaryDialog(diary: diary)),
           ),
         );
         await tester.pumpAndSettle();
@@ -85,9 +73,7 @@ void main() {
         // Act
         await tester.pumpWidget(
           buildTestWidget(
-            child: Scaffold(
-              body: DeleteDiaryDialog(diary: diary),
-            ),
+            child: Scaffold(body: DeleteDiaryDialog(diary: diary)),
           ),
         );
         await tester.pumpAndSettle();
@@ -105,9 +91,7 @@ void main() {
         // Act
         await tester.pumpWidget(
           buildTestWidget(
-            child: Scaffold(
-              body: DeleteDiaryDialog(diary: diary),
-            ),
+            child: Scaffold(body: DeleteDiaryDialog(diary: diary)),
           ),
         );
         await tester.pumpAndSettle();
@@ -135,7 +119,8 @@ void main() {
             child: Scaffold(
               body: Builder(
                 builder: (context) => ElevatedButton(
-                  onPressed: () => DeleteDiaryDialog.show(context, diary: diary),
+                  onPressed: () =>
+                      DeleteDiaryDialog.show(context, diary: diary),
                   child: const Text('Show Dialog'),
                 ),
               ),
@@ -170,7 +155,8 @@ void main() {
             child: Scaffold(
               body: Builder(
                 builder: (context) => ElevatedButton(
-                  onPressed: () => DeleteDiaryDialog.show(context, diary: diary),
+                  onPressed: () =>
+                      DeleteDiaryDialog.show(context, diary: diary),
                   child: const Text('Show Dialog'),
                 ),
               ),
@@ -204,7 +190,8 @@ void main() {
             child: Scaffold(
               body: Builder(
                 builder: (context) => ElevatedButton(
-                  onPressed: () => DeleteDiaryDialog.show(context, diary: diary),
+                  onPressed: () =>
+                      DeleteDiaryDialog.show(context, diary: diary),
                   child: const Text('Show Dialog'),
                 ),
               ),
@@ -237,7 +224,8 @@ void main() {
             child: Scaffold(
               body: Builder(
                 builder: (context) => ElevatedButton(
-                  onPressed: () => DeleteDiaryDialog.show(context, diary: diary),
+                  onPressed: () =>
+                      DeleteDiaryDialog.show(context, diary: diary),
                   child: const Text('Show Dialog'),
                 ),
               ),
@@ -269,9 +257,7 @@ void main() {
         // Act
         await tester.pumpWidget(
           buildTestWidget(
-            child: Scaffold(
-              body: DeleteDiaryDialog(diary: diary),
-            ),
+            child: Scaffold(body: DeleteDiaryDialog(diary: diary)),
           ),
         );
         await tester.pumpAndSettle();
@@ -280,7 +266,9 @@ void main() {
         expect(find.text('소중한 기록을 지우시겠어요?'), findsOneWidget);
       });
 
-      testWidgets('popAfterDelete=true로 다이얼로그 생성 시 정상 렌더링되어야 한다', (tester) async {
+      testWidgets('popAfterDelete=true로 다이얼로그 생성 시 정상 렌더링되어야 한다', (
+        tester,
+      ) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'pop-after');
         mockDiaryRepo.diaries = [diary];
@@ -290,10 +278,7 @@ void main() {
         await tester.pumpWidget(
           buildTestWidget(
             child: Scaffold(
-              body: DeleteDiaryDialog(
-                diary: diary,
-                popAfterDelete: true,
-              ),
+              body: DeleteDiaryDialog(diary: diary, popAfterDelete: true),
             ),
           ),
         );
@@ -321,8 +306,10 @@ void main() {
               body: Builder(
                 builder: (context) => ElevatedButton(
                   onPressed: () async {
-                    dialogResult =
-                        await DeleteDiaryDialog.show(context, diary: diary);
+                    dialogResult = await DeleteDiaryDialog.show(
+                      context,
+                      diary: diary,
+                    );
                   },
                   child: const Text('Show Dialog'),
                 ),
@@ -359,8 +346,10 @@ void main() {
               body: Builder(
                 builder: (context) => ElevatedButton(
                   onPressed: () async {
-                    dialogResult =
-                        await DeleteDiaryDialog.show(context, diary: diary);
+                    dialogResult = await DeleteDiaryDialog.show(
+                      context,
+                      diary: diary,
+                    );
                   },
                   child: const Text('Show Dialog'),
                 ),
@@ -398,7 +387,8 @@ void main() {
             child: Scaffold(
               body: Builder(
                 builder: (context) => ElevatedButton(
-                  onPressed: () => DeleteDiaryDialog.show(context, diary: diary),
+                  onPressed: () =>
+                      DeleteDiaryDialog.show(context, diary: diary),
                   child: const Text('Show Dialog'),
                 ),
               ),
@@ -434,9 +424,7 @@ void main() {
             child: MaterialApp(
               themeMode: ThemeMode.dark,
               darkTheme: ThemeData.dark(useMaterial3: true),
-              home: Scaffold(
-                body: DeleteDiaryDialog(diary: diary),
-              ),
+              home: Scaffold(body: DeleteDiaryDialog(diary: diary)),
             ),
           ),
         );

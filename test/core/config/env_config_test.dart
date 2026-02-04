@@ -60,14 +60,7 @@ void main() {
     test('apiKeySource는 설정 상태를 나타내는 문자열을 반환한다', () {
       final source = EnvironmentService.apiKeySource;
       expect(source, isA<String>());
-      expect(
-        source,
-        anyOf([
-          'dart-define (secure)',
-          'not configured',
-        ]),
-      );
+      expect(source, anyOf(['dart-define (secure)', 'not configured']));
     });
   });
 }
-

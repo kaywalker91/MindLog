@@ -35,21 +35,24 @@ void main() {
       expect(copied.status, DiaryStatus.analyzed);
     });
 
-    test('copyWith의 clearAnalysisResult로 analysisResult를 null로 설정할 수 있어야 한다', () {
-      final original = Diary(
-        id: 'test-id',
-        content: '원본 내용',
-        createdAt: DateTime(2024, 1, 15),
-        analysisResult: AnalysisResult(
-          keywords: ['테스트'],
-          analyzedAt: DateTime(2024, 1, 15),
-        ),
-      );
+    test(
+      'copyWith의 clearAnalysisResult로 analysisResult를 null로 설정할 수 있어야 한다',
+      () {
+        final original = Diary(
+          id: 'test-id',
+          content: '원본 내용',
+          createdAt: DateTime(2024, 1, 15),
+          analysisResult: AnalysisResult(
+            keywords: ['테스트'],
+            analyzedAt: DateTime(2024, 1, 15),
+          ),
+        );
 
-      final cleared = original.copyWith(clearAnalysisResult: true);
+        final cleared = original.copyWith(clearAnalysisResult: true);
 
-      expect(cleared.analysisResult, isNull);
-    });
+        expect(cleared.analysisResult, isNull);
+      },
+    );
 
     test('fromJson/toJson으로 직렬화할 수 있어야 한다', () {
       final json = {
@@ -74,20 +77,14 @@ void main() {
 
   group('EmotionCategory', () {
     test('기본 생성자로 객체를 생성할 수 있어야 한다', () {
-      const category = EmotionCategory(
-        primary: '기쁨',
-        secondary: '만족',
-      );
+      const category = EmotionCategory(primary: '기쁨', secondary: '만족');
 
       expect(category.primary, '기쁨');
       expect(category.secondary, '만족');
     });
 
     test('fromJson/toJson으로 직렬화할 수 있어야 한다', () {
-      final json = {
-        'primary': '슬픔',
-        'secondary': '실망',
-      };
+      final json = {'primary': '슬픔', 'secondary': '실망'};
 
       final category = EmotionCategory.fromJson(json);
       expect(category.primary, '슬픔');
@@ -101,20 +98,14 @@ void main() {
 
   group('EmotionTrigger', () {
     test('기본 생성자로 객체를 생성할 수 있어야 한다', () {
-      const trigger = EmotionTrigger(
-        category: '업무',
-        description: '프로젝트 완료',
-      );
+      const trigger = EmotionTrigger(category: '업무', description: '프로젝트 완료');
 
       expect(trigger.category, '업무');
       expect(trigger.description, '프로젝트 완료');
     });
 
     test('fromJson/toJson으로 직렬화할 수 있어야 한다', () {
-      final json = {
-        'category': '관계',
-        'description': '친구와의 대화',
-      };
+      final json = {'category': '관계', 'description': '친구와의 대화'};
 
       final trigger = EmotionTrigger.fromJson(json);
       expect(trigger.category, '관계');

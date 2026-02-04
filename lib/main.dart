@@ -42,7 +42,8 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 Future<void> _rescheduleNotificationsIfNeeded() async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    final reminderEnabled = prefs.getBool('notification_reminder_enabled') ?? false;
+    final reminderEnabled =
+        prefs.getBool('notification_reminder_enabled') ?? false;
 
     if (!reminderEnabled) {
       if (kDebugMode) {
@@ -52,14 +53,19 @@ Future<void> _rescheduleNotificationsIfNeeded() async {
     }
 
     // 이미 예약된 알림이 있는지 확인 (스마트 재스케줄링)
-    final pendingNotifications = await NotificationService.getPendingNotifications();
-    final hasScheduledReminder = pendingNotifications.any((n) => n.id == 1001); // _dailyReminderId
+    final pendingNotifications =
+        await NotificationService.getPendingNotifications();
+    final hasScheduledReminder = pendingNotifications.any(
+      (n) => n.id == 1001,
+    ); // _dailyReminderId
 
     if (hasScheduledReminder) {
       if (kDebugMode) {
         debugPrint('[Main] Reminder already scheduled, skipping reschedule');
         for (final notification in pendingNotifications) {
-          debugPrint('[Main]   • ID: ${notification.id}, Title: ${notification.title}');
+          debugPrint(
+            '[Main]   • ID: ${notification.id}, Title: ${notification.title}',
+          );
         }
       }
       return; // 이미 예약되어 있으면 재스케줄 불필요
@@ -68,7 +74,8 @@ Future<void> _rescheduleNotificationsIfNeeded() async {
     // SharedPreferences에서 알림 설정 읽기
     final hour = prefs.getInt('notification_reminder_hour') ?? 21;
     final minute = prefs.getInt('notification_reminder_minute') ?? 0;
-    final mindcareEnabled = prefs.getBool('notification_mindcare_topic_enabled') ?? false;
+    final mindcareEnabled =
+        prefs.getBool('notification_mindcare_topic_enabled') ?? false;
 
     final settings = app.NotificationSettings(
       isReminderEnabled: true,
@@ -78,10 +85,15 @@ Future<void> _rescheduleNotificationsIfNeeded() async {
     );
 
     if (kDebugMode) {
-      debugPrint('[Main] No scheduled reminder found. Rescheduling for $hour:${minute.toString().padLeft(2, '0')}');
+      debugPrint(
+        '[Main] No scheduled reminder found. Rescheduling for $hour:${minute.toString().padLeft(2, '0')}',
+      );
     }
 
-    await NotificationSettingsService.applySettings(settings, source: 'app_start');
+    await NotificationSettingsService.applySettings(
+      settings,
+      source: 'app_start',
+    );
 
     if (kDebugMode) {
       debugPrint('[Main] Notification rescheduled successfully');
@@ -135,7 +147,9 @@ Future<void> _initializeApp() async {
   // DB 복원 감지 및 처리
   // 앱 재설치 시 OS가 복원한 DB 파일을 정확히 읽도록 함
   final dataSource = appContainer.read(sqliteLocalDataSourceProvider);
-  final wasRecovered = await DbRecoveryService.checkAndRecoverIfNeeded(dataSource);
+  final wasRecovered = await DbRecoveryService.checkAndRecoverIfNeeded(
+    dataSource,
+  );
   if (wasRecovered) {
     // 1. Core layer Provider 무효화 (DataSource, Repository, UseCase)
     invalidateDataProviders(appContainer);
@@ -154,9 +168,7 @@ Future<void> _initializeApp() async {
     }
   }
 
-  FirebaseMessaging.onBackgroundMessage(
-    firebaseMessagingBackgroundHandler,
-  );
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   NotificationActionHandler.configure(
     navigatorKey: rootNavigatorKey,
     container: appContainer,
@@ -166,9 +178,11 @@ Future<void> _initializeApp() async {
   );
 
   // Non-critical services (unawaited to avoid blocking app startup)
-  unawaited(FCMService.initialize(
-    onMessageOpened: NotificationActionHandler.handleRemoteData,
-  ));
+  unawaited(
+    FCMService.initialize(
+      onMessageOpened: NotificationActionHandler.handleRemoteData,
+    ),
+  );
 
   // 앱 시작 시 알림 재스케줄링
   // 기기 재부팅, 앱 업데이트, 시스템 알람 취소 등의 경우에 알람을 복원합니다.
@@ -179,7 +193,9 @@ Future<void> _initializeApp() async {
   Future.delayed(const Duration(seconds: 2), () async {
     try {
       final appInfo = await appContainer.read(appInfoProvider.future);
-      await appContainer.read(updateStateProvider.notifier).check(appInfo.version);
+      await appContainer
+          .read(updateStateProvider.notifier)
+          .check(appInfo.version);
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[Main] Background update check failed: $e');
@@ -196,7 +212,9 @@ void main() {
         _initializeApp(),
         Future.delayed(const Duration(seconds: 15), () {
           if (kDebugMode) {
-            debugPrint('[Main] Initialization timeout - proceeding with partial init');
+            debugPrint(
+              '[Main] Initialization timeout - proceeding with partial init',
+            );
           }
         }),
       ]);

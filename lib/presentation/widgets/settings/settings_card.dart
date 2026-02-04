@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 class SettingsCard extends StatelessWidget {
   final List<Widget> children;
 
-  const SettingsCard({
-    super.key,
-    required this.children,
-  });
+  const SettingsCard({super.key, required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +18,7 @@ class SettingsCard extends StatelessWidget {
           color: colorScheme.outline.withAlpha(51), // 0.2 * 255 ≈ 51
         ),
       ),
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 }
@@ -32,10 +27,7 @@ class SettingsCard extends StatelessWidget {
 class SettingsSectionHeader extends StatelessWidget {
   final String title;
 
-  const SettingsSectionHeader({
-    super.key,
-    required this.title,
-  });
+  const SettingsSectionHeader({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {

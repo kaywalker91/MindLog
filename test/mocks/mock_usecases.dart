@@ -51,7 +51,8 @@ class MockAnalyzeDiaryUseCase implements AnalyzeDiaryUseCase {
 }
 
 /// Mock GetNotificationSettingsUseCase
-class MockGetNotificationSettingsUseCase implements GetNotificationSettingsUseCase {
+class MockGetNotificationSettingsUseCase
+    implements GetNotificationSettingsUseCase {
   NotificationSettings mockSettings = NotificationSettings.defaults();
   bool shouldThrow = false;
   Failure? failureToThrow;
@@ -72,7 +73,8 @@ class MockGetNotificationSettingsUseCase implements GetNotificationSettingsUseCa
 }
 
 /// Mock SetNotificationSettingsUseCase
-class MockSetNotificationSettingsUseCase implements SetNotificationSettingsUseCase {
+class MockSetNotificationSettingsUseCase
+    implements SetNotificationSettingsUseCase {
   bool shouldThrow = false;
   Failure? failureToThrow;
   final List<NotificationSettings> savedSettings = [];
@@ -93,7 +95,8 @@ class MockSetNotificationSettingsUseCase implements SetNotificationSettingsUseCa
 }
 
 /// Mock GetSelectedAiCharacterUseCase
-class MockGetSelectedAiCharacterUseCase implements GetSelectedAiCharacterUseCase {
+class MockGetSelectedAiCharacterUseCase
+    implements GetSelectedAiCharacterUseCase {
   AiCharacter mockCharacter = AiCharacter.warmCounselor;
   bool shouldThrow = false;
   Failure? failureToThrow;
@@ -114,7 +117,8 @@ class MockGetSelectedAiCharacterUseCase implements GetSelectedAiCharacterUseCase
 }
 
 /// Mock SetSelectedAiCharacterUseCase
-class MockSetSelectedAiCharacterUseCase implements SetSelectedAiCharacterUseCase {
+class MockSetSelectedAiCharacterUseCase
+    implements SetSelectedAiCharacterUseCase {
   bool shouldThrow = false;
   Failure? failureToThrow;
   final List<AiCharacter> savedCharacters = [];
@@ -204,8 +208,7 @@ class MockValidateDiaryContentUseCase implements ValidateDiaryContentUseCase {
   DiaryValidationResult execute(String content) {
     validatedContents.add(content);
     if (shouldThrow) {
-      throw failureToThrow ??
-          const ValidationFailure(message: '유효성 검사 실패');
+      throw failureToThrow ?? const ValidationFailure(message: '유효성 검사 실패');
     }
     return mockResult ?? DiaryValidationResult.valid(content.trim());
   }

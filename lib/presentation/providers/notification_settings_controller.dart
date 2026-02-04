@@ -61,5 +61,5 @@ class NotificationSettingsController
 
 final notificationSettingsProvider =
     AsyncNotifierProvider<NotificationSettingsController, NotificationSettings>(
-  NotificationSettingsController.new,
-);
+      NotificationSettingsController.new,
+    );

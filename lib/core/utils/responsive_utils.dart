@@ -5,7 +5,7 @@ class ResponsiveUtils {
   ResponsiveUtils._();
 
   /// 시스템 네비게이션 바를 고려한 스크롤 패딩
-  /// 
+  ///
   /// [horizontal] 좌우 패딩 (기본 20)
   /// [top] 상단 패딩 (기본 20)
   /// [bottomExtra] 하단 추가 여유 공간 (기본 24)
@@ -25,7 +25,10 @@ class ResponsiveUtils {
   }
 
   /// 하단 시스템 네비게이션 바 높이 + 여유 공간
-  static double bottomSafeAreaPadding(BuildContext context, {double extra = 24}) {
+  static double bottomSafeAreaPadding(
+    BuildContext context, {
+    double extra = 24,
+  }) {
     return MediaQuery.of(context).padding.bottom + extra;
   }
 

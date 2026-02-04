@@ -4,10 +4,7 @@ import '../../../domain/entities/statistics.dart';
 
 /// 통계 화면 상단의 요약 + 스트릭 Row
 class StatisticsSummaryRow extends StatelessWidget {
-  const StatisticsSummaryRow({
-    super.key,
-    required this.statistics,
-  });
+  const StatisticsSummaryRow({super.key, required this.statistics});
 
   final EmotionStatistics statistics;
 
@@ -17,13 +14,9 @@ class StatisticsSummaryRow extends StatelessWidget {
 
     return Row(
       children: [
-        Expanded(
-          child: _SummaryCard(statistics: statistics),
-        ),
+        Expanded(child: _SummaryCard(statistics: statistics)),
         const SizedBox(width: 12),
-        Expanded(
-          child: _StreakCard(streak: streak),
-        ),
+        Expanded(child: _StreakCard(streak: streak)),
       ],
     );
   }
@@ -82,10 +75,7 @@ class _SummaryCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            emoji,
-            style: const TextStyle(fontSize: 28),
-          ),
+          Text(emoji, style: const TextStyle(fontSize: 28)),
           const SizedBox(height: 2),
           Text(
             '평균 ${statistics.overallAverageScore.toStringAsFixed(1)}점',
@@ -137,10 +127,7 @@ class _StreakCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            '🔥',
-            style: TextStyle(fontSize: 24),
-          ),
+          const Text('🔥', style: TextStyle(fontSize: 24)),
           const SizedBox(height: 2),
           Text(
             '$streak일',
@@ -152,10 +139,7 @@ class _StreakCard extends StatelessWidget {
           ),
           const Text(
             '연속 작성!',
-            style: TextStyle(
-              color: AppColors.statsTextSecondary,
-              fontSize: 11,
-            ),
+            style: TextStyle(color: AppColors.statsTextSecondary, fontSize: 11),
           ),
         ],
       ),

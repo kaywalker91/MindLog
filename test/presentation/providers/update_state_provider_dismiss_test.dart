@@ -75,7 +75,9 @@ void main() {
             notes: [],
           ),
           dismissedVersion: '1.1.0',
-          dismissedAt: DateTime.now().subtract(const Duration(hours: 25)), // 25시간 전
+          dismissedAt: DateTime.now().subtract(
+            const Duration(hours: 25),
+          ), // 25시간 전
         );
 
         // Assert
@@ -201,10 +203,7 @@ void main() {
       test('dismissedAt을 유지하면서 다른 필드만 업데이트해야 한다', () {
         // Arrange
         final now = DateTime.now();
-        final state = UpdateState(
-          dismissedVersion: '1.0.0',
-          dismissedAt: now,
-        );
+        final state = UpdateState(dismissedVersion: '1.0.0', dismissedAt: now);
 
         // Act
         final newState = state.copyWith(isLoading: true);

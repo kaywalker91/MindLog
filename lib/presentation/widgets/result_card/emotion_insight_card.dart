@@ -10,10 +10,10 @@ import '../common/expandable_text.dart';
 class EmotionInsightCard extends StatelessWidget {
   final AnalysisResult result;
 
-  const EmotionInsightCard({
-    super.key,
-    required this.result,
-  });
+  /// 탭 시 전체 분석 내용을 보여주는 시트를 열기 위한 콜백
+  final VoidCallback? onTapExpand;
+
+  const EmotionInsightCard({super.key, required this.result, this.onTapExpand});
 
   @override
   Widget build(BuildContext context) {
@@ -21,12 +21,14 @@ class EmotionInsightCard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return Container(
+    final content = Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.statsPrimary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.statsPrimary.withValues(alpha: 0.15)),
+        border: Border.all(
+          color: AppColors.statsPrimary.withValues(alpha: 0.15),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -99,6 +101,20 @@ class EmotionInsightCard extends StatelessWidget {
           ],
         ],
       ),
-    ).animate().fadeIn(delay: 100.ms, duration: 500.ms).slideX(begin: 0.1);
+    );
+
+    // onTapExpand 콜백이 있으면 GestureDetector로 래핑
+    final widget = onTapExpand != null
+        ? GestureDetector(
+            onTap: onTapExpand,
+            behavior: HitTestBehavior.opaque,
+            child: content,
+          )
+        : content;
+
+    return widget
+        .animate()
+        .fadeIn(delay: 100.ms, duration: 500.ms)
+        .slideX(begin: 0.1);
   }
 }

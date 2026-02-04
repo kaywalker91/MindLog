@@ -71,10 +71,7 @@ class _HelpHeader extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
-          colors: [
-            AppColors.statsPrimary,
-            AppColors.statsSecondary,
-          ],
+          colors: [AppColors.statsPrimary, AppColors.statsSecondary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -145,9 +142,7 @@ class _HelpStepCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.16),
-        ),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.16)),
         boxShadow: [
           BoxShadow(
             color: colorScheme.shadow.withValues(alpha: 0.04),
@@ -165,11 +160,7 @@ class _HelpStepCard extends StatelessWidget {
               color: colorScheme.primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              color: colorScheme.primary,
-              size: 22,
-            ),
+            child: Icon(icon, color: colorScheme.primary, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -215,9 +206,7 @@ class _HelpSosCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.sosBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: accent.withValues(alpha: 0.6),
-        ),
+        border: Border.all(color: accent.withValues(alpha: 0.6)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -259,9 +248,7 @@ class _HelpSosCard extends StatelessWidget {
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      const TextSpan(
-                        text: '으로 연락해주세요. 전문 상담사가 24시간 도움을 드립니다.',
-                      ),
+                      const TextSpan(text: '으로 연락해주세요. 전문 상담사가 24시간 도움을 드립니다.'),
                     ],
                   ),
                 ),

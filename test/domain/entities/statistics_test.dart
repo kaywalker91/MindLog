@@ -33,7 +33,11 @@ void main() {
     test('기본 생성자로 객체를 생성할 수 있어야 한다', () {
       final stats = EmotionStatistics(
         dailyEmotions: [
-          DailyEmotion(date: DateTime(2024, 1, 15), averageScore: 7.0, diaryCount: 2),
+          DailyEmotion(
+            date: DateTime(2024, 1, 15),
+            averageScore: 7.0,
+            diaryCount: 2,
+          ),
         ],
         keywordFrequency: {'행복': 5, '만족': 3},
         activityMap: {DateTime(2024, 1, 15): 7.0},
@@ -61,13 +65,7 @@ void main() {
       test('상위 N개 키워드를 내림차순으로 반환해야 한다', () {
         const stats = EmotionStatistics(
           dailyEmotions: [],
-          keywordFrequency: {
-            '행복': 10,
-            '만족': 8,
-            '평온': 5,
-            '기쁨': 3,
-            '설렘': 1,
-          },
+          keywordFrequency: {'행복': 10, '만족': 8, '평온': 5, '기쁨': 3, '설렘': 1},
           activityMap: {},
           totalDiaries: 5,
           overallAverageScore: 7.0,
@@ -101,11 +99,31 @@ void main() {
       test('최근 N일의 감정 데이터를 반환해야 한다', () {
         final stats = EmotionStatistics(
           dailyEmotions: [
-            DailyEmotion(date: DateTime(2024, 1, 20), averageScore: 8.0, diaryCount: 2),
-            DailyEmotion(date: DateTime(2024, 1, 19), averageScore: 7.0, diaryCount: 1),
-            DailyEmotion(date: DateTime(2024, 1, 18), averageScore: 6.0, diaryCount: 1),
-            DailyEmotion(date: DateTime(2024, 1, 17), averageScore: 5.0, diaryCount: 1),
-            DailyEmotion(date: DateTime(2024, 1, 16), averageScore: 4.0, diaryCount: 1),
+            DailyEmotion(
+              date: DateTime(2024, 1, 20),
+              averageScore: 8.0,
+              diaryCount: 2,
+            ),
+            DailyEmotion(
+              date: DateTime(2024, 1, 19),
+              averageScore: 7.0,
+              diaryCount: 1,
+            ),
+            DailyEmotion(
+              date: DateTime(2024, 1, 18),
+              averageScore: 6.0,
+              diaryCount: 1,
+            ),
+            DailyEmotion(
+              date: DateTime(2024, 1, 17),
+              averageScore: 5.0,
+              diaryCount: 1,
+            ),
+            DailyEmotion(
+              date: DateTime(2024, 1, 16),
+              averageScore: 4.0,
+              diaryCount: 1,
+            ),
           ],
           keywordFrequency: {},
           activityMap: {},
@@ -133,10 +151,26 @@ void main() {
       test('특정 기간의 평균 점수를 계산해야 한다', () {
         final stats = EmotionStatistics(
           dailyEmotions: [
-            DailyEmotion(date: DateTime(2024, 1, 20), averageScore: 8.0, diaryCount: 1),
-            DailyEmotion(date: DateTime(2024, 1, 19), averageScore: 6.0, diaryCount: 1),
-            DailyEmotion(date: DateTime(2024, 1, 18), averageScore: 4.0, diaryCount: 1),
-            DailyEmotion(date: DateTime(2024, 1, 15), averageScore: 2.0, diaryCount: 1),
+            DailyEmotion(
+              date: DateTime(2024, 1, 20),
+              averageScore: 8.0,
+              diaryCount: 1,
+            ),
+            DailyEmotion(
+              date: DateTime(2024, 1, 19),
+              averageScore: 6.0,
+              diaryCount: 1,
+            ),
+            DailyEmotion(
+              date: DateTime(2024, 1, 18),
+              averageScore: 4.0,
+              diaryCount: 1,
+            ),
+            DailyEmotion(
+              date: DateTime(2024, 1, 15),
+              averageScore: 2.0,
+              diaryCount: 1,
+            ),
           ],
           keywordFrequency: {},
           activityMap: {},
@@ -156,7 +190,11 @@ void main() {
       test('해당 기간에 데이터가 없으면 0을 반환해야 한다', () {
         final stats = EmotionStatistics(
           dailyEmotions: [
-            DailyEmotion(date: DateTime(2024, 1, 15), averageScore: 7.0, diaryCount: 1),
+            DailyEmotion(
+              date: DateTime(2024, 1, 15),
+              averageScore: 7.0,
+              diaryCount: 1,
+            ),
           ],
           keywordFrequency: {},
           activityMap: {},

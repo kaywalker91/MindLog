@@ -39,7 +39,9 @@ class AppIcons {
       _svgIcon,
       width: size ?? 50,
       height: size ?? 50,
-      colorFilter: color != null ? ColorFilter.mode(color, BlendMode.srcIn) : null,
+      colorFilter: color != null
+          ? ColorFilter.mode(color, BlendMode.srcIn)
+          : null,
     );
   }
 }

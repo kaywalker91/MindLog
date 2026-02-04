@@ -8,10 +8,7 @@ class LoadingMessage {
   final String message;
   final String subMessage;
 
-  const LoadingMessage({
-    required this.message,
-    required this.subMessage,
-  });
+  const LoadingMessage({required this.message, required this.subMessage});
 }
 
 /// 로딩 인디케이터 위젯
@@ -46,18 +43,9 @@ class LoadingIndicator extends StatefulWidget {
 
   /// 분석용 기본 로테이션 메시지
   static const List<LoadingMessage> analysisMessages = [
-    LoadingMessage(
-      message: '마음을 읽고 있어요',
-      subMessage: '당신의 이야기를 천천히 들어볼게요',
-    ),
-    LoadingMessage(
-      message: '감정을 이해하는 중...',
-      subMessage: '어떤 결과가 나와도 괜찮아요',
-    ),
-    LoadingMessage(
-      message: '거의 다 됐어요',
-      subMessage: '따뜻한 마음 케어를 준비하고 있어요',
-    ),
+    LoadingMessage(message: '마음을 읽고 있어요', subMessage: '당신의 이야기를 천천히 들어볼게요'),
+    LoadingMessage(message: '감정을 이해하는 중...', subMessage: '어떤 결과가 나와도 괜찮아요'),
+    LoadingMessage(message: '거의 다 됐어요', subMessage: '따뜻한 마음 케어를 준비하고 있어요'),
   ];
 
   @override
@@ -69,14 +57,16 @@ class _LoadingIndicatorState extends State<LoadingIndicator> {
   Timer? _rotationTimer;
 
   String get _currentMessage {
-    if (widget.rotatingMessages != null && widget.rotatingMessages!.isNotEmpty) {
+    if (widget.rotatingMessages != null &&
+        widget.rotatingMessages!.isNotEmpty) {
       return widget.rotatingMessages![_currentMessageIndex].message;
     }
     return widget.message;
   }
 
   String get _currentSubMessage {
-    if (widget.rotatingMessages != null && widget.rotatingMessages!.isNotEmpty) {
+    if (widget.rotatingMessages != null &&
+        widget.rotatingMessages!.isNotEmpty) {
       return widget.rotatingMessages![_currentMessageIndex].subMessage;
     }
     return widget.subMessage;
@@ -122,9 +112,7 @@ class _LoadingIndicatorState extends State<LoadingIndicator> {
     final innerIconSize = screenWidth < 360 ? 36.0 : 44.0;
 
     final content = ConstrainedBox(
-      constraints: BoxConstraints(
-        maxWidth: screenWidth * 0.9,
-      ),
+      constraints: BoxConstraints(maxWidth: screenWidth * 0.9),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
@@ -166,27 +154,27 @@ class _LoadingIndicatorState extends State<LoadingIndicator> {
         children: [
           // 외곽 그라데이션 링 애니메이션
           Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [
-                  accent.withValues(alpha: 0.3),
-                  accent.withValues(alpha: 0.1),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.2),
-                  blurRadius: 20,
-                  spreadRadius: 2,
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      accent.withValues(alpha: 0.3),
+                      accent.withValues(alpha: 0.1),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.2),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          )
+              )
               .animate(
                 onPlay: (controller) => _repeatIfMounted(context, controller),
               )
@@ -222,11 +210,7 @@ class _LoadingIndicatorState extends State<LoadingIndicator> {
           ),
 
           // 뇌 아이콘
-          Icon(
-            Icons.psychology_rounded,
-            size: innerIconSize,
-            color: accent,
-          )
+          Icon(Icons.psychology_rounded, size: innerIconSize, color: accent)
               .animate(
                 onPlay: (controller) => _repeatIfMounted(context, controller),
               )
@@ -252,38 +236,40 @@ class _LoadingIndicatorState extends State<LoadingIndicator> {
                 angle: angle,
                 child: Align(
                   alignment: Alignment.topCenter,
-                  child: Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: accent,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: accent.withValues(alpha: 0.5),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
-                  )
-                      .animate(
-                        onPlay: (controller) => _repeatIfMounted(context, controller),
-                        delay: Duration(milliseconds: 150 * index),
-                      )
-                      .fadeIn(duration: const Duration(milliseconds: 400))
-                      .scale(
-                        begin: const Offset(0.5, 0.5),
-                        end: const Offset(1.2, 1.2),
-                        duration: const Duration(milliseconds: 800),
-                        curve: Curves.easeOut,
-                      )
-                      .then()
-                      .fadeOut(duration: const Duration(milliseconds: 400))
-                      .scale(
-                        begin: const Offset(1.2, 1.2),
-                        end: const Offset(0.5, 0.5),
-                        duration: const Duration(milliseconds: 600),
-                      ),
+                  child:
+                      Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: accent,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: accent.withValues(alpha: 0.5),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                          )
+                          .animate(
+                            onPlay: (controller) =>
+                                _repeatIfMounted(context, controller),
+                            delay: Duration(milliseconds: 150 * index),
+                          )
+                          .fadeIn(duration: const Duration(milliseconds: 400))
+                          .scale(
+                            begin: const Offset(0.5, 0.5),
+                            end: const Offset(1.2, 1.2),
+                            duration: const Duration(milliseconds: 800),
+                            curve: Curves.easeOut,
+                          )
+                          .then()
+                          .fadeOut(duration: const Duration(milliseconds: 400))
+                          .scale(
+                            begin: const Offset(1.2, 1.2),
+                            end: const Offset(0.5, 0.5),
+                            duration: const Duration(milliseconds: 600),
+                          ),
                 ),
               ),
             );
@@ -302,100 +288,95 @@ class _LoadingIndicatorState extends State<LoadingIndicator> {
     double screenWidth,
   ) {
     return Container(
-      width: double.infinity,
-      constraints: BoxConstraints(
-        maxWidth: screenWidth * 0.85,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            surface,
-            accent.withValues(alpha: 0.03),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: accent.withValues(alpha: 0.1),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: accent.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+          width: double.infinity,
+          constraints: BoxConstraints(maxWidth: screenWidth * 0.85),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [surface, accent.withValues(alpha: 0.03)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: accent.withValues(alpha: 0.1), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: accent.withValues(alpha: 0.08),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Theme.of(
+                  context,
+                ).colorScheme.shadow.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          BoxShadow(
-            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 주 메시지 (AnimatedSwitcher로 부드러운 전환)
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            switchInCurve: Curves.easeOut,
-            switchOutCurve: Curves.easeIn,
-            transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: SlideTransition(
-                  position: Tween<Offset>(
-                    begin: const Offset(0, 0.1),
-                    end: Offset.zero,
-                  ).animate(animation),
-                  child: child,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 주 메시지 (AnimatedSwitcher로 부드러운 전환)
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.1),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Text(
+                  _currentMessage,
+                  key: ValueKey<String>(_currentMessage),
+                  style: AppTextStyles.title.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                  ),
+                  textAlign: TextAlign.center,
+                  softWrap: true,
                 ),
-              );
-            },
-            child: Text(
-              _currentMessage,
-              key: ValueKey<String>(_currentMessage),
-              style: AppTextStyles.title.copyWith(
-                color: accent,
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
               ),
-              textAlign: TextAlign.center,
-              softWrap: true,
-            ),
-          ),
-          const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
-          // 서브 메시지 (AnimatedSwitcher로 부드러운 전환)
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 400),
-            switchInCurve: Curves.easeOut,
-            switchOutCurve: Curves.easeIn,
-            transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: child,
-              );
-            },
-            child: Text(
-              _currentSubMessage,
-              key: ValueKey<String>(_currentSubMessage),
-              style: AppTextStyles.bodySmall.copyWith(
-                color: subText,
-                height: 1.5,
+              // 서브 메시지 (AnimatedSwitcher로 부드러운 전환)
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 400),
+                switchInCurve: Curves.easeOut,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                child: Text(
+                  _currentSubMessage,
+                  key: ValueKey<String>(_currentSubMessage),
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: subText,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                  softWrap: true,
+                ),
               ),
-              textAlign: TextAlign.center,
-              softWrap: true,
-            ),
+            ],
           ),
-        ],
-      ),
-    )
+        )
         .animate()
         .fadeIn(duration: const Duration(milliseconds: 400))
-        .slideY(begin: 0.1, end: 0, duration: const Duration(milliseconds: 500));
+        .slideY(
+          begin: 0.1,
+          end: 0,
+          duration: const Duration(milliseconds: 500),
+        );
   }
 
   /// 점 애니메이션 위젯 (물결 효과)
@@ -405,28 +386,25 @@ class _LoadingIndicatorState extends State<LoadingIndicator> {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(3, (index) {
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 5),
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                accent,
-                accent.withValues(alpha: 0.7),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: accent.withValues(alpha: 0.4),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+              margin: const EdgeInsets.symmetric(horizontal: 5),
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [accent, accent.withValues(alpha: 0.7)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.4),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-            ],
-          ),
-        )
+            )
             .animate(
               onPlay: (controller) => _repeatIfMounted(context, controller),
               delay: Duration(milliseconds: 200 * index),

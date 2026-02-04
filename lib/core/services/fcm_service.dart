@@ -2,8 +2,11 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../firebase_options.dart';
+import '../constants/notification_messages.dart';
 import 'crashlytics_service.dart';
+import 'emotion_score_service.dart';
 import 'notification_service.dart';
 
 /// Firebase Cloud Messaging 서비스
@@ -71,7 +74,9 @@ class FCMService {
         apnsToken = await _messaging?.getAPNSToken();
         if (apnsToken == null) {
           if (kDebugMode) {
-            debugPrint('[FCM] Waiting for APNS token... (attempt ${retryCount + 1}/$maxRetries)');
+            debugPrint(
+              '[FCM] Waiting for APNS token... (attempt ${retryCount + 1}/$maxRetries)',
+            );
           }
           await Future.delayed(const Duration(milliseconds: 500));
           retryCount++;
@@ -80,7 +85,9 @@ class FCMService {
 
       if (apnsToken == null) {
         if (kDebugMode) {
-          debugPrint('[FCM] APNS token not available after $maxRetries attempts. FCM token will be retrieved later.');
+          debugPrint(
+            '[FCM] APNS token not available after $maxRetries attempts. FCM token will be retrieved later.',
+          );
         }
         return;
       }
@@ -122,11 +129,62 @@ class FCMService {
     if (kDebugMode) {
       debugPrint('[FCM] Foreground: ${message.notification?.title}');
     }
+
+    // 사용자 정보 및 감정 점수 조회
+    final userName = await _getUserName();
+    final avgScore = await EmotionScoreService.getRecentAverageScore();
+
+    String title;
+    String body;
+
+    if (avgScore != null) {
+      // 감정 기반 메시지 재선택 (서버 메시지 무시, 개인화된 메시지 사용)
+      if (kDebugMode) {
+        debugPrint('[FCM] Using emotion-based message (avgScore: $avgScore)');
+      }
+      final emotionMessage = NotificationMessages.getMindcareMessageByEmotion(
+        avgScore,
+      );
+      // 이름 개인화 적용
+      final personalizedMessage = NotificationMessages.applyNameToMessage(
+        emotionMessage,
+        userName,
+      );
+      title = personalizedMessage.title;
+      body = personalizedMessage.body;
+    } else {
+      // 감정 데이터 없음: 서버 메시지에 이름 개인화만 적용
+      if (kDebugMode) {
+        debugPrint('[FCM] No emotion data, using server message');
+      }
+      title = NotificationMessages.applyNamePersonalization(
+        message.notification?.title ?? 'MindLog',
+        userName,
+      );
+      body = NotificationMessages.applyNamePersonalization(
+        message.notification?.body ?? '',
+        userName,
+      );
+    }
+
     await NotificationService.showNotification(
-      title: message.notification?.title ?? 'MindLog',
-      body: message.notification?.body ?? '',
+      title: title,
+      body: body,
       payload: message.data.isEmpty ? null : jsonEncode(message.data),
     );
+  }
+
+  /// SharedPreferences에서 사용자 이름 조회
+  static Future<String?> _getUserName() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('user_name');
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[FCM] Failed to get user name: $e');
+      }
+      return null;
+    }
   }
 
   static void _onMessageOpenedApp(RemoteMessage message) {

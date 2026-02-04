@@ -59,7 +59,11 @@ class StatisticsFixtures {
   /// 단일 일기만 있는 통계
   static EmotionStatistics singleDiary({DateTime? date, int score = 7}) {
     final diaryDate = date ?? testNow;
-    final normalizedDate = DateTime(diaryDate.year, diaryDate.month, diaryDate.day);
+    final normalizedDate = DateTime(
+      diaryDate.year,
+      diaryDate.month,
+      diaryDate.day,
+    );
 
     return EmotionStatistics(
       dailyEmotions: [
@@ -81,7 +85,11 @@ class StatisticsFixtures {
   /// 하루에 여러 일기가 있는 통계
   static EmotionStatistics multipleDiariesPerDay({DateTime? date}) {
     final diaryDate = date ?? testNow;
-    final normalizedDate = DateTime(diaryDate.year, diaryDate.month, diaryDate.day);
+    final normalizedDate = DateTime(
+      diaryDate.year,
+      diaryDate.month,
+      diaryDate.day,
+    );
 
     return EmotionStatistics(
       dailyEmotions: [
@@ -91,12 +99,7 @@ class StatisticsFixtures {
           diaryCount: 3,
         ),
       ],
-      keywordFrequency: {
-        '행복': 2,
-        '피곤': 1,
-        '스트레스': 1,
-        '휴식': 1,
-      },
+      keywordFrequency: {'행복': 2, '피곤': 1, '스트레스': 1, '휴식': 1},
       activityMap: {normalizedDate: 6.0},
       totalDiaries: 3,
       overallAverageScore: 6.0,
@@ -113,8 +116,11 @@ class StatisticsFixtures {
   }) {
     final base = baseDate ?? testNow;
     return List.generate(days, (index) {
-      final date = DateTime(base.year, base.month, base.day)
-          .subtract(Duration(days: index));
+      final date = DateTime(
+        base.year,
+        base.month,
+        base.day,
+      ).subtract(Duration(days: index));
       final score = scores != null && index < scores.length
           ? scores[index]
           : (5 + (index % 5));
@@ -141,8 +147,11 @@ class StatisticsFixtures {
     final map = <DateTime, double>{};
 
     for (int i = 0; i < days; i++) {
-      final date = DateTime(base.year, base.month, base.day)
-          .subtract(Duration(days: i));
+      final date = DateTime(
+        base.year,
+        base.month,
+        base.day,
+      ).subtract(Duration(days: i));
       final score = scores != null && i < scores.length
           ? scores[i]
           : (5 + (i % 5)).toDouble();
@@ -154,10 +163,16 @@ class StatisticsFixtures {
 
   // Private helper methods
 
-  static List<DailyEmotion> _generateDailyEmotions(int days, DateTime baseDate) {
+  static List<DailyEmotion> _generateDailyEmotions(
+    int days,
+    DateTime baseDate,
+  ) {
     return List.generate(days, (index) {
-      final date = DateTime(baseDate.year, baseDate.month, baseDate.day)
-          .subtract(Duration(days: index));
+      final date = DateTime(
+        baseDate.year,
+        baseDate.month,
+        baseDate.day,
+      ).subtract(Duration(days: index));
       final score = (5 + (index % 5)).clamp(1, 10);
       return DailyEmotion(
         date: date,
@@ -167,11 +182,17 @@ class StatisticsFixtures {
     });
   }
 
-  static Map<DateTime, double> _generateActivityMap(int days, DateTime baseDate) {
+  static Map<DateTime, double> _generateActivityMap(
+    int days,
+    DateTime baseDate,
+  ) {
     final map = <DateTime, double>{};
     for (int i = 0; i < days; i++) {
-      final date = DateTime(baseDate.year, baseDate.month, baseDate.day)
-          .subtract(Duration(days: i));
+      final date = DateTime(
+        baseDate.year,
+        baseDate.month,
+        baseDate.day,
+      ).subtract(Duration(days: i));
       final score = (5 + (i % 5)).clamp(1, 10);
       map[date] = score.toDouble();
     }
@@ -179,40 +200,40 @@ class StatisticsFixtures {
   }
 
   static Map<String, int> _weeklyKeywordFrequency() => {
-        '행복': 5,
-        '피곤': 4,
-        '스트레스': 3,
-        '운동': 3,
-        '가족': 2,
-        '일상': 2,
-        '만족': 1,
-      };
+    '행복': 5,
+    '피곤': 4,
+    '스트레스': 3,
+    '운동': 3,
+    '가족': 2,
+    '일상': 2,
+    '만족': 1,
+  };
 
   static Map<String, int> _monthlyKeywordFrequency() => {
-        '행복': 15,
-        '피곤': 12,
-        '스트레스': 10,
-        '운동': 8,
-        '가족': 7,
-        '일상': 6,
-        '성취감': 5,
-        '친구': 4,
-        '배움': 3,
-        '만족': 2,
-      };
+    '행복': 15,
+    '피곤': 12,
+    '스트레스': 10,
+    '운동': 8,
+    '가족': 7,
+    '일상': 6,
+    '성취감': 5,
+    '친구': 4,
+    '배움': 3,
+    '만족': 2,
+  };
 
   static Map<String, int> _allTimeKeywordFrequency() => {
-        '행복': 45,
-        '피곤': 35,
-        '스트레스': 30,
-        '운동': 25,
-        '가족': 20,
-        '일상': 18,
-        '성취감': 15,
-        '친구': 12,
-        '배움': 10,
-        '만족': 8,
-        '사랑': 5,
-        '도전': 3,
-      };
+    '행복': 45,
+    '피곤': 35,
+    '스트레스': 30,
+    '운동': 25,
+    '가족': 20,
+    '일상': 18,
+    '성취감': 15,
+    '친구': 12,
+    '배움': 10,
+    '만족': 8,
+    '사랑': 5,
+    '도전': 3,
+  };
 }

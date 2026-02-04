@@ -8,14 +8,14 @@ import '../common/expandable_text.dart';
 class EmpathyMessage extends StatelessWidget {
   final String message;
 
-  const EmpathyMessage({
-    super.key,
-    required this.message,
-  });
+  /// 탭 시 전체 분석 내용을 보여주는 시트를 열기 위한 콜백
+  final VoidCallback? onTapExpand;
+
+  const EmpathyMessage({super.key, required this.message, this.onTapExpand});
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    final content = Stack(
       children: [
         Container(
           width: double.infinity,
@@ -60,6 +60,20 @@ class EmpathyMessage extends StatelessWidget {
           ),
         ),
       ],
-    ).animate().fadeIn(delay: 200.ms, duration: 600.ms).moveY(begin: 10);
+    );
+
+    // onTapExpand 콜백이 있으면 GestureDetector로 래핑
+    final widget = onTapExpand != null
+        ? GestureDetector(
+            onTap: onTapExpand,
+            behavior: HitTestBehavior.opaque,
+            child: content,
+          )
+        : content;
+
+    return widget
+        .animate()
+        .fadeIn(delay: 200.ms, duration: 600.ms)
+        .moveY(begin: 10);
   }
 }

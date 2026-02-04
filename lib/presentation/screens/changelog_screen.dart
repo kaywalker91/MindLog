@@ -10,11 +10,7 @@ class ChangelogScreen extends ConsumerWidget {
   final String version;
   final String? buildNumber;
 
-  const ChangelogScreen({
-    super.key,
-    required this.version,
-    this.buildNumber,
-  });
+  const ChangelogScreen({super.key, required this.version, this.buildNumber});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,9 +19,7 @@ class ChangelogScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: colorScheme.surfaceContainerLowest,
-      appBar: const MindlogAppBar(
-        title: Text('변경사항'),
-      ),
+      appBar: const MindlogAppBar(title: Text('변경사항')),
       body: configAsync.when(
         loading: () => _buildLoadingState(context),
         error: (_, _) => _buildErrorState(context, ref),
@@ -35,9 +29,7 @@ class ChangelogScreen extends ConsumerWidget {
   }
 
   Widget _buildLoadingState(BuildContext context) {
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
   Widget _buildErrorState(BuildContext context, WidgetRef ref) {
@@ -82,7 +74,11 @@ class ChangelogScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, UpdateConfig config) {
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    UpdateConfig config,
+  ) {
     final paginatedVersions = ref.watch(paginatedVersionsProvider);
     final hasMore = ref.watch(hasMoreChangelogProvider);
     final latestVersion = config.latestVersion;
@@ -90,16 +86,20 @@ class ChangelogScreen extends ConsumerWidget {
     // 최신 버전은 항상 첫 번째에 고정
     final primaryVersion = paginatedVersions.contains(latestVersion)
         ? latestVersion
-        : (paginatedVersions.isNotEmpty ? paginatedVersions.first : latestVersion);
+        : (paginatedVersions.isNotEmpty
+              ? paginatedVersions.first
+              : latestVersion);
     final primaryNotes = config.notesFor(primaryVersion);
-    final previousVersions =
-        paginatedVersions.where((v) => v != primaryVersion).toList();
+    final previousVersions = paginatedVersions
+        .where((v) => v != primaryVersion)
+        .toList();
 
     // 아이템 개수: Header(1) + Latest Card(1) + Section Title(1, 조건부) + Previous Cards + Bottom Buttons(1, 항상)
     final hasPreviousVersions = previousVersions.isNotEmpty;
     final hasLoadedMore = ref.watch(hasLoadedMoreChangelogProvider);
     final showBottomButtons = hasMore || hasLoadedMore;
-    final itemCount = 2 + // Header + Latest
+    final itemCount =
+        2 + // Header + Latest
         (hasPreviousVersions ? 1 : 0) + // Section Title
         previousVersions.length +
         (showBottomButtons ? 1 : 0); // Bottom Buttons
@@ -194,10 +194,18 @@ class ChangelogScreen extends ConsumerWidget {
               onPressed: () {
                 ref.read(changelogPageIndexProvider.notifier).state = 0;
               },
-              icon: const Text('^', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              icon: const Icon(Icons.expand_less, size: 18),
               label: const Text('다시 접기'),
               style: TextButton.styleFrom(
                 foregroundColor: colorScheme.outline,
+                minimumSize: const Size(44, 44),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
 
@@ -210,10 +218,18 @@ class ChangelogScreen extends ConsumerWidget {
               onPressed: () {
                 ref.read(changelogPageIndexProvider.notifier).state++;
               },
-              icon: const Icon(Icons.expand_more),
+              icon: const Icon(Icons.expand_more, size: 18),
               label: const Text('이전 버전 더보기'),
               style: TextButton.styleFrom(
                 foregroundColor: colorScheme.primary,
+                minimumSize: const Size(44, 44),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
         ],
@@ -221,12 +237,16 @@ class ChangelogScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, WidgetRef ref, String title) {
+  Widget _buildSectionHeader(
+    BuildContext context,
+    WidgetRef ref,
+    String title,
+  ) {
     return Text(
       title,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+      style: Theme.of(
+        context,
+      ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
     );
   }
 
@@ -243,9 +263,7 @@ class ChangelogScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.16),
-        ),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.16)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,10 +308,7 @@ class _VersionHeader extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
-          colors: [
-            AppColors.statsPrimary,
-            AppColors.statsSecondary,
-          ],
+          colors: [AppColors.statsPrimary, AppColors.statsSecondary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

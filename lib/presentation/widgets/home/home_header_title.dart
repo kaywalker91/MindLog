@@ -10,10 +10,7 @@ class HomeHeaderTitle extends StatelessWidget {
     return const Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          '😊',
-          style: TextStyle(fontSize: 22),
-        ),
+        Text('😊', style: TextStyle(fontSize: 22)),
         SizedBox(width: 8),
         Text(
           'MindLog',

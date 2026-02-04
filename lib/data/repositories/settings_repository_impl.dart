@@ -9,9 +9,8 @@ class SettingsRepositoryImpl
     implements SettingsRepository {
   final PreferencesLocalDataSource _localDataSource;
 
-  SettingsRepositoryImpl({
-    required PreferencesLocalDataSource localDataSource,
-  }) : _localDataSource = localDataSource;
+  SettingsRepositoryImpl({required PreferencesLocalDataSource localDataSource})
+    : _localDataSource = localDataSource;
 
   @override
   Future<AiCharacter> getSelectedAiCharacter() async {
@@ -47,10 +46,7 @@ class SettingsRepositoryImpl
 
   @override
   Future<String?> getUserName() async {
-    return guardFailure(
-      '유저 이름 조회 실패',
-      _localDataSource.getUserName,
-    );
+    return guardFailure('유저 이름 조회 실패', _localDataSource.getUserName);
   }
 
   @override

@@ -10,9 +10,8 @@ class StatisticsRepositoryImpl
     implements StatisticsRepository {
   final SqliteLocalDataSource _localDataSource;
 
-  StatisticsRepositoryImpl({
-    required SqliteLocalDataSource localDataSource,
-  }) : _localDataSource = localDataSource;
+  StatisticsRepositoryImpl({required SqliteLocalDataSource localDataSource})
+    : _localDataSource = localDataSource;
 
   @override
   Future<EmotionStatistics> getStatistics(StatisticsPeriod period) async {
@@ -24,8 +23,11 @@ class StatisticsRepositoryImpl
 
       // 기간에 따른 시작일 계산
       if (period.days != null) {
-        startDate = DateTime(now.year, now.month, now.day)
-            .subtract(Duration(days: period.days! - 1));
+        startDate = DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(Duration(days: period.days! - 1));
       }
 
       // SQL 레벨에서 필터링된 일기 조회 (성능 최적화)
@@ -39,8 +41,9 @@ class StatisticsRepositoryImpl
       }
 
       // 단일 패스로 일별 감정 + 활동 맵 + 평균 점수 계산 (성능 최적화)
-      final (dailyEmotions, activityMap, overallAverage) =
-          _calculateDailyStats(analyzedDiaries);
+      final (dailyEmotions, activityMap, overallAverage) = _calculateDailyStats(
+        analyzedDiaries,
+      );
 
       // 키워드 빈도 계산
       final keywordFrequency = _calculateKeywordFrequency(analyzedDiaries);
@@ -126,11 +129,13 @@ class StatisticsRepositoryImpl
       final scores = entry.value;
       final averageScore = scores.reduce((a, b) => a + b) / scores.length;
 
-      dailyEmotions.add(DailyEmotion(
-        date: date,
-        averageScore: averageScore,
-        diaryCount: diaryCountPerDay[date] ?? scores.length,
-      ));
+      dailyEmotions.add(
+        DailyEmotion(
+          date: date,
+          averageScore: averageScore,
+          diaryCount: diaryCountPerDay[date] ?? scores.length,
+        ),
+      );
 
       activityMap[date] = averageScore;
     }

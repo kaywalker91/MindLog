@@ -54,6 +54,23 @@ class SafetyConstants {
     '죽는게 나',
     '죽는 게 나',
     '차라리 죽',
+
+    // 암시적/완곡한 표현 (간접적 위기 신호)
+    '영원히 잠들',
+    '영원히 쉬',
+    '이 세상 떠나',
+    '모두 끝나',
+    '다 끝내',
+    '더이상 못 버티',
+    '더 이상 못 버티',
+    '한계에 도달',
+    '마지막이라고 생각',
+    '여기서 멈추',
+    '해방되고싶',
+    '해방되고 싶',
+    '고통에서 벗어나',
+    '이 고통 끝내',
+    '극단적 선택',
   ];
 
   /// SOS 카드에 표시할 긴급 연락처
@@ -70,7 +87,9 @@ class SafetyConstants {
       '전문 상담사와 이야기를 나눠보시는 건 어떨까요?';
 
   /// 모든 공백 문자를 제거하는 정규식 (유니코드 공백, 탭, 줄바꿈 포함)
-  static final RegExp _whitespacePattern = RegExp(r'[\s\u00A0\u2000-\u200B\u3000]+');
+  static final RegExp _whitespacePattern = RegExp(
+    r'[\s\u00A0\u2000-\u200B\u3000]+',
+  );
 
   /// 텍스트 정규화 (모든 공백 제거, 소문자 변환)
   static String _normalizeText(String text) {

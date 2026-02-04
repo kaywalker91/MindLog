@@ -5,12 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/ui_state_providers.dart';
 import '../router/app_router.dart';
 
-enum _NotificationDestination {
-  diaryList,
-  newDiary,
-  statistics,
-  settings,
-}
+enum _NotificationDestination { diaryList, newDiary, statistics, settings }
 
 class NotificationActionHandler {
   NotificationActionHandler._();
@@ -75,10 +70,8 @@ class NotificationActionHandler {
   }
 
   static _NotificationDestination _parseData(Map<String, dynamic> data) {
-    final rawType = data['type'] ??
-        data['screen'] ??
-        data['tab'] ??
-        data['action'];
+    final rawType =
+        data['type'] ?? data['screen'] ?? data['tab'] ?? data['action'];
     final value = rawType?.toString().toLowerCase();
 
     switch (value) {

@@ -5,10 +5,7 @@ import '../../core/theme/app_colors.dart';
 class UpdateUpToDateDialog extends StatelessWidget {
   final String currentVersion;
 
-  const UpdateUpToDateDialog({
-    super.key,
-    required this.currentVersion,
-  });
+  const UpdateUpToDateDialog({super.key, required this.currentVersion});
 
   @override
   Widget build(BuildContext context) {
@@ -73,10 +70,7 @@ class UpdateUpToDateDialog extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            AppColors.statsPrimary,
-            AppColors.statsSecondary,
-          ],
+          colors: [AppColors.statsPrimary, AppColors.statsSecondary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

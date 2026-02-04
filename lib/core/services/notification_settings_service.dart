@@ -23,10 +23,16 @@ class NotificationSettingsService {
     if (settings.isReminderEnabled) {
       // 상세 로깅 (항상 출력)
       if (kDebugMode) {
-        debugPrint('[NotificationSettings] ═══════════════════════════════════════');
+        debugPrint(
+          '[NotificationSettings] ═══════════════════════════════════════',
+        );
         debugPrint('[NotificationSettings] 📅 Scheduling Daily Reminder');
-        debugPrint('[NotificationSettings] ═══════════════════════════════════════');
-        debugPrint('[NotificationSettings] Time: ${settings.reminderHour}:${settings.reminderMinute.toString().padLeft(2, '0')}');
+        debugPrint(
+          '[NotificationSettings] ═══════════════════════════════════════',
+        );
+        debugPrint(
+          '[NotificationSettings] Time: ${settings.reminderHour}:${settings.reminderMinute.toString().padLeft(2, '0')}',
+        );
         debugPrint('[NotificationSettings] Source: $source');
       }
 
@@ -39,24 +45,40 @@ class NotificationSettingsService {
           await NotificationPermissionService.isIgnoringBatteryOptimizations();
 
       if (kDebugMode) {
-        debugPrint('[NotificationSettings] ─────────────────────────────────────────');
+        debugPrint(
+          '[NotificationSettings] ─────────────────────────────────────────',
+        );
         debugPrint('[NotificationSettings] 🔐 Permission Status:');
-        debugPrint('[NotificationSettings]   • POST_NOTIFICATIONS: ${notificationsEnabled == true ? "✅" : "❌"} ($notificationsEnabled)');
-        debugPrint('[NotificationSettings]   • SCHEDULE_EXACT_ALARM: ${canScheduleExact == true ? "✅" : "❌"} ($canScheduleExact)');
-        debugPrint('[NotificationSettings]   • Battery Optimization Ignored: ${isIgnoringBattery ? "✅" : "❌"} ($isIgnoringBattery)');
-        debugPrint('[NotificationSettings] ─────────────────────────────────────────');
+        debugPrint(
+          '[NotificationSettings]   • POST_NOTIFICATIONS: ${notificationsEnabled == true ? "✅" : "❌"} ($notificationsEnabled)',
+        );
+        debugPrint(
+          '[NotificationSettings]   • SCHEDULE_EXACT_ALARM: ${canScheduleExact == true ? "✅" : "❌"} ($canScheduleExact)',
+        );
+        debugPrint(
+          '[NotificationSettings]   • Battery Optimization Ignored: ${isIgnoringBattery ? "✅" : "❌"} ($isIgnoringBattery)',
+        );
+        debugPrint(
+          '[NotificationSettings] ─────────────────────────────────────────',
+        );
       }
 
       // 경고 출력
       if (kDebugMode) {
         if (notificationsEnabled != true) {
-          debugPrint('[NotificationSettings] ⚠️ WARNING: Notifications are disabled!');
+          debugPrint(
+            '[NotificationSettings] ⚠️ WARNING: Notifications are disabled!',
+          );
         }
         if (canScheduleExact != true) {
-          debugPrint('[NotificationSettings] ⚠️ WARNING: Exact alarm permission denied - alarm may be delayed!');
+          debugPrint(
+            '[NotificationSettings] ⚠️ WARNING: Exact alarm permission denied - alarm may be delayed!',
+          );
         }
         if (!isIgnoringBattery) {
-          debugPrint('[NotificationSettings] ⚠️ WARNING: Battery optimization active - alarm may be suppressed!');
+          debugPrint(
+            '[NotificationSettings] ⚠️ WARNING: Battery optimization active - alarm may be suppressed!',
+          );
         }
       }
 
@@ -67,7 +89,9 @@ class NotificationSettingsService {
           : AndroidScheduleMode.inexactAllowWhileIdle;
 
       if (kDebugMode) {
-        debugPrint('[NotificationSettings]   • Schedule Mode: ${canScheduleExact == true ? "EXACT" : "INEXACT (fallback)"}');
+        debugPrint(
+          '[NotificationSettings]   • Schedule Mode: ${canScheduleExact == true ? "EXACT" : "INEXACT (fallback)"}',
+        );
       }
 
       // 스케줄링 실행
@@ -87,7 +111,9 @@ class NotificationSettingsService {
         );
 
         if (kDebugMode) {
-          debugPrint('[NotificationSettings] ✅ Schedule call completed successfully');
+          debugPrint(
+            '[NotificationSettings] ✅ Schedule call completed successfully',
+          );
         }
       } else {
         // Analytics 이벤트: 스케줄링 실패
@@ -96,7 +122,9 @@ class NotificationSettingsService {
         );
 
         if (kDebugMode) {
-          debugPrint('[NotificationSettings] ❌ Schedule failed (returned false)');
+          debugPrint(
+            '[NotificationSettings] ❌ Schedule failed (returned false)',
+          );
         }
         // 크래시 방지: rethrow 제거 - 설정은 저장됨, 스케줄링만 실패
       }
@@ -104,12 +132,20 @@ class NotificationSettingsService {
       // 예약된 알림 확인
       if (kDebugMode) {
         final pending = await NotificationService.getPendingNotifications();
-        debugPrint('[NotificationSettings] ─────────────────────────────────────────');
-        debugPrint('[NotificationSettings] 📋 Pending Notifications: ${pending.length}');
+        debugPrint(
+          '[NotificationSettings] ─────────────────────────────────────────',
+        );
+        debugPrint(
+          '[NotificationSettings] 📋 Pending Notifications: ${pending.length}',
+        );
         for (final notification in pending) {
-          debugPrint('[NotificationSettings]   • ID: ${notification.id}, Title: ${notification.title}');
+          debugPrint(
+            '[NotificationSettings]   • ID: ${notification.id}, Title: ${notification.title}',
+          );
         }
-        debugPrint('[NotificationSettings] ═══════════════════════════════════════');
+        debugPrint(
+          '[NotificationSettings] ═══════════════════════════════════════',
+        );
       }
     } else {
       if (kDebugMode) {

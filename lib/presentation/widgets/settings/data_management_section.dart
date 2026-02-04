@@ -52,18 +52,13 @@ class DataManagementSection extends ConsumerWidget {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => context.pop(),
-            child: const Text('취소'),
-          ),
+          TextButton(onPressed: () => context.pop(), child: const Text('취소')),
           FilledButton(
             onPressed: () async {
               context.pop();
               await _deleteAllDiaries(context, ref);
             },
-            style: FilledButton.styleFrom(
-              backgroundColor: colorScheme.error,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: colorScheme.error),
             child: const Text('삭제'),
           ),
         ],
@@ -80,15 +75,15 @@ class DataManagementSection extends ConsumerWidget {
       ref.invalidate(statisticsProvider);
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('모든 일기가 삭제되었습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('모든 일기가 삭제되었습니다.')));
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('삭제 중 오류가 발생했습니다: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('삭제 중 오류가 발생했습니다: $e')));
       }
     }
   }

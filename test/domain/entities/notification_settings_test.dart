@@ -27,10 +27,19 @@ void main() {
         final settings = NotificationSettings.defaults();
 
         // Then
-        expect(settings.isReminderEnabled, NotificationSettings.defaultReminderEnabled);
+        expect(
+          settings.isReminderEnabled,
+          NotificationSettings.defaultReminderEnabled,
+        );
         expect(settings.reminderHour, NotificationSettings.defaultReminderHour);
-        expect(settings.reminderMinute, NotificationSettings.defaultReminderMinute);
-        expect(settings.isMindcareTopicEnabled, NotificationSettings.defaultMindcareTopicEnabled);
+        expect(
+          settings.reminderMinute,
+          NotificationSettings.defaultReminderMinute,
+        );
+        expect(
+          settings.isMindcareTopicEnabled,
+          NotificationSettings.defaultMindcareTopicEnabled,
+        );
       });
 
       test('기본값 상수가 올바르게 정의되어 있다', () {

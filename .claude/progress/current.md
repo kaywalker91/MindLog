@@ -1,9 +1,20 @@
 # Current Progress
 
 ## 현재 작업
-- UI/UX 개선 (정서적 안전감 강화) ✓
+- Phase 3: 감정 패턴 기반 알림 메시지 ✓
 
 ## 완료된 항목 (이번 세션)
+
+### Phase 3: 감정 기반 알림 (2월 4일)
+- [x] EmotionLevel enum 추가 (low/medium/high)
+- [x] EmotionScoreService 신규 생성 (SQLite 감정 점수 조회)
+- [x] 가중치 기반 메시지 선택 (`_selectBodiesWithWeight`)
+- [x] FCM 포그라운드 핸들러에서 감정 기반 메시지 적용
+- [x] 감정 데이터 없을 때 graceful fallback
+- [x] 18개 테스트 추가 (notification_messages 10, emotion_score_service 8)
+- [x] TIL 메모리 저장 (`til-emotion-notification-patterns.md`)
+
+## 이전 세션 완료 항목
 
 ### UI/UX 개선 (완료)
 
@@ -83,6 +94,6 @@ pubspec.yaml                                         # 수정 (smooth_page_indic
 - SOS 카드 테스트 시 실제 전화 발신 주의
 
 ## 마지막 업데이트
-- 날짜: 2026-02-03
-- 세션: ui-ux-improvement
-- 작업: 정서적 안전감 강화 UI/UX 개선 (P0 완료)
+- 날짜: 2026-02-04
+- 세션: emotion-notification-patterns
+- 작업: Phase 3 감정 기반 알림 완료 + TIL 메모리 저장

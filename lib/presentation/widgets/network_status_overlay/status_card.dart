@@ -28,63 +28,68 @@ class StatusCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      margin: const EdgeInsets.all(24),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            StatusIcon(
-              statusType: statusType,
-              animationController: animationController,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                StatusIcon(
+                  statusType: statusType,
+                  animationController: animationController,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  statusType?.title ?? '알림',
+                  style: AppTextStyles.headline.copyWith(
+                    color: _getStatusColor(),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  statusMessage ?? statusType?.defaultMessage ?? '알림 메시지',
+                  style: AppTextStyles.body,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ActionButtons(
+                  statusType: statusType,
+                  onRetry: onRetry,
+                  onDismiss: onDismiss,
+                  onRetryWithAnimation: onRetry != null
+                      ? () {
+                          animationController.reset();
+                          animationController.forward();
+                          onRetry!();
+                        }
+                      : null,
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              statusType?.title ?? '알림',
-              style: AppTextStyles.headline.copyWith(color: _getStatusColor()),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              statusMessage ?? statusType?.defaultMessage ?? '알림 메시지',
-              style: AppTextStyles.body,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ActionButtons(
-              statusType: statusType,
-              onRetry: onRetry,
-              onDismiss: onDismiss,
-              onRetryWithAnimation: onRetry != null
-                  ? () {
-                      animationController.reset();
-                      animationController.forward();
-                      onRetry!();
-                    }
-                  : null,
-            ),
-          ],
-        ),
-      ),
-    )
+          ),
+        )
         .animate(
           controller: animationController,
           autoPlay: false,
           delay: const Duration(milliseconds: 100),
         )
         .slideY(
-            begin: 0.2, end: 0.0, duration: const Duration(milliseconds: 300));
+          begin: 0.2,
+          end: 0.0,
+          duration: const Duration(milliseconds: 300),
+        );
   }
 
   Color _getStatusColor() {

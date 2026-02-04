@@ -67,7 +67,8 @@ class MockGetStatisticsUseCase implements GetStatisticsUseCase {
     if (shouldThrow) {
       throw failureToThrow ?? const Failure.cache(message: '활동맵 조회 실패');
     }
-    return mockStatistics?.activityMap ?? StatisticsFixtures.weekly().activityMap;
+    return mockStatistics?.activityMap ??
+        StatisticsFixtures.weekly().activityMap;
   }
 }
 
@@ -79,9 +80,7 @@ void main() {
     mockUseCase = MockGetStatisticsUseCase();
 
     container = ProviderContainer(
-      overrides: [
-        getStatisticsUseCaseProvider.overrideWithValue(mockUseCase),
-      ],
+      overrides: [getStatisticsUseCaseProvider.overrideWithValue(mockUseCase)],
     );
     addTearDown(container.dispose);
   });
@@ -168,7 +167,9 @@ void main() {
       final newContainer = ProviderContainer(
         overrides: [
           getStatisticsUseCaseProvider.overrideWithValue(mockUseCase),
-          selectedStatisticsPeriodProvider.overrideWith((ref) => StatisticsPeriod.month),
+          selectedStatisticsPeriodProvider.overrideWith(
+            (ref) => StatisticsPeriod.month,
+          ),
         ],
       );
       addTearDown(newContainer.dispose);
@@ -185,7 +186,8 @@ void main() {
       mockUseCase.failureToThrow = const Failure.cache(message: '통계 조회 실패');
 
       // Act
-      await container.read(statisticsProvider.future)
+      await container
+          .read(statisticsProvider.future)
           .catchError((_) => StatisticsFixtures.empty());
 
       // Assert
@@ -214,7 +216,9 @@ void main() {
       final newContainer = ProviderContainer(
         overrides: [
           getStatisticsUseCaseProvider.overrideWithValue(mockUseCase),
-          selectedStatisticsPeriodProvider.overrideWith((ref) => StatisticsPeriod.month),
+          selectedStatisticsPeriodProvider.overrideWith(
+            (ref) => StatisticsPeriod.month,
+          ),
         ],
       );
       addTearDown(newContainer.dispose);
@@ -289,7 +293,8 @@ void main() {
       mockUseCase.failureToThrow = const Failure.cache(message: '통계 조회 실패');
 
       // Act
-      await container.read(topKeywordsProvider.future)
+      await container
+          .read(topKeywordsProvider.future)
           .catchError((_) => <String, int>{});
 
       // Assert

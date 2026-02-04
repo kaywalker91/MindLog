@@ -27,8 +27,10 @@ class KeywordTags extends StatelessWidget {
       ..sort((a, b) => b.value.compareTo(a.value));
     final takeCount = maxTags < 1 ? 1 : maxTags;
     final topKeywords = sortedKeywords.take(takeCount).toList();
-    final totalCount =
-        keywordFrequency.values.fold<int>(0, (sum, value) => sum + value);
+    final totalCount = keywordFrequency.values.fold<int>(
+      0,
+      (sum, value) => sum + value,
+    );
     final maxCount = topKeywords.isEmpty ? 0 : topKeywords.first.value;
     final topEntry = topKeywords.first;
     final remainingKeywords = topKeywords.skip(1).toList();
@@ -42,10 +44,10 @@ class KeywordTags extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         TopEmotionCard(
-          keyword: topEntry.key,
-          frequency: topEntry.value,
-          totalCount: totalCount,
-        )
+              keyword: topEntry.key,
+              frequency: topEntry.value,
+              totalCount: totalCount,
+            )
             .animate()
             .fadeIn(duration: 250.ms)
             .scale(begin: const Offset(0.98, 0.98), duration: 250.ms),
@@ -69,16 +71,19 @@ class KeywordTags extends StatelessWidget {
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: KeywordRankRow(
-                  keyword: keyword,
-                  frequency: frequency,
-                  rank: rank,
-                  totalCount: totalCount,
-                  maxCount: maxCount,
-                )
-                    .animate(delay: Duration(milliseconds: 80 * (index + 1)))
-                    .fadeIn(duration: 250.ms)
-                    .slideY(begin: 0.1, end: 0),
+                child:
+                    KeywordRankRow(
+                          keyword: keyword,
+                          frequency: frequency,
+                          rank: rank,
+                          totalCount: totalCount,
+                          maxCount: maxCount,
+                        )
+                        .animate(
+                          delay: Duration(milliseconds: 80 * (index + 1)),
+                        )
+                        .fadeIn(duration: 250.ms)
+                        .slideY(begin: 0.1, end: 0),
               );
             }).toList(),
           ),
@@ -98,11 +103,7 @@ class _EmptyState extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 24),
         child: Column(
           children: [
-            Icon(
-              Icons.tag,
-              size: 40,
-              color: AppColors.statsTextTertiary,
-            ),
+            Icon(Icons.tag, size: 40, color: AppColors.statsTextTertiary),
             SizedBox(height: 12),
             Text(
               '감정 패턴이 아직 없어요',

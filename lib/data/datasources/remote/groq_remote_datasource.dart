@@ -24,9 +24,12 @@ class GroqRemoteDataSource {
   final http.Client _client;
   final CircuitBreaker? _circuitBreaker;
 
-  GroqRemoteDataSource(this._apiKey, {http.Client? client, CircuitBreaker? circuitBreaker}) 
-      : _client = client ?? http.Client(),
-        _circuitBreaker = circuitBreaker;
+  GroqRemoteDataSource(
+    this._apiKey, {
+    http.Client? client,
+    CircuitBreaker? circuitBreaker,
+  }) : _client = client ?? http.Client(),
+       _circuitBreaker = circuitBreaker;
 
   /// 일기 내용 분석 (공용 인터페이스)
   Future<AnalysisResponseDto> analyzeDiary(
@@ -36,10 +39,18 @@ class GroqRemoteDataSource {
   }) async {
     if (_circuitBreaker != null) {
       return _circuitBreaker.run(
-        () => analyzeDiaryWithRetry(content, character: character, userName: userName),
+        () => analyzeDiaryWithRetry(
+          content,
+          character: character,
+          userName: userName,
+        ),
       );
     }
-    return analyzeDiaryWithRetry(content, character: character, userName: userName);
+    return analyzeDiaryWithRetry(
+      content,
+      character: character,
+      userName: userName,
+    );
   }
 
   /// 일기 내용 분석 (재시도 로직 포함)
@@ -53,7 +64,11 @@ class GroqRemoteDataSource {
 
     while (attempt < _maxRetries) {
       try {
-        return await _analyzeDiaryOnce(content, character: character, userName: userName);
+        return await _analyzeDiaryOnce(
+          content,
+          character: character,
+          userName: userName,
+        );
       } on SocketException catch (e) {
         attempt++;
         if (attempt >= _maxRetries) {
@@ -183,7 +198,8 @@ class GroqRemoteDataSource {
   }) async {
     if (_apiKey.isEmpty) {
       throw ApiException(
-        message: 'API 키가 설정되지 않았습니다. '
+        message:
+            'API 키가 설정되지 않았습니다. '
             '--dart-define=GROQ_API_KEY=... 또는 ./scripts/run.sh로 주입해주세요.',
       );
     }
@@ -197,15 +213,19 @@ class GroqRemoteDataSource {
       );
 
       // 이미지를 Base64로 인코딩
-      final imageDataUrls = await ImageService.encodeMultipleToBase64DataUrls(imagePaths);
+      final imageDataUrls = await ImageService.encodeMultipleToBase64DataUrls(
+        imagePaths,
+      );
 
       // Vision API 메시지 구성
       final userContent = <Map<String, dynamic>>[
         {'type': 'text', 'text': prompt},
-        ...imageDataUrls.map((dataUrl) => {
-              'type': 'image_url',
-              'image_url': {'url': dataUrl}
-            }),
+        ...imageDataUrls.map(
+          (dataUrl) => {
+            'type': 'image_url',
+            'image_url': {'url': dataUrl},
+          },
+        ),
       ];
 
       final response = await _client.post(
@@ -219,22 +239,21 @@ class GroqRemoteDataSource {
           'messages': [
             {
               'role': 'system',
-              'content': PromptConstants.systemInstructionForVision(character)
+              'content': PromptConstants.systemInstructionForVision(character),
             },
-            {
-              'role': 'user',
-              'content': userContent,
-            }
+            {'role': 'user', 'content': userContent},
           ],
           'temperature': 0.7,
           'max_tokens': 1500, // Vision 분석은 토큰을 더 많이 사용
-          'response_format': {'type': 'json_object'}
+          'response_format': {'type': 'json_object'},
         }),
       );
 
       if (response.statusCode != 200) {
         if (response.statusCode == 429) {
-          final retryAfter = _parseRetryAfterHeader(response.headers['retry-after']);
+          final retryAfter = _parseRetryAfterHeader(
+            response.headers['retry-after'],
+          );
           throw RateLimitException(
             message: _sanitizeErrorMessage(429),
             retryAfter: retryAfter,
@@ -248,7 +267,8 @@ class GroqRemoteDataSource {
         );
       }
 
-      final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      final data =
+          jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
       final choices = data['choices'] as List<dynamic>?;
       if (choices == null || choices.isEmpty) {
         throw ApiException(message: 'Groq Vision API 응답이 비어있습니다.');
@@ -273,7 +293,8 @@ class GroqRemoteDataSource {
         throw ApiException(message: '응답 파싱 실패');
       }
     } catch (e) {
-      if (e is ApiException || e is NetworkException || e is RateLimitException) rethrow;
+      if (e is ApiException || e is NetworkException || e is RateLimitException)
+        rethrow;
       throw ApiException(message: 'Groq Vision 분석 중 오류: $e');
     }
   }
@@ -287,7 +308,8 @@ class GroqRemoteDataSource {
     // API 키 유효성 검증
     if (_apiKey.isEmpty) {
       throw ApiException(
-        message: 'API 키가 설정되지 않았습니다. '
+        message:
+            'API 키가 설정되지 않았습니다. '
             '--dart-define=GROQ_API_KEY=... 또는 ./scripts/run.sh로 주입해주세요.',
       );
     }
@@ -298,7 +320,7 @@ class GroqRemoteDataSource {
         character: character,
         userName: userName,
       );
-      
+
       final response = await _client.post(
         Uri.parse(_baseUrl),
         headers: {
@@ -310,23 +332,22 @@ class GroqRemoteDataSource {
           'messages': [
             {
               'role': 'system',
-              'content': PromptConstants.systemInstructionFor(character)
+              'content': PromptConstants.systemInstructionFor(character),
             },
-            {
-              'role': 'user',
-              'content': prompt
-            }
+            {'role': 'user', 'content': prompt},
           ],
           'temperature': 0.7,
           'max_tokens': 1024,
-          'response_format': {'type': 'json_object'}
+          'response_format': {'type': 'json_object'},
         }),
       );
 
       if (response.statusCode != 200) {
         // Rate Limit(429) 처리: Retry-After 헤더 파싱
         if (response.statusCode == 429) {
-          final retryAfter = _parseRetryAfterHeader(response.headers['retry-after']);
+          final retryAfter = _parseRetryAfterHeader(
+            response.headers['retry-after'],
+          );
           throw RateLimitException(
             message: _sanitizeErrorMessage(429),
             retryAfter: retryAfter,
@@ -341,7 +362,8 @@ class GroqRemoteDataSource {
         );
       }
 
-      final data = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+      final data =
+          jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
       final choices = data['choices'] as List<dynamic>?;
       if (choices == null || choices.isEmpty) {
         throw ApiException(message: 'Groq API 응답이 비어있습니다.');
@@ -350,44 +372,49 @@ class GroqRemoteDataSource {
       final choice = choices[0] as Map<String, dynamic>;
       final message = choice['message'] as Map<String, dynamic>;
       final messageContent = message['content'] as String;
-      
+
       try {
         final jsonResult = AnalysisResponseParser.parseString(messageContent);
-        
+
         // 디버그 로그 - action_items 확인
         assert(() {
           debugPrint('🔍 [DEBUG] Raw AI response content:');
           debugPrint(messageContent);
-          debugPrint('🔍 [DEBUG] Parsed JSON action_items: ${jsonResult['action_items']}');
-          debugPrint('🔍 [DEBUG] action_items type: ${jsonResult['action_items']?.runtimeType}');
+          debugPrint(
+            '🔍 [DEBUG] Parsed JSON action_items: ${jsonResult['action_items']}',
+          );
+          debugPrint(
+            '🔍 [DEBUG] action_items type: ${jsonResult['action_items']?.runtimeType}',
+          );
           return true;
         }());
-        
+
         final dto = AnalysisResponseDto.fromJson(jsonResult);
-        
+
         // 디버그 로그 - DTO 확인
         assert(() {
           debugPrint('🔍 [DEBUG] DTO actionItems: ${dto.actionItems}');
           debugPrint('🔍 [DEBUG] DTO actionItem: ${dto.actionItem}');
           return true;
         }());
-        
+
         return dto;
       } catch (e) {
         // 파싱 실패 시 민감한 응답 내용은 로깅하지 않음
         debugPrint('❌ [DEBUG] Parse error: $e');
         throw ApiException(message: '응답 파싱 실패');
       }
-
     } catch (e) {
-      if (e is ApiException || e is NetworkException || e is RateLimitException) rethrow;
+      if (e is ApiException || e is NetworkException || e is RateLimitException)
+        rethrow;
       throw ApiException(message: 'Groq 분석 중 오류: $e');
     }
   }
 
   Duration _calculateNextDelay(Duration current) {
     return Duration(
-        milliseconds: (current.inMilliseconds * _backoffMultiplier).round());
+      milliseconds: (current.inMilliseconds * _backoffMultiplier).round(),
+    );
   }
 
   /// HTTP 상태코드별 일반화된 에러 메시지 (민감정보 제외)
@@ -407,7 +434,9 @@ class GroqRemoteDataSource {
   void _printRetryMessage(int attempt, String errorType, Duration delay) {
     // 프로덕션에서는 로깅하지 않음 (필요시 구조화된 로깅 라이브러리 사용)
     assert(() {
-      debugPrint('🔄 Groq API 요청 재시도 $attempt/$_maxRetries: $errorType, ${delay.inSeconds}초 후 재시도...');
+      debugPrint(
+        '🔄 Groq API 요청 재시도 $attempt/$_maxRetries: $errorType, ${delay.inSeconds}초 후 재시도...',
+      );
       return true;
     }());
   }

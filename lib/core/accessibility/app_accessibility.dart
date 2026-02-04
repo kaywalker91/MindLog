@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
 /// 앱 전역 접근성 설정 및 유틸리티
-/// 
+///
 /// 스크린 리더 사용자를 위한 시맨틱 정보를 제공합니다.
 class AppAccessibility {
   AppAccessibility._();
@@ -61,14 +61,12 @@ class AppAccessibility {
     required List<String> keywords,
   }) {
     final dateStr = dateLabel(date);
-    final emotionStr = sentimentScore != null 
-        ? emotionScoreLabel(sentimentScore) 
+    final emotionStr = sentimentScore != null
+        ? emotionScoreLabel(sentimentScore)
         : '분석 전 일기';
-    final keywordStr = keywords.isNotEmpty 
-        ? '키워드: ${keywords.join(', ')}' 
-        : '';
-    final preview = contentPreview.characters.length > 50 
-        ? '${contentPreview.characters.take(50)}...' 
+    final keywordStr = keywords.isNotEmpty ? '키워드: ${keywords.join(', ')}' : '';
+    final preview = contentPreview.characters.length > 50
+        ? '${contentPreview.characters.take(50)}...'
         : contentPreview;
 
     return '$dateStr 작성된 일기. $emotionStr. $preview. $keywordStr';
@@ -92,7 +90,7 @@ class AppAccessibility {
 }
 
 /// 접근성이 개선된 아이콘 버튼
-/// 
+///
 /// 시맨틱 레이블과 힌트가 자동으로 추가됩니다.
 class AccessibleIconButton extends StatelessWidget {
   final IconData icon;
@@ -129,7 +127,7 @@ class AccessibleIconButton extends StatelessWidget {
 }
 
 /// 접근성이 개선된 카드 위젯
-/// 
+///
 /// 탭 가능 여부와 시맨틱 정보를 포함합니다.
 class AccessibleCard extends StatelessWidget {
   final Widget child;
@@ -181,7 +179,7 @@ class AccessibleCard extends StatelessWidget {
 }
 
 /// 접근성 설정을 위한 위젯 래퍼
-/// 
+///
 /// 화면 전체에 접근성 속성을 적용합니다.
 class AccessibilityWrapper extends StatelessWidget {
   final Widget child;
@@ -195,11 +193,7 @@ class AccessibilityWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      namesRoute: true,
-      label: screenTitle,
-      child: child,
-    );
+    return Semantics(namesRoute: true, label: screenTitle, child: child);
   }
 }
 
@@ -227,10 +221,7 @@ class AccessibleEmotionIndicator extends StatelessWidget {
     return Semantics(
       label: AppAccessibility.emotionScoreLabel(score),
       excludeSemantics: true,
-      child: Text(
-        _emoji,
-        style: TextStyle(fontSize: size),
-      ),
+      child: Text(_emoji, style: TextStyle(fontSize: size)),
     );
   }
 }

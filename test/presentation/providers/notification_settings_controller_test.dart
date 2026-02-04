@@ -7,7 +7,8 @@ import 'package:mindlog/domain/usecases/set_notification_settings_usecase.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
 
 /// Mock GetNotificationSettingsUseCase
-class MockGetNotificationSettingsUseCase implements GetNotificationSettingsUseCase {
+class MockGetNotificationSettingsUseCase
+    implements GetNotificationSettingsUseCase {
   NotificationSettings mockSettings = NotificationSettings.defaults();
   bool shouldThrow = false;
   Failure? failureToThrow;
@@ -28,7 +29,8 @@ class MockGetNotificationSettingsUseCase implements GetNotificationSettingsUseCa
 }
 
 /// Mock SetNotificationSettingsUseCase
-class MockSetNotificationSettingsUseCase implements SetNotificationSettingsUseCase {
+class MockSetNotificationSettingsUseCase
+    implements SetNotificationSettingsUseCase {
   bool shouldThrow = false;
   Failure? failureToThrow;
   final List<NotificationSettings> savedSettings = [];
@@ -59,8 +61,12 @@ void main() {
 
     container = ProviderContainer(
       overrides: [
-        getNotificationSettingsUseCaseProvider.overrideWithValue(mockGetUseCase),
-        setNotificationSettingsUseCaseProvider.overrideWithValue(mockSetUseCase),
+        getNotificationSettingsUseCaseProvider.overrideWithValue(
+          mockGetUseCase,
+        ),
+        setNotificationSettingsUseCaseProvider.overrideWithValue(
+          mockSetUseCase,
+        ),
       ],
     );
     addTearDown(container.dispose);
@@ -84,7 +90,9 @@ void main() {
         mockGetUseCase.mockSettings = customSettings;
 
         // Act
-        final settings = await container.read(getNotificationSettingsUseCaseProvider).execute();
+        final settings = await container
+            .read(getNotificationSettingsUseCaseProvider)
+            .execute();
 
         // Assert
         expect(settings.isReminderEnabled, true);
@@ -95,7 +103,9 @@ void main() {
 
       test('기본 설정이 조회되어야 한다', () async {
         // Act
-        final settings = await container.read(getNotificationSettingsUseCaseProvider).execute();
+        final settings = await container
+            .read(getNotificationSettingsUseCaseProvider)
+            .execute();
 
         // Assert
         final defaults = NotificationSettings.defaults();
@@ -128,7 +138,9 @@ void main() {
         );
 
         // Act
-        await container.read(setNotificationSettingsUseCaseProvider).execute(settings);
+        await container
+            .read(setNotificationSettingsUseCaseProvider)
+            .execute(settings);
 
         // Assert
         expect(mockSetUseCase.savedSettings.length, 1);
@@ -145,7 +157,9 @@ void main() {
         );
 
         // Act
-        await container.read(setNotificationSettingsUseCaseProvider).execute(settings);
+        await container
+            .read(setNotificationSettingsUseCaseProvider)
+            .execute(settings);
 
         // Assert
         expect(mockSetUseCase.savedSettings.last.isReminderEnabled, false);
@@ -161,7 +175,9 @@ void main() {
         );
 
         // Act
-        await container.read(setNotificationSettingsUseCaseProvider).execute(settings);
+        await container
+            .read(setNotificationSettingsUseCaseProvider)
+            .execute(settings);
 
         // Assert
         expect(mockSetUseCase.savedSettings.last.reminderHour, 7);
@@ -178,7 +194,9 @@ void main() {
         );
 
         // Act
-        await container.read(setNotificationSettingsUseCaseProvider).execute(settings);
+        await container
+            .read(setNotificationSettingsUseCaseProvider)
+            .execute(settings);
 
         // Assert
         expect(mockSetUseCase.savedSettings.last.reminderHour, 0);
@@ -195,7 +213,9 @@ void main() {
         );
 
         // Act
-        await container.read(setNotificationSettingsUseCaseProvider).execute(settings);
+        await container
+            .read(setNotificationSettingsUseCaseProvider)
+            .execute(settings);
 
         // Assert
         expect(mockSetUseCase.savedSettings.last.reminderHour, 23);
@@ -212,7 +232,9 @@ void main() {
         );
 
         // Act
-        await container.read(setNotificationSettingsUseCaseProvider).execute(settings);
+        await container
+            .read(setNotificationSettingsUseCaseProvider)
+            .execute(settings);
 
         // Assert
         expect(mockSetUseCase.savedSettings.last.isMindcareTopicEnabled, true);
@@ -262,7 +284,9 @@ void main() {
 
         // Act & Assert
         await expectLater(
-          container.read(setNotificationSettingsUseCaseProvider).execute(settings),
+          container
+              .read(setNotificationSettingsUseCaseProvider)
+              .execute(settings),
           throwsA(isA<CacheFailure>()),
         );
       });

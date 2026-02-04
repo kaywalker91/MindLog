@@ -78,7 +78,9 @@ class Diary {
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
-      analysisResult: clearAnalysisResult ? null : (analysisResult ?? this.analysisResult),
+      analysisResult: clearAnalysisResult
+          ? null
+          : (analysisResult ?? this.analysisResult),
       isPinned: isPinned ?? this.isPinned,
       imagePaths: clearImagePaths ? null : (imagePaths ?? this.imagePaths),
     );
@@ -97,10 +99,7 @@ class EmotionCategory {
   /// 2차 감정 (세부 감정)
   final String secondary;
 
-  const EmotionCategory({
-    required this.primary,
-    required this.secondary,
-  });
+  const EmotionCategory({required this.primary, required this.secondary});
 
   factory EmotionCategory.fromJson(Map<String, dynamic> json) =>
       _$EmotionCategoryFromJson(json);
@@ -119,10 +118,7 @@ class EmotionTrigger {
   /// 설명
   final String description;
 
-  const EmotionTrigger({
-    required this.category,
-    required this.description,
-  });
+  const EmotionTrigger({required this.category, required this.description});
 
   factory EmotionTrigger.fromJson(Map<String, dynamic> json) =>
       _$EmotionTriggerFromJson(json);
@@ -198,7 +194,8 @@ class AnalysisResult {
     this.cognitivePattern,
   });
 
-  factory AnalysisResult.fromJson(Map<String, dynamic> json) => _$AnalysisResultFromJson(json);
+  factory AnalysisResult.fromJson(Map<String, dynamic> json) =>
+      _$AnalysisResultFromJson(json);
   Map<String, dynamic> toJson() => _$AnalysisResultToJson(this);
 
   /// 표시할 추천 행동 목록 (actionItems가 비어있으면 actionItem 사용)
@@ -218,7 +215,7 @@ class AnalysisResult {
       }
       return actionItems;
     }
-    
+
     // actionItem이 있는 경우
     if (actionItem.isNotEmpty) {
       // JSON 배열 문자열인 경우 파싱
@@ -234,7 +231,7 @@ class AnalysisResult {
       }
       return [actionItem];
     }
-    
+
     return [];
   }
 
@@ -269,11 +266,19 @@ class AnalysisResult {
       analyzedAt: analyzedAt ?? this.analyzedAt,
       isActionCompleted: isActionCompleted ?? this.isActionCompleted,
       isEmergency: isEmergency ?? this.isEmergency,
-      aiCharacterId: clearAiCharacterId ? null : (aiCharacterId ?? this.aiCharacterId),
-      emotionCategory: clearEmotionCategory ? null : (emotionCategory ?? this.emotionCategory),
-      emotionTrigger: clearEmotionTrigger ? null : (emotionTrigger ?? this.emotionTrigger),
+      aiCharacterId: clearAiCharacterId
+          ? null
+          : (aiCharacterId ?? this.aiCharacterId),
+      emotionCategory: clearEmotionCategory
+          ? null
+          : (emotionCategory ?? this.emotionCategory),
+      emotionTrigger: clearEmotionTrigger
+          ? null
+          : (emotionTrigger ?? this.emotionTrigger),
       energyLevel: clearEnergyLevel ? null : (energyLevel ?? this.energyLevel),
-      cognitivePattern: clearCognitivePattern ? null : (cognitivePattern ?? this.cognitivePattern),
+      cognitivePattern: clearCognitivePattern
+          ? null
+          : (cognitivePattern ?? this.cognitivePattern),
     );
   }
 }

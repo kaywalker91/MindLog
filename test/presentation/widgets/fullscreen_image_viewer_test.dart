@@ -26,9 +26,9 @@ void main() {
     group('기본 표시', () {
       testWidgets('단일 이미지일 때 페이지 인디케이터가 표시되지 않는다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildDirectViewerWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-        ));
+        await tester.pumpWidget(
+          buildDirectViewerWidget(imagePaths: ['/fake/path/image1.jpg']),
+        );
         await tester.pump();
 
         // Assert - 페이지 인디케이터 없음
@@ -37,12 +37,11 @@ void main() {
 
       testWidgets('여러 이미지일 때 페이지 인디케이터가 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildDirectViewerWidget(
-          imagePaths: [
-            '/fake/path/image1.jpg',
-            '/fake/path/image2.jpg',
-          ],
-        ));
+        await tester.pumpWidget(
+          buildDirectViewerWidget(
+            imagePaths: ['/fake/path/image1.jpg', '/fake/path/image2.jpg'],
+          ),
+        );
         await tester.pump();
 
         // Assert
@@ -51,9 +50,9 @@ void main() {
 
       testWidgets('닫기 버튼이 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildDirectViewerWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-        ));
+        await tester.pumpWidget(
+          buildDirectViewerWidget(imagePaths: ['/fake/path/image1.jpg']),
+        );
         await tester.pump();
 
         // Assert
@@ -62,9 +61,9 @@ void main() {
 
       testWidgets('PageView가 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildDirectViewerWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-        ));
+        await tester.pumpWidget(
+          buildDirectViewerWidget(imagePaths: ['/fake/path/image1.jpg']),
+        );
         await tester.pump();
 
         // Assert
@@ -73,9 +72,9 @@ void main() {
 
       testWidgets('InteractiveViewer가 표시된다 (zoom/pan 지원)', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildDirectViewerWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-        ));
+        await tester.pumpWidget(
+          buildDirectViewerWidget(imagePaths: ['/fake/path/image1.jpg']),
+        );
         await tester.pump();
 
         // Assert
@@ -86,13 +85,12 @@ void main() {
     group('초기 인덱스', () {
       testWidgets('initialIndex가 0이면 첫 번째 이미지를 표시한다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildDirectViewerWidget(
-          imagePaths: [
-            '/fake/path/image1.jpg',
-            '/fake/path/image2.jpg',
-          ],
-          initialIndex: 0,
-        ));
+        await tester.pumpWidget(
+          buildDirectViewerWidget(
+            imagePaths: ['/fake/path/image1.jpg', '/fake/path/image2.jpg'],
+            initialIndex: 0,
+          ),
+        );
         await tester.pump();
 
         // Assert
@@ -101,13 +99,12 @@ void main() {
 
       testWidgets('initialIndex가 1이면 두 번째 이미지를 표시한다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildDirectViewerWidget(
-          imagePaths: [
-            '/fake/path/image1.jpg',
-            '/fake/path/image2.jpg',
-          ],
-          initialIndex: 1,
-        ));
+        await tester.pumpWidget(
+          buildDirectViewerWidget(
+            imagePaths: ['/fake/path/image1.jpg', '/fake/path/image2.jpg'],
+            initialIndex: 1,
+          ),
+        );
         await tester.pump();
 
         // Assert
@@ -118,10 +115,12 @@ void main() {
     group('Hero 애니메이션', () {
       testWidgets('heroTagPrefix가 주어지면 Hero 위젯이 생성된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildDirectViewerWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-          heroTagPrefix: 'test_hero',
-        ));
+        await tester.pumpWidget(
+          buildDirectViewerWidget(
+            imagePaths: ['/fake/path/image1.jpg'],
+            heroTagPrefix: 'test_hero',
+          ),
+        );
         await tester.pump();
 
         // Assert
@@ -130,9 +129,9 @@ void main() {
 
       testWidgets('heroTagPrefix가 없어도 이미지가 표시된다', (tester) async {
         // Arrange & Act
-        await tester.pumpWidget(buildDirectViewerWidget(
-          imagePaths: ['/fake/path/image1.jpg'],
-        ));
+        await tester.pumpWidget(
+          buildDirectViewerWidget(imagePaths: ['/fake/path/image1.jpg']),
+        );
         await tester.pump();
 
         // Assert - Hero가 없어도 InteractiveViewer는 표시됨
@@ -170,9 +169,7 @@ void main() {
 
       test('기본값이 올바르게 설정된다', () {
         // Arrange & Act
-        const viewer = FullscreenImageViewer(
-          imagePaths: ['/test/path'],
-        );
+        const viewer = FullscreenImageViewer(imagePaths: ['/test/path']);
 
         // Assert
         expect(viewer.initialIndex, equals(0));

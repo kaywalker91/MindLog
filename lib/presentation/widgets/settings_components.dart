@@ -36,9 +36,7 @@ class SettingsComponents {
           color: colorScheme.outline.withAlpha(51), // 0.2 * 255 ≈ 51
         ),
       ),
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 
@@ -75,11 +73,7 @@ class SettingsComponents {
                 ),
               ),
             ),
-            trailing ??
-                Icon(
-                  Icons.chevron_right,
-                  color: colorScheme.outline,
-                ),
+            trailing ?? Icon(Icons.chevron_right, color: colorScheme.outline),
           ],
         ),
       ),
@@ -125,10 +119,7 @@ class SettingsComponents {
           ),
         ),
         const SizedBox(width: 6),
-        Icon(
-          Icons.chevron_right,
-          color: colorScheme.outline,
-        ),
+        Icon(Icons.chevron_right, color: colorScheme.outline),
       ],
     );
   }
@@ -143,23 +134,20 @@ class SettingsComponents {
         Text(
           label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-              ),
+            color: colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(width: 4),
-        Icon(
-          Icons.chevron_right,
-          color: colorScheme.outline,
-        ),
+        Icon(Icons.chevron_right, color: colorScheme.outline),
       ],
     );
   }
 
   /// 스낵바 표시
   static void showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

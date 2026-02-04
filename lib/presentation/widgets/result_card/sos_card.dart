@@ -26,7 +26,11 @@ class SOSCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Icon(Icons.warning_amber_rounded, size: 56, color: AppColors.sosIcon)
+          const Icon(
+                Icons.warning_amber_rounded,
+                size: 56,
+                color: AppColors.sosIcon,
+              )
               .animate(onPlay: (controller) => controller.repeat(reverse: true))
               .scale(
                 begin: const Offset(1, 1),
@@ -36,7 +40,9 @@ class SOSCard extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             '전문가의 도움이 필요할 수 있어요',
-            style: AppTextStyles.headline.copyWith(color: AppColors.sosTextDark),
+            style: AppTextStyles.headline.copyWith(
+              color: AppColors.sosTextDark,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),

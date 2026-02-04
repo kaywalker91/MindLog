@@ -23,7 +23,8 @@ class NotificationSection extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final notificationSettingsAsync = ref.watch(notificationSettingsProvider);
     final notificationSettings =
-        notificationSettingsAsync.valueOrNull ?? NotificationSettings.defaults();
+        notificationSettingsAsync.valueOrNull ??
+        NotificationSettings.defaults();
     final notificationsReady = !notificationSettingsAsync.isLoading;
 
     return Column(
@@ -57,7 +58,9 @@ class NotificationSection extends ConsumerWidget {
                 ),
                 enabled: notificationSettings.isReminderEnabled,
               ),
-              onTap: (!notificationSettings.isReminderEnabled || !notificationsReady)
+              onTap:
+                  (!notificationSettings.isReminderEnabled ||
+                      !notificationsReady)
                   ? null
                   : () => _pickReminderTime(context, ref, notificationSettings),
             ),
@@ -146,9 +149,7 @@ class NotificationSection extends ConsumerWidget {
             if (!nowIgnoring && context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text(
-                    '배터리 최적화가 활성화되어 있어 알람이 전달되지 않을 수 있습니다.',
-                  ),
+                  content: Text('배터리 최적화가 활성화되어 있어 알람이 전달되지 않을 수 있습니다.'),
                   duration: Duration(seconds: 5),
                 ),
               );
@@ -216,10 +217,9 @@ class NotificationSection extends ConsumerWidget {
       initialTime: initialTime,
     );
     if (picked == null) return;
-    await ref.read(notificationSettingsProvider.notifier).updateReminderTime(
-          hour: picked.hour,
-          minute: picked.minute,
-        );
+    await ref
+        .read(notificationSettingsProvider.notifier)
+        .updateReminderTime(hour: picked.hour, minute: picked.minute);
   }
 
   Future<void> _sendTestNotification(BuildContext context) async {

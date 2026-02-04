@@ -51,10 +51,7 @@ class MindlogAppBar extends StatelessWidget implements PreferredSizeWidget {
           const DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  AppColors.statsPrimary,
-                  AppColors.statsSecondary,
-                ],
+                colors: [AppColors.statsPrimary, AppColors.statsSecondary],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -98,14 +95,14 @@ class MindlogAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  static Widget _buildAccentBubble({required Color color, required double size}) {
+  static Widget _buildAccentBubble({
+    required Color color,
+    required double size,
+  }) {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
     );
   }
 

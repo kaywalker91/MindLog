@@ -123,18 +123,12 @@ class MindcareWelcomeDialog extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withAlpha(128),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: colorScheme.outline.withAlpha(51),
-        ),
+        border: Border.all(color: colorScheme.outline.withAlpha(51)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.mail_outline,
-            size: 20,
-            color: colorScheme.secondary,
-          ),
+          Icon(Icons.mail_outline, size: 20, color: colorScheme.secondary),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

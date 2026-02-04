@@ -14,9 +14,7 @@ void main() {
     mockRepository = MockSettingsRepository();
 
     container = ProviderContainer(
-      overrides: [
-        settingsRepositoryProvider.overrideWithValue(mockRepository),
-      ],
+      overrides: [settingsRepositoryProvider.overrideWithValue(mockRepository)],
     );
     addTearDown(container.dispose);
   });
@@ -49,7 +47,9 @@ void main() {
       test('Repository 에러 시 AsyncError 상태여야 한다', () async {
         // Arrange
         mockRepository.shouldThrowOnGet = true;
-        mockRepository.failureToThrow = const Failure.cache(message: '이름 조회 실패');
+        mockRepository.failureToThrow = const Failure.cache(
+          message: '이름 조회 실패',
+        );
 
         // Act
         await container.read(userNameProvider.future).catchError((_) => null);

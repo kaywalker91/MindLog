@@ -15,7 +15,7 @@ class Validators {
     }
 
     final trimmedContent = content.trim();
-    
+
     // 기본 길이 검사
     if (trimmedContent.length < AppConstants.diaryMinLength) {
       return '최소 ${AppConstants.diaryMinLength}자 이상 입력해주세요.\n현재 ${trimmedContent.length}자 입니다.';
@@ -57,20 +57,51 @@ class Validators {
     }
 
     // 4. 불필요한 특수문자 과도 사용 검사
-    final specialCharCount = content.replaceAll(RegExp(r'[가-힣a-zA-Z0-9\s]'), '').length;
+    final specialCharCount = content
+        .replaceAll(RegExp(r'[가-힣a-zA-Z0-9\s]'), '')
+        .length;
     if (specialCharCount > content.length * 0.3) {
       return '특수문자가 너무 많습니다. 문장으로 작성해주세요.';
     }
 
     // 5. 의미 있는 내용인지 검사 (기본적인 단어 포함 확인)
     final meaningfulWords = [
-      '감정', '느낌', '생각', '생각', '마음', '생각하다', '느낀다', '생각한다', '일상', '하루',
-      '일', '하고', '있어요', '있었다', '오늘', '어제', '친구', '가족', '일', '공부', '스트레스',
-      '기분', '불안', '행복', '슬픔', '기쁨', '화남', '실망', '만족', '피곤', '지침'
+      '감정',
+      '느낌',
+      '생각',
+      '생각',
+      '마음',
+      '생각하다',
+      '느낀다',
+      '생각한다',
+      '일상',
+      '하루',
+      '일',
+      '하고',
+      '있어요',
+      '있었다',
+      '오늘',
+      '어제',
+      '친구',
+      '가족',
+      '일',
+      '공부',
+      '스트레스',
+      '기분',
+      '불안',
+      '행복',
+      '슬픔',
+      '기쁨',
+      '화남',
+      '실망',
+      '만족',
+      '피곤',
+      '지침',
     ];
 
-    final hasMeaningfulContent = meaningfulWords.any((word) => 
-        content.toLowerCase().contains(word));
+    final hasMeaningfulContent = meaningfulWords.any(
+      (word) => content.toLowerCase().contains(word),
+    );
 
     if (!hasMeaningfulContent && content.length < 50) {
       return '더 의미 있는 내용을 작성해주세요. 감정이나 상황을 표현해보세요.';
@@ -82,7 +113,7 @@ class Validators {
   /// 텍스트 품질 점수 계산 (0-100)
   static int calculateTextQualityScore(String content) {
     if (content.trim().isEmpty) return 0;
-    
+
     int score = 50; // 기본 점수
 
     // 길이 점수 (10-30점)
@@ -92,7 +123,9 @@ class Validators {
     if (length >= 200) score += 10;
 
     // 문장 구조 점수 (0-20점)
-    final sentences = content.split(RegExp(r'[.!?]+')).where((s) => s.trim().isNotEmpty);
+    final sentences = content
+        .split(RegExp(r'[.!?]+'))
+        .where((s) => s.trim().isNotEmpty);
     if (sentences.length >= 2) score += 10;
     if (sentences.length >= 3) score += 10;
 
@@ -103,12 +136,29 @@ class Validators {
 
     // 감정 표현 점수 (0-10점)
     final emotionWords = [
-      '기쁨', '슬픔', '화남', '불안', '만족', '실망', '놀람', '두려움', '기대', '설렘',
-      '평화', '행복', '즐거움', '즐겁다', '시끄럽다', '조용하다', '불편하다', '편안하다'
+      '기쁨',
+      '슬픔',
+      '화남',
+      '불안',
+      '만족',
+      '실망',
+      '놀람',
+      '두려움',
+      '기대',
+      '설렘',
+      '평화',
+      '행복',
+      '즐거움',
+      '즐겁다',
+      '시끄럽다',
+      '조용하다',
+      '불편하다',
+      '편안하다',
     ];
-    
-    final emotionCount = emotionWords.where((word) => 
-        content.toLowerCase().contains(word)).length;
+
+    final emotionCount = emotionWords
+        .where((word) => content.toLowerCase().contains(word))
+        .length;
     if (emotionCount >= 1) score += 5;
     if (emotionCount >= 2) score += 5;
 
@@ -119,11 +169,14 @@ class Validators {
   static TextAnalysisResult analyzeText(String content) {
     final qualityScore = calculateTextQualityScore(content);
     final characterCount = getCharacterCount(content);
-    final wordCount = content.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length;
-    
+    final wordCount = content
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .length;
+
     // 감정色调 분석
     final emotionAnalysis = _analyzeEmotionalTone(content);
-    
+
     return TextAnalysisResult(
       qualityScore: qualityScore,
       characterCount: characterCount,
@@ -138,19 +191,22 @@ class Validators {
     final positiveEmotions = ['기쁨', '행복', '즐거움', '만족', '감사', '밝다', '설렘', '기대'];
     final negativeEmotions = ['불안', '슬픔', '화남', '실망', '두려움', '어둡', '힘들', '피곤'];
     final neutralEmotions = ['그냥', '보통', '일상', '평소', '약간', '간단'];
-    
+
     int positiveCount = 0;
     int negativeCount = 0;
     int neutralCount = 0;
-    
+
     final lowerContent = content.toLowerCase();
-    
-    positiveCount = positiveEmotions.where((emotion) => 
-        lowerContent.contains(emotion)).length;
-    negativeCount = negativeEmotions.where((emotion) => 
-        lowerContent.contains(emotion)).length;
-    neutralCount = neutralEmotions.where((emotion) => 
-        lowerContent.contains(emotion)).length;
+
+    positiveCount = positiveEmotions
+        .where((emotion) => lowerContent.contains(emotion))
+        .length;
+    negativeCount = negativeEmotions
+        .where((emotion) => lowerContent.contains(emotion))
+        .length;
+    neutralCount = neutralEmotions
+        .where((emotion) => lowerContent.contains(emotion))
+        .length;
 
     if (positiveCount > negativeCount && positiveCount > neutralCount) {
       return EmotionTone.positive;
@@ -227,8 +283,4 @@ class TextAnalysisResult {
 }
 
 /// 감정色调
-enum EmotionTone {
-  positive,
-  negative,
-  neutral,
-}
+enum EmotionTone { positive, negative, neutral }

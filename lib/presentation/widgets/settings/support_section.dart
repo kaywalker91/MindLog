@@ -25,7 +25,8 @@ class SupportSection extends StatelessWidget {
             SettingsItem(
               icon: Icons.email_outlined,
               title: '문의하기',
-              onTap: () => launchExternalUrl('mailto:rikygak@gmail.com', context),
+              onTap: () =>
+                  launchExternalUrl('mailto:rikygak@gmail.com', context),
             ),
           ],
         ),
@@ -34,9 +35,6 @@ class SupportSection extends StatelessWidget {
   }
 
   void _showHelpDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => const HelpDialog(),
-    );
+    showDialog(context: context, builder: (context) => const HelpDialog());
   }
 }

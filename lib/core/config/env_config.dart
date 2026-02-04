@@ -49,10 +49,9 @@ class EnvConfig {
   }
 
   /// 개발 모드 여부
-  static const bool isDevelopment = String.fromEnvironment(
-    'ENVIRONMENT',
-    defaultValue: 'development',
-  ) == 'development';
+  static const bool isDevelopment =
+      String.fromEnvironment('ENVIRONMENT', defaultValue: 'development') ==
+      'development';
 
   /// API 키 유효성 검사
   static bool get hasValidGroqApiKey => groqApiKey.isNotEmpty;
@@ -71,9 +70,7 @@ class EnvConfig {
   /// 디버그 정보 (API 키 마스킹)
   static String get debugInfo {
     final key = groqApiKey;
-    final maskedKey = key.isEmpty
-        ? '(not set)'
-        : '${key.substring(0, 4)}****';
+    final maskedKey = key.isEmpty ? '(not set)' : '${key.substring(0, 4)}****';
 
     return '''
 EnvConfig:
@@ -83,4 +80,3 @@ EnvConfig:
 ''';
   }
 }
-

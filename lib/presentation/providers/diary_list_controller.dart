@@ -83,10 +83,7 @@ class DiaryListController extends AsyncNotifier<List<Diary>> {
       _executeDeletion(diary.id);
     });
 
-    _pendingDeletions[diary.id] = _PendingDeletion(
-      diary: diary,
-      timer: timer,
-    );
+    _pendingDeletions[diary.id] = _PendingDeletion(diary: diary, timer: timer);
   }
 
   /// Undo — 삭제 취소, 리스트 복원
@@ -162,5 +159,5 @@ class _PendingDeletion {
 /// 일기 목록 Provider
 final diaryListControllerProvider =
     AsyncNotifierProvider<DiaryListController, List<Diary>>(() {
-  return DiaryListController();
-});
+      return DiaryListController();
+    });

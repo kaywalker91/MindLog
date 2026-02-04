@@ -137,10 +137,7 @@ void main() {
           'sentiment_score': 5,
           'empathy_message': '테스트',
           'action_item': '',
-          'emotion_category': {
-            'primary': '기쁨',
-            'secondary': '만족',
-          },
+          'emotion_category': {'primary': '기쁨', 'secondary': '만족'},
         };
 
         final dto = AnalysisResponseDto.fromJson(json);
@@ -156,10 +153,7 @@ void main() {
           'sentiment_score': 5,
           'empathy_message': '테스트',
           'action_item': '',
-          'emotion_trigger': {
-            'category': '직장/학업',
-            'description': '프로젝트 성공',
-          },
+          'emotion_trigger': {'category': '직장/학업', 'description': '프로젝트 성공'},
         };
 
         final dto = AnalysisResponseDto.fromJson(json);
@@ -276,8 +270,16 @@ void main() {
         final entity = dto.toEntity();
         final after = DateTime.now();
 
-        expect(entity.analyzedAt.isAfter(before.subtract(const Duration(seconds: 1))), true);
-        expect(entity.analyzedAt.isBefore(after.add(const Duration(seconds: 1))), true);
+        expect(
+          entity.analyzedAt.isAfter(
+            before.subtract(const Duration(seconds: 1)),
+          ),
+          true,
+        );
+        expect(
+          entity.analyzedAt.isBefore(after.add(const Duration(seconds: 1))),
+          true,
+        );
       });
 
       test('analyzedAt 파라미터가 있으면 해당 시간을 사용해야 한다', () {
@@ -300,10 +302,7 @@ void main() {
           sentimentScore: 5,
           empathyMessage: '테스트',
           actionItem: '',
-          emotionCategory: EmotionCategoryDto(
-            primary: '슬픔',
-            secondary: '외로움',
-          ),
+          emotionCategory: EmotionCategoryDto(primary: '슬픔', secondary: '외로움'),
         );
 
         final entity = dto.toEntity();
@@ -390,10 +389,7 @@ void main() {
       });
 
       test('toEntity가 올바르게 변환되어야 한다', () {
-        const dto = EmotionCategoryDto(
-          primary: '분노',
-          secondary: '짜증',
-        );
+        const dto = EmotionCategoryDto(primary: '분노', secondary: '짜증');
 
         final entity = dto.toEntity();
 
@@ -413,10 +409,7 @@ void main() {
       });
 
       test('toEntity가 올바르게 변환되어야 한다', () {
-        const dto = EmotionTriggerDto(
-          category: '건강',
-          description: '운동 후',
-        );
+        const dto = EmotionTriggerDto(category: '건강', description: '운동 후');
 
         final entity = dto.toEntity();
 

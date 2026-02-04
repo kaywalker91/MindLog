@@ -5,7 +5,9 @@ final updateServiceProvider = Provider<UpdateService>((ref) {
   return const UpdateService();
 });
 
-final updateConfigProvider = FutureProvider.autoDispose<UpdateConfig>((ref) async {
+final updateConfigProvider = FutureProvider.autoDispose<UpdateConfig>((
+  ref,
+) async {
   final service = ref.read(updateServiceProvider);
   return service.fetchConfig();
 });
@@ -31,7 +33,9 @@ final hasLoadedMoreChangelogProvider = Provider.autoDispose<bool>((ref) {
 });
 
 /// 정렬된 전체 버전 리스트 (캐싱)
-final sortedChangelogVersionsProvider = Provider.autoDispose<List<String>>((ref) {
+final sortedChangelogVersionsProvider = Provider.autoDispose<List<String>>((
+  ref,
+) {
   final config = ref.watch(updateConfigProvider).valueOrNull;
   if (config == null) return [];
   return _sortedVersions(config.changelog.keys);
@@ -43,8 +47,10 @@ final sortedChangelogVersionsProvider = Provider.autoDispose<List<String>>((ref)
 final paginatedVersionsProvider = Provider.autoDispose<List<String>>((ref) {
   final allVersions = ref.watch(sortedChangelogVersionsProvider);
   final pageIndex = ref.watch(changelogPageIndexProvider);
-  final endIndex =
-      ((pageIndex + 1) * _changelogPageSize).clamp(0, allVersions.length);
+  final endIndex = ((pageIndex + 1) * _changelogPageSize).clamp(
+    0,
+    allVersions.length,
+  );
   return allVersions.sublist(0, endIndex);
 });
 
@@ -61,8 +67,10 @@ final hasMoreChangelogProvider = Provider.autoDispose<bool>((ref) {
 
 /// 버전 문자열을 내림차순으로 정렬
 List<String> _sortedVersions(Iterable<String> versions) {
-  final list =
-      versions.map((version) => version.trim()).where((v) => v.isNotEmpty).toList();
+  final list = versions
+      .map((version) => version.trim())
+      .where((v) => v.isNotEmpty)
+      .toList();
   list.sort((a, b) => _compareVersions(b, a));
   return list;
 }
@@ -71,8 +79,9 @@ List<String> _sortedVersions(Iterable<String> versions) {
 int _compareVersions(String current, String target) {
   final currentParts = _parseVersion(current);
   final targetParts = _parseVersion(target);
-  final length =
-      currentParts.length > targetParts.length ? currentParts.length : targetParts.length;
+  final length = currentParts.length > targetParts.length
+      ? currentParts.length
+      : targetParts.length;
 
   for (var i = 0; i < length; i++) {
     final currentValue = i < currentParts.length ? currentParts[i] : 0;

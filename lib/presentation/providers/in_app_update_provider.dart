@@ -161,6 +161,6 @@ class InAppUpdateNotifier extends StateNotifier<InAppUpdateState> {
 /// In-App Update Provider
 final inAppUpdateProvider =
     StateNotifierProvider<InAppUpdateNotifier, InAppUpdateState>((ref) {
-  final service = ref.watch(inAppUpdateServiceProvider);
-  return InAppUpdateNotifier(service);
-});
+      final service = ref.watch(inAppUpdateServiceProvider);
+      return InAppUpdateNotifier(service);
+    });

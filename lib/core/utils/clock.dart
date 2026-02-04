@@ -59,7 +59,7 @@ class AdjustableClock implements Clock {
   DateTime _currentTime;
 
   AdjustableClock([DateTime? initialTime])
-      : _currentTime = initialTime ?? DateTime.now();
+    : _currentTime = initialTime ?? DateTime.now();
 
   @override
   DateTime now() => _currentTime;

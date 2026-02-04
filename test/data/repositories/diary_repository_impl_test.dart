@@ -41,9 +41,14 @@ void main() {
         final diary = await repository.createDiary('테스트 일기');
         final after = DateTime.now();
 
-        expect(diary.createdAt.isAfter(before.subtract(const Duration(seconds: 1))),
-            true);
-        expect(diary.createdAt.isBefore(after.add(const Duration(seconds: 1))), true);
+        expect(
+          diary.createdAt.isAfter(before.subtract(const Duration(seconds: 1))),
+          true,
+        );
+        expect(
+          diary.createdAt.isBefore(after.add(const Duration(seconds: 1))),
+          true,
+        );
       });
 
       test('저장 실패 시 CacheFailure를 던져야 한다', () async {
@@ -82,24 +87,30 @@ void main() {
 
     group('getAllDiaries', () {
       test('모든 일기를 최신순으로 반환해야 한다', () async {
-        mockLocalDataSource.addDiary(Diary(
-          id: '1',
-          content: '첫번째',
-          createdAt: DateTime(2024, 1, 1),
-          status: DiaryStatus.pending,
-        ));
-        mockLocalDataSource.addDiary(Diary(
-          id: '2',
-          content: '두번째',
-          createdAt: DateTime(2024, 1, 3),
-          status: DiaryStatus.analyzed,
-        ));
-        mockLocalDataSource.addDiary(Diary(
-          id: '3',
-          content: '세번째',
-          createdAt: DateTime(2024, 1, 2),
-          status: DiaryStatus.pending,
-        ));
+        mockLocalDataSource.addDiary(
+          Diary(
+            id: '1',
+            content: '첫번째',
+            createdAt: DateTime(2024, 1, 1),
+            status: DiaryStatus.pending,
+          ),
+        );
+        mockLocalDataSource.addDiary(
+          Diary(
+            id: '2',
+            content: '두번째',
+            createdAt: DateTime(2024, 1, 3),
+            status: DiaryStatus.analyzed,
+          ),
+        );
+        mockLocalDataSource.addDiary(
+          Diary(
+            id: '3',
+            content: '세번째',
+            createdAt: DateTime(2024, 1, 2),
+            status: DiaryStatus.pending,
+          ),
+        );
 
         final diaries = await repository.getAllDiaries();
 
@@ -250,24 +261,30 @@ void main() {
         final todayMorning = todayStart.add(const Duration(hours: 9));
         final yesterday = todayStart.subtract(const Duration(hours: 9));
 
-        mockLocalDataSource.addDiary(Diary(
-          id: 'today-1',
-          content: '오늘 일기 1',
-          createdAt: todayNoon,
-          status: DiaryStatus.pending,
-        ));
-        mockLocalDataSource.addDiary(Diary(
-          id: 'today-2',
-          content: '오늘 일기 2',
-          createdAt: todayMorning,
-          status: DiaryStatus.analyzed,
-        ));
-        mockLocalDataSource.addDiary(Diary(
-          id: 'yesterday',
-          content: '어제 일기',
-          createdAt: yesterday,
-          status: DiaryStatus.pending,
-        ));
+        mockLocalDataSource.addDiary(
+          Diary(
+            id: 'today-1',
+            content: '오늘 일기 1',
+            createdAt: todayNoon,
+            status: DiaryStatus.pending,
+          ),
+        );
+        mockLocalDataSource.addDiary(
+          Diary(
+            id: 'today-2',
+            content: '오늘 일기 2',
+            createdAt: todayMorning,
+            status: DiaryStatus.analyzed,
+          ),
+        );
+        mockLocalDataSource.addDiary(
+          Diary(
+            id: 'yesterday',
+            content: '어제 일기',
+            createdAt: yesterday,
+            status: DiaryStatus.pending,
+          ),
+        );
 
         final todayDiaries = await repository.getTodayDiaries();
 
@@ -278,12 +295,14 @@ void main() {
       });
 
       test('오늘 일기가 없으면 빈 리스트를 반환해야 한다', () async {
-        mockLocalDataSource.addDiary(Diary(
-          id: 'old',
-          content: '오래된 일기',
-          createdAt: DateTime.now().subtract(const Duration(days: 7)),
-          status: DiaryStatus.pending,
-        ));
+        mockLocalDataSource.addDiary(
+          Diary(
+            id: 'old',
+            content: '오래된 일기',
+            createdAt: DateTime.now().subtract(const Duration(days: 7)),
+            status: DiaryStatus.pending,
+          ),
+        );
 
         final todayDiaries = await repository.getTodayDiaries();
 
@@ -327,24 +346,30 @@ void main() {
 
     group('deleteAllDiaries', () {
       test('모든 일기를 삭제해야 한다', () async {
-        mockLocalDataSource.addDiary(Diary(
-          id: '1',
-          content: '일기 1',
-          createdAt: DateTime.now(),
-          status: DiaryStatus.pending,
-        ));
-        mockLocalDataSource.addDiary(Diary(
-          id: '2',
-          content: '일기 2',
-          createdAt: DateTime.now(),
-          status: DiaryStatus.analyzed,
-        ));
-        mockLocalDataSource.addDiary(Diary(
-          id: '3',
-          content: '일기 3',
-          createdAt: DateTime.now(),
-          status: DiaryStatus.failed,
-        ));
+        mockLocalDataSource.addDiary(
+          Diary(
+            id: '1',
+            content: '일기 1',
+            createdAt: DateTime.now(),
+            status: DiaryStatus.pending,
+          ),
+        );
+        mockLocalDataSource.addDiary(
+          Diary(
+            id: '2',
+            content: '일기 2',
+            createdAt: DateTime.now(),
+            status: DiaryStatus.analyzed,
+          ),
+        );
+        mockLocalDataSource.addDiary(
+          Diary(
+            id: '3',
+            content: '일기 3',
+            createdAt: DateTime.now(),
+            status: DiaryStatus.failed,
+          ),
+        );
 
         await repository.deleteAllDiaries();
 
@@ -458,7 +483,10 @@ void main() {
         expect(result.analysisResult, isNotNull);
         // 호출 추적 검증
         expect(mockRemoteDataSource.analyzeRequests.last['userName'], '홍길동');
-        expect(mockRemoteDataSource.analyzeRequests.last['character'], AiCharacter.cheerfulFriend);
+        expect(
+          mockRemoteDataSource.analyzeRequests.last['character'],
+          AiCharacter.cheerfulFriend,
+        );
       });
     });
 

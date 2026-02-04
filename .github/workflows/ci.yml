@@ -17,9 +17,61 @@ env:
   JAVA_VERSION: '17'
 
 jobs:
+  # Shared setup job to cache dependencies
+  setup:
+    name: Setup & Cache
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Generate Cache Key
+        id: cache-key
+        run: echo "key=${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}" >> $GITHUB_OUTPUT
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Create .env
+        run: |
+          echo "GEMINI_API_KEY=dummy_key_for_ci" > .env
+          echo "GROQ_API_KEY=dummy_key_for_ci" >> .env
+
+      - name: Cache generated code
+        uses: actions/cache@v4
+        with:
+          path: |
+            lib/**/*.g.dart
+            lib/**/*.freezed.dart
+            test/**/*.mocks.dart
+          key: ${{ runner.os }}-generated-${{ hashFiles('**/pubspec.lock', 'lib/**/*.dart') }}
+
+      - name: Generate Code
+        run: dart run build_runner build --delete-conflicting-outputs
+
   analyze:
     name: Analyze & Format
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -31,6 +83,14 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Restore pub cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ needs.setup.outputs.cache-key }}
+
       - name: Get Dependencies
         run: flutter pub get
 
@@ -39,7 +99,16 @@ jobs:
           echo "GEMINI_API_KEY=dummy_key_for_ci" > .env
           echo "GROQ_API_KEY=dummy_key_for_ci" >> .env
 
-      - name: Generate Code
+      - name: Restore generated code
+        uses: actions/cache@v4
+        with:
+          path: |
+            lib/**/*.g.dart
+            lib/**/*.freezed.dart
+            test/**/*.mocks.dart
+          key: ${{ runner.os }}-generated-${{ hashFiles('**/pubspec.lock', 'lib/**/*.dart') }}
+
+      - name: Generate Code (if needed)
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Verify Formatting
@@ -51,6 +120,7 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    needs: setup
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -62,6 +132,14 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Restore pub cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ needs.setup.outputs.cache-key }}
+
       - name: Get Dependencies
         run: flutter pub get
 
@@ -70,11 +148,20 @@ jobs:
           echo "GEMINI_API_KEY=test_key_for_ci" > .env
           echo "GROQ_API_KEY=test_key_for_ci" >> .env
 
-      - name: Generate Code
+      - name: Restore generated code
+        uses: actions/cache@v4
+        with:
+          path: |
+            lib/**/*.g.dart
+            lib/**/*.freezed.dart
+            test/**/*.mocks.dart
+          key: ${{ runner.os }}-generated-${{ hashFiles('**/pubspec.lock', 'lib/**/*.dart') }}
+
+      - name: Generate Code (if needed)
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Run Tests with Coverage
-        run: flutter test --coverage
+        run: flutter test --coverage --reporter=github
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -86,6 +173,7 @@ jobs:
   build-check:
     name: Build Verification
     runs-on: ubuntu-latest
+    needs: [setup, analyze, test]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -103,6 +191,24 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Restore pub cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ needs.setup.outputs.cache-key }}
+
       - name: Get Dependencies
         run: flutter pub get
 
@@ -111,7 +217,16 @@ jobs:
           echo "GEMINI_API_KEY=build_check_key" > .env
           echo "GROQ_API_KEY=build_check_key" >> .env
 
-      - name: Generate Code
+      - name: Restore generated code
+        uses: actions/cache@v4
+        with:
+          path: |
+            lib/**/*.g.dart
+            lib/**/*.freezed.dart
+            test/**/*.mocks.dart
+          key: ${{ runner.os }}-generated-${{ hashFiles('**/pubspec.lock', 'lib/**/*.dart') }}
+
+      - name: Generate Code (if needed)
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build APK (Debug)
@@ -123,3 +238,8 @@ jobs:
           echo "- Flutter: ${{ env.FLUTTER_VERSION }}" >> $GITHUB_STEP_SUMMARY
           echo "- Java: ${{ env.JAVA_VERSION }}" >> $GITHUB_STEP_SUMMARY
           echo "- Build: Debug APK ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Optimizations Applied" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Dependency caching" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Generated code caching" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Gradle caching" >> $GITHUB_STEP_SUMMARY

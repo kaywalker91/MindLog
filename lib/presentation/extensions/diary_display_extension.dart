@@ -22,7 +22,8 @@ extension DiaryDisplayExtension on Diary {
     if (status != DiaryStatus.analyzed || analysisResult == null) {
       return AppColors.textHint.withValues(alpha: 0.1);
     }
-    return AppColors.getSentimentColor(analysisResult!.sentimentScore)
-        .withValues(alpha: 0.15);
+    return AppColors.getSentimentColor(
+      analysisResult!.sentimentScore,
+    ).withValues(alpha: 0.15);
   }
 }

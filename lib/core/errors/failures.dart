@@ -20,13 +20,15 @@ sealed class Failure {
   const factory Failure.dataNotFound({String? message}) = DataNotFoundFailure;
 
   /// 입력 유효성 검사 실패
-  const factory Failure.validation({required String message}) = ValidationFailure;
+  const factory Failure.validation({required String message}) =
+      ValidationFailure;
 
   /// 안전 필터 트리거 (자해/자살 관련 콘텐츠 감지)
   const factory Failure.safetyBlocked() = SafetyBlockedFailure;
 
   /// 이미지 처리 실패
-  const factory Failure.imageProcessing({String? message}) = ImageProcessingFailure;
+  const factory Failure.imageProcessing({String? message}) =
+      ImageProcessingFailure;
 
   /// 알 수 없는 오류
   const factory Failure.unknown({String? message}) = UnknownFailure;

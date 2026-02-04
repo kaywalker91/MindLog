@@ -54,19 +54,24 @@ class ImageService {
 
       // 앱 Documents 디렉토리 내 diary_images/{diaryId}/ 폴더 생성
       final appDir = await getApplicationDocumentsDirectory();
-      final diaryImagesDir = Directory(p.join(appDir.path, 'diary_images', diaryId));
+      final diaryImagesDir = Directory(
+        p.join(appDir.path, 'diary_images', diaryId),
+      );
       if (!await diaryImagesDir.exists()) {
         await diaryImagesDir.create(recursive: true);
       }
 
       // 파일 확장자 추출 (기본값: jpg)
       final extension = p.extension(sourcePath).toLowerCase();
-      final validExtension = ['.jpg', '.jpeg', '.png', '.webp', '.heic']
-              .contains(extension)
+      final validExtension =
+          ['.jpg', '.jpeg', '.png', '.webp', '.heic'].contains(extension)
           ? extension
           : '.jpg';
 
-      final destPath = p.join(diaryImagesDir.path, 'image_$index$validExtension');
+      final destPath = p.join(
+        diaryImagesDir.path,
+        'image_$index$validExtension',
+      );
       final destFile = await sourceFile.copy(destPath);
 
       return destFile.path;
@@ -160,9 +165,7 @@ class ImageService {
     List<String> imagePaths,
   ) async {
     // 병렬 처리로 다중 이미지 인코딩 (순차 처리 대비 ~3배 속도 향상)
-    return Future.wait(
-      imagePaths.map((path) => encodeToBase64DataUrl(path)),
-    );
+    return Future.wait(imagePaths.map((path) => encodeToBase64DataUrl(path)));
   }
 
   /// 일기 관련 이미지 전체 삭제
@@ -171,7 +174,9 @@ class ImageService {
   static Future<void> deleteDiaryImages(String diaryId) async {
     try {
       final appDir = await getApplicationDocumentsDirectory();
-      final diaryImagesDir = Directory(p.join(appDir.path, 'diary_images', diaryId));
+      final diaryImagesDir = Directory(
+        p.join(appDir.path, 'diary_images', diaryId),
+      );
 
       if (await diaryImagesDir.exists()) {
         await diaryImagesDir.delete(recursive: true);

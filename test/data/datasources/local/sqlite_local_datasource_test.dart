@@ -204,53 +204,59 @@ void main() {
         expect(retrieved.content, diary.content);
       });
 
-      test('getAllDiaries는 is_pinned DESC, created_at DESC 순으로 정렬해야 한다', () async {
-        // 오래된 고정 일기
-        await insertRaw({
-          'id': 'old-pinned',
-          'content': '오래된 고정',
-          'created_at': '2024-01-10T12:00:00.000',
-          'status': 'analyzed',
-          'analysis_result': null,
-          'is_pinned': 1,
-        });
+      test(
+        'getAllDiaries는 is_pinned DESC, created_at DESC 순으로 정렬해야 한다',
+        () async {
+          // 오래된 고정 일기
+          await insertRaw({
+            'id': 'old-pinned',
+            'content': '오래된 고정',
+            'created_at': '2024-01-10T12:00:00.000',
+            'status': 'analyzed',
+            'analysis_result': null,
+            'is_pinned': 1,
+          });
 
-        // 최신 일반 일기
-        await insertRaw({
-          'id': 'new-normal',
-          'content': '최신 일반',
-          'created_at': '2024-01-15T12:00:00.000',
-          'status': 'pending',
-          'analysis_result': null,
-          'is_pinned': 0,
-        });
+          // 최신 일반 일기
+          await insertRaw({
+            'id': 'new-normal',
+            'content': '최신 일반',
+            'created_at': '2024-01-15T12:00:00.000',
+            'status': 'pending',
+            'analysis_result': null,
+            'is_pinned': 0,
+          });
 
-        // 새로운 고정 일기
-        await insertRaw({
-          'id': 'new-pinned',
-          'content': '새로운 고정',
-          'created_at': '2024-01-14T12:00:00.000',
-          'status': 'analyzed',
-          'analysis_result': null,
-          'is_pinned': 1,
-        });
+          // 새로운 고정 일기
+          await insertRaw({
+            'id': 'new-pinned',
+            'content': '새로운 고정',
+            'created_at': '2024-01-14T12:00:00.000',
+            'status': 'analyzed',
+            'analysis_result': null,
+            'is_pinned': 1,
+          });
 
-        final diaries = await dataSource.getAllDiaries();
+          final diaries = await dataSource.getAllDiaries();
 
-        expect(diaries.length, 3);
-        // 고정 일기가 먼저 (최신순)
-        expect(diaries[0].id, 'new-pinned');
-        expect(diaries[1].id, 'old-pinned');
-        // 일반 일기
-        expect(diaries[2].id, 'new-normal');
-      });
+          expect(diaries.length, 3);
+          // 고정 일기가 먼저 (최신순)
+          expect(diaries[0].id, 'new-pinned');
+          expect(diaries[1].id, 'old-pinned');
+          // 일반 일기
+          expect(diaries[2].id, 'new-normal');
+        },
+      );
 
-      test('deleteDiary로 존재하지 않는 ID 삭제 시 DataNotFoundException을 던져야 한다', () async {
-        await expectLater(
-          dataSource.deleteDiary('non-existent-id'),
-          throwsA(isA<DataNotFoundException>()),
-        );
-      });
+      test(
+        'deleteDiary로 존재하지 않는 ID 삭제 시 DataNotFoundException을 던져야 한다',
+        () async {
+          await expectLater(
+            dataSource.deleteDiary('non-existent-id'),
+            throwsA(isA<DataNotFoundException>()),
+          );
+        },
+      );
 
       test('deleteDiary로 일기를 삭제해야 한다', () async {
         await insertRaw({
@@ -348,7 +354,10 @@ void main() {
           isEmergency: false,
         );
 
-        await dataSource.updateDiaryWithAnalysis('update-analysis-test', analysisResult);
+        await dataSource.updateDiaryWithAnalysis(
+          'update-analysis-test',
+          analysisResult,
+        );
         final diary = await dataSource.getDiaryById('update-analysis-test');
 
         expect(diary!.status, DiaryStatus.analyzed);
@@ -366,7 +375,10 @@ void main() {
           'is_pinned': 0,
         });
 
-        await dataSource.updateDiaryStatus('status-update-test', DiaryStatus.failed);
+        await dataSource.updateDiaryStatus(
+          'status-update-test',
+          DiaryStatus.failed,
+        );
         final diary = await dataSource.getDiaryById('status-update-test');
 
         expect(diary!.status, DiaryStatus.failed);
@@ -397,8 +409,20 @@ void main() {
     group('getTodayDiaries', () {
       test('오늘 작성된 일기만 반환해야 한다', () async {
         final now = DateTime.now();
-        final todayStr = DateTime(now.year, now.month, now.day, 10, 0).toIso8601String();
-        final yesterdayStr = DateTime(now.year, now.month, now.day - 1, 10, 0).toIso8601String();
+        final todayStr = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          10,
+          0,
+        ).toIso8601String();
+        final yesterdayStr = DateTime(
+          now.year,
+          now.month,
+          now.day - 1,
+          10,
+          0,
+        ).toIso8601String();
 
         await insertRaw({
           'id': 'today-diary',
@@ -470,17 +494,22 @@ void main() {
         });
       });
 
-      test('getAnalyzedDiariesInRange는 analyzed와 safetyBlocked 상태만 반환해야 한다', () async {
-        final diaries = await dataSource.getAnalyzedDiariesInRange();
+      test(
+        'getAnalyzedDiariesInRange는 analyzed와 safetyBlocked 상태만 반환해야 한다',
+        () async {
+          final diaries = await dataSource.getAnalyzedDiariesInRange();
 
-        expect(diaries.length, 3);
-        expect(
-          diaries.every((d) =>
-              d.status == DiaryStatus.analyzed ||
-              d.status == DiaryStatus.safetyBlocked),
-          true,
-        );
-      });
+          expect(diaries.length, 3);
+          expect(
+            diaries.every(
+              (d) =>
+                  d.status == DiaryStatus.analyzed ||
+                  d.status == DiaryStatus.safetyBlocked,
+            ),
+            true,
+          );
+        },
+      );
 
       test('startDate만 지정하면 해당 날짜 이후 일기만 반환해야 한다', () async {
         final diaries = await dataSource.getAnalyzedDiariesInRange(
@@ -488,7 +517,10 @@ void main() {
         );
 
         expect(diaries.length, 2);
-        expect(diaries.every((d) => d.createdAt.isAfter(DateTime(2024, 1, 11))), true);
+        expect(
+          diaries.every((d) => d.createdAt.isAfter(DateTime(2024, 1, 11))),
+          true,
+        );
       });
 
       test('endDate만 지정하면 해당 날짜 이전 일기만 반환해야 한다', () async {
@@ -497,7 +529,10 @@ void main() {
         );
 
         expect(diaries.length, 2);
-        expect(diaries.every((d) => d.createdAt.isBefore(DateTime(2024, 1, 14))), true);
+        expect(
+          diaries.every((d) => d.createdAt.isBefore(DateTime(2024, 1, 14))),
+          true,
+        );
       });
 
       test('startDate와 endDate 모두 지정하면 범위 내 일기만 반환해야 한다', () async {
@@ -538,37 +573,25 @@ void main() {
 
     group('close', () {
       test('close는 예외 없이 실행되어야 한다', () async {
-        await expectLater(
-          dataSource.close(),
-          completes,
-        );
+        await expectLater(dataSource.close(), completes);
       });
     });
   });
 
   group('SqliteLocalDataSource static 메서드', () {
     test('forceReconnect는 정적 메서드로 호출 가능해야 한다', () async {
-      await expectLater(
-        SqliteLocalDataSource.forceReconnect(),
-        completes,
-      );
+      await expectLater(SqliteLocalDataSource.forceReconnect(), completes);
     });
 
     test('resetForTesting은 forceReconnect를 호출해야 한다', () async {
-      await expectLater(
-        SqliteLocalDataSource.resetForTesting(),
-        completes,
-      );
+      await expectLater(SqliteLocalDataSource.resetForTesting(), completes);
     });
 
     test('forceReconnect 후 _database가 null이 되어야 한다', () async {
       // 첫 번째 호출로 _database를 닫음
       await SqliteLocalDataSource.forceReconnect();
       // 두 번째 호출도 정상적으로 완료되어야 함 (이미 null인 상태)
-      await expectLater(
-        SqliteLocalDataSource.forceReconnect(),
-        completes,
-      );
+      await expectLater(SqliteLocalDataSource.forceReconnect(), completes);
     });
   });
 
@@ -669,8 +692,12 @@ void main() {
               analysis_result TEXT
             )
           ''');
-          await db.execute('CREATE INDEX idx_diaries_created_at ON diaries(created_at)');
-          await db.execute('CREATE INDEX idx_diaries_status ON diaries(status)');
+          await db.execute(
+            'CREATE INDEX idx_diaries_created_at ON diaries(created_at)',
+          );
+          await db.execute(
+            'CREATE INDEX idx_diaries_status ON diaries(status)',
+          );
         },
       );
 
@@ -737,7 +764,9 @@ void main() {
               is_pinned INTEGER DEFAULT 0
             )
           ''');
-          await db.execute('CREATE INDEX idx_diaries_is_pinned ON diaries(is_pinned)');
+          await db.execute(
+            'CREATE INDEX idx_diaries_is_pinned ON diaries(is_pinned)',
+          );
         },
       );
 
@@ -808,8 +837,12 @@ void main() {
               analysis_result TEXT
             )
           ''');
-          await db.execute('CREATE INDEX idx_diaries_created_at ON diaries(created_at)');
-          await db.execute('CREATE INDEX idx_diaries_status ON diaries(status)');
+          await db.execute(
+            'CREATE INDEX idx_diaries_created_at ON diaries(created_at)',
+          );
+          await db.execute(
+            'CREATE INDEX idx_diaries_status ON diaries(status)',
+          );
         },
       );
 
@@ -838,6 +871,175 @@ void main() {
         expect(tables.length, 1);
       } finally {
         await upgradeDb.close();
+      }
+    });
+
+    test('버전 5에서 6으로 업그레이드 시 image_paths 컬럼을 추가해야 한다', () async {
+      // 버전 5 스키마로 DB 생성
+      final upgradeDb = await openDatabase(
+        inMemoryDatabasePath,
+        version: 1,
+        singleInstance: false,
+        onCreate: (db, version) async {
+          await db.execute('''
+            CREATE TABLE diaries (
+              id TEXT PRIMARY KEY,
+              content TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              status TEXT NOT NULL,
+              analysis_result TEXT,
+              is_pinned INTEGER DEFAULT 0
+            )
+          ''');
+          await db.execute('''
+            CREATE TABLE app_metadata (
+              key TEXT PRIMARY KEY,
+              value TEXT NOT NULL
+            )
+          ''');
+        },
+      );
+
+      try {
+        // 마이그레이션 실행 (5 -> 6)
+        await SqliteLocalDataSource.onUpgrade(upgradeDb, 5, 6);
+
+        // image_paths 컬럼 확인
+        final columns = await upgradeDb.rawQuery('PRAGMA table_info(diaries)');
+        final columnNames = columns.map((c) => c['name'] as String).toList();
+        expect(columnNames, contains('image_paths'));
+      } finally {
+        await upgradeDb.close();
+      }
+    });
+
+    test('버전 1에서 6으로 전체 마이그레이션이 정상 동작해야 한다', () async {
+      // 버전 1 스키마로 DB 생성 (최소 스키마)
+      final upgradeDb = await openDatabase(
+        inMemoryDatabasePath,
+        version: 1,
+        singleInstance: false,
+        onCreate: (db, version) async {
+          await db.execute('''
+            CREATE TABLE diaries (
+              id TEXT PRIMARY KEY,
+              content TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              status TEXT NOT NULL,
+              analysis_result TEXT
+            )
+          ''');
+          await db.execute(
+            'CREATE INDEX idx_diaries_created_at ON diaries(created_at)',
+          );
+          await db.execute(
+            'CREATE INDEX idx_diaries_status ON diaries(status)',
+          );
+        },
+      );
+
+      try {
+        // 전체 마이그레이션 실행 (1 -> 6)
+        await SqliteLocalDataSource.onUpgrade(upgradeDb, 1, 6);
+
+        // 최종 스키마 검증
+        final columns = await upgradeDb.rawQuery('PRAGMA table_info(diaries)');
+        final columnNames = columns.map((c) => c['name'] as String).toList();
+
+        // 모든 컬럼이 존재해야 함
+        expect(columnNames, contains('id'));
+        expect(columnNames, contains('content'));
+        expect(columnNames, contains('created_at'));
+        expect(columnNames, contains('status'));
+        expect(columnNames, contains('analysis_result'));
+        expect(columnNames, contains('is_pinned'));
+        expect(columnNames, contains('image_paths'));
+
+        // app_metadata 테이블 확인
+        final tables = await upgradeDb.rawQuery(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='app_metadata'",
+        );
+        expect(tables.length, 1);
+      } finally {
+        await upgradeDb.close();
+      }
+    });
+  });
+
+  group('onCreate/onUpgrade 동기화 검증', () {
+    test('onCreate로 생성한 스키마와 onUpgrade로 마이그레이션한 스키마가 동일해야 한다', () async {
+      // 새 DB (onCreate)
+      final freshDb = await openDatabase(
+        inMemoryDatabasePath,
+        version: 1,
+        singleInstance: false,
+      );
+
+      // 기존 DB (onUpgrade)
+      final migratedDb = await openDatabase(
+        inMemoryDatabasePath,
+        version: 1,
+        singleInstance: false,
+        onCreate: (db, version) async {
+          // 버전 1 최소 스키마
+          await db.execute('''
+            CREATE TABLE diaries (
+              id TEXT PRIMARY KEY,
+              content TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              status TEXT NOT NULL,
+              analysis_result TEXT
+            )
+          ''');
+          await db.execute(
+            'CREATE INDEX idx_diaries_created_at ON diaries(created_at)',
+          );
+          await db.execute(
+            'CREATE INDEX idx_diaries_status ON diaries(status)',
+          );
+        },
+      );
+
+      try {
+        // 각각 최신 버전으로 생성/마이그레이션
+        await SqliteLocalDataSource.onCreate(freshDb, 6);
+        await SqliteLocalDataSource.onUpgrade(migratedDb, 1, 6);
+
+        // diaries 테이블 컬럼 비교
+        final freshColumns = await freshDb.rawQuery(
+          'PRAGMA table_info(diaries)',
+        );
+        final migratedColumns = await migratedDb.rawQuery(
+          'PRAGMA table_info(diaries)',
+        );
+
+        final freshColNames = freshColumns
+            .map((c) => c['name'] as String)
+            .toSet();
+        final migratedColNames = migratedColumns
+            .map((c) => c['name'] as String)
+            .toSet();
+
+        // 모든 컬럼이 동일해야 함
+        expect(
+          freshColNames,
+          equals(migratedColNames),
+          reason: 'onCreate와 onUpgrade의 컬럼이 일치해야 함',
+        );
+
+        // app_metadata 테이블 존재 확인
+        final freshTables = await freshDb.rawQuery(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='app_metadata'",
+        );
+        final migratedTables = await migratedDb.rawQuery(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='app_metadata'",
+        );
+
+        expect(freshTables.length, 1);
+        expect(migratedTables.length, 1);
+      } finally {
+        await freshDb.close();
+        await migratedDb.close();
       }
     });
   });

@@ -25,17 +25,11 @@ void main() {
   group('AnalyzeDiaryUseCase', () {
     group('입력 유효성 검사', () {
       test('빈 내용은 ValidationFailure를 던져야 한다', () async {
-        expect(
-          () => useCase.execute(''),
-          throwsA(isA<ValidationFailure>()),
-        );
+        expect(() => useCase.execute(''), throwsA(isA<ValidationFailure>()));
       });
 
       test('공백만 있는 내용은 ValidationFailure를 던져야 한다', () async {
-        expect(
-          () => useCase.execute('   '),
-          throwsA(isA<ValidationFailure>()),
-        );
+        expect(() => useCase.execute('   '), throwsA(isA<ValidationFailure>()));
       });
 
       test('10자 미만은 ValidationFailure를 던져야 한다', () async {
@@ -93,7 +87,34 @@ void main() {
       test('응급 키워드 감지 시 DB 업데이트가 호출되어야 한다', () async {
         await useCase.execute('살기싫다. 모든게 무의미하다.');
         expect(mockRepository.updatedDiaries, isNotEmpty);
-        expect(mockRepository.updatedDiaries.last.status, DiaryStatus.safetyBlocked);
+        expect(
+          mockRepository.updatedDiaries.last.status,
+          DiaryStatus.safetyBlocked,
+        );
+      });
+
+      test('암시적 위기 표현도 감지해야 한다', () async {
+        final result = await useCase.execute('영원히 잠들면 좋겠다. 이 고통에서 벗어나고 싶다.');
+        expect(result.status, DiaryStatus.safetyBlocked);
+        expect(result.analysisResult?.isEmergency, true);
+      });
+
+      test('극단적 선택 표현을 감지해야 한다', () async {
+        final result = await useCase.execute('극단적 선택을 생각하게 된다. 모든게 힘들다.');
+        expect(result.status, DiaryStatus.safetyBlocked);
+        expect(result.analysisResult?.isEmergency, true);
+      });
+
+      test('버티기 힘들다는 위기 표현을 감지해야 한다', () async {
+        final result = await useCase.execute('더이상 못 버티겠다. 한계에 도달한 것 같다.');
+        expect(result.status, DiaryStatus.safetyBlocked);
+        expect(result.analysisResult?.isEmergency, true);
+      });
+
+      test('해방 표현을 감지해야 한다', () async {
+        final result = await useCase.execute('이 고통 끝내고 해방되고싶다.');
+        expect(result.status, DiaryStatus.safetyBlocked);
+        expect(result.analysisResult?.isEmergency, true);
       });
     });
 

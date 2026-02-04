@@ -34,9 +34,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       NotificationActionHandler.markMainReady();
       // What's New 다이얼로그 먼저 표시, 그 다음 알림 권한 요청
-      unawaited(_maybeShowWhatsNewDialog().then((_) {
-        unawaited(_maybeRequestNotificationPermission());
-      }));
+      unawaited(
+        _maybeShowWhatsNewDialog().then((_) {
+          unawaited(_maybeRequestNotificationPermission());
+        }),
+      );
       // 주기적 업데이트 체크 타이머 시작
       _initializeUpdateCheckTimer();
     });
@@ -56,7 +58,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
     try {
       final appInfo = await ref.read(appInfoProvider.future);
-      await ref.read(appUpgradeCheckProvider.notifier).checkForUpgrade(appInfo.version);
+      await ref
+          .read(appUpgradeCheckProvider.notifier)
+          .checkForUpgrade(appInfo.version);
 
       final upgradeState = ref.read(appUpgradeCheckProvider);
       final data = upgradeState.valueOrNull;
@@ -104,9 +108,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('알림 권한 허용'),
-          content: const Text(
-            '일기 작성 리마인더와 마음 케어 알림을 받으려면 알림 권한이 필요해요.',
-          ),
+          content: const Text('일기 작성 리마인더와 마음 케어 알림을 받으려면 알림 권한이 필요해요.'),
           actions: [
             TextButton(
               onPressed: () => context.pop(false),
@@ -132,9 +134,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         await NotificationPermissionService.requestAndroidPermission();
     if (!mounted || granted == true) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('알림 권한이 거부되었습니다.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('알림 권한이 거부되었습니다.')));
   }
 
   @override
@@ -219,16 +221,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     required bool isCompact,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final unselectedColor =
-        colorScheme.onSurface.withValues(alpha: 0.65);
+    final unselectedColor = colorScheme.onSurface.withValues(alpha: 0.65);
 
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            colorScheme.surface,
-            AppColors.statsBackground,
-          ],
+          colors: [colorScheme.surface, AppColors.statsBackground],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),

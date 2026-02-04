@@ -7,10 +7,7 @@ import '../../../core/theme/app_text_styles.dart';
 class CharacterBanner extends StatelessWidget {
   final AiCharacter character;
 
-  const CharacterBanner({
-    super.key,
-    required this.character,
-  });
+  const CharacterBanner({super.key, required this.character});
 
   @override
   Widget build(BuildContext context) {

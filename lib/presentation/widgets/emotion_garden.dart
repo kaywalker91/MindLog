@@ -32,12 +32,12 @@ class EmotionGarden extends StatelessWidget {
     // RepaintBoundary: 168개 셀(24주×7일) 그리드의 불필요한 repaint 방지
     return RepaintBoundary(
       child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildGarden(context, startDate, now, normalizedActivityMap),
-        const SizedBox(height: 12),
-        _buildLegend(context),
-      ],
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildGarden(context, startDate, now, normalizedActivityMap),
+          const SizedBox(height: 12),
+          _buildLegend(context),
+        ],
       ),
     );
   }
@@ -213,10 +213,7 @@ class EmotionGarden extends StatelessWidget {
         color: AppColors.statsTextPrimary,
         borderRadius: BorderRadius.circular(8),
       ),
-      textStyle: const TextStyle(
-        color: Colors.white,
-        fontSize: 12,
-      ),
+      textStyle: const TextStyle(color: Colors.white, fontSize: 12),
       child: Container(
         width: _cellSize,
         height: _cellSize,
@@ -241,10 +238,7 @@ class EmotionGarden extends StatelessWidget {
               : null,
         ),
         child: Center(
-          child: Text(
-            emoji,
-            style: const TextStyle(fontSize: _emojiSize),
-          ),
+          child: Text(emoji, style: const TextStyle(fontSize: _emojiSize)),
         ),
       ),
     );
@@ -277,10 +271,7 @@ class EmotionGarden extends StatelessWidget {
       children: [
         const Text(
           '마음의 정원',
-          style: TextStyle(
-            color: AppColors.statsTextTertiary,
-            fontSize: 10,
-          ),
+          style: TextStyle(color: AppColors.statsTextTertiary, fontSize: 10),
         ),
         const SizedBox(width: 8),
         _buildLegendItem('🌱'),
@@ -297,10 +288,7 @@ class EmotionGarden extends StatelessWidget {
   }
 
   Widget _buildLegendItem(String emoji) {
-    return Text(
-      emoji,
-      style: const TextStyle(fontSize: 11),
-    );
+    return Text(emoji, style: const TextStyle(fontSize: 11));
   }
 
   Widget _buildLegendArrow() {
@@ -308,10 +296,7 @@ class EmotionGarden extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 2),
       child: Text(
         '→',
-        style: TextStyle(
-          fontSize: 8,
-          color: AppColors.statsTextTertiary,
-        ),
+        style: TextStyle(fontSize: 8, color: AppColors.statsTextTertiary),
       ),
     );
   }
@@ -348,10 +333,9 @@ class EmotionGarden extends StatelessWidget {
         currentMonth = month;
         weekSpan = 1;
       } else if (month != currentMonth) {
-        labels.add(_MonthLabel(
-          month: _getMonthName(currentMonth),
-          weekSpan: weekSpan,
-        ));
+        labels.add(
+          _MonthLabel(month: _getMonthName(currentMonth), weekSpan: weekSpan),
+        );
         currentMonth = month;
         weekSpan = 1;
       } else {
@@ -360,10 +344,9 @@ class EmotionGarden extends StatelessWidget {
     }
 
     if (currentMonth != null) {
-      labels.add(_MonthLabel(
-        month: _getMonthName(currentMonth),
-        weekSpan: weekSpan,
-      ));
+      labels.add(
+        _MonthLabel(month: _getMonthName(currentMonth), weekSpan: weekSpan),
+      );
     }
 
     return labels.reversed.toList();
@@ -383,7 +366,7 @@ class EmotionGarden extends StatelessWidget {
       '9월',
       '10월',
       '11월',
-      '12월'
+      '12월',
     ];
     return months[month];
   }

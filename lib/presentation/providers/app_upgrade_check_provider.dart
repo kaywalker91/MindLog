@@ -56,12 +56,13 @@ class AppUpgradeState {
 /// - 신규 설치: 다이얼로그 표시 안 함 (previousVersion == null)
 /// - 동일 버전: 다이얼로그 표시 안 함
 /// - 업그레이드: changelog 가져와서 다이얼로그 표시, 버전 저장
-class AppUpgradeCheckNotifier extends StateNotifier<AsyncValue<AppUpgradeState>> {
+class AppUpgradeCheckNotifier
+    extends StateNotifier<AsyncValue<AppUpgradeState>> {
   final SettingsRepository _settingsRepository;
   final UpdateService _updateService;
 
   AppUpgradeCheckNotifier(this._settingsRepository, this._updateService)
-      : super(const AsyncValue.loading());
+    : super(const AsyncValue.loading());
 
   /// 앱 업그레이드 여부 확인
   ///
@@ -75,23 +76,29 @@ class AppUpgradeCheckNotifier extends StateNotifier<AsyncValue<AppUpgradeState>>
       // 신규 설치: previousVersion이 null
       if (previousVersion == null) {
         await _settingsRepository.setLastSeenAppVersion(currentVersion);
-        state = AsyncValue.data(AppUpgradeState(
-          isUpgradeDetected: false,
-          currentVersion: currentVersion,
-        ));
+        state = AsyncValue.data(
+          AppUpgradeState(
+            isUpgradeDetected: false,
+            currentVersion: currentVersion,
+          ),
+        );
         if (kDebugMode) {
-          debugPrint('[AppUpgradeCheck] Fresh install detected, version saved: $currentVersion');
+          debugPrint(
+            '[AppUpgradeCheck] Fresh install detected, version saved: $currentVersion',
+          );
         }
         return;
       }
 
       // 동일 버전: 업그레이드 아님
       if (previousVersion == currentVersion) {
-        state = AsyncValue.data(AppUpgradeState(
-          isUpgradeDetected: false,
-          previousVersion: previousVersion,
-          currentVersion: currentVersion,
-        ));
+        state = AsyncValue.data(
+          AppUpgradeState(
+            isUpgradeDetected: false,
+            previousVersion: previousVersion,
+            currentVersion: currentVersion,
+          ),
+        );
         if (kDebugMode) {
           debugPrint('[AppUpgradeCheck] Same version: $currentVersion');
         }
@@ -100,7 +107,9 @@ class AppUpgradeCheckNotifier extends StateNotifier<AsyncValue<AppUpgradeState>>
 
       // 업그레이드 감지: changelog 가져오기
       if (kDebugMode) {
-        debugPrint('[AppUpgradeCheck] Upgrade detected: $previousVersion -> $currentVersion');
+        debugPrint(
+          '[AppUpgradeCheck] Upgrade detected: $previousVersion -> $currentVersion',
+        );
       }
 
       List<String> notes = [];
@@ -108,7 +117,9 @@ class AppUpgradeCheckNotifier extends StateNotifier<AsyncValue<AppUpgradeState>>
         final config = await _updateService.fetchConfig();
         notes = config.changelog[currentVersion] ?? [];
         if (kDebugMode) {
-          debugPrint('[AppUpgradeCheck] Changelog loaded: ${notes.length} items');
+          debugPrint(
+            '[AppUpgradeCheck] Changelog loaded: ${notes.length} items',
+          );
         }
       } catch (e) {
         // changelog 가져오기 실패해도 다이얼로그는 표시
@@ -117,12 +128,14 @@ class AppUpgradeCheckNotifier extends StateNotifier<AsyncValue<AppUpgradeState>>
         }
       }
 
-      state = AsyncValue.data(AppUpgradeState(
-        isUpgradeDetected: true,
-        previousVersion: previousVersion,
-        currentVersion: currentVersion,
-        changelogNotes: notes,
-      ));
+      state = AsyncValue.data(
+        AppUpgradeState(
+          isUpgradeDetected: true,
+          previousVersion: previousVersion,
+          currentVersion: currentVersion,
+          changelogNotes: notes,
+        ),
+      );
     } catch (e, st) {
       // 에러 발생 시 버전 저장하고 다이얼로그 스킵
       if (kDebugMode) {
@@ -144,15 +157,19 @@ class AppUpgradeCheckNotifier extends StateNotifier<AsyncValue<AppUpgradeState>>
     state = AsyncValue.data(current.copyWith(hasShownWhatsNew: true));
 
     if (kDebugMode) {
-      debugPrint('[AppUpgradeCheck] What\'s New shown, version saved: ${current.currentVersion}');
+      debugPrint(
+        '[AppUpgradeCheck] What\'s New shown, version saved: ${current.currentVersion}',
+      );
     }
   }
 }
 
 /// 앱 업그레이드 확인 Provider
 final appUpgradeCheckProvider =
-    StateNotifierProvider<AppUpgradeCheckNotifier, AsyncValue<AppUpgradeState>>((ref) {
-  final settingsRepository = ref.watch(settingsRepositoryProvider);
-  final service = ref.watch(updateServiceProvider);
-  return AppUpgradeCheckNotifier(settingsRepository, service);
-});
+    StateNotifierProvider<AppUpgradeCheckNotifier, AsyncValue<AppUpgradeState>>(
+      (ref) {
+        final settingsRepository = ref.watch(settingsRepositoryProvider);
+        final service = ref.watch(updateServiceProvider);
+        return AppUpgradeCheckNotifier(settingsRepository, service);
+      },
+    );

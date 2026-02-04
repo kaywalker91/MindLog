@@ -9,14 +9,16 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 // Mock Android Platform Implementation
-class MockAndroidNotificationPlatform extends AndroidFlutterLocalNotificationsPlugin {
+class MockAndroidNotificationPlatform
+    extends AndroidFlutterLocalNotificationsPlugin {
   final List<MethodCall> calls = [];
 
   @override
   Future<bool> initialize(
     AndroidInitializationSettings initializationSettings, {
     void Function(NotificationResponse)? onDidReceiveNotificationResponse,
-    void Function(NotificationResponse)? onDidReceiveBackgroundNotificationResponse,
+    void Function(NotificationResponse)?
+    onDidReceiveBackgroundNotificationResponse,
   }) async {
     calls.add(const MethodCall('initialize', null));
     return true;
@@ -30,12 +32,14 @@ class MockAndroidNotificationPlatform extends AndroidFlutterLocalNotificationsPl
     AndroidNotificationDetails? notificationDetails,
     String? payload,
   }) async {
-    calls.add(MethodCall('show', {
-      'id': id,
-      'title': title,
-      'body': body,
-      'payload': payload,
-    }));
+    calls.add(
+      MethodCall('show', {
+        'id': id,
+        'title': title,
+        'body': body,
+        'payload': payload,
+      }),
+    );
   }
 
   @override
@@ -49,13 +53,15 @@ class MockAndroidNotificationPlatform extends AndroidFlutterLocalNotificationsPl
     String? payload,
     DateTimeComponents? matchDateTimeComponents,
   }) async {
-    calls.add(MethodCall('zonedSchedule', {
-      'id': id,
-      'title': title,
-      'body': body,
-      'payload': payload,
-      'scheduledDate': scheduledDate,
-    }));
+    calls.add(
+      MethodCall('zonedSchedule', {
+        'id': id,
+        'title': title,
+        'body': body,
+        'payload': payload,
+        'scheduledDate': scheduledDate,
+      }),
+    );
   }
 
   @override
@@ -71,7 +77,8 @@ class MockAndroidNotificationPlatform extends AndroidFlutterLocalNotificationsPl
   }
 
   @override
-  Future<NotificationAppLaunchDetails?> getNotificationAppLaunchDetails() async {
+  Future<NotificationAppLaunchDetails?>
+  getNotificationAppLaunchDetails() async {
     calls.add(const MethodCall('getNotificationAppLaunchDetails', null));
     return const NotificationAppLaunchDetails(false);
   }
@@ -104,23 +111,22 @@ void main() {
     // flutter_timezone 모킹
     const MethodChannel timezoneChannel = MethodChannel('flutter_timezone');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      timezoneChannel,
-      (MethodCall methodCall) async {
-        if (methodCall.method == 'getLocalTimezone') {
-          return 'Asia/Seoul';
-        }
-        return null;
-      },
-    );
+        .setMockMethodCallHandler(timezoneChannel, (
+          MethodCall methodCall,
+        ) async {
+          if (methodCall.method == 'getLocalTimezone') {
+            return 'Asia/Seoul';
+          }
+          return null;
+        });
   });
 
   tearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('flutter_timezone'),
-      null,
-    );
+          const MethodChannel('flutter_timezone'),
+          null,
+        );
     debugDefaultTargetPlatformOverride = null;
   });
 
@@ -150,8 +156,11 @@ void main() {
       // Then
       try {
         final call = mockPlatform.calls.firstWhere(
-            (call) => call.method == 'zonedSchedule',
-            orElse: () => throw Exception('zonedSchedule not called. Calls: ${mockPlatform.calls}'));
+          (call) => call.method == 'zonedSchedule',
+          orElse: () => throw Exception(
+            'zonedSchedule not called. Calls: ${mockPlatform.calls}',
+          ),
+        );
         final args = call.arguments as Map;
 
         expect(args['id'], 1001);
@@ -174,18 +183,35 @@ void main() {
       // Then
       final call = mockPlatform.calls.firstWhere(
         (call) => call.method == 'cancel',
-        orElse: () => throw Exception('cancel not called. Calls: ${mockPlatform.calls}'),
+        orElse: () =>
+            throw Exception('cancel not called. Calls: ${mockPlatform.calls}'),
       );
       expect(call.arguments, 1001);
     });
-    
-    test('showTestNotification 호출 시 show가 호출된다', () async {
+
+    test('showTestNotification 호출 시 마음케어 형태로 show가 호출된다', () async {
       await NotificationService.showTestNotification();
 
-      final call = mockPlatform.calls.firstWhere((call) => call.method == 'show',
-      orElse: () => throw Exception('show not called. Calls: ${mockPlatform.calls}'));
+      final call = mockPlatform.calls.firstWhere(
+        (call) => call.method == 'show',
+        orElse: () =>
+            throw Exception('show not called. Calls: ${mockPlatform.calls}'),
+      );
       final args = call.arguments as Map;
-      expect(args['title'], '테스트 알림');
+      final title = args['title'] as String;
+
+      // [테스트] 접두사 확인
+      expect(title, startsWith('[테스트] '));
+
+      // 원본 제목이 마음케어 제목 목록에 있는지 확인
+      final originalTitle = title.replaceFirst('[테스트] ', '');
+      expect(NotificationMessages.mindcareTitles, contains(originalTitle));
+
+      // 본문이 마음케어 본문 목록에 있는지 확인
+      expect(NotificationMessages.mindcareBodies, contains(args['body']));
+
+      // 페이로드 타입 확인
+      expect(args['payload'], '{"type":"test_mindcare"}');
     });
 
     test('showNotification 호출 시 지정된 title과 body로 show가 호출된다', () async {
@@ -212,17 +238,22 @@ void main() {
       expect(args['payload'], payload);
     });
 
-    test('getPendingNotifications 호출 시 pendingNotificationRequests가 호출된다', () async {
-      // When
-      final pending = await NotificationService.getPendingNotifications();
+    test(
+      'getPendingNotifications 호출 시 pendingNotificationRequests가 호출된다',
+      () async {
+        // When
+        final pending = await NotificationService.getPendingNotifications();
 
-      // Then
-      expect(
-        mockPlatform.calls.any((call) => call.method == 'pendingNotificationRequests'),
-        isTrue,
-      );
-      expect(pending, isEmpty);
-    });
+        // Then
+        expect(
+          mockPlatform.calls.any(
+            (call) => call.method == 'pendingNotificationRequests',
+          ),
+          isTrue,
+        );
+        expect(pending, isEmpty);
+      },
+    );
 
     test('scheduleDailyReminder 호출 시 오늘 시간이 지났으면 다음 날로 스케줄된다', () async {
       // Given - 현재 시간보다 이전 시간 설정
@@ -244,18 +275,20 @@ void main() {
       final scheduledDate = args['scheduledDate'] as tz.TZDateTime;
 
       // 스케줄된 날짜가 오늘이거나 내일이어야 함
-      expect(scheduledDate.isAfter(now) || scheduledDate.isAtSameMomentAs(now), isTrue);
+      expect(
+        scheduledDate.isAfter(now) || scheduledDate.isAtSameMomentAs(now),
+        isTrue,
+      );
     });
 
     test('cancelDailyReminder 호출 전 항상 cancel이 호출된다', () async {
       // When
-      await NotificationService.scheduleDailyReminder(
-        hour: 21,
-        minute: 0,
-      );
+      await NotificationService.scheduleDailyReminder(hour: 21, minute: 0);
 
       // Then - scheduleDailyReminder 내부에서 cancelDailyReminder가 먼저 호출됨
-      final cancelCalls = mockPlatform.calls.where((call) => call.method == 'cancel').toList();
+      final cancelCalls = mockPlatform.calls
+          .where((call) => call.method == 'cancel')
+          .toList();
       expect(cancelCalls.isNotEmpty, isTrue);
       expect(cancelCalls.first.arguments, 1001); // _dailyReminderId
     });

@@ -27,10 +27,11 @@ final sqliteLocalDataSourceProvider = Provider<SqliteLocalDataSource>((ref) {
 });
 
 /// Preferences 로컬 데이터 소스 Provider
-final preferencesLocalDataSourceProvider =
-    Provider<PreferencesLocalDataSource>((ref) {
-  return PreferencesLocalDataSource();
-});
+final preferencesLocalDataSourceProvider = Provider<PreferencesLocalDataSource>(
+  (ref) {
+    return PreferencesLocalDataSource();
+  },
+);
 
 /// 서킷 브레이커 Provider
 final circuitBreakerProvider = Provider<CircuitBreaker>((ref) {
@@ -80,8 +81,8 @@ final statisticsRepositoryProvider = Provider<StatisticsRepository>((ref) {
 /// - AnalyzeDiaryUseCase 내부에서도 사용
 final validateDiaryContentUseCaseProvider =
     Provider<ValidateDiaryContentUseCase>((ref) {
-  return ValidateDiaryContentUseCase();
-});
+      return ValidateDiaryContentUseCase();
+    });
 
 /// AnalyzeDiaryUseCase Provider
 final analyzeDiaryUseCaseProvider = Provider<AnalyzeDiaryUseCase>((ref) {
@@ -95,26 +96,34 @@ final analyzeDiaryUseCaseProvider = Provider<AnalyzeDiaryUseCase>((ref) {
 /// GetSelectedAiCharacterUseCase Provider
 final getSelectedAiCharacterUseCaseProvider =
     Provider<GetSelectedAiCharacterUseCase>((ref) {
-  return GetSelectedAiCharacterUseCase(ref.watch(settingsRepositoryProvider));
-});
+      return GetSelectedAiCharacterUseCase(
+        ref.watch(settingsRepositoryProvider),
+      );
+    });
 
 /// SetSelectedAiCharacterUseCase Provider
 final setSelectedAiCharacterUseCaseProvider =
     Provider<SetSelectedAiCharacterUseCase>((ref) {
-  return SetSelectedAiCharacterUseCase(ref.watch(settingsRepositoryProvider));
-});
+      return SetSelectedAiCharacterUseCase(
+        ref.watch(settingsRepositoryProvider),
+      );
+    });
 
 /// GetNotificationSettingsUseCase Provider
 final getNotificationSettingsUseCaseProvider =
     Provider<GetNotificationSettingsUseCase>((ref) {
-  return GetNotificationSettingsUseCase(ref.watch(settingsRepositoryProvider));
-});
+      return GetNotificationSettingsUseCase(
+        ref.watch(settingsRepositoryProvider),
+      );
+    });
 
 /// SetNotificationSettingsUseCase Provider
 final setNotificationSettingsUseCaseProvider =
     Provider<SetNotificationSettingsUseCase>((ref) {
-  return SetNotificationSettingsUseCase(ref.watch(settingsRepositoryProvider));
-});
+      return SetNotificationSettingsUseCase(
+        ref.watch(settingsRepositoryProvider),
+      );
+    });
 
 /// GetStatisticsUseCase Provider
 final getStatisticsUseCaseProvider = Provider<GetStatisticsUseCase>((ref) {

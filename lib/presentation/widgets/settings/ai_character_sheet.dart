@@ -10,10 +10,7 @@ import '../../providers/providers.dart';
 class AiCharacterSheet extends ConsumerWidget {
   final AiCharacter selected;
 
-  const AiCharacterSheet({
-    super.key,
-    required this.selected,
-  });
+  const AiCharacterSheet({super.key, required this.selected});
 
   /// 바텀 시트 표시 유틸리티 메서드
   static Future<void> show(
@@ -65,10 +62,12 @@ class AiCharacterSheet extends ConsumerWidget {
               onChanged: (value) async {
                 if (value == null) return;
                 if (value != selected) {
-                  unawaited(AnalyticsService.logAiCharacterChanged(
-                    fromCharacterId: selected.id,
-                    toCharacterId: value.id,
-                  ));
+                  unawaited(
+                    AnalyticsService.logAiCharacterChanged(
+                      fromCharacterId: selected.id,
+                      toCharacterId: value.id,
+                    ),
+                  );
                 }
                 await ref
                     .read(aiCharacterProvider.notifier)
@@ -79,26 +78,28 @@ class AiCharacterSheet extends ConsumerWidget {
               },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: AiCharacter.values.map(
-                  (character) => RadioListTile<AiCharacter>(
-                    value: character,
-                    secondary: _buildCharacterThumbnail(context, character),
-                    controlAffinity: ListTileControlAffinity.trailing,
-                    title: Text(
-                      character.displayName,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurface,
+                children: AiCharacter.values
+                    .map(
+                      (character) => RadioListTile<AiCharacter>(
+                        value: character,
+                        secondary: _buildCharacterThumbnail(context, character),
+                        controlAffinity: ListTileControlAffinity.trailing,
+                        title: Text(
+                          character.displayName,
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        subtitle: Text(
+                          character.description,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        activeColor: theme.colorScheme.primary,
                       ),
-                    ),
-                    subtitle: Text(
-                      character.description,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    activeColor: theme.colorScheme.primary,
-                  ),
-                ).toList(),
+                    )
+                    .toList(),
               ),
             ),
           ],

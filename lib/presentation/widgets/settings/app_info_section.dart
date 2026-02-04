@@ -40,9 +40,9 @@ class AppInfoSection extends ConsumerWidget {
               onTap: appInfo == null
                   ? null
                   : () => context.pushChangelog(
-                        version: appInfo.version,
-                        buildNumber: appInfo.buildNumber,
-                      ),
+                      version: appInfo.version,
+                      buildNumber: appInfo.buildNumber,
+                    ),
             ),
             const SettingsDivider(),
             SettingsItem(
@@ -206,9 +206,8 @@ class AppInfoSection extends ConsumerWidget {
     if (result.availability == UpdateAvailability.upToDate) {
       return showDialog(
         context: context,
-        builder: (context) => UpdateUpToDateDialog(
-          currentVersion: result.currentVersion,
-        ),
+        builder: (context) =>
+            UpdateUpToDateDialog(currentVersion: result.currentVersion),
       );
     }
 
@@ -222,8 +221,9 @@ class AppInfoSection extends ConsumerWidget {
       message = 'v${result.latestVersion} 업데이트를 확인해주세요.';
     }
 
-    final primaryLabel =
-        canUpdate ? (result.isRequired ? '업데이트' : '스토어로 이동') : '확인';
+    final primaryLabel = canUpdate
+        ? (result.isRequired ? '업데이트' : '스토어로 이동')
+        : '확인';
     final secondaryLabel = canUpdate && !result.isRequired ? '나중에' : null;
 
     return showDialog(
@@ -238,8 +238,9 @@ class AppInfoSection extends ConsumerWidget {
         notes: result.notes,
         primaryLabel: primaryLabel,
         secondaryLabel: secondaryLabel,
-        onSecondary:
-            secondaryLabel == null ? null : () => Navigator.of(dialogContext).pop(),
+        onSecondary: secondaryLabel == null
+            ? null
+            : () => Navigator.of(dialogContext).pop(),
         onPrimary: () async {
           Navigator.of(dialogContext).pop();
           if (canUpdate) {

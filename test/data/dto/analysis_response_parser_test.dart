@@ -120,8 +120,10 @@ void main() {
     });
 
     group('_validateJsonStructure - action_items → action_item 변환', () {
-      test('action_items 배열이 있고 action_item이 없으면 첫 번째 항목을 action_item으로 설정해야 한다', () {
-        const jsonStr = '''
+      test(
+        'action_items 배열이 있고 action_item이 없으면 첫 번째 항목을 action_item으로 설정해야 한다',
+        () {
+          const jsonStr = '''
         {
           "keywords": ["테스트"],
           "sentiment_score": 5,
@@ -130,11 +132,12 @@ void main() {
         }
         ''';
 
-        final result = AnalysisResponseParser.parseString(jsonStr);
+          final result = AnalysisResponseParser.parseString(jsonStr);
 
-        expect(result['action_item'], '첫번째 액션');
-        expect(result['action_items'], hasLength(3));
-      });
+          expect(result['action_item'], '첫번째 액션');
+          expect(result['action_items'], hasLength(3));
+        },
+      );
 
       test('action_items가 JSON 배열 문자열이면 파싱하여 action_item을 설정해야 한다', () {
         const jsonStr = '''
@@ -317,11 +320,10 @@ void main() {
         final result = AnalysisResponseParser.parseString(text);
 
         // _extractLikelyKeywords가 호출되어 감정 단어가 추출됨
-        expect(result['keywords'], anyOf(
-          contains('불안'),
-          contains('스트레스'),
-          isNotEmpty,
-        ));
+        expect(
+          result['keywords'],
+          anyOf(contains('불안'), contains('스트레스'), isNotEmpty),
+        );
       });
     });
 
@@ -407,6 +409,169 @@ void main() {
 
         expect(result['keywords'], contains('정화'));
         expect(result['sentiment_score'], 6);
+      });
+    });
+
+    group('emotion_category - 감정 분류 파싱', () {
+      test('1차/2차 감정 분류를 정확히 파싱해야 한다', () {
+        const jsonStr = '''
+        {
+          "keywords": ["불안", "걱정", "긴장"],
+          "sentiment_score": 4,
+          "empathy_message": "많이 불안하시군요.",
+          "action_items": ["심호흡 하기", "명상하기", "산책하기"],
+          "emotion_category": {
+            "primary": "공포",
+            "secondary": "불안"
+          },
+          "emotion_trigger": {
+            "category": "일/업무",
+            "description": "발표에 대한 부담감"
+          },
+          "energy_level": 4,
+          "is_emergency": false
+        }
+        ''';
+
+        final result = AnalysisResponseParser.parseString(jsonStr);
+
+        expect(result['emotion_category'], isNotNull);
+        final emotionCategory =
+            result['emotion_category'] as Map<String, dynamic>;
+        expect(emotionCategory['primary'], '공포');
+        expect(emotionCategory['secondary'], '불안');
+      });
+
+      test('emotion_trigger를 정확히 파싱해야 한다', () {
+        const jsonStr = '''
+        {
+          "keywords": ["스트레스", "피로", "번아웃"],
+          "sentiment_score": 3,
+          "empathy_message": "많이 지치셨군요.",
+          "action_items": ["휴식 취하기"],
+          "emotion_category": {
+            "primary": "슬픔",
+            "secondary": "지침"
+          },
+          "emotion_trigger": {
+            "category": "일/업무",
+            "description": "과도한 야근으로 인한 신체적/정신적 피로"
+          },
+          "energy_level": 2,
+          "is_emergency": false
+        }
+        ''';
+
+        final result = AnalysisResponseParser.parseString(jsonStr);
+
+        expect(result['emotion_trigger'], isNotNull);
+        final emotionTrigger =
+            result['emotion_trigger'] as Map<String, dynamic>;
+        expect(emotionTrigger['category'], '일/업무');
+        expect(emotionTrigger['description'], contains('야근'));
+      });
+
+      test('energy_level을 정확히 파싱해야 한다', () {
+        const jsonStr = '''
+        {
+          "keywords": ["성취감", "뿌듯함"],
+          "sentiment_score": 9,
+          "empathy_message": "축하드려요!",
+          "action_items": ["자축하기"],
+          "emotion_category": {
+            "primary": "기쁨",
+            "secondary": "성취감"
+          },
+          "energy_level": 8,
+          "is_emergency": false
+        }
+        ''';
+
+        final result = AnalysisResponseParser.parseString(jsonStr);
+
+        expect(result['energy_level'], 8);
+      });
+
+      test('모든 1차 감정 카테고리를 지원해야 한다', () {
+        final primaryEmotions = ['기쁨', '슬픔', '분노', '공포', '놀람', '혐오', '평온'];
+
+        for (final emotion in primaryEmotions) {
+          final jsonStr =
+              '''
+          {
+            "keywords": ["테스트"],
+            "sentiment_score": 5,
+            "empathy_message": "테스트",
+            "action_items": ["테스트"],
+            "emotion_category": {
+              "primary": "$emotion",
+              "secondary": "테스트감정"
+            },
+            "is_emergency": false
+          }
+          ''';
+
+          final result = AnalysisResponseParser.parseString(jsonStr);
+          final emotionCategory =
+              result['emotion_category'] as Map<String, dynamic>;
+          expect(emotionCategory['primary'], emotion);
+        }
+      });
+
+      test('복합 감정 상태를 처리할 수 있어야 한다', () {
+        const jsonStr = '''
+        {
+          "keywords": ["기대", "설렘", "약간의 불안"],
+          "sentiment_score": 6,
+          "empathy_message": "설레면서도 약간 긴장되시는군요.",
+          "action_items": ["준비하기", "심호흡"],
+          "emotion_category": {
+            "primary": "기쁨",
+            "secondary": "기대와 설렘"
+          },
+          "emotion_trigger": {
+            "category": "일/업무",
+            "description": "새로운 프로젝트 시작에 대한 복합적 감정"
+          },
+          "energy_level": 6,
+          "is_emergency": false
+        }
+        ''';
+
+        final result = AnalysisResponseParser.parseString(jsonStr);
+
+        final emotionCategory =
+            result['emotion_category'] as Map<String, dynamic>;
+        expect(emotionCategory['secondary'], contains('기대'));
+        expect(result['keywords'], anyOf(contains('기대'), contains('설렘')));
+      });
+    });
+
+    group('emotion_trigger 카테고리 검증', () {
+      test('모든 트리거 카테고리를 지원해야 한다', () {
+        final triggerCategories = ['일/업무', '관계', '건강', '재정', '자아', '환경', '기타'];
+
+        for (final category in triggerCategories) {
+          final jsonStr =
+              '''
+          {
+            "keywords": ["테스트"],
+            "sentiment_score": 5,
+            "empathy_message": "테스트",
+            "action_items": ["테스트"],
+            "emotion_trigger": {
+              "category": "$category",
+              "description": "테스트 설명"
+            },
+            "is_emergency": false
+          }
+          ''';
+
+          final result = AnalysisResponseParser.parseString(jsonStr);
+          final emotionTrigger =
+              result['emotion_trigger'] as Map<String, dynamic>;
+          expect(emotionTrigger['category'], category);
+        }
       });
     });
   });

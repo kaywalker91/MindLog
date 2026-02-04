@@ -51,10 +51,10 @@ class UpdateState {
   }) {
     return UpdateState(
       result: result ?? this.result,
-      dismissedVersion:
-          clearDismissed ? null : (dismissedVersion ?? this.dismissedVersion),
-      dismissedAt:
-          clearDismissed ? null : (dismissedAt ?? this.dismissedAt),
+      dismissedVersion: clearDismissed
+          ? null
+          : (dismissedVersion ?? this.dismissedVersion),
+      dismissedAt: clearDismissed ? null : (dismissedAt ?? this.dismissedAt),
       isLoading: isLoading ?? this.isLoading,
     );
   }
@@ -66,7 +66,7 @@ class UpdateStateNotifier extends StateNotifier<UpdateState> {
   final SettingsRepository _settingsRepository;
 
   UpdateStateNotifier(this._service, this._settingsRepository)
-      : super(const UpdateState()) {
+    : super(const UpdateState()) {
     _loadDismissedState();
   }
 
@@ -89,8 +89,9 @@ class UpdateStateNotifier extends StateNotifier<UpdateState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      final result =
-          await _service.checkForUpdate(currentVersion: currentVersion);
+      final result = await _service.checkForUpdate(
+        currentVersion: currentVersion,
+      );
       if (mounted) {
         state = state.copyWith(result: result, isLoading: false);
       }
@@ -126,7 +127,7 @@ class UpdateStateNotifier extends StateNotifier<UpdateState> {
 /// 업데이트 상태 Provider
 final updateStateProvider =
     StateNotifierProvider<UpdateStateNotifier, UpdateState>((ref) {
-  final service = ref.watch(updateServiceProvider);
-  final settingsRepository = ref.watch(settingsRepositoryProvider);
-  return UpdateStateNotifier(service, settingsRepository);
-});
+      final service = ref.watch(updateServiceProvider);
+      final settingsRepository = ref.watch(settingsRepositoryProvider);
+      return UpdateStateNotifier(service, settingsRepository);
+    });

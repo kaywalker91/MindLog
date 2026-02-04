@@ -25,7 +25,8 @@ class AppStrings {
 
   // SOS 카드 메시지
   static const String sosTitle = '당신의 마음이 걱정됩니다';
-  static const String sosMessage = '힘든 시간을 보내고 계신 것 같아요. 전문가의 도움을 받아보시는 건 어떨까요?';
+  static const String sosMessage =
+      '힘든 시간을 보내고 계신 것 같아요. 전문가의 도움을 받아보시는 건 어떨까요?';
   static const String sosHotline = '자살예방상담전화: 1393';
   static const String sosMentalHealth = '정신건강위기상담전화: 1577-0199';
 

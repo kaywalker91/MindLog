@@ -22,7 +22,6 @@ class UserNameController extends AsyncNotifier<String?> {
   }
 }
 
-final userNameProvider =
-    AsyncNotifierProvider<UserNameController, String?>(() {
+final userNameProvider = AsyncNotifierProvider<UserNameController, String?>(() {
   return UserNameController();
 });

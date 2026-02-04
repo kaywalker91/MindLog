@@ -27,26 +27,20 @@ class _SplashAnimationWidgetState extends State<SplashAnimationWidget>
     )..repeat();
 
     // 부드러 애니메이션
-    _opacity = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
+    _opacity = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    _rotation = Tween<double>(begin: 0, end: 2 * 3.14159).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.linear,
-      ),
-    );
+    _rotation = Tween<double>(
+      begin: 0,
+      end: 2 * 3.14159,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
 
-    _scale = Tween<double>(begin: 1.0, end: 1.05).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.elasticIn,
-      ),
-    );
+    _scale = Tween<double>(
+      begin: 1.0,
+      end: 1.05,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticIn));
   }
 
   @override
@@ -81,13 +75,18 @@ class _SplashAnimationWidgetState extends State<SplashAnimationWidget>
                 ],
               ),
               child: Center(
-                child: AppIcons.getSvgIcon(
-                  size: 80,
-                  color: Colors.white,
-                )
+                child: AppIcons.getSvgIcon(size: 80, color: Colors.white)
                     .animate(controller: _controller)
-                    .scaleX(begin: 0.8, end: 1.0, duration: const Duration(milliseconds: 800))
-                    .scaleY(begin: 0.8, end: 1.0, duration: const Duration(milliseconds: 800)),
+                    .scaleX(
+                      begin: 0.8,
+                      end: 1.0,
+                      duration: const Duration(milliseconds: 800),
+                    )
+                    .scaleY(
+                      begin: 0.8,
+                      end: 1.0,
+                      duration: const Duration(milliseconds: 800),
+                    ),
               ),
             ),
           ),

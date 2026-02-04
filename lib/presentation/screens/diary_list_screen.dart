@@ -54,9 +54,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => _buildErrorState(ref),
       ),
-      floatingActionButton: WriteFab(
-        onPressed: () => context.goNewDiary(),
-      ),
+      floatingActionButton: WriteFab(onPressed: () => context.goNewDiary()),
     );
   }
 
@@ -103,7 +101,10 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -121,11 +122,17 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.book_outlined, size: 64, color: AppColors.textHint),
+            const Icon(
+              Icons.book_outlined,
+              size: 64,
+              color: AppColors.textHint,
+            ),
             const SizedBox(height: 16),
             Text(
               '작성된 일기가 없습니다.\n오늘의 마음을 기록해보세요!',
-              style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.body.copyWith(
+                color: AppColors.textSecondary,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -166,7 +173,12 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
             item = item
                 .animate()
                 .fadeIn(delay: delay, duration: 300.ms)
-                .slideX(begin: 0.08, delay: delay, duration: 300.ms, curve: Curves.easeOut);
+                .slideX(
+                  begin: 0.08,
+                  delay: delay,
+                  duration: 300.ms,
+                  curve: Curves.easeOut,
+                );
           }
 
           return item;

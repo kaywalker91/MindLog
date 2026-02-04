@@ -154,9 +154,9 @@ class ImagePickerSection extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('카메라를 사용할 수 없습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('카메라를 사용할 수 없습니다.')));
       }
     }
   }
@@ -167,10 +167,7 @@ class _ImagePreviewTile extends StatelessWidget {
   final String imagePath;
   final VoidCallback? onRemove;
 
-  const _ImagePreviewTile({
-    required this.imagePath,
-    this.onRemove,
-  });
+  const _ImagePreviewTile({required this.imagePath, this.onRemove});
 
   @override
   Widget build(BuildContext context) {
@@ -225,11 +222,7 @@ class _ImagePreviewTile extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.close,
-                  size: 14,
-                  color: Colors.white,
-                ),
+                child: const Icon(Icons.close, size: 14, color: Colors.white),
               ),
             ),
           ),
@@ -277,9 +270,7 @@ class _AddImageButton extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               '추가',
-              style: AppTextStyles.label.copyWith(
-                color: colorScheme.primary,
-              ),
+              style: AppTextStyles.label.copyWith(color: colorScheme.primary),
             ),
           ],
         ),

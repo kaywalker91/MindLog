@@ -121,37 +121,25 @@ void main() {
 
     group('logMindcareEnabled/Disabled', () {
       test('mindcare_enabled 이벤트 로깅이 에러 없이 완료되어야 한다', () async {
-        await expectLater(
-          AnalyticsService.logMindcareEnabled(),
-          completes,
-        );
+        await expectLater(AnalyticsService.logMindcareEnabled(), completes);
       });
 
       test('mindcare_disabled 이벤트 로깅이 에러 없이 완료되어야 한다', () async {
-        await expectLater(
-          AnalyticsService.logMindcareDisabled(),
-          completes,
-        );
+        await expectLater(AnalyticsService.logMindcareDisabled(), completes);
       });
     });
 
     group('setUserProperty', () {
       test('사용자 속성 설정이 에러 없이 완료되어야 한다', () async {
         await expectLater(
-          AnalyticsService.setUserProperty(
-            name: 'user_type',
-            value: 'premium',
-          ),
+          AnalyticsService.setUserProperty(name: 'user_type', value: 'premium'),
           completes,
         );
       });
 
       test('null 값도 에러 없이 설정되어야 한다', () async {
         await expectLater(
-          AnalyticsService.setUserProperty(
-            name: 'user_type',
-            value: null,
-          ),
+          AnalyticsService.setUserProperty(name: 'user_type', value: null),
           completes,
         );
       });
@@ -168,10 +156,7 @@ void main() {
 
     group('logAppOpen', () {
       test('app_open 이벤트 로깅이 에러 없이 완료되어야 한다', () async {
-        await expectLater(
-          AnalyticsService.logAppOpen(),
-          completes,
-        );
+        await expectLater(AnalyticsService.logAppOpen(), completes);
       });
     });
 

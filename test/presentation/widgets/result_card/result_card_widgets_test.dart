@@ -12,58 +12,71 @@ void main() {
   group('CharacterBanner', () {
     Widget buildTestWidget({required AiCharacter character}) {
       return MaterialApp(
-        home: Scaffold(
-          body: CharacterBanner(character: character),
-        ),
+        home: Scaffold(body: CharacterBanner(character: character)),
       );
     }
 
     group('렌더링', () {
       testWidgets('AI 캐릭터 라벨이 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          character: AiCharacter.warmCounselor,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(character: AiCharacter.warmCounselor),
+        );
 
         expect(find.text('AI 캐릭터'), findsOneWidget);
       });
 
       testWidgets('캐릭터 이름이 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          character: AiCharacter.warmCounselor,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(character: AiCharacter.warmCounselor),
+        );
 
-        expect(find.text(AiCharacter.warmCounselor.displayName), findsOneWidget);
+        expect(
+          find.text(AiCharacter.warmCounselor.displayName),
+          findsOneWidget,
+        );
       });
 
       testWidgets('캐릭터 설명이 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          character: AiCharacter.realisticCoach,
-        ));
+        await tester.pumpWidget(
+          buildTestWidget(character: AiCharacter.realisticCoach),
+        );
 
-        expect(find.text(AiCharacter.realisticCoach.description), findsOneWidget);
+        expect(
+          find.text(AiCharacter.realisticCoach.description),
+          findsOneWidget,
+        );
       });
     });
 
     group('다양한 캐릭터', () {
       testWidgets('warmCounselor 캐릭터가 올바르게 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          character: AiCharacter.warmCounselor,
-        ));
-        expect(find.text(AiCharacter.warmCounselor.displayName), findsOneWidget);
+        await tester.pumpWidget(
+          buildTestWidget(character: AiCharacter.warmCounselor),
+        );
+        expect(
+          find.text(AiCharacter.warmCounselor.displayName),
+          findsOneWidget,
+        );
       });
 
       testWidgets('realisticCoach 캐릭터가 올바르게 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          character: AiCharacter.realisticCoach,
-        ));
-        expect(find.text(AiCharacter.realisticCoach.displayName), findsOneWidget);
+        await tester.pumpWidget(
+          buildTestWidget(character: AiCharacter.realisticCoach),
+        );
+        expect(
+          find.text(AiCharacter.realisticCoach.displayName),
+          findsOneWidget,
+        );
       });
 
       testWidgets('cheerfulFriend 캐릭터가 올바르게 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          character: AiCharacter.cheerfulFriend,
-        ));
-        expect(find.text(AiCharacter.cheerfulFriend.displayName), findsOneWidget);
+        await tester.pumpWidget(
+          buildTestWidget(character: AiCharacter.cheerfulFriend),
+        );
+        expect(
+          find.text(AiCharacter.cheerfulFriend.displayName),
+          findsOneWidget,
+        );
       });
     });
   });

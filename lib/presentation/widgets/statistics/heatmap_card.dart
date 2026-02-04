@@ -21,8 +21,9 @@ class StatisticsHeatmapCard extends ConsumerWidget {
     final streak = _calculateStreak(statistics.activityMap);
     final recordedDays = statistics.activityMap.length;
     final totalDays = _getPeriodDayCount(statistics, selectedPeriod);
-    final completionRate =
-        totalDays > 0 ? ((recordedDays / totalDays) * 100).round() : 0;
+    final completionRate = totalDays > 0
+        ? ((recordedDays / totalDays) * 100).round()
+        : 0;
     final hasRecords = recordedDays > 0;
 
     return Container(
@@ -54,7 +55,7 @@ class StatisticsHeatmapCard extends ConsumerWidget {
           Text(
             hasRecords
                 ? '✨ ${_getPeriodLabel(selectedPeriod)} 동안 $recordedDays일 기록했어요 · '
-                    '${statistics.totalDiaries}편의 일기'
+                      '${statistics.totalDiaries}편의 일기'
                 : '아직 기록이 없어요. 오늘의 마음을 남겨볼까요?',
             style: const TextStyle(
               color: AppColors.statsTextSecondary,
@@ -71,23 +72,27 @@ class StatisticsHeatmapCard extends ConsumerWidget {
                 _ProudBadge(
                   label: '기록 $recordedDays일',
                   emoji: '🗓️',
-                  backgroundColor: AppColors.statsPrimary.withValues(alpha: 0.15),
+                  backgroundColor: AppColors.statsPrimary.withValues(
+                    alpha: 0.15,
+                  ),
                   textColor: AppColors.statsPrimaryDark,
                 ),
                 if (totalDays > 0)
                   _ProudBadge(
                     label: '기록률 $completionRate%',
                     emoji: '✨',
-                    backgroundColor:
-                        AppColors.statsAccentMint.withValues(alpha: 0.2),
+                    backgroundColor: AppColors.statsAccentMint.withValues(
+                      alpha: 0.2,
+                    ),
                     textColor: AppColors.statsPrimaryDark,
                   ),
                 if (streak > 0)
                   _ProudBadge(
                     label: '$streak일 연속',
                     emoji: '🔥',
-                    backgroundColor:
-                        AppColors.statsAccentCoral.withValues(alpha: 0.15),
+                    backgroundColor: AppColors.statsAccentCoral.withValues(
+                      alpha: 0.15,
+                    ),
                     textColor: AppColors.statsAccentCoral,
                   ),
               ],
@@ -138,8 +143,11 @@ class StatisticsHeatmapCard extends ConsumerWidget {
       (a, b) => a.isBefore(b) ? a : b,
     );
     final normalizedToday = DateTime(today.year, today.month, today.day);
-    final normalizedStart =
-        DateTime(earliest.year, earliest.month, earliest.day);
+    final normalizedStart = DateTime(
+      earliest.year,
+      earliest.month,
+      earliest.day,
+    );
     return normalizedToday.difference(normalizedStart).inDays + 1;
   }
 
@@ -164,7 +172,8 @@ class _PeriodChips extends ConsumerWidget {
           padding: const EdgeInsets.only(left: 2),
           child: GestureDetector(
             onTap: () {
-              ref.read(selectedStatisticsPeriodProvider.notifier).state = period;
+              ref.read(selectedStatisticsPeriodProvider.notifier).state =
+                  period;
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),

@@ -8,10 +8,7 @@ class DiaryImageIndicator extends StatelessWidget {
   /// 첨부된 이미지 개수
   final int count;
 
-  const DiaryImageIndicator({
-    super.key,
-    required this.count,
-  });
+  const DiaryImageIndicator({super.key, required this.count});
 
   @override
   Widget build(BuildContext context) {

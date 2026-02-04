@@ -110,9 +110,7 @@ class AnalyticsService {
   }
 
   /// 통계 화면 조회 이벤트
-  static Future<void> logStatisticsViewed({
-    required String period,
-  }) async {
+  static Future<void> logStatisticsViewed({required String period}) async {
     await _instance()?.logEvent(
       name: 'statistics_viewed',
       parameters: {'period': period},
@@ -148,9 +146,7 @@ class AnalyticsService {
   /// 리마인더 취소 이벤트
   ///
   /// [source] 취소 트리거 소스 ('user_toggle', 'reschedule')
-  static Future<void> logReminderCancelled({
-    required String source,
-  }) async {
+  static Future<void> logReminderCancelled({required String source}) async {
     await _instance()?.logEvent(
       name: 'reminder_cancelled',
       parameters: {'source': source},
@@ -188,10 +184,7 @@ class AnalyticsService {
     String eventName, {
     Map<String, Object>? parameters,
   }) async {
-    await _instance()?.logEvent(
-      name: eventName,
-      parameters: parameters,
-    );
+    await _instance()?.logEvent(name: eventName, parameters: parameters);
     _debugLog(eventName, parameters ?? {});
   }
 

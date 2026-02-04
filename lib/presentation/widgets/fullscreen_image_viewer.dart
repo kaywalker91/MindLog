@@ -46,10 +46,7 @@ class FullscreenImageViewer extends StatefulWidget {
           );
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
       ),
     );
@@ -117,10 +114,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
                     minScale: 0.5,
                     maxScale: 4.0,
                     child: heroTag != null
-                        ? Hero(
-                            tag: heroTag,
-                            child: _buildImage(imagePath),
-                          )
+                        ? Hero(tag: heroTag, child: _buildImage(imagePath))
                         : _buildImage(imagePath),
                   ),
                 );
@@ -139,11 +133,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
                     color: Colors.black54,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.close,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 24),
                 ),
               ),
             ),
@@ -216,10 +206,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
               const SizedBox(height: 8),
               Text(
                 '이미지를 불러올 수 없습니다',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
               ),
             ],
           ),

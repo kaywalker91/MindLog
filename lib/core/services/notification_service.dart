@@ -17,18 +17,20 @@ class NotificationService {
     void Function(String? payload)? onNotificationResponse,
   }) async {
     tz.initializeTimeZones();
-    
+
     // 기기의 로컬 타임존을 설정 (중요: 이 설정이 없으면 tz.local이 UTC로 남음)
     // flutter_timezone 5.0.1은 TimezoneInfo 객체를 반환하며, .identifier로 문자열 접근
     final timezoneInfo = await FlutterTimezone.getLocalTimezone();
     final String timeZoneName = timezoneInfo.identifier;
     tz.setLocalLocation(tz.getLocation(timeZoneName));
-    
+
     if (kDebugMode) {
       debugPrint('[Notification] Timezone set to: $timeZoneName');
     }
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -36,10 +38,7 @@ class NotificationService {
     );
 
     await _notifications.initialize(
-      const InitializationSettings(
-        android: androidSettings,
-        iOS: iosSettings,
-      ),
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
       onDidReceiveNotificationResponse: (response) {
         onNotificationResponse?.call(response.payload);
         if (kDebugMode) {
@@ -50,9 +49,12 @@ class NotificationService {
 
     await _createNotificationChannel();
 
-    final launchDetails = await _notifications.getNotificationAppLaunchDetails();
+    final launchDetails = await _notifications
+        .getNotificationAppLaunchDetails();
     if (launchDetails?.didNotificationLaunchApp ?? false) {
-      onNotificationResponse?.call(launchDetails?.notificationResponse?.payload);
+      onNotificationResponse?.call(
+        launchDetails?.notificationResponse?.payload,
+      );
     }
   }
 
@@ -66,7 +68,8 @@ class NotificationService {
 
     await _notifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(channel);
   }
 
@@ -163,8 +166,12 @@ class NotificationService {
       );
 
       if (kDebugMode) {
-        debugPrint('[Notification] Daily reminder scheduled for: $scheduledDate');
-        debugPrint('[Notification] Message: "${message.title}" / "${message.body}"');
+        debugPrint(
+          '[Notification] Daily reminder scheduled for: $scheduledDate',
+        );
+        debugPrint(
+          '[Notification] Message: "${message.title}" / "${message.body}"',
+        );
         debugPrint('[Notification] Schedule mode: $scheduleMode');
         debugPrint('[Notification] Current time: $now');
         debugPrint('[Notification] Timezone: ${tz.local.name}');
@@ -185,45 +192,56 @@ class NotificationService {
   }
 
   static Future<bool?> areNotificationsEnabled() async {
-    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     return androidPlugin?.areNotificationsEnabled();
   }
 
   static Future<bool?> requestAndroidPermission() async {
-    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     return androidPlugin?.requestNotificationsPermission();
   }
-  
+
   /// Android 12+ 정확한 알람 권한 확인
   static Future<bool?> canScheduleExactAlarms() async {
-    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     return androidPlugin?.canScheduleExactNotifications();
   }
-  
+
   /// 정확한 알람 권한 요청 (설정 화면으로 이동)
   static Future<void> requestExactAlarmPermission() async {
-    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     await androidPlugin?.requestExactAlarmsPermission();
   }
-  
+
   /// 테스트 알림 즉시 표시 (디버깅용)
+  /// 마음케어 메시지 형태로 표시하여 실제 알림 미리보기 제공
   static Future<void> showTestNotification() async {
     if (kDebugMode) {
       debugPrint('[Notification] Showing test notification...');
     }
+    final message = NotificationMessages.getRandomMindcareMessage();
     await showNotification(
-      title: '테스트 알림',
-      body: '알림이 정상적으로 작동합니다! 🎉',
-      payload: '{"type":"reminder"}',
+      title: '[테스트] ${message.title}',
+      body: message.body,
+      payload: '{"type":"test_mindcare"}',
     );
   }
-  
+
   /// 예약된 알림 목록 확인 (디버깅용)
-  static Future<List<PendingNotificationRequest>> getPendingNotifications() async {
+  static Future<List<PendingNotificationRequest>>
+  getPendingNotifications() async {
     return _notifications.pendingNotificationRequests();
   }
 }

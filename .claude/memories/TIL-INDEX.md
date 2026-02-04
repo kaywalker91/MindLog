@@ -4,6 +4,29 @@ Central index for all learning documents organized by topic and session.
 
 ---
 
+## Session: February 4, 2026 - Emotion-Based Notification
+
+**Feature**: FCM 알림 메시지를 사용자의 최근 감정 상태에 따라 개인화
+**Core Pattern**: Weighted selection, Testable random, Graceful fallback
+
+### Key Documents (This Session)
+
+1. **til-emotion-notification-patterns.md** ⭐ START HERE
+   - Testable Random Pattern (setRandom/resetForTesting)
+   - Weighted Selection via List Duplication
+   - Service Direct DB Pattern (Repository 우회)
+   - Graceful Fallback Pattern (감정 데이터 없을 때)
+   - EmotionLevel 분류 기준 (low/medium/high)
+
+### Files Modified
+- `lib/core/constants/notification_messages.dart` - EmotionLevel enum, weighted selection
+- `lib/core/services/emotion_score_service.dart` (NEW) - SQLite 감정 점수 조회
+- `lib/core/services/fcm_service.dart` - 포그라운드 메시지 개인화
+- `test/core/constants/notification_messages_test.dart` - 10개 테스트 추가
+- `test/core/services/emotion_score_service_test.dart` (NEW) - 8개 테스트
+
+---
+
 ## Session: February 2, 2026 - Statistics Restoration Bug Fix
 
 **Bug**: App reinstallation → DB restore → Statistics not displaying (Diary list displays correctly)
@@ -81,6 +104,10 @@ Central index for all learning documents organized by topic and session.
 
 | Situation | Reference Document | Key Action |
 |-----------|------------------|-----------|
+| Random 결과 테스트 필요 | til-emotion-notification-patterns.md | setRandom(Random(seed)) 주입 |
+| 가중치 기반 선택 구현 | til-emotion-notification-patterns.md | 리스트 복제 방식 사용 |
+| 데이터 없을 때 폴백 | til-emotion-notification-patterns.md | null 체크 + graceful fallback |
+| 백그라운드에서 DB 접근 | til-emotion-notification-patterns.md | Service Direct DB 패턴 |
 | Provider not updating after invalidate | til-refread-refwatch-dependency-tracking.md | Check for ref.read() in definitions |
 | Data empty after app startup | til-defensive-programming-timing-races.md | Add warm-up for critical Providers |
 | Unclear which Providers affected by change | til-provider-invalidation-chain-pattern.md | Map 5-layer architecture |
@@ -234,6 +261,6 @@ lib/main.dart                                            (invalidation coordinat
 
 ---
 
-**Last Updated**: February 2, 2026
-**Session**: statistics-restoration-bugfix
+**Last Updated**: February 4, 2026
+**Session**: emotion-notification-patterns
 **Status**: Complete

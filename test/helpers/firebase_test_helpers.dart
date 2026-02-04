@@ -44,12 +44,15 @@ class MockFirebasePlatform extends FirebasePlatform {
 /// Mock FirebaseApp
 class MockFirebaseApp extends FirebaseAppPlatform {
   MockFirebaseApp({String name = defaultFirebaseAppName})
-      : super(name, const FirebaseOptions(
+    : super(
+        name,
+        const FirebaseOptions(
           apiKey: 'mock-api-key',
           appId: 'mock-app-id',
           messagingSenderId: 'mock-sender-id',
           projectId: 'mock-project-id',
-        ));
+        ),
+      );
 
   @override
   bool get isAutomaticDataCollectionEnabled => true;

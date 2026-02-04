@@ -118,7 +118,8 @@ class _EmotionCalendarState extends State<EmotionCalendar> {
   void _goToToday() {
     final now = DateTime.now();
     final targetMonth = DateTime(now.year, now.month);
-    final monthsDiff = (targetMonth.year - _initialMonth.year) * 12 +
+    final monthsDiff =
+        (targetMonth.year - _initialMonth.year) * 12 +
         (targetMonth.month - _initialMonth.month);
     final targetPage = _initialPageIndex + monthsDiff;
 
@@ -221,11 +222,7 @@ class _EmotionCalendarState extends State<EmotionCalendar> {
       );
       isCurrentMonth = false;
     } else if (index < firstWeekday + daysInMonth) {
-      date = DateTime(
-        month.year,
-        month.month,
-        index - firstWeekday + 1,
-      );
+      date = DateTime(month.year, month.month, index - firstWeekday + 1);
       isCurrentMonth = true;
     } else {
       date = DateTime(

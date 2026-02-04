@@ -14,9 +14,7 @@ void main() {
   setUp(() {
     mockRepository = MockDiaryRepository();
     container = ProviderContainer(
-      overrides: [
-        diaryRepositoryProvider.overrideWithValue(mockRepository),
-      ],
+      overrides: [diaryRepositoryProvider.overrideWithValue(mockRepository)],
     );
   });
 
@@ -64,7 +62,11 @@ void main() {
         // Arrange
         final now = DateTime.now();
         mockRepository.diaries = [
-          DiaryFixtures.analyzed(id: 'today', createdAt: now, sentimentScore: 8),
+          DiaryFixtures.analyzed(
+            id: 'today',
+            createdAt: now,
+            sentimentScore: 8,
+          ),
         ];
 
         // Act
@@ -190,9 +192,14 @@ void main() {
         // Arrange
         final now = DateTime.now();
         final todayMidnight = DateTime(now.year, now.month, now.day);
-        final yesterdayLate = todayMidnight.subtract(const Duration(minutes: 1));
+        final yesterdayLate = todayMidnight.subtract(
+          const Duration(minutes: 1),
+        );
         mockRepository.diaries = [
-          DiaryFixtures.analyzed(id: 'yesterday-late', createdAt: yesterdayLate),
+          DiaryFixtures.analyzed(
+            id: 'yesterday-late',
+            createdAt: yesterdayLate,
+          ),
         ];
 
         // Act
@@ -213,7 +220,11 @@ void main() {
         final todayNoon = DateTime(now.year, now.month, now.day, 12, 0);
         final yesterday = todayNoon.subtract(const Duration(days: 1));
         mockRepository.diaries = [
-          DiaryFixtures.analyzed(id: 'today-1', createdAt: todayNoon, sentimentScore: 7),
+          DiaryFixtures.analyzed(
+            id: 'today-1',
+            createdAt: todayNoon,
+            sentimentScore: 7,
+          ),
           DiaryFixtures.analyzed(id: 'yesterday-1', createdAt: yesterday),
           DiaryFixtures.analyzed(
             id: 'today-2',

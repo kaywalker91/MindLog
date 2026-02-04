@@ -104,9 +104,18 @@ void main() {
         final now = DateTime.now();
         mockDataSource.setDiaries([
           DiaryFixtures.analyzed(id: 'analyzed-1', createdAt: now),
-          DiaryFixtures.pending(id: 'pending-1', createdAt: now.subtract(const Duration(hours: 1))),
-          DiaryFixtures.failed(id: 'failed-1', createdAt: now.subtract(const Duration(hours: 2))),
-          DiaryFixtures.analyzed(id: 'analyzed-2', createdAt: now.subtract(const Duration(hours: 3))),
+          DiaryFixtures.pending(
+            id: 'pending-1',
+            createdAt: now.subtract(const Duration(hours: 1)),
+          ),
+          DiaryFixtures.failed(
+            id: 'failed-1',
+            createdAt: now.subtract(const Duration(hours: 2)),
+          ),
+          DiaryFixtures.analyzed(
+            id: 'analyzed-2',
+            createdAt: now.subtract(const Duration(hours: 3)),
+          ),
         ]);
 
         // Act
@@ -121,7 +130,10 @@ void main() {
         final now = DateTime.now();
         mockDataSource.setDiaries([
           DiaryFixtures.analyzed(id: 'analyzed-1', createdAt: now),
-          DiaryFixtures.safetyBlocked(id: 'blocked-1', createdAt: now.subtract(const Duration(hours: 1))),
+          DiaryFixtures.safetyBlocked(
+            id: 'blocked-1',
+            createdAt: now.subtract(const Duration(hours: 1)),
+          ),
         ]);
 
         // Act
@@ -136,8 +148,16 @@ void main() {
         final now = DateTime.now();
         mockDataSource.setDiaries([
           DiaryFixtures.analyzed(id: '1', createdAt: now, sentimentScore: 6),
-          DiaryFixtures.analyzed(id: '2', createdAt: now.subtract(const Duration(hours: 1)), sentimentScore: 8),
-          DiaryFixtures.analyzed(id: '3', createdAt: now.subtract(const Duration(hours: 2)), sentimentScore: 10),
+          DiaryFixtures.analyzed(
+            id: '2',
+            createdAt: now.subtract(const Duration(hours: 1)),
+            sentimentScore: 8,
+          ),
+          DiaryFixtures.analyzed(
+            id: '3',
+            createdAt: now.subtract(const Duration(hours: 2)),
+            sentimentScore: 10,
+          ),
         ]);
 
         // Act
@@ -151,9 +171,21 @@ void main() {
         // Arrange
         final now = DateTime.now();
         mockDataSource.setDiaries([
-          DiaryFixtures.analyzed(id: '1', createdAt: now, keywords: ['행복', '기쁨', '만족']),
-          DiaryFixtures.analyzed(id: '2', createdAt: now.subtract(const Duration(hours: 1)), keywords: ['행복', '피곤']),
-          DiaryFixtures.analyzed(id: '3', createdAt: now.subtract(const Duration(hours: 2)), keywords: ['행복', '스트레스']),
+          DiaryFixtures.analyzed(
+            id: '1',
+            createdAt: now,
+            keywords: ['행복', '기쁨', '만족'],
+          ),
+          DiaryFixtures.analyzed(
+            id: '2',
+            createdAt: now.subtract(const Duration(hours: 1)),
+            keywords: ['행복', '피곤'],
+          ),
+          DiaryFixtures.analyzed(
+            id: '3',
+            createdAt: now.subtract(const Duration(hours: 2)),
+            keywords: ['행복', '스트레스'],
+          ),
         ]);
 
         // Act
@@ -184,8 +216,16 @@ void main() {
         final startDate = now.subtract(const Duration(days: 3));
         mockDataSource.setDiaries([
           DiaryFixtures.analyzed(id: '1', createdAt: now, sentimentScore: 7),
-          DiaryFixtures.analyzed(id: '2', createdAt: now.subtract(const Duration(days: 2)), sentimentScore: 6),
-          DiaryFixtures.analyzed(id: '3', createdAt: now.subtract(const Duration(days: 5)), sentimentScore: 5), // 범위 밖
+          DiaryFixtures.analyzed(
+            id: '2',
+            createdAt: now.subtract(const Duration(days: 2)),
+            sentimentScore: 6,
+          ),
+          DiaryFixtures.analyzed(
+            id: '3',
+            createdAt: now.subtract(const Duration(days: 5)),
+            sentimentScore: 5,
+          ), // 범위 밖
         ]);
 
         // Act
@@ -212,9 +252,15 @@ void main() {
         // Arrange
         final now = DateTime.now();
         mockDataSource.setDiaries([
-          DiaryFixtures.analyzed(id: '1', createdAt: now.subtract(const Duration(days: 2))),
+          DiaryFixtures.analyzed(
+            id: '1',
+            createdAt: now.subtract(const Duration(days: 2)),
+          ),
           DiaryFixtures.analyzed(id: '2', createdAt: now),
-          DiaryFixtures.analyzed(id: '3', createdAt: now.subtract(const Duration(days: 1))),
+          DiaryFixtures.analyzed(
+            id: '3',
+            createdAt: now.subtract(const Duration(days: 1)),
+          ),
         ]);
 
         // Act
@@ -231,8 +277,16 @@ void main() {
         final now = DateTime(2024, 1, 15, 12, 0);
         mockDataSource.setDiaries([
           DiaryFixtures.analyzed(id: '1', createdAt: now, sentimentScore: 6),
-          DiaryFixtures.analyzed(id: '2', createdAt: now.subtract(const Duration(hours: 2)), sentimentScore: 8),
-          DiaryFixtures.analyzed(id: '3', createdAt: now.subtract(const Duration(hours: 4)), sentimentScore: 10),
+          DiaryFixtures.analyzed(
+            id: '2',
+            createdAt: now.subtract(const Duration(hours: 2)),
+            sentimentScore: 8,
+          ),
+          DiaryFixtures.analyzed(
+            id: '3',
+            createdAt: now.subtract(const Duration(hours: 4)),
+            sentimentScore: 10,
+          ),
         ]);
 
         // Act
@@ -262,7 +316,11 @@ void main() {
         final now = DateTime(2024, 1, 15);
         mockDataSource.setDiaries([
           DiaryFixtures.analyzed(id: '1', createdAt: now, sentimentScore: 7),
-          DiaryFixtures.analyzed(id: '2', createdAt: now.subtract(const Duration(days: 1)), sentimentScore: 5),
+          DiaryFixtures.analyzed(
+            id: '2',
+            createdAt: now.subtract(const Duration(days: 1)),
+            sentimentScore: 5,
+          ),
         ]);
 
         // Act
@@ -279,8 +337,14 @@ void main() {
         final startDate = now.subtract(const Duration(days: 2));
         mockDataSource.setDiaries([
           DiaryFixtures.analyzed(id: '1', createdAt: now),
-          DiaryFixtures.analyzed(id: '2', createdAt: now.subtract(const Duration(days: 1))),
-          DiaryFixtures.analyzed(id: '3', createdAt: now.subtract(const Duration(days: 5))), // 범위 밖
+          DiaryFixtures.analyzed(
+            id: '2',
+            createdAt: now.subtract(const Duration(days: 1)),
+          ),
+          DiaryFixtures.analyzed(
+            id: '3',
+            createdAt: now.subtract(const Duration(days: 5)),
+          ), // 범위 밖
         ]);
 
         // Act
@@ -298,7 +362,11 @@ void main() {
         final now = DateTime(2024, 1, 15, 12, 0);
         mockDataSource.setDiaries([
           DiaryFixtures.analyzed(id: '1', createdAt: now, sentimentScore: 4),
-          DiaryFixtures.analyzed(id: '2', createdAt: now.subtract(const Duration(hours: 2)), sentimentScore: 6),
+          DiaryFixtures.analyzed(
+            id: '2',
+            createdAt: now.subtract(const Duration(hours: 2)),
+            sentimentScore: 6,
+          ),
         ]);
 
         // Act
@@ -314,10 +382,7 @@ void main() {
         mockDataSource.shouldThrowOnGet = true;
 
         // Act & Assert
-        await expectLater(
-          repository.getActivityMap(),
-          throwsA(isA<Failure>()),
-        );
+        await expectLater(repository.getActivityMap(), throwsA(isA<Failure>()));
       });
     });
 

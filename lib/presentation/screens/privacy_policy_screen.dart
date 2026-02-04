@@ -27,7 +27,9 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
 
   Future<void> _loadMarkdownContent() async {
     try {
-      final content = await rootBundle.loadString('docs/legal/privacy-policy.md');
+      final content = await rootBundle.loadString(
+        'docs/legal/privacy-policy.md',
+      );
       if (mounted) {
         setState(() {
           _markdownContent = content;
@@ -51,18 +53,14 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surfaceContainerLowest,
-      appBar: const MindlogAppBar(
-        title: Text('개인정보 처리방침'),
-      ),
+      appBar: const MindlogAppBar(title: Text('개인정보 처리방침')),
       body: _buildBody(context),
     );
   }
 
   Widget _buildBody(BuildContext context) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_error != null) {
@@ -92,10 +90,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
-          colors: [
-            AppColors.statsPrimary,
-            AppColors.statsSecondary,
-          ],
+          colors: [AppColors.statsPrimary, AppColors.statsSecondary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -129,7 +124,10 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(12),
@@ -159,9 +157,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withValues(alpha: 0.16),
-        ),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.16)),
         boxShadow: [
           BoxShadow(
             color: colorScheme.shadow.withValues(alpha: 0.04),
@@ -276,9 +272,9 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
       await launchUrl(uri);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('링크를 열 수 없습니다: $href')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('링크를 열 수 없습니다: $href')));
       }
     }
   }
@@ -293,11 +289,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: colorScheme.error,
-            ),
+            Icon(Icons.error_outline, size: 48, color: colorScheme.error),
             const SizedBox(height: 16),
             Text(
               _error ?? '오류가 발생했습니다.',

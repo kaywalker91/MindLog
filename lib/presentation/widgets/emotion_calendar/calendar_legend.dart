@@ -12,10 +12,7 @@ class CalendarLegend extends StatelessWidget {
       children: [
         const Text(
           '마음의 정원',
-          style: TextStyle(
-            color: AppColors.statsTextTertiary,
-            fontSize: 10,
-          ),
+          style: TextStyle(color: AppColors.statsTextTertiary, fontSize: 10),
         ),
         const SizedBox(width: 8),
         _buildLegendItem('🌱'),
@@ -32,10 +29,7 @@ class CalendarLegend extends StatelessWidget {
   }
 
   Widget _buildLegendItem(String emoji) {
-    return Text(
-      emoji,
-      style: const TextStyle(fontSize: 11),
-    );
+    return Text(emoji, style: const TextStyle(fontSize: 11));
   }
 
   Widget _buildLegendArrow() {
@@ -43,10 +37,7 @@ class CalendarLegend extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 2),
       child: Text(
         '→',
-        style: TextStyle(
-          fontSize: 8,
-          color: AppColors.statsTextTertiary,
-        ),
+        style: TextStyle(fontSize: 8, color: AppColors.statsTextTertiary),
       ),
     );
   }

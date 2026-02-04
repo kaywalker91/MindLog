@@ -92,9 +92,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _skipOnboarding() {
-    AnalyticsService.logEvent('onboarding_skipped', parameters: {
-      'page': _currentPage,
-    });
+    AnalyticsService.logEvent(
+      'onboarding_skipped',
+      parameters: {'page': _currentPage},
+    );
     _completeOnboarding();
   }
 
@@ -202,18 +203,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         children: [
           // 아이콘
           Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: page.iconColor.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              page.icon,
-              size: 56,
-              color: page.iconColor,
-            ),
-          )
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: page.iconColor.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(page.icon, size: 56, color: page.iconColor),
+              )
               .animate(delay: Duration(milliseconds: 100 * index))
               .fadeIn(duration: const Duration(milliseconds: 400))
               .scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1)),
@@ -222,13 +219,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           // 앱 이름 (첫 페이지만)
           if (index == 0) ...[
             Text(
-              AppConstants.appName,
-              style: AppTextStyles.headline.copyWith(
-                color: AppColors.statsPrimary,
-                fontWeight: FontWeight.w700,
-                fontSize: 28,
-              ),
-            )
+                  AppConstants.appName,
+                  style: AppTextStyles.headline.copyWith(
+                    color: AppColors.statsPrimary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 28,
+                  ),
+                )
                 .animate(delay: const Duration(milliseconds: 200))
                 .fadeIn(duration: const Duration(milliseconds: 400)),
             const SizedBox(height: 8),
@@ -236,14 +233,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
           // 타이틀
           Text(
-            page.title,
-            style: AppTextStyles.title.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-            ),
-            textAlign: TextAlign.center,
-          )
+                page.title,
+                style: AppTextStyles.title.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                ),
+                textAlign: TextAlign.center,
+              )
               .animate(delay: Duration(milliseconds: 150 + 100 * index))
               .fadeIn(duration: const Duration(milliseconds: 400))
               .slideY(begin: 0.2, end: 0),
@@ -251,13 +248,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
           // 설명
           Text(
-            page.description,
-            style: AppTextStyles.body.copyWith(
-              color: AppColors.textSecondary,
-              height: 1.6,
-            ),
-            textAlign: TextAlign.center,
-          )
+                page.description,
+                style: AppTextStyles.body.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.6,
+                ),
+                textAlign: TextAlign.center,
+              )
               .animate(delay: Duration(milliseconds: 250 + 100 * index))
               .fadeIn(duration: const Duration(milliseconds: 400))
               .slideY(begin: 0.2, end: 0),

@@ -119,7 +119,10 @@ void main() {
         await repository.setNotificationSettings(initialSettings);
 
         // Act - 시간만 변경
-        final updated = initialSettings.copyWith(reminderHour: 20, reminderMinute: 45);
+        final updated = initialSettings.copyWith(
+          reminderHour: 20,
+          reminderMinute: 45,
+        );
         await repository.setNotificationSettings(updated);
         final result = await repository.getNotificationSettings();
 
@@ -212,10 +215,7 @@ void main() {
         mockDataSource.shouldThrowOnGet = true;
 
         // Act & Assert
-        await expectLater(
-          repository.getUserName(),
-          throwsA(isA<Failure>()),
-        );
+        await expectLater(repository.getUserName(), throwsA(isA<Failure>()));
       });
 
       test('저장 실패 시 CacheFailure를 던져야 한다', () async {
@@ -234,12 +234,14 @@ void main() {
       test('여러 설정을 독립적으로 저장/조회할 수 있어야 한다', () async {
         // Arrange & Act
         await repository.setSelectedAiCharacter(AiCharacter.realisticCoach);
-        await repository.setNotificationSettings(const NotificationSettings(
-          isReminderEnabled: true,
-          reminderHour: 8,
-          reminderMinute: 30,
-          isMindcareTopicEnabled: true,
-        ));
+        await repository.setNotificationSettings(
+          const NotificationSettings(
+            isReminderEnabled: true,
+            reminderHour: 8,
+            reminderMinute: 30,
+            isMindcareTopicEnabled: true,
+          ),
+        );
         await repository.setUserName('테스트유저');
 
         // Assert - 각각 독립적으로 저장됨

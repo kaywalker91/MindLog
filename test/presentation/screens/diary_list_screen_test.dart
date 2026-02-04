@@ -18,9 +18,7 @@ void main() {
   setUp(() {
     mockRepository = MockDiaryRepository();
     container = ProviderContainer(
-      overrides: [
-        diaryRepositoryProvider.overrideWithValue(mockRepository),
-      ],
+      overrides: [diaryRepositoryProvider.overrideWithValue(mockRepository)],
     );
   });
 
@@ -137,9 +135,15 @@ void main() {
       // Arrange
       final now = DateTime.now();
       mockRepository.diaries = [
-        DiaryFixtures.analyzed(id: 'old', createdAt: now.subtract(const Duration(days: 2))),
+        DiaryFixtures.analyzed(
+          id: 'old',
+          createdAt: now.subtract(const Duration(days: 2)),
+        ),
         DiaryFixtures.analyzed(id: 'newest', createdAt: now),
-        DiaryFixtures.analyzed(id: 'middle', createdAt: now.subtract(const Duration(days: 1))),
+        DiaryFixtures.analyzed(
+          id: 'middle',
+          createdAt: now.subtract(const Duration(days: 1)),
+        ),
       ];
 
       // Act
@@ -156,7 +160,11 @@ void main() {
       final now = DateTime.now();
       mockRepository.diaries = [
         DiaryFixtures.analyzed(id: 'newest', createdAt: now, isPinned: false),
-        DiaryFixtures.analyzed(id: 'old-pinned', createdAt: now.subtract(const Duration(days: 5)), isPinned: true),
+        DiaryFixtures.analyzed(
+          id: 'old-pinned',
+          createdAt: now.subtract(const Duration(days: 5)),
+          isPinned: true,
+        ),
       ];
 
       // Act
@@ -172,14 +180,18 @@ void main() {
   group('일기 목록 새로고침 테스트', () {
     test('새로고침 시 모든 일기를 다시 로드해야 한다', () async {
       // Arrange - 초기 5개
-      mockRepository.diaries = List.generate(5, (i) => 
-        DiaryFixtures.analyzed(id: 'initial-$i'));
-      
+      mockRepository.diaries = List.generate(
+        5,
+        (i) => DiaryFixtures.analyzed(id: 'initial-$i'),
+      );
+
       await container.read(diaryListControllerProvider.future);
 
       // 데이터 추가 (7개로 증가)
-      mockRepository.diaries = List.generate(7, (i) => 
-        DiaryFixtures.analyzed(id: 'updated-$i'));
+      mockRepository.diaries = List.generate(
+        7,
+        (i) => DiaryFixtures.analyzed(id: 'updated-$i'),
+      );
 
       // Act - 새로고침
       await container.read(diaryListControllerProvider.notifier).refresh();

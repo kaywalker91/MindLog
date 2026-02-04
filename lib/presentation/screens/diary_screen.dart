@@ -74,7 +74,9 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
           : 'AI가 당신의 마음을 분석하고 있어요...',
     );
 
-    ref.read(diaryAnalysisControllerProvider.notifier).analyzeDiary(
+    ref
+        .read(diaryAnalysisControllerProvider.notifier)
+        .analyzeDiary(
           _textController.text,
           imagePaths: hasImages ? List.from(_selectedImages) : null,
         );
@@ -168,23 +170,25 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
     });
 
     return Scaffold(
-      appBar: const MindlogAppBar(
-        title: Text(AppStrings.diaryScreenTitle),
-      ),
+      appBar: const MindlogAppBar(title: Text(AppStrings.diaryScreenTitle)),
       body: Stack(
         children: [
           if (isLoading)
             _buildLoadingBody(context)
           else
             _buildContentBody(context, analysisState),
-          
+
           // 네트워크 상태 오버레이
           NetworkStatusOverlay(
             isVisible: _showNetworkOverlay,
             statusMessage: _networkOverlayMessage,
             statusType: _networkStatusType,
-            onRetry: _networkStatusType == NetworkStatusType.loading ? null : _onRetry,
-            onDismiss: _networkStatusType == NetworkStatusType.loading ? null : _onDismissNetworkFeedback,
+            onRetry: _networkStatusType == NetworkStatusType.loading
+                ? null
+                : _onRetry,
+            onDismiss: _networkStatusType == NetworkStatusType.loading
+                ? null
+                : _onDismissNetworkFeedback,
           ),
         ],
       ),
@@ -206,10 +210,13 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
             switch (analysisState) {
               DiaryAnalysisInitial() => _buildInputForm(),
               DiaryAnalysisLoading() => _buildLoadingState(),
-              DiaryAnalysisSuccess(diary: final diary) =>
-                ResultCard(diary: diary, onNewDiary: _onReset),
-              DiaryAnalysisError(failure: final failure) =>
-                _buildErrorState(failure.displayMessage),
+              DiaryAnalysisSuccess(diary: final diary) => ResultCard(
+                diary: diary,
+                onNewDiary: _onReset,
+              ),
+              DiaryAnalysisError(failure: final failure) => _buildErrorState(
+                failure.displayMessage,
+              ),
               DiaryAnalysisSafetyBlocked() => SosCard(onClose: _onReset),
             },
           ],
@@ -316,7 +323,8 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
 
           // 제출 버튼
           ElevatedButton(
-            onPressed: _textController.text.trim().length >=
+            onPressed:
+                _textController.text.trim().length >=
                     AppConstants.diaryMinLength
                 ? _onSubmit
                 : null,
@@ -398,24 +406,22 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
       right: right,
       bottom: bottom,
       left: left,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-        ),
-      )
-          .animate(
-            onPlay: (controller) => controller.repeat(reverse: true),
-            delay: delay,
-          )
-          .scale(
-            begin: const Offset(0.96, 0.96),
-            end: const Offset(1.04, 1.04),
-            duration: duration,
-            curve: Curves.easeInOut,
-          ),
+      child:
+          Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+              )
+              .animate(
+                onPlay: (controller) => controller.repeat(reverse: true),
+                delay: delay,
+              )
+              .scale(
+                begin: const Offset(0.96, 0.96),
+                end: const Offset(1.04, 1.04),
+                duration: duration,
+                curve: Curves.easeInOut,
+              ),
     );
   }
 }

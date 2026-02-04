@@ -17,9 +17,7 @@ void main() {
   setUp(() {
     mockRepository = MockDiaryRepository();
     container = ProviderContainer(
-      overrides: [
-        diaryRepositoryProvider.overrideWithValue(mockRepository),
-      ],
+      overrides: [diaryRepositoryProvider.overrideWithValue(mockRepository)],
     );
   });
 
@@ -35,7 +33,9 @@ void main() {
         mockRepository.diaries = DiaryFixtures.weekOfDiaries();
 
         // Act
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
 
         // Assert
         expect(diaries.length, 7);
@@ -46,7 +46,9 @@ void main() {
         mockRepository.diaries = [];
 
         // Act
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
 
         // Assert
         expect(diaries, isEmpty);
@@ -56,7 +58,7 @@ void main() {
         // Arrange
         mockRepository.shouldThrowOnGet = true;
 
-          // Act
+        // Act
         // final state = container.read(diaryListControllerProvider);
 
         // Assert (초기 상태는 Loading이고, future 접근 시 에러)
@@ -82,7 +84,9 @@ void main() {
         // Act
         final controller = container.read(diaryListControllerProvider.notifier);
         await controller.refresh();
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
 
         // Assert
         expect(diaries.length, 2);
@@ -138,7 +142,9 @@ void main() {
         await controller.togglePin('test-diary', true);
 
         // Assert
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.first.isPinned, true);
       });
 
@@ -156,7 +162,9 @@ void main() {
         await controller.togglePin('test-diary', true);
 
         // Assert - 롤백되어 원래 상태
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.first.isPinned, false);
       });
 
@@ -164,7 +172,11 @@ void main() {
         // Arrange
         final now = DateTime.now();
         mockRepository.diaries = [
-          DiaryFixtures.analyzed(id: 'old', createdAt: now.subtract(const Duration(days: 2)), isPinned: false),
+          DiaryFixtures.analyzed(
+            id: 'old',
+            createdAt: now.subtract(const Duration(days: 2)),
+            isPinned: false,
+          ),
           DiaryFixtures.analyzed(id: 'new', createdAt: now, isPinned: false),
         ];
         await container.read(diaryListControllerProvider.future);
@@ -174,8 +186,10 @@ void main() {
         await controller.togglePin('old', true);
 
         // Assert - 고정된 일기가 최신 일기보다 먼저
-        final diaries = await container.read(diaryListControllerProvider.future);
-        expect(diaries[0].id, 'old');  // 고정된 일기 먼저
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
+        expect(diaries[0].id, 'old'); // 고정된 일기 먼저
         expect(diaries[0].isPinned, true);
         expect(diaries[1].id, 'new');
       });
@@ -184,7 +198,11 @@ void main() {
         // Arrange
         final now = DateTime.now();
         mockRepository.diaries = [
-          DiaryFixtures.analyzed(id: 'old', createdAt: now.subtract(const Duration(days: 2)), isPinned: true),
+          DiaryFixtures.analyzed(
+            id: 'old',
+            createdAt: now.subtract(const Duration(days: 2)),
+            isPinned: true,
+          ),
           DiaryFixtures.analyzed(id: 'new', createdAt: now, isPinned: false),
         ];
         await container.read(diaryListControllerProvider.future);
@@ -194,8 +212,10 @@ void main() {
         await controller.togglePin('old', false);
 
         // Assert - 최신순 정렬
-        final diaries = await container.read(diaryListControllerProvider.future);
-        expect(diaries[0].id, 'new');  // 최신 일기 먼저
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
+        expect(diaries[0].id, 'new'); // 최신 일기 먼저
         expect(diaries[1].id, 'old');
       });
 
@@ -203,19 +223,33 @@ void main() {
         // Arrange
         final now = DateTime.now();
         mockRepository.diaries = [
-          DiaryFixtures.analyzed(id: 'pinned-old', createdAt: now.subtract(const Duration(days: 3)), isPinned: true),
-          DiaryFixtures.analyzed(id: 'pinned-new', createdAt: now.subtract(const Duration(days: 1)), isPinned: true),
-          DiaryFixtures.analyzed(id: 'not-pinned', createdAt: now, isPinned: false),
+          DiaryFixtures.analyzed(
+            id: 'pinned-old',
+            createdAt: now.subtract(const Duration(days: 3)),
+            isPinned: true,
+          ),
+          DiaryFixtures.analyzed(
+            id: 'pinned-new',
+            createdAt: now.subtract(const Duration(days: 1)),
+            isPinned: true,
+          ),
+          DiaryFixtures.analyzed(
+            id: 'not-pinned',
+            createdAt: now,
+            isPinned: false,
+          ),
         ];
         await container.read(diaryListControllerProvider.future);
 
         // Act - 이미 데이터가 설정되어 있으므로 바로 확인
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
 
         // Assert - 고정 일기들이 먼저, 그 안에서 최신순
-        expect(diaries[0].id, 'pinned-new');  // 고정 중 최신
-        expect(diaries[1].id, 'pinned-old');  // 고정 중 오래된
-        expect(diaries[2].id, 'not-pinned');  // 미고정
+        expect(diaries[0].id, 'pinned-new'); // 고정 중 최신
+        expect(diaries[1].id, 'pinned-old'); // 고정 중 오래된
+        expect(diaries[2].id, 'not-pinned'); // 미고정
       });
 
       test('state.value가 null이면 아무 동작도 하지 않아야 한다', () async {
@@ -241,7 +275,9 @@ void main() {
         await controller.togglePin('non-existent', true);
 
         // Assert - 에러 없이 동작, 기존 데이터 유지
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.length, 1);
         expect(diaries.first.id, 'existing');
       });
@@ -261,7 +297,9 @@ void main() {
         await controller.deleteImmediately('diary-1');
 
         // Assert
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.length, 1);
         expect(diaries.first.id, 'diary-2');
       });
@@ -300,7 +338,9 @@ void main() {
         invalidateCount = 0;
 
         // Act
-        final controller = statsContainer.read(diaryListControllerProvider.notifier);
+        final controller = statsContainer.read(
+          diaryListControllerProvider.notifier,
+        );
         await controller.deleteImmediately('to-delete');
 
         // Assert - invalidate 호출 시 provider가 다시 실행됨
@@ -331,7 +371,9 @@ void main() {
         await controller.deleteImmediately('non-existent');
 
         // Assert - 기존 데이터 유지
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.length, 1);
         expect(diaries.first.id, 'existing');
       });
@@ -351,7 +393,9 @@ void main() {
         await controller.deleteImmediately('diary-3');
 
         // Assert
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.length, 1);
         expect(diaries.first.id, 'diary-2');
         expect(mockRepository.deletedDiaryIds, ['diary-1', 'diary-3']);
@@ -361,9 +405,17 @@ void main() {
         // Arrange
         final now = DateTime.now();
         mockRepository.diaries = [
-          DiaryFixtures.analyzed(id: 'pinned', createdAt: now.subtract(const Duration(days: 1)), isPinned: true),
+          DiaryFixtures.analyzed(
+            id: 'pinned',
+            createdAt: now.subtract(const Duration(days: 1)),
+            isPinned: true,
+          ),
           DiaryFixtures.analyzed(id: 'new', createdAt: now, isPinned: false),
-          DiaryFixtures.analyzed(id: 'old', createdAt: now.subtract(const Duration(days: 2)), isPinned: false),
+          DiaryFixtures.analyzed(
+            id: 'old',
+            createdAt: now.subtract(const Duration(days: 2)),
+            isPinned: false,
+          ),
         ];
         await container.read(diaryListControllerProvider.future);
 
@@ -372,7 +424,9 @@ void main() {
         await controller.deleteImmediately('pinned');
 
         // Assert - 최신순 정렬 유지
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.length, 2);
         expect(diaries[0].id, 'new');
         expect(diaries[1].id, 'old');
@@ -391,7 +445,9 @@ void main() {
         controller.softDelete(diary);
 
         // Assert - 즉시 리스트에서 제거됨
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries, isEmpty);
       });
 
@@ -423,7 +479,9 @@ void main() {
         controller.softDelete(diary3);
 
         // Assert
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.length, 1);
         expect(diaries.first.id, 'diary-2');
       });
@@ -459,10 +517,7 @@ void main() {
           id: 'old',
           createdAt: now.subtract(const Duration(days: 2)),
         );
-        final newDiary = DiaryFixtures.analyzed(
-          id: 'new',
-          createdAt: now,
-        );
+        final newDiary = DiaryFixtures.analyzed(id: 'new', createdAt: now);
         mockRepository.diaries = [oldDiary, newDiary];
         await container.read(diaryListControllerProvider.future);
 
@@ -473,7 +528,9 @@ void main() {
         controller.cancelDelete('old');
 
         // Assert - 최신순 정렬 유지 (new가 먼저)
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.length, 2);
         expect(diaries[0].id, 'new');
         expect(diaries[1].id, 'old');
@@ -502,7 +559,9 @@ void main() {
         controller.cancelDelete('pinned-old');
 
         // Assert - 고정된 일기가 먼저
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.length, 2);
         expect(diaries[0].id, 'pinned-old');
         expect(diaries[0].isPinned, true);
@@ -520,7 +579,9 @@ void main() {
         controller.cancelDelete('non-existent');
 
         // Assert - 기존 상태 유지
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.length, 1);
         expect(diaries.first.id, 'existing');
       });
@@ -539,7 +600,9 @@ void main() {
         controller.cancelDelete('double-cancel');
 
         // Assert - 에러 없이 동작, 일기는 하나만 존재
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.length, 1);
         expect(diaries.first.id, 'double-cancel');
       });
@@ -557,7 +620,9 @@ void main() {
           async.flushMicrotasks();
 
           // Act
-          final controller = container.read(diaryListControllerProvider.notifier);
+          final controller = container.read(
+            diaryListControllerProvider.notifier,
+          );
           controller.softDelete(diary);
 
           // 5초 전 - Repository 삭제 호출되지 않음
@@ -580,7 +645,9 @@ void main() {
           container.read(diaryListControllerProvider);
           async.flushMicrotasks();
 
-          final controller = container.read(diaryListControllerProvider.notifier);
+          final controller = container.read(
+            diaryListControllerProvider.notifier,
+          );
           controller.softDelete(diary);
 
           // Act - 3초 후 취소
@@ -605,7 +672,9 @@ void main() {
           container.read(diaryListControllerProvider);
           async.flushMicrotasks();
 
-          final controller = container.read(diaryListControllerProvider.notifier);
+          final controller = container.read(
+            diaryListControllerProvider.notifier,
+          );
 
           // 첫 번째 softDelete
           controller.softDelete(diary);
@@ -638,7 +707,9 @@ void main() {
           container.read(diaryListControllerProvider);
           async.flushMicrotasks();
 
-          final controller = container.read(diaryListControllerProvider.notifier);
+          final controller = container.read(
+            diaryListControllerProvider.notifier,
+          );
           controller.softDelete(diary);
 
           // 즉시 리스트에서 제거됨
@@ -681,7 +752,9 @@ void main() {
           invalidateCount = 0;
 
           // Act
-          final controller = statsContainer.read(diaryListControllerProvider.notifier);
+          final controller = statsContainer.read(
+            diaryListControllerProvider.notifier,
+          );
           controller.softDelete(diary);
 
           async.elapse(const Duration(seconds: 5));
@@ -721,9 +794,11 @@ void main() {
         await controller.togglePin('diary-3', true);
 
         // Assert
-        final diaries = await container.read(diaryListControllerProvider.future);
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
         expect(diaries.length, 3);
-        expect(diaries.first.id, 'diary-3');  // 고정된 일기가 먼저
+        expect(diaries.first.id, 'diary-3'); // 고정된 일기가 먼저
         expect(diaries.first.isPinned, true);
       });
     });

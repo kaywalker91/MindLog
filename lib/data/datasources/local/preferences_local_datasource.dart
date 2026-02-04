@@ -11,7 +11,8 @@ class PreferencesLocalDataSource {
       'notification_mindcare_topic_enabled';
   static const String _userNameKey = 'user_name';
   static const String _dismissedUpdateVersionKey = 'dismissed_update_version';
-  static const String _dismissedUpdateTimestampKey = 'dismissed_update_timestamp';
+  static const String _dismissedUpdateTimestampKey =
+      'dismissed_update_timestamp';
   static const String _lastSeenAppVersionKey = 'last_seen_app_version';
   static const String _onboardingCompletedKey = 'onboarding_completed';
 
@@ -29,13 +30,17 @@ class PreferencesLocalDataSource {
   Future<NotificationSettings> getNotificationSettings() async {
     final prefs = await SharedPreferences.getInstance();
     return NotificationSettings(
-      isReminderEnabled: prefs.getBool(_reminderEnabledKey) ??
+      isReminderEnabled:
+          prefs.getBool(_reminderEnabledKey) ??
           NotificationSettings.defaultReminderEnabled,
-      reminderHour: prefs.getInt(_reminderHourKey) ??
+      reminderHour:
+          prefs.getInt(_reminderHourKey) ??
           NotificationSettings.defaultReminderHour,
-      reminderMinute: prefs.getInt(_reminderMinuteKey) ??
+      reminderMinute:
+          prefs.getInt(_reminderMinuteKey) ??
           NotificationSettings.defaultReminderMinute,
-      isMindcareTopicEnabled: prefs.getBool(_mindcareTopicEnabledKey) ??
+      isMindcareTopicEnabled:
+          prefs.getBool(_mindcareTopicEnabledKey) ??
           NotificationSettings.defaultMindcareTopicEnabled,
     );
   }

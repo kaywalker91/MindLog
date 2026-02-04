@@ -94,7 +94,9 @@ void main() {
       test('Repository 에러 시 예외를 전파해야 한다', () async {
         // Arrange
         mockRepository.shouldThrowOnSet = true;
-        mockRepository.failureToThrow = const Failure.cache(message: '알림 설정 저장 실패');
+        mockRepository.failureToThrow = const Failure.cache(
+          message: '알림 설정 저장 실패',
+        );
 
         const settings = NotificationSettings(
           isReminderEnabled: true,

@@ -26,8 +26,8 @@ class AnalyzeDiaryUseCase {
     this._settingsRepository, {
     ValidateDiaryContentUseCase? validateUseCase,
     Clock? clock,
-  })  : _validateUseCase = validateUseCase ?? ValidateDiaryContentUseCase(),
-        _clock = clock ?? const SystemClock();
+  }) : _validateUseCase = validateUseCase ?? ValidateDiaryContentUseCase(),
+       _clock = clock ?? const SystemClock();
 
   /// 일기 작성 및 분석 실행
   ///
@@ -42,7 +42,8 @@ class AnalyzeDiaryUseCase {
       final validatedContent = validationResult.sanitizedContent;
 
       // 이미지 유효성 검사
-      if (imagePaths != null && imagePaths.length > AppConstants.maxImagesPerDiary) {
+      if (imagePaths != null &&
+          imagePaths.length > AppConstants.maxImagesPerDiary) {
         throw ValidationFailure(
           message: '이미지는 최대 ${AppConstants.maxImagesPerDiary}개까지 첨부할 수 있습니다.',
         );
@@ -66,7 +67,9 @@ class AnalyzeDiaryUseCase {
       if (SafetyConstants.containsEmergencyKeyword(validatedContent)) {
         // 응급 상황 분석 결과 생성
         final emergencyResult = AnalysisResult(
-          keywords: SafetyConstants.getDetectedKeywords(validatedContent).take(5).toList(),
+          keywords: SafetyConstants.getDetectedKeywords(
+            validatedContent,
+          ).take(5).toList(),
           sentimentScore: 1,
           empathyMessage: SafetyConstants.emergencyMessage,
           actionItem: '전문 상담사와 대화해 보세요. 1393(자살예방상담전화)으로 연락할 수 있습니다.',

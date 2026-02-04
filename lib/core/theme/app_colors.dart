@@ -11,8 +11,8 @@ class AppColors {
 
   // Background Colors
   static const Color background = Color(0xFFF8F7FC);
-  static const Color surface = Colors.white;
-  static const Color cardBackground = Colors.white;
+  static const Color surface = Color(0xFFFFFFFF); // Colors.white 대체
+  static const Color cardBackground = Color(0xFFFFFFFF); // Colors.white 대체
 
   // Text Colors
   static const Color textPrimary = Color(0xFF2D2D3A);
@@ -41,68 +41,68 @@ class AppColors {
   // ============================================
 
   // Statistics Primary Colors
-  static const Color statsPrimary = Color(0xFF7EC8E3);       // Sky Blue
-  static const Color statsPrimaryDark = Color(0xFF5BA4C9);   // Deep Sky
-  static const Color statsSecondary = Color(0xFFB8C5E2);     // Soft Lavender
+  static const Color statsPrimary = Color(0xFF7EC8E3); // Sky Blue
+  static const Color statsPrimaryDark = Color(0xFF5BA4C9); // Deep Sky
+  static const Color statsSecondary = Color(0xFFB8C5E2); // Soft Lavender
 
   // Statistics Background Colors
-  static const Color statsBackground = Color(0xFFF8FBFF);    // Cloud White
+  static const Color statsBackground = Color(0xFFF8FBFF); // Cloud White
   static const Color statsCardBackground = Color(0xFFFFFFFF); // Soft Cloud
-  static const Color statsCardBorder = Color(0xFFE8F4FA);    // Mist
+  static const Color statsCardBorder = Color(0xFFE8F4FA); // Mist
 
   // Statistics Text Colors
-  static const Color statsTextPrimary = Color(0xFF2C3E50);   // 제목, 주요 텍스트
+  static const Color statsTextPrimary = Color(0xFF2C3E50); // 제목, 주요 텍스트
   static const Color statsTextSecondary = Color(0xFF7F8C9A); // 부제목, 설명
-  static const Color statsTextTertiary = Color(0xFFA8B5C4);  // 힌트, 비활성
+  static const Color statsTextTertiary = Color(0xFFA8B5C4); // 힌트, 비활성
 
   // Statistics Heatmap Colors (하늘색 5단계)
-  static const Color heatmapLevel0 = Color(0xFFF0F4F8);      // 데이터 없음
-  static const Color heatmapLevel1 = Color(0xFFE8F4FA);      // 1-2점 (가장 연함)
-  static const Color heatmapLevel2 = Color(0xFFC5E3F2);      // 3-4점
-  static const Color heatmapLevel3 = Color(0xFF7EC8E3);      // 5-6점 (Primary)
-  static const Color heatmapLevel4 = Color(0xFF5BA4C9);      // 7-8점
-  static const Color heatmapLevel5 = Color(0xFF3D8AB0);      // 9-10점 (가장 진함)
+  static const Color heatmapLevel0 = Color(0xFFF0F4F8); // 데이터 없음
+  static const Color heatmapLevel1 = Color(0xFFE8F4FA); // 1-2점 (가장 연함)
+  static const Color heatmapLevel2 = Color(0xFFC5E3F2); // 3-4점
+  static const Color heatmapLevel3 = Color(0xFF7EC8E3); // 5-6점 (Primary)
+  static const Color heatmapLevel4 = Color(0xFF5BA4C9); // 7-8점
+  static const Color heatmapLevel5 = Color(0xFF3D8AB0); // 9-10점 (가장 진함)
 
   // Statistics Accent Colors
-  static const Color statsAccentCoral = Color(0xFFF5A895);   // 스트릭 강조
-  static const Color statsAccentMint = Color(0xFFA8E6CF);    // 성취, 긍정
+  static const Color statsAccentCoral = Color(0xFFF5A895); // 스트릭 강조
+  static const Color statsAccentMint = Color(0xFFA8E6CF); // 성취, 긍정
 
   // Emotion Garden Colors (감정 정원)
-  static const Color gardenSoil = Color(0xFFF5F0EB);         // 빈 날 (흙)
-  static const Color gardenSoilBorder = Color(0xFFE8E0D8);   // 흙 테두리
+  static const Color gardenSoil = Color(0xFFF5F0EB); // 빈 날 (흙)
+  static const Color gardenSoilBorder = Color(0xFFE8E0D8); // 흙 테두리
 
   // Warm Garden Colors (따뜻한 정원 - 친근감 디자인)
-  static const Color gardenWarm1 = Color(0xFFFAF8F5);        // 크림 (1-2점)
-  static const Color gardenWarm2 = Color(0xFFF5F2ED);        // 베이지 (3-4점)
-  static const Color gardenWarm3 = Color(0xFFE8F0E5);        // 연민트 (5-6점)
-  static const Color gardenWarm4 = Color(0xFFD4E8D0);        // 민트 (7-8점)
-  static const Color gardenWarm5 = Color(0xFFC0E0BC);        // 연초록 (9-10점)
+  static const Color gardenWarm1 = Color(0xFFFAF8F5); // 크림 (1-2점)
+  static const Color gardenWarm2 = Color(0xFFF5F2ED); // 베이지 (3-4점)
+  static const Color gardenWarm3 = Color(0xFFE8F0E5); // 연민트 (5-6점)
+  static const Color gardenWarm4 = Color(0xFFD4E8D0); // 민트 (7-8점)
+  static const Color gardenWarm5 = Color(0xFFC0E0BC); // 연초록 (9-10점)
 
   // Legacy Garden Colors (기존 hex 호환)
-  static const Color gardenLegacy1 = Color(0xFFF5F8F5);      // 1-2점
-  static const Color gardenLegacy2 = Color(0xFFEDF5ED);      // 3-4점
-  static const Color gardenLegacy3 = Color(0xFFE5F2E5);      // 5-6점
-  static const Color gardenLegacy4 = Color(0xFFDDEFDD);      // 7-8점
-  static const Color gardenLegacy5 = Color(0xFFD4EBD4);      // 9-10점
+  static const Color gardenLegacy1 = Color(0xFFF5F8F5); // 1-2점
+  static const Color gardenLegacy2 = Color(0xFFEDF5ED); // 3-4점
+  static const Color gardenLegacy3 = Color(0xFFE5F2E5); // 5-6점
+  static const Color gardenLegacy4 = Color(0xFFDDEFDD); // 7-8점
+  static const Color gardenLegacy5 = Color(0xFFD4EBD4); // 9-10점
 
   // Cell Glow Colors
-  static const Color gardenGlow = Color(0xFFA8E6CF);         // 성취감 glow
-  static const Color todayGlow = Color(0xFFFFE4B5);          // 오늘 강조 (모카신)
+  static const Color gardenGlow = Color(0xFFA8E6CF); // 성취감 glow
+  static const Color todayGlow = Color(0xFFFFE4B5); // 오늘 강조 (모카신)
 
   // Action/Mission Colors (행동 추천 UI)
   static const Color actionAmber = Color(0xFFFFC107);
-  static const Color actionAmberDark = Color(0xFFF9A825);     // amber.shade800 대체
-  static const Color actionStep1 = Color(0xFF4CAF50);         // 즉시 행동 (green)
-  static const Color actionStep2 = Color(0xFFFF9800);         // 오늘 중 (orange)
-  static const Color actionStep3 = Color(0xFF2196F3);         // 이번 주 (blue)
+  static const Color actionAmberDark = Color(0xFFF9A825); // amber.shade800 대체
+  static const Color actionStep1 = Color(0xFF4CAF50); // 즉시 행동 (green)
+  static const Color actionStep2 = Color(0xFFFF9800); // 오늘 중 (orange)
+  static const Color actionStep3 = Color(0xFF2196F3); // 이번 주 (blue)
 
   // SOS Colors (긴급 상황 UI)
-  static const Color sosCardBackground = Color(0xFFFFEBEE);   // red.shade50
-  static const Color sosCardBorder = Color(0xFFEF9A9A);       // red.shade200
-  static const Color sosIcon = Color(0xFFF44336);             // red
-  static const Color sosTextDark = Color(0xFFC62828);         // red.shade800
-  static const Color sosTextDarker = Color(0xFFB71C1C);       // red.shade900
-  static const Color sosButton = Color(0xFFEF5350);           // red.shade400
+  static const Color sosCardBackground = Color(0xFFFFEBEE); // red.shade50
+  static const Color sosCardBorder = Color(0xFFEF9A9A); // red.shade200
+  static const Color sosIcon = Color(0xFFF44336); // red
+  static const Color sosTextDark = Color(0xFFC62828); // red.shade800
+  static const Color sosTextDarker = Color(0xFFB71C1C); // red.shade900
+  static const Color sosButton = Color(0xFFEF5350); // red.shade400
 
   /// 감정 점수에 따른 색상 반환
   static Color getSentimentColor(int score) {

@@ -40,7 +40,11 @@ class ActionItemsSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline, color: AppColors.actionAmber, size: 20),
+              const Icon(
+                Icons.lightbulb_outline,
+                color: AppColors.actionAmber,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 '오늘의 마음 챙김 미션',
@@ -65,78 +69,90 @@ class ActionItemsSection extends StatelessWidget {
   Widget _buildSingleActionItem(BuildContext context, String actionItem) {
     return GestureDetector(
       onTap: () => onActionCheck(!isActionCompleted),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isActionCompleted
-              ? AppColors.success.withValues(alpha: 0.1)
-              : AppColors.actionAmber.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isActionCompleted
-                ? AppColors.success
-                : AppColors.actionAmber.withValues(alpha: 0.5),
-            width: 2,
-          ),
-        ),
-        child: Row(
-          children: [
-            Builder(builder: (context) {
-              final colorScheme = Theme.of(context).colorScheme;
-              return Container(
+      child:
+          AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isActionCompleted ? AppColors.success : colorScheme.surface,
+                  color: isActionCompleted
+                      ? AppColors.success.withValues(alpha: 0.1)
+                      : AppColors.actionAmber.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isActionCompleted ? AppColors.success : AppColors.actionAmber,
+                    color: isActionCompleted
+                        ? AppColors.success
+                        : AppColors.actionAmber.withValues(alpha: 0.5),
                     width: 2,
                   ),
                 ),
-                padding: const EdgeInsets.all(4),
-                child: Icon(
-                  Icons.check,
-                  size: 16,
-                  color: isActionCompleted ? colorScheme.onPrimary : Colors.transparent,
+                child: Row(
+                  children: [
+                    Builder(
+                      builder: (context) {
+                        final colorScheme = Theme.of(context).colorScheme;
+                        return Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isActionCompleted
+                                ? AppColors.success
+                                : colorScheme.surface,
+                            border: Border.all(
+                              color: isActionCompleted
+                                  ? AppColors.success
+                                  : AppColors.actionAmber,
+                              width: 2,
+                            ),
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(
+                            Icons.check,
+                            size: 16,
+                            color: isActionCompleted
+                                ? colorScheme.onPrimary
+                                : Colors.transparent,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '오늘의 작은 미션',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isActionCompleted
+                                  ? AppColors.success
+                                  : AppColors.actionAmberDark,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            actionItem,
+                            style: AppTextStyles.body.copyWith(
+                              fontWeight: FontWeight.w500,
+                              decoration: isActionCompleted
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                              color: isActionCompleted
+                                  ? AppColors.textHint
+                                  : AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            }),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '오늘의 작은 미션',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: isActionCompleted
-                          ? AppColors.success
-                          : AppColors.actionAmberDark,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    actionItem,
-                    style: AppTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w500,
-                      decoration:
-                          isActionCompleted ? TextDecoration.lineThrough : null,
-                      color: isActionCompleted
-                          ? AppColors.textHint
-                          : AppColors.textPrimary,
-                    ),
-                  ),
-                ],
+              )
+              .animate(target: isActionCompleted ? 1 : 0)
+              .shimmer(
+                duration: 400.ms,
+                color: Theme.of(context).colorScheme.onPrimary,
               ),
-            ),
-          ],
-        ),
-      ).animate(target: isActionCompleted ? 1 : 0).shimmer(
-            duration: 400.ms,
-            color: Theme.of(context).colorScheme.onPrimary,
-          ),
     );
   }
 

@@ -41,7 +41,8 @@ class SafetyBlockException implements Exception {
   SafetyBlockException([this.message]);
 
   @override
-  String toString() => 'SafetyBlockException: Content blocked for safety reasons';
+  String toString() =>
+      'SafetyBlockException: Content blocked for safety reasons';
 }
 
 /// Rate Limit (429) 관련 예외
@@ -50,13 +51,11 @@ class RateLimitException implements Exception {
   final String message;
   final Duration? retryAfter;
 
-  RateLimitException({
-    this.message = '요청 제한을 초과했습니다.',
-    this.retryAfter,
-  });
+  RateLimitException({this.message = '요청 제한을 초과했습니다.', this.retryAfter});
 
   @override
-  String toString() => 'RateLimitException: $message (retry after: ${retryAfter?.inSeconds ?? "unknown"}s)';
+  String toString() =>
+      'RateLimitException: $message (retry after: ${retryAfter?.inSeconds ?? "unknown"}s)';
 }
 
 /// 이미지 처리 관련 예외

@@ -31,9 +31,7 @@ void main() {
 
       testWidgets('점수 3-4는 새싹(🌿)을 표시해야 한다', (tester) async {
         final now = DateTime.now();
-        final testData = {
-          DateTime(now.year, now.month, 1): 3.5,
-        };
+        final testData = {DateTime(now.year, now.month, 1): 3.5};
 
         await tester.pumpWidget(
           MaterialApp(
@@ -55,9 +53,7 @@ void main() {
 
       testWidgets('점수 5-6은 꽃봉오리(🌷)를 표시해야 한다', (tester) async {
         final now = DateTime.now();
-        final testData = {
-          DateTime(now.year, now.month, 1): 5.5,
-        };
+        final testData = {DateTime(now.year, now.month, 1): 5.5};
 
         await tester.pumpWidget(
           MaterialApp(
@@ -78,9 +74,7 @@ void main() {
 
       testWidgets('점수 7-8은 꽃(🌸)을 표시해야 한다', (tester) async {
         final now = DateTime.now();
-        final testData = {
-          DateTime(now.year, now.month, 1): 7.5,
-        };
+        final testData = {DateTime(now.year, now.month, 1): 7.5};
 
         await tester.pumpWidget(
           MaterialApp(
@@ -101,9 +95,7 @@ void main() {
 
       testWidgets('점수 9-10은 해바라기(🌻)를 표시해야 한다', (tester) async {
         final now = DateTime.now();
-        final testData = {
-          DateTime(now.year, now.month, 1): 9.5,
-        };
+        final testData = {DateTime(now.year, now.month, 1): 9.5};
 
         await tester.pumpWidget(
           MaterialApp(
@@ -129,10 +121,7 @@ void main() {
           const MaterialApp(
             home: Scaffold(
               body: SingleChildScrollView(
-                child: EmotionCalendar(
-                  activityMap: {},
-                  showLegend: true,
-                ),
+                child: EmotionCalendar(activityMap: {}, showLegend: true),
               ),
             ),
           ),
@@ -147,10 +136,7 @@ void main() {
           const MaterialApp(
             home: Scaffold(
               body: SingleChildScrollView(
-                child: EmotionCalendar(
-                  activityMap: {},
-                  showLegend: false,
-                ),
+                child: EmotionCalendar(activityMap: {}, showLegend: false),
               ),
             ),
           ),
@@ -166,10 +152,7 @@ void main() {
           const MaterialApp(
             home: Scaffold(
               body: SingleChildScrollView(
-                child: EmotionCalendar(
-                  activityMap: {},
-                  showLegend: true,
-                ),
+                child: EmotionCalendar(activityMap: {}, showLegend: true),
               ),
             ),
           ),
@@ -187,9 +170,7 @@ void main() {
           const MaterialApp(
             home: Scaffold(
               body: SingleChildScrollView(
-                child: EmotionCalendar(
-                  activityMap: {},
-                ),
+                child: EmotionCalendar(activityMap: {}),
               ),
             ),
           ),
@@ -477,9 +458,7 @@ void main() {
             darkTheme: ThemeData.dark(useMaterial3: true),
             home: const Scaffold(
               body: SingleChildScrollView(
-                child: EmotionCalendar(
-                  activityMap: {},
-                ),
+                child: EmotionCalendar(activityMap: {}),
               ),
             ),
           ),
@@ -593,9 +572,7 @@ void main() {
         // 1일이 과거인지 확인하여 테스트 날짜 결정
         final testDay = now.day > 1 ? 1 : now.day;
         final testDate = DateTime(now.year, now.month, testDay);
-        final testData = {
-          testDate: 5.0,
-        };
+        final testData = {testDate: 5.0};
 
         await tester.pumpWidget(
           MaterialApp(
@@ -630,12 +607,11 @@ void main() {
         expect(find.byType(EmotionCalendar), findsOneWidget);
       });
 
-      testWidgets('reduceMotion 설정 시 AnimatedBuilder가 사용되지 않아야 한다',
-          (tester) async {
+      testWidgets('reduceMotion 설정 시 AnimatedBuilder가 사용되지 않아야 한다', (
+        tester,
+      ) async {
         final now = DateTime.now();
-        final testData = {
-          DateTime(now.year, now.month, 1): 5.0,
-        };
+        final testData = {DateTime(now.year, now.month, 1): 5.0};
 
         await tester.pumpWidget(
           MediaQuery(
