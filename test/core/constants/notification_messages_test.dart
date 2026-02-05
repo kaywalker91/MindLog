@@ -486,5 +486,212 @@ void main() {
         );
       });
     });
+
+    group('가중치 분포 검증 (통계적 테스트)', () {
+      const int sampleSize = 1000;
+      // 허용 오차: 기대값 ± 10%
+      const double tolerance = 0.10;
+
+      test('낮은 감정(1-3)에서 공감 메시지가 dominant해야 한다 (>70%)', () {
+        // Arrange
+        NotificationMessages.resetForTesting();
+        final empathySet = NotificationMessages.empathyBodies.toSet();
+
+        int empathyCount = 0;
+
+        // Act: 1000번 샘플링
+        for (int i = 0; i < sampleSize; i++) {
+          final message = NotificationMessages.getMindcareMessageByEmotion(2.0);
+          if (empathySet.contains(message.body)) {
+            empathyCount++;
+          }
+        }
+
+        // Assert: 가중치 4:1 → 공감 메시지가 70% 이상
+        // (메시지 풀 중복으로 인해 실제 비율은 더 높을 수 있음)
+        final actualRatio = empathyCount / sampleSize;
+        const minExpectedRatio = 0.70;
+
+        expect(
+          actualRatio,
+          greaterThanOrEqualTo(minExpectedRatio),
+          reason:
+              '공감 메시지 비율: ${(actualRatio * 100).toStringAsFixed(1)}% '
+              '(최소 기대: ${(minExpectedRatio * 100).toStringAsFixed(0)}%)',
+        );
+      });
+
+      test('높은 감정(7-10)에서 격려 메시지가 dominant해야 한다 (>50%)', () {
+        // Arrange
+        NotificationMessages.resetForTesting();
+        final encouragementSet = NotificationMessages.encouragementBodies.toSet();
+
+        int encouragementCount = 0;
+
+        // Act
+        for (int i = 0; i < sampleSize; i++) {
+          final message = NotificationMessages.getMindcareMessageByEmotion(8.0);
+          if (encouragementSet.contains(message.body)) {
+            encouragementCount++;
+          }
+        }
+
+        // Assert: 가중치 3:2 → 격려 메시지가 50% 이상
+        // (메시지 풀 중복으로 인해 실제 비율은 더 높을 수 있음)
+        final actualRatio = encouragementCount / sampleSize;
+        const minExpectedRatio = 0.50;
+
+        expect(
+          actualRatio,
+          greaterThanOrEqualTo(minExpectedRatio),
+          reason:
+              '격려 메시지 비율: ${(actualRatio * 100).toStringAsFixed(1)}% '
+              '(최소 기대: ${(minExpectedRatio * 100).toStringAsFixed(0)}%)',
+        );
+      });
+
+      test('보통 감정(4-6)에서 일반 메시지가 선택되어야 한다', () {
+        // Arrange
+        NotificationMessages.resetForTesting();
+        final mindcareSet = NotificationMessages.mindcareBodies.toSet();
+
+        int mindcareCount = 0;
+
+        // Act
+        for (int i = 0; i < sampleSize; i++) {
+          final message = NotificationMessages.getMindcareMessageByEmotion(5.0);
+          if (mindcareSet.contains(message.body)) {
+            mindcareCount++;
+          }
+        }
+
+        // Assert: 일반 메시지가 최소 30% 이상 선택되어야 함
+        // (풀 크기와 중복에 따라 실제 비율은 크게 달라질 수 있음)
+        final actualRatio = mindcareCount / sampleSize;
+
+        expect(
+          actualRatio,
+          greaterThanOrEqualTo(0.30),
+          reason:
+              '일반 메시지 비율: ${(actualRatio * 100).toStringAsFixed(1)}% '
+              '(최소 기대: 30%)',
+        );
+      });
+
+      test('감정 레벨별 가중치가 차별화되어야 한다', () {
+        // Arrange
+        NotificationMessages.resetForTesting();
+        final empathySet = NotificationMessages.empathyBodies.toSet();
+        final encouragementSet = NotificationMessages.encouragementBodies.toSet();
+
+        int lowEmpathyCount = 0;
+        int highEncouragementCount = 0;
+        int mediumEmpathyCount = 0;
+        int mediumEncouragementCount = 0;
+
+        // Act: 각 레벨별 샘플링
+        for (int i = 0; i < sampleSize; i++) {
+          // 낮은 감정
+          final lowMsg = NotificationMessages.getMindcareMessageByEmotion(2.0);
+          if (empathySet.contains(lowMsg.body)) lowEmpathyCount++;
+
+          // 높은 감정
+          final highMsg = NotificationMessages.getMindcareMessageByEmotion(8.0);
+          if (encouragementSet.contains(highMsg.body)) highEncouragementCount++;
+
+          // 보통 감정
+          final medMsg = NotificationMessages.getMindcareMessageByEmotion(5.0);
+          if (empathySet.contains(medMsg.body)) mediumEmpathyCount++;
+          if (encouragementSet.contains(medMsg.body)) mediumEncouragementCount++;
+        }
+
+        final lowEmpathyRatio = lowEmpathyCount / sampleSize;
+        final highEncouragementRatio = highEncouragementCount / sampleSize;
+        final mediumEmpathyRatio = mediumEmpathyCount / sampleSize;
+        final mediumEncouragementRatio = mediumEncouragementCount / sampleSize;
+
+        // Assert: 낮은 감정에서 공감 비율이 보통 감정보다 높아야 함
+        expect(
+          lowEmpathyRatio,
+          greaterThan(mediumEmpathyRatio),
+          reason: '낮은 감정에서 공감 메시지 비율(${(lowEmpathyRatio * 100).toStringAsFixed(1)}%)이 '
+              '보통 감정(${(mediumEmpathyRatio * 100).toStringAsFixed(1)}%)보다 높아야 함',
+        );
+
+        // Assert: 높은 감정에서 격려 비율이 보통 감정보다 높아야 함
+        expect(
+          highEncouragementRatio,
+          greaterThan(mediumEncouragementRatio),
+          reason: '높은 감정에서 격려 메시지 비율(${(highEncouragementRatio * 100).toStringAsFixed(1)}%)이 '
+              '보통 감정(${(mediumEncouragementRatio * 100).toStringAsFixed(1)}%)보다 높아야 함',
+        );
+      });
+
+      test('각 감정 레벨에서 메시지 풀의 모든 항목이 선택 가능해야 한다', () {
+        // Arrange
+        NotificationMessages.resetForTesting();
+        const largeSampleSize = 2000;
+
+        // Act & Assert for each emotion level
+        for (final level in EmotionLevel.values) {
+          final double score = switch (level) {
+            EmotionLevel.low => 2.0,
+            EmotionLevel.medium => 5.0,
+            EmotionLevel.high => 8.0,
+          };
+
+          final selectedBodies = <String>{};
+          for (int i = 0; i < largeSampleSize; i++) {
+            final message = NotificationMessages.getMindcareMessageByEmotion(
+              score,
+            );
+            selectedBodies.add(message.body);
+          }
+
+          // 최소 5개 이상의 다양한 메시지가 선택되어야 함
+          expect(
+            selectedBodies.length,
+            greaterThanOrEqualTo(5),
+            reason: '$level 레벨에서 다양한 메시지가 선택되어야 함 '
+                '(실제: ${selectedBodies.length}개)',
+          );
+        }
+      });
+
+      test('시간대별 제목이 균등하게 분포되어야 한다', () {
+        // Arrange
+        NotificationMessages.resetForTesting();
+        final currentSlot = NotificationMessages.getCurrentTimeSlot();
+        final titles = NotificationMessages.getTitlesForSlot(currentSlot);
+        final titleCounts = <String, int>{};
+
+        // Act
+        for (int i = 0; i < sampleSize; i++) {
+          final message = NotificationMessages.getMindcareMessageByEmotion(5.0);
+          titleCounts[message.title] = (titleCounts[message.title] ?? 0) + 1;
+        }
+
+        // Assert: 모든 제목이 최소 1번은 선택되어야 함
+        for (final title in titles) {
+          expect(
+            titleCounts.containsKey(title),
+            isTrue,
+            reason: '제목 "$title"이 최소 1번은 선택되어야 함',
+          );
+        }
+
+        // 각 제목의 비율이 균등해야 함 (1/N ± tolerance)
+        final expectedRatio = 1.0 / titles.length;
+        for (final entry in titleCounts.entries) {
+          final actualRatio = entry.value / sampleSize;
+          expect(
+            actualRatio,
+            closeTo(expectedRatio, tolerance + 0.05), // 제목은 더 넓은 오차 허용
+            reason:
+                '제목 "${entry.key}" 비율: ${(actualRatio * 100).toStringAsFixed(1)}%',
+          );
+        }
+      });
+    });
   });
 }

@@ -19,6 +19,26 @@ class FCMService {
   static bool _initialized = false;
   static bool _handlersSetup = false;
 
+  /// 테스트용: 사용자 이름 조회 함수 오버라이드
+  @visibleForTesting
+  static Future<String?> Function()? userNameProvider;
+
+  /// 테스트용: 감정 점수 조회 함수 오버라이드
+  @visibleForTesting
+  static Future<double?> Function()? emotionScoreProvider;
+
+  /// 테스트용: 상태 리셋
+  @visibleForTesting
+  static void resetForTesting() {
+    _initialized = false;
+    _handlersSetup = false;
+    _messaging = null;
+    _fcmToken = null;
+    _onMessageOpened = null;
+    userNameProvider = null;
+    emotionScoreProvider = null;
+  }
+
   static String? get fcmToken => _fcmToken;
 
   /// 초기화
@@ -130,9 +150,38 @@ class FCMService {
       debugPrint('[FCM] Foreground: ${message.notification?.title}');
     }
 
-    // 사용자 정보 및 감정 점수 조회
-    final userName = await _getUserName();
-    final avgScore = await EmotionScoreService.getRecentAverageScore();
+    final result = await buildPersonalizedMessage(
+      serverTitle: message.notification?.title,
+      serverBody: message.notification?.body,
+    );
+
+    await NotificationService.showNotification(
+      title: result.title,
+      body: result.body,
+      payload: message.data.isEmpty ? null : jsonEncode(message.data),
+    );
+  }
+
+  /// FCM 메시지를 감정 기반으로 개인화
+  ///
+  /// [serverTitle] 서버에서 전송된 원본 제목
+  /// [serverBody] 서버에서 전송된 원본 본문
+  ///
+  /// 반환:
+  /// - 감정 데이터 있음: 감정 기반 메시지 + 이름 개인화
+  /// - 감정 데이터 없음: 서버 메시지 + 이름 개인화
+  @visibleForTesting
+  static Future<({String title, String body})> buildPersonalizedMessage({
+    required String? serverTitle,
+    required String? serverBody,
+  }) async {
+    // 테스트 주입 또는 실제 조회
+    final userName = userNameProvider != null
+        ? await userNameProvider!()
+        : await _getUserName();
+    final avgScore = emotionScoreProvider != null
+        ? await emotionScoreProvider!()
+        : await EmotionScoreService.getRecentAverageScore();
 
     String title;
     String body;
@@ -158,20 +207,16 @@ class FCMService {
         debugPrint('[FCM] No emotion data, using server message');
       }
       title = NotificationMessages.applyNamePersonalization(
-        message.notification?.title ?? 'MindLog',
+        serverTitle ?? 'MindLog',
         userName,
       );
       body = NotificationMessages.applyNamePersonalization(
-        message.notification?.body ?? '',
+        serverBody ?? '',
         userName,
       );
     }
 
-    await NotificationService.showNotification(
-      title: title,
-      body: body,
-      payload: message.data.isEmpty ? null : jsonEncode(message.data),
-    );
+    return (title: title, body: body);
   }
 
   /// SharedPreferences에서 사용자 이름 조회

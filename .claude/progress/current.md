@@ -1,9 +1,16 @@
 # Current Progress
 
 ## 현재 작업
-- Phase 3: 감정 패턴 기반 알림 메시지 ✓
+- 마음케어알림 테스트 강화 ✓
 
 ## 완료된 항목 (이번 세션)
+
+### FCM 통합 테스트 (2월 5일)
+- [x] FCMService 리팩토링 (테스트 주입 포인트 추가)
+- [x] `buildPersonalizedMessage` 메서드 추출 (@visibleForTesting)
+- [x] FCM 통합 테스트 16개 추가 (`fcm_service_test.dart`)
+- [x] 가중치 분포 검증 테스트 6개 추가 (`notification_messages_test.dart`)
+- [x] 총 76개 관련 테스트 전체 통과
 
 ### Phase 3: 감정 기반 알림 (2월 4일)
 - [x] EmotionLevel enum 추가 (low/medium/high)
@@ -66,16 +73,16 @@ pubspec.yaml                                         # 수정 (smooth_page_indic
 ## 다음 단계 (우선순위)
 
 ### 필수 (P0)
-1. **커밋 & 푸시**: UI/UX 개선 (온보딩, SOS, 에러 메시지)
+1. **커밋 & 푸시**: FCM 통합 테스트 22개 추가
 2. **디바이스 테스트**: 온보딩 플로우, SOS 카드 트리거, 에러 상태
 
 ### 권장 (P1)
-3. **성취 축하 애니메이션**: Confetti/Lottie (일기 저장, 스트릭 달성)
-4. **분석 완료 첫 문장**: 감정 점수 기반 공감 메시지
+3. **메시지 풀 중복 정리**: `notification_messages.dart` 가중치 정확도 개선
+4. **성취 축하 애니메이션**: Confetti/Lottie (일기 저장, 스트릭 달성)
 
 ### 선택 (P2)
-5. **다크 모드 색상 최적화**
-6. **접근성 테스트 자동화**
+5. **백그라운드 FCM 핸들러 테스트**: `firebaseMessagingBackgroundHandler`
+6. **다크 모드 색상 최적화**
 
 ## 검증 방법
 
@@ -94,6 +101,6 @@ pubspec.yaml                                         # 수정 (smooth_page_indic
 - SOS 카드 테스트 시 실제 전화 발신 주의
 
 ## 마지막 업데이트
-- 날짜: 2026-02-04
-- 세션: emotion-notification-patterns
-- 작업: Phase 3 감정 기반 알림 완료 + TIL 메모리 저장
+- 날짜: 2026-02-05
+- 세션: fcm-integration-test
+- 작업: FCM 통합 테스트 22개 추가 + 가중치 분포 검증
