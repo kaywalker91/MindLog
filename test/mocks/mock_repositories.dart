@@ -2,6 +2,7 @@ import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
+import 'package:mindlog/domain/entities/self_encouragement_message.dart';
 import 'package:mindlog/domain/entities/statistics.dart';
 import 'package:mindlog/domain/repositories/diary_repository.dart';
 import 'package:mindlog/domain/repositories/settings_repository.dart';
@@ -312,6 +313,108 @@ class MockSettingsRepository implements SettingsRepository {
       throw failureToThrow ?? const Failure.cache(message: '마지막 앱 버전 저장 실패');
     }
     _lastSeenAppVersion = version;
+  }
+
+  // Self Encouragement Messages (stub implementations)
+  @override
+  Future<List<SelfEncouragementMessage>> getSelfEncouragementMessages() async {
+    return [];
+  }
+
+  @override
+  Future<void> addSelfEncouragementMessage(
+    SelfEncouragementMessage message,
+  ) async {}
+
+  @override
+  Future<void> updateSelfEncouragementMessage(
+    SelfEncouragementMessage message,
+  ) async {}
+
+  @override
+  Future<void> deleteSelfEncouragementMessage(String messageId) async {}
+
+  @override
+  Future<void> reorderSelfEncouragementMessages(
+    List<String> orderedIds,
+  ) async {}
+}
+
+/// Mock SettingsRepository with Self Encouragement Messages support
+class MockSettingsRepositoryWithMessages extends MockSettingsRepository {
+  List<SelfEncouragementMessage> messages = [];
+  final List<SelfEncouragementMessage> addedMessages = [];
+  final List<SelfEncouragementMessage> updatedMessages = [];
+  final List<String> deletedMessageIds = [];
+
+  @override
+  void reset() {
+    super.reset();
+    messages.clear();
+    addedMessages.clear();
+    updatedMessages.clear();
+    deletedMessageIds.clear();
+  }
+
+  @override
+  Future<List<SelfEncouragementMessage>> getSelfEncouragementMessages() async {
+    if (shouldThrowOnGet) {
+      throw failureToThrow ?? const Failure.cache(message: '메시지 조회 실패');
+    }
+    return List.from(messages);
+  }
+
+  @override
+  Future<void> addSelfEncouragementMessage(
+    SelfEncouragementMessage message,
+  ) async {
+    if (shouldThrowOnSet) {
+      throw failureToThrow ?? const Failure.cache(message: '메시지 추가 실패');
+    }
+    addedMessages.add(message);
+    messages.add(message);
+  }
+
+  @override
+  Future<void> updateSelfEncouragementMessage(
+    SelfEncouragementMessage message,
+  ) async {
+    if (shouldThrowOnSet) {
+      throw failureToThrow ?? const Failure.cache(message: '메시지 수정 실패');
+    }
+    updatedMessages.add(message);
+    final index = messages.indexWhere((m) => m.id == message.id);
+    if (index != -1) {
+      messages[index] = message;
+    }
+  }
+
+  @override
+  Future<void> deleteSelfEncouragementMessage(String messageId) async {
+    if (shouldThrowOnSet) {
+      throw failureToThrow ?? const Failure.cache(message: '메시지 삭제 실패');
+    }
+    deletedMessageIds.add(messageId);
+    messages.removeWhere((m) => m.id == messageId);
+  }
+
+  @override
+  Future<void> reorderSelfEncouragementMessages(
+    List<String> orderedIds,
+  ) async {
+    if (shouldThrowOnSet) {
+      throw failureToThrow ?? const Failure.cache(message: '메시지 순서 변경 실패');
+    }
+    // Reorder messages according to orderedIds
+    final reordered = <SelfEncouragementMessage>[];
+    for (final id in orderedIds) {
+      final message = messages.firstWhere(
+        (m) => m.id == id,
+        orElse: () => throw Exception('Message not found'),
+      );
+      reordered.add(message);
+    }
+    messages = reordered;
   }
 }
 

@@ -101,7 +101,32 @@ GROQ_API_KEY=your_key ./scripts/run.sh run
 
 ## 🛠 변경 사항 (Changelog)
 
-### v1.4.34 (Current)
+### v1.4.35 (Current)
+*   **Cheer Me - 나만의 응원 메시지 기능:**
+    *   **SelfEncouragementMessage 엔티티 신규:** 사용자가 직접 작성한 응원 메시지 관리 (최대 10개, 각 100자)
+    *   **메시지 로테이션 모드:** `MessageRotationMode` enum으로 random(무작위) / sequential(순차) 선택 가능
+    *   **응원 메시지 관리 화면:** `SelfEncouragementScreen`에서 CRUD 작업 및 미리보기 제공
+    *   **NotificationSettings 확장:** `rotationMode`, `lastDisplayedIndex` 필드 추가
+    *   **SettingsRepository 확장:** 응원 메시지 저장/조회/삭제 메서드 추가
+*   **공감 메시지(EmpathyMessage) UI 개선:**
+    *   **인라인 확장 패턴:** 3줄 이상 메시지는 탭하면 `AnimatedCrossFade`로 부드럽게 확장
+    *   **TextPainter 기반 오버플로우 감지:** `didExceedMaxLines`로 확장 필요 여부 동적 판단
+    *   **햅틱 피드백:** `HapticFeedback.lightImpact()` 적용으로 터치 반응 강화
+    *   **"접기" 버튼:** 확장 상태에서 하단에 접기 버튼 표시
+*   **분석 결과 카드 개선:**
+    *   **EmotionInsightCard:** 더보기 힌트 텍스트 및 chevron 아이콘 추가
+    *   **AnalysisDetailSheet:** 바텀시트 내 섹션별 구분선 및 레이아웃 정리
+    *   **ResultCard 전체 탭 영역:** InkWell 적용으로 ripple 효과 추가
+*   **설정 화면 구조 개편:**
+    *   **Cheer Me 카드 신규:** 일기 리마인더 → 응원 메시지 관리, 메시지 순서, 알림 시간으로 구성
+    *   **마음 케어 알림 카드 분리:** FCM 토픽 구독/해제를 별도 카드로 분리
+    *   **Provider select() 최적화:** `selfEncouragementProvider.select()`로 메시지 개수만 watch
+*   **Clean Architecture 확장:**
+    *   **Domain Layer:** `SelfEncouragementMessage` 엔티티, `AddSelfEncouragementUseCase`, `GetSelfEncouragementMessagesUseCase` 등 UseCase 추가
+    *   **Data Layer:** `PreferencesLocalDataSource`에 JSON 직렬화 기반 메시지 저장 구현
+    *   **Presentation Layer:** `SelfEncouragementController` AsyncNotifier 기반 상태 관리
+
+### v1.4.34
 *   **CI/CD 파이프라인 최적화:**
     *   **캐싱 전략 도입:** pub cache, generated code 캐싱으로 빌드 시간 단축
     *   **Setup Job 분리:** 의존성 설치를 별도 job으로 분리하여 병렬 실행 효율화

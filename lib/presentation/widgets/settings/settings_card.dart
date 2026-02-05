@@ -62,3 +62,27 @@ class SettingsDivider extends StatelessWidget {
     );
   }
 }
+
+/// 설정 카드 내 서브그룹 간 구분선
+///
+/// [SettingsDivider]보다 강조된 구분선으로, 카드 내에서
+/// 논리적으로 다른 기능 그룹을 시각적으로 분리합니다.
+class SettingsGroupDivider extends StatelessWidget {
+  const SettingsGroupDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        indent: 0,
+        endIndent: 0,
+        color: colorScheme.outlineVariant,
+      ),
+    );
+  }
+}

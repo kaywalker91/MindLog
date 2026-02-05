@@ -1,29 +1,29 @@
 {
-  "latestVersion": "1.4.29",
+  "latestVersion": "1.4.35",
   "minimumVersion": "1.4.0",
   "releaseNotes": {
     "ko": {
-      "title": "v1.4.29 업데이트 안내",
+      "title": "v1.4.35 업데이트 안내",
       "features": [
-        "통계 화면이 더 빠르고 가벼워졌어요! 요약, 히트맵, 차트, 키워드 섹션이 각각 분리되었습니다.",
-        "Android 14 이상에서도 알림이 안정적으로 동작해요. 권한 상태에 따라 자동으로 최적 모드로 전환됩니다.",
-        "화면 전환이 더 자연스러워졌어요. 모든 뒤로가기가 통일된 방식으로 동작합니다."
+        "나만의 응원 메시지를 등록할 수 있어요! 'Cheer Me' 기능으로 매일 내가 쓴 응원을 받아보세요.",
+        "메시지 순서를 선택할 수 있어요. 무작위 또는 순차적으로 응원 메시지를 받아보세요.",
+        "공감 메시지가 더 깔끔해졌어요. 긴 메시지는 탭하면 부드럽게 펼쳐져요."
       ],
       "improvements": [
-        "앱 라우터 테스트가 추가되어 안정성이 향상되었어요.",
-        "코드가 모듈화되어 유지보수하기 쉬워졌어요."
+        "분석 결과 카드 디자인이 개선되어 더 읽기 쉬워졌어요.",
+        "설정 화면 구조가 개편되어 알림 관련 설정을 한눈에 볼 수 있어요."
       ]
     },
     "en": {
-      "title": "v1.4.29 Update",
+      "title": "v1.4.35 Update",
       "features": [
-        "Statistics screen is now faster and lighter! Summary, heatmap, chart, and keyword sections are now separated.",
-        "Notifications work reliably on Android 14+. Automatically switches to optimal mode based on permission status.",
-        "Screen transitions are smoother. All back navigation now works consistently."
+        "Register your own encouragement messages! Receive daily motivation with the 'Cheer Me' feature.",
+        "Choose message order. Receive encouragement messages randomly or sequentially.",
+        "Empathy messages are cleaner. Tap to smoothly expand long messages."
       ],
       "improvements": [
-        "App router tests added for improved stability.",
-        "Codebase modularized for easier maintenance."
+        "Analysis result card design improved for better readability.",
+        "Settings screen reorganized for easier notification management."
       ]
     }
   },

@@ -124,11 +124,7 @@ class _ResultCardState extends State<ResultCard> {
             // 2. 감정 범주 + 유발 요인
             if (analysisResult.emotionCategory != null ||
                 analysisResult.emotionTrigger != null) ...[
-              EmotionInsightCard(
-                result: analysisResult,
-                onTapExpand: () =>
-                    AnalysisDetailSheet.show(context, analysisResult),
-              ),
+              EmotionInsightCard(result: analysisResult),
               const SizedBox(height: 24),
             ],
 
@@ -136,12 +132,8 @@ class _ResultCardState extends State<ResultCard> {
             KeywordsSection(keywords: analysisResult.keywords),
             const SizedBox(height: 24),
 
-            // 4. 공감 메시지 (인용구 스타일)
-            EmpathyMessage(
-              message: analysisResult.empathyMessage,
-              onTapExpand: () =>
-                  AnalysisDetailSheet.show(context, analysisResult),
-            ),
+            // 4. 공감 메시지 (인용구 스타일, 인라인 확장)
+            EmpathyMessage(message: analysisResult.empathyMessage),
             const SizedBox(height: 24),
 
             // 5. 단계별 추천 행동

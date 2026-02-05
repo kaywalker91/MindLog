@@ -164,11 +164,13 @@ void main() {
         final args = call.arguments as Map;
 
         expect(args['id'], 1001);
-        // 랜덤 메시지이므로 유효한 목록 내 값인지 확인
+        // title 파라미터가 없으면 기본값 'Cheer Me' 사용
+        expect(args['title'], 'Cheer Me');
+        // body는 랜덤 메시지이므로 유효한 목록 내 값인지 확인
         expect(
-          NotificationMessages.reminderTitles,
-          contains(args['title']),
-          reason: 'title should be one of the reminder titles',
+          NotificationMessages.reminderBodies,
+          contains(args['body']),
+          reason: 'body should be one of the reminder bodies',
         );
         expect(args['payload'], payload);
       } catch (_) {

@@ -1,5 +1,6 @@
 import '../../core/constants/ai_character.dart';
 import '../../domain/entities/notification_settings.dart';
+import '../../domain/entities/self_encouragement_message.dart';
 import '../../domain/repositories/settings_repository.dart';
 import '../datasources/local/preferences_local_datasource.dart';
 import 'repository_failure_handler.dart';
@@ -110,6 +111,54 @@ class SettingsRepositoryImpl
     return guardFailure(
       '마지막 앱 버전 저장 실패',
       () => _localDataSource.setLastSeenAppVersion(version),
+    );
+  }
+
+  // === 개인 응원 메시지 관리 ===
+
+  @override
+  Future<List<SelfEncouragementMessage>> getSelfEncouragementMessages() async {
+    return guardFailure(
+      '응원 메시지 조회 실패',
+      _localDataSource.getSelfEncouragementMessages,
+    );
+  }
+
+  @override
+  Future<void> addSelfEncouragementMessage(
+    SelfEncouragementMessage message,
+  ) async {
+    return guardFailure(
+      '응원 메시지 추가 실패',
+      () => _localDataSource.addSelfEncouragementMessage(message),
+    );
+  }
+
+  @override
+  Future<void> updateSelfEncouragementMessage(
+    SelfEncouragementMessage message,
+  ) async {
+    return guardFailure(
+      '응원 메시지 수정 실패',
+      () => _localDataSource.updateSelfEncouragementMessage(message),
+    );
+  }
+
+  @override
+  Future<void> deleteSelfEncouragementMessage(String messageId) async {
+    return guardFailure(
+      '응원 메시지 삭제 실패',
+      () => _localDataSource.deleteSelfEncouragementMessage(messageId),
+    );
+  }
+
+  @override
+  Future<void> reorderSelfEncouragementMessages(
+    List<String> orderedIds,
+  ) async {
+    return guardFailure(
+      '응원 메시지 순서 변경 실패',
+      () => _localDataSource.reorderSelfEncouragementMessages(orderedIds),
     );
   }
 }

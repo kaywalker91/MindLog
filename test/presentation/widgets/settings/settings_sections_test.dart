@@ -7,6 +7,7 @@ import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/presentation/providers/app_info_provider.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
+import 'package:mindlog/presentation/widgets/settings/settings_card.dart';
 import 'package:mindlog/presentation/widgets/settings/settings_sections.dart';
 
 import '../../../mocks/mock_repositories.dart';
@@ -277,8 +278,10 @@ void main() {
 
       // Assert
       expect(find.text('알림'), findsOneWidget);
-      expect(find.text('일기 리마인더'), findsOneWidget);
-      expect(find.text('리마인더 시간'), findsOneWidget);
+      expect(find.text('Cheer Me'), findsOneWidget);
+      expect(find.text('응원 메시지 관리'), findsOneWidget);
+      expect(find.text('메시지 순서'), findsOneWidget);
+      expect(find.text('알림 시간'), findsOneWidget);
       expect(find.text('테스트 알림 보내기'), findsOneWidget);
       expect(find.text('마음 케어 알림'), findsOneWidget);
     });
@@ -311,6 +314,92 @@ void main() {
       final switchFinder = find.byType(Switch).first;
       final switchWidget = tester.widget<Switch>(switchFinder);
       expect(switchWidget.value, false);
+    });
+
+    testWidgets('알림 섹션이 2개의 SettingsCard로 분리되어 렌더링되어야 한다', (tester) async {
+      // Arrange
+      mockSettingsRepo.setMockNotificationSettings(
+        NotificationSettings.defaults(),
+      );
+
+      // Act
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(child: NotificationSection()),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Assert - 2개의 카드가 존재 (Cheer Me + 마음 케어 알림)
+      final cardFinder = find.byType(SettingsCard);
+      expect(cardFinder, findsNWidgets(2));
+    });
+
+    testWidgets('마음케어 비활성화 시 테스트 알림이 비활성화되어야 한다', (tester) async {
+      // Arrange - 마음케어 비활성화 상태
+      mockSettingsRepo.setMockNotificationSettings(
+        const NotificationSettings(
+          isReminderEnabled: true,
+          reminderHour: 21,
+          reminderMinute: 0,
+          isMindcareTopicEnabled: false,
+        ),
+      );
+
+      // Act
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(child: NotificationSection()),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Assert - 테스트 알림 항목이 존재
+      final testAlertText = find.text('테스트 알림 보내기');
+      expect(testAlertText, findsOneWidget);
+
+      // 테스트 알림 항목의 Text 위젯 확인 - 비활성화 시 색상이 적용되어 있음
+      final textWidget = tester.widget<Text>(testAlertText);
+      // 비활성화 시 titleColor(outline)가 적용됨 → style.color가 null이 아님
+      expect(textWidget.style?.color, isNotNull);
+    });
+
+    testWidgets('마음케어 활성화 시 테스트 알림이 활성화되어야 한다', (tester) async {
+      // Arrange - 마음케어 활성화 상태
+      mockSettingsRepo.setMockNotificationSettings(
+        const NotificationSettings(
+          isReminderEnabled: true,
+          reminderHour: 21,
+          reminderMinute: 0,
+          isMindcareTopicEnabled: true,
+        ),
+      );
+
+      // Act
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(child: NotificationSection()),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Assert - 테스트 알림 항목이 존재
+      expect(find.text('테스트 알림 보내기'), findsOneWidget);
     });
   });
 

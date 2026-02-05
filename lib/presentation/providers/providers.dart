@@ -9,6 +9,7 @@ export 'diary_analysis_controller.dart';
 export 'diary_list_controller.dart';
 export 'ai_character_controller.dart';
 export 'notification_settings_controller.dart';
+export 'self_encouragement_controller.dart';
 export 'update_state_provider.dart';
 export 'update_provider.dart';
 export 'app_info_provider.dart';

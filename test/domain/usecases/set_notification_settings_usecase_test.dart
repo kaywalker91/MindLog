@@ -19,7 +19,7 @@ void main() {
   });
 
   group('SetNotificationSettingsUseCase', () {
-    group('execute', () {
+    group('정상 저장', () {
       test('Repository에 알림 설정을 저장해야 한다', () async {
         // Arrange
         const settings = NotificationSettings(
@@ -91,27 +91,6 @@ void main() {
         expect(savedSettings.isMindcareTopicEnabled, true);
       });
 
-      test('Repository 에러 시 예외를 전파해야 한다', () async {
-        // Arrange
-        mockRepository.shouldThrowOnSet = true;
-        mockRepository.failureToThrow = const Failure.cache(
-          message: '알림 설정 저장 실패',
-        );
-
-        const settings = NotificationSettings(
-          isReminderEnabled: true,
-          reminderHour: 21,
-          reminderMinute: 0,
-          isMindcareTopicEnabled: false,
-        );
-
-        // Act & Assert
-        await expectLater(
-          useCase.execute(settings),
-          throwsA(isA<CacheFailure>()),
-        );
-      });
-
       test('연속 설정 변경이 올바르게 동작해야 한다', () async {
         // Arrange
         const settings1 = NotificationSettings(
@@ -138,7 +117,9 @@ void main() {
         expect(savedSettings.reminderMinute, 30);
         expect(savedSettings.isMindcareTopicEnabled, true);
       });
+    });
 
+    group('에지 케이스', () {
       test('자정 시간 설정을 저장해야 한다', () async {
         // Arrange
         const settings = NotificationSettings(
@@ -155,6 +136,29 @@ void main() {
         final savedSettings = await mockRepository.getNotificationSettings();
         expect(savedSettings.reminderHour, 0);
         expect(savedSettings.reminderMinute, 0);
+      });
+    });
+
+    group('에러 처리', () {
+      test('Repository 에러 시 예외를 전파해야 한다', () async {
+        // Arrange
+        mockRepository.shouldThrowOnSet = true;
+        mockRepository.failureToThrow = const Failure.cache(
+          message: '알림 설정 저장 실패',
+        );
+
+        const settings = NotificationSettings(
+          isReminderEnabled: true,
+          reminderHour: 21,
+          reminderMinute: 0,
+          isMindcareTopicEnabled: false,
+        );
+
+        // Act & Assert
+        await expectLater(
+          useCase.execute(settings),
+          throwsA(isA<CacheFailure>()),
+        );
       });
     });
   });

@@ -61,8 +61,8 @@ class NotificationService {
   static Future<void> _createNotificationChannel() async {
     const channel = AndroidNotificationChannel(
       'mindlog_reminders',
-      '일기 작성 리마인더',
-      description: '매일 일기 작성을 알려드립니다',
+      'Cheer Me',
+      description: '내가 작성한 응원 메시지를 알려드립니다',
       importance: Importance.high,
     );
 
@@ -97,10 +97,12 @@ class NotificationService {
     );
   }
 
-  /// 매일 반복 리마인더 스케줄링
+  /// 매일 반복 응원 메시지 스케줄링
   ///
   /// [hour] 시간 (0-23)
   /// [minute] 분 (0-59)
+  /// [title] 알림 제목 (사용자 지정 또는 기본값)
+  /// [body] 알림 본문 (사용자가 작성한 응원 메시지)
   /// [payload] 알림 클릭 시 전달할 데이터
   /// [scheduleMode] Android 스케줄 모드 (기본: exactAllowWhileIdle)
   ///
@@ -110,6 +112,8 @@ class NotificationService {
   static Future<bool> scheduleDailyReminder({
     required int hour,
     required int minute,
+    String? title,
+    String? body,
     String? payload,
     AndroidScheduleMode scheduleMode = AndroidScheduleMode.exactAllowWhileIdle,
   }) async {
@@ -130,19 +134,21 @@ class NotificationService {
         scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
 
-      // 매번 다른 메시지로 사용자 참여 유도
-      final message = NotificationMessages.getRandomReminderMessage();
+      // 사용자 메시지가 없으면 기본 메시지 사용 (하위 호환성)
+      final notificationTitle = title ?? 'Cheer Me';
+      final notificationBody =
+          body ?? NotificationMessages.getRandomReminderMessage().body;
 
       await _notifications.zonedSchedule(
         _dailyReminderId,
-        message.title,
-        message.body,
+        notificationTitle,
+        notificationBody,
         scheduledDate,
         const NotificationDetails(
           android: AndroidNotificationDetails(
             'mindlog_reminders',
-            '일기 작성 리마인더',
-            channelDescription: '매일 일기 작성을 알려드립니다',
+            'Cheer Me',
+            channelDescription: '내가 작성한 응원 메시지를 알려드립니다',
             importance: Importance.high,
             priority: Priority.high,
             enableVibration: true,
@@ -170,7 +176,7 @@ class NotificationService {
           '[Notification] Daily reminder scheduled for: $scheduledDate',
         );
         debugPrint(
-          '[Notification] Message: "${message.title}" / "${message.body}"',
+          '[Notification] Message: "$notificationTitle" / "$notificationBody"',
         );
         debugPrint('[Notification] Schedule mode: $scheduleMode');
         debugPrint('[Notification] Current time: $now');

@@ -101,6 +101,37 @@ class AiCharacterTrailing extends StatelessWidget {
   }
 }
 
+/// 모드 선택 trailing 위젯
+class ModeTrailing extends StatelessWidget {
+  final String label;
+  final bool enabled;
+
+  const ModeTrailing({super.key, required this.label, required this.enabled});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textColor = enabled ? colorScheme.onSurfaceVariant : colorScheme.outline;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: textColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        if (enabled) ...[
+          const SizedBox(width: 4),
+          Icon(Icons.chevron_right, color: colorScheme.outline),
+        ],
+      ],
+    );
+  }
+}
+
 /// 사용자 이름 trailing 위젯
 class UserNameTrailing extends StatelessWidget {
   final String? userName;

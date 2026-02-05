@@ -19,7 +19,7 @@ void main() {
   });
 
   group('GetNotificationSettingsUseCase', () {
-    group('execute', () {
+    group('정상 조회', () {
       test('Repository에서 알림 설정을 반환해야 한다', () async {
         // Arrange
         final settings = NotificationSettings.defaults();
@@ -85,7 +85,9 @@ void main() {
         // Assert
         expect(result.isMindcareTopicEnabled, true);
       });
+    });
 
+    group('에러 처리', () {
       test('Repository 에러 시 예외를 전파해야 한다', () async {
         // Arrange
         mockRepository.shouldThrowOnGet = true;

@@ -9,6 +9,7 @@ import 'package:mindlog/presentation/screens/diary_screen.dart';
 import 'package:mindlog/presentation/screens/main_screen.dart';
 import 'package:mindlog/presentation/screens/onboarding_screen.dart';
 import 'package:mindlog/presentation/screens/privacy_policy_screen.dart';
+import 'package:mindlog/presentation/screens/self_encouragement_screen.dart';
 import 'package:mindlog/presentation/screens/settings_screen.dart';
 import 'package:mindlog/presentation/screens/splash_screen.dart';
 import 'package:mindlog/presentation/screens/statistics_screen.dart';
@@ -26,6 +27,7 @@ class AppRoutes {
   static const String diaryDetail = '/diary/:id';
   static const String statistics = '/statistics';
   static const String settings = '/settings';
+  static const String selfEncouragement = '/settings/self-encouragement';
   static const String privacyPolicy = '/privacy-policy';
   static const String changelog = '/changelog';
 }
@@ -103,6 +105,13 @@ class AppRouter {
         path: AppRoutes.settings,
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+
+      // 개인 응원 메시지 관리
+      GoRoute(
+        path: AppRoutes.selfEncouragement,
+        name: 'selfEncouragement',
+        builder: (context, state) => const SelfEncouragementScreen(),
       ),
 
       // 개인정보 처리방침
@@ -210,4 +219,7 @@ extension AppRouterExtension on BuildContext {
         : '?version=$version';
     push('${AppRoutes.changelog}$query');
   }
+
+  /// 개인 응원 메시지 관리 화면으로 이동
+  void pushSelfEncouragement() => push(AppRoutes.selfEncouragement);
 }

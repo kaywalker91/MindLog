@@ -40,10 +40,10 @@ void main() {
       expect(AppRouter.router, isA<GoRouter>());
     });
 
-    test('should have 9 routes defined', () {
-      // 최상위 라우트 개수 확인 (onboarding 추가로 9개)
+    test('should have 10 routes defined', () {
+      // 최상위 라우트 개수 확인 (selfEncouragement 추가로 10개)
       final routes = AppRouter.router.configuration.routes;
-      expect(routes.length, 9);
+      expect(routes.length, 10);
     });
 
     test('routes should contain GoRoute instances', () {
@@ -68,6 +68,7 @@ void main() {
       expect(paths, contains(AppRoutes.diaryDetail));
       expect(paths, contains(AppRoutes.statistics));
       expect(paths, contains(AppRoutes.settings));
+      expect(paths, contains(AppRoutes.selfEncouragement));
       expect(paths, contains(AppRoutes.privacyPolicy));
       expect(paths, contains(AppRoutes.changelog));
     });
@@ -85,6 +86,7 @@ void main() {
       expect(names, contains('diaryDetail'));
       expect(names, contains('statistics'));
       expect(names, contains('settings'));
+      expect(names, contains('selfEncouragement'));
       expect(names, contains('privacyPolicy'));
       expect(names, contains('changelog'));
     });

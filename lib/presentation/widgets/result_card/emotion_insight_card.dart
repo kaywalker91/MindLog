@@ -4,16 +4,15 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../domain/entities/diary.dart';
 import '../../extensions/emotion_emoji_extension.dart';
-import '../common/expandable_text.dart';
 
 /// 감정 인사이트 카드 (감정 범주 + 유발 요인)
+///
+/// 감정 분류와 유발 요인을 표시하는 정보 카드입니다.
+/// 탭 인터랙션 없이 정보만 표시합니다.
 class EmotionInsightCard extends StatelessWidget {
   final AnalysisResult result;
 
-  /// 탭 시 전체 분석 내용을 보여주는 시트를 열기 위한 콜백
-  final VoidCallback? onTapExpand;
-
-  const EmotionInsightCard({super.key, required this.result, this.onTapExpand});
+  const EmotionInsightCard({super.key, required this.result});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +20,7 @@ class EmotionInsightCard extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final content = Container(
+    return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.statsPrimary.withValues(alpha: 0.05),
@@ -70,6 +69,7 @@ class EmotionInsightCard extends StatelessWidget {
           if (result.emotionTrigger != null) ...[
             if (result.emotionCategory != null) const SizedBox(height: 16),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   result.emotionTrigger!.categoryEmoji,
@@ -86,11 +86,12 @@ class EmotionInsightCard extends StatelessWidget {
                           color: AppColors.statsTextSecondary,
                         ),
                       ),
-                      ExpandableText(
-                        text: result.emotionTrigger!.description,
-                        collapsedMaxLines: 3,
+                      const SizedBox(height: 4),
+                      Text(
+                        result.emotionTrigger!.description,
                         style: AppTextStyles.body.copyWith(
                           color: AppColors.statsTextPrimary,
+                          height: 1.5,
                         ),
                       ),
                     ],
@@ -101,20 +102,9 @@ class EmotionInsightCard extends StatelessWidget {
           ],
         ],
       ),
-    );
-
-    // onTapExpand 콜백이 있으면 GestureDetector로 래핑
-    final widget = onTapExpand != null
-        ? GestureDetector(
-            onTap: onTapExpand,
-            behavior: HitTestBehavior.opaque,
-            child: content,
-          )
-        : content;
-
-    return widget
+    )
         .animate()
         .fadeIn(delay: 100.ms, duration: 500.ms)
-        .slideX(begin: 0.1);
+        .slideY(begin: 0.05);
   }
 }

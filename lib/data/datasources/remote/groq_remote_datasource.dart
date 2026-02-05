@@ -293,8 +293,9 @@ class GroqRemoteDataSource {
         throw ApiException(message: '응답 파싱 실패');
       }
     } catch (e) {
-      if (e is ApiException || e is NetworkException || e is RateLimitException)
+      if (e is ApiException || e is NetworkException || e is RateLimitException) {
         rethrow;
+      }
       throw ApiException(message: 'Groq Vision 분석 중 오류: $e');
     }
   }
@@ -405,8 +406,9 @@ class GroqRemoteDataSource {
         throw ApiException(message: '응답 파싱 실패');
       }
     } catch (e) {
-      if (e is ApiException || e is NetworkException || e is RateLimitException)
+      if (e is ApiException || e is NetworkException || e is RateLimitException) {
         rethrow;
+      }
       throw ApiException(message: 'Groq 분석 중 오류: $e');
     }
   }

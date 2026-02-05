@@ -6,9 +6,12 @@ import '../../../core/services/analytics_service.dart';
 import '../../../core/services/notification_permission_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../domain/entities/notification_settings.dart';
+import '../../../domain/entities/self_encouragement_message.dart';
 import '../../providers/providers.dart';
+import '../../router/app_router.dart';
 import '../mindcare_welcome_dialog.dart';
 import 'permission_dialogs.dart';
+import 'message_rotation_mode_sheet.dart';
 import 'settings_card.dart';
 import 'settings_item.dart';
 import 'settings_trailing.dart';
@@ -26,17 +29,27 @@ class NotificationSection extends ConsumerWidget {
         notificationSettingsAsync.valueOrNull ??
         NotificationSettings.defaults();
     final notificationsReady = !notificationSettingsAsync.isLoading;
+    // PERF-004: select로 필요한 값만 watch하여 불필요한 리빌드 방지
+    final messageCount = ref.watch(
+      selfEncouragementProvider.select((value) => value.valueOrNull?.length ?? 0),
+    );
+
+    // 테스트 알림은 마음케어 활성화 상태에서만 발송 가능
+    final testNotificationEnabled =
+        notificationsReady && notificationSettings.isMindcareTopicEnabled;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SettingsSectionHeader(title: '알림'),
+
+        // === Cheer Me 카드 ===
         SettingsCard(
           children: [
             SettingsToggleItem(
               icon: Icons.notifications_active_outlined,
-              title: '일기 리마인더',
-              subtitle: '매일 지정한 시간에 일기 작성을 알려드려요.',
+              title: 'Cheer Me',
+              subtitle: '매일 지정한 시간에 나만의 응원 메시지를 알려드려요.',
               value: notificationSettings.isReminderEnabled,
               enabled: notificationsReady,
               onChanged: (value) {
@@ -45,8 +58,59 @@ class NotificationSection extends ConsumerWidget {
             ),
             const SettingsDivider(),
             SettingsItem(
+              icon: Icons.edit_note_outlined,
+              title: '응원 메시지 관리',
+              titleColor: notificationSettings.isReminderEnabled
+                  ? null
+                  : colorScheme.outline,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '$messageCount개',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: notificationSettings.isReminderEnabled
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.outline,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right,
+                    color: notificationSettings.isReminderEnabled
+                        ? colorScheme.onSurfaceVariant
+                        : colorScheme.outline,
+                  ),
+                ],
+              ),
+              onTap: notificationSettings.isReminderEnabled
+                  ? () => context.pushSelfEncouragement()
+                  : null,
+            ),
+            const SettingsDivider(),
+            SettingsItem(
+              icon: Icons.shuffle_outlined,
+              title: '메시지 순서',
+              titleColor: notificationSettings.isReminderEnabled
+                  ? null
+                  : colorScheme.outline,
+              trailing: ModeTrailing(
+                label: notificationSettings.rotationMode == MessageRotationMode.random
+                    ? '무작위'
+                    : '순차',
+                enabled: notificationSettings.isReminderEnabled,
+              ),
+              onTap: notificationSettings.isReminderEnabled
+                  ? () => MessageRotationModeSheet.show(
+                      context,
+                      selected: notificationSettings.rotationMode,
+                    )
+                  : null,
+            ),
+            const SettingsDivider(),
+            SettingsItem(
               icon: Icons.schedule_outlined,
-              title: '리마인더 시간',
+              title: '알림 시간',
               titleColor: notificationSettings.isReminderEnabled
                   ? null
                   : colorScheme.outline,
@@ -64,22 +128,14 @@ class NotificationSection extends ConsumerWidget {
                   ? null
                   : () => _pickReminderTime(context, ref, notificationSettings),
             ),
-            const SettingsDivider(),
-            SettingsItem(
-              icon: Icons.send_outlined,
-              title: '테스트 알림 보내기',
-              titleColor: notificationsReady ? null : colorScheme.outline,
-              trailing: Icon(
-                Icons.chevron_right,
-                color: notificationsReady
-                    ? colorScheme.onSurfaceVariant
-                    : colorScheme.outline,
-              ),
-              onTap: notificationsReady
-                  ? () => _sendTestNotification(context)
-                  : null,
-            ),
-            const SettingsDivider(),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // === 마음 케어 알림 카드 ===
+        SettingsCard(
+          children: [
             // v1.4.35: 감정 기반 개인화 기능 설명 반영
             // 관련: NotificationMessages.getMindcareMessageByEmotion()
             SettingsToggleItem(
@@ -91,6 +147,21 @@ class NotificationSection extends ConsumerWidget {
               onChanged: (value) {
                 unawaited(_handleMindcareToggle(context, ref, value));
               },
+            ),
+            const SettingsDivider(),
+            SettingsItem(
+              icon: Icons.send_outlined,
+              title: '테스트 알림 보내기',
+              titleColor: testNotificationEnabled ? null : colorScheme.outline,
+              trailing: Icon(
+                Icons.chevron_right,
+                color: testNotificationEnabled
+                    ? colorScheme.onSurfaceVariant
+                    : colorScheme.outline,
+              ),
+              onTap: testNotificationEnabled
+                  ? () => _sendTestNotification(context)
+                  : null,
             ),
           ],
         ),
