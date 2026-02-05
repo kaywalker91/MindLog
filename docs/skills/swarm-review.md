@@ -1,10 +1,10 @@
 # swarm-review
 
-병렬 코드 리뷰 Swarm 스킬 (`/swarm-review [path]`)
+2단계 병렬 코드 리뷰 Swarm 스킬 (`/swarm-review [path]`)
 
 ## 목표
-- 3명의 전문 리뷰어가 동시에 코드 분석
-- 보안 / 성능 / 아키텍처 관점의 종합 리뷰
+- **Stage 1**: Spec Compliance 단독 리뷰 (설계 준수 검증)
+- **Stage 2**: 보안 / 성능 / 아키텍처 3명 병렬 리뷰 (코드 품질 검증)
 - 우선순위 정렬된 통합 리포트 생성
 
 ## 트리거 조건
@@ -28,10 +28,55 @@
 - 파일 경로: 해당 파일만 분석
 - 디렉토리: 하위 모든 .dart 파일 수집
 - 미지정 시: lib/ 전체 (경고 표시)
+- 옵션: --spec [spec-path] - OpenSpec 문서 경로 (Stage 1 필수)
 ```
 
-### Step 2: 3개 리뷰어 병렬 실행
-**반드시 Task 도구로 3개를 동시에 실행합니다:**
+### Step 2: Stage 1 - Spec Compliance Review (단독 실행)
+**설계 준수 검증을 먼저 단독으로 실행합니다:**
+
+```
+Task: spec-compliance-reviewer
+  - subagent_type: general-purpose
+  - 실행: Stage 2 전에 단독 실행 (순차)
+  - 입력:
+    - 대상 파일 목록
+    - OpenSpec 문서 (있을 경우)
+    - 관련 GitHub Issue/PR
+
+  - 검증 항목:
+    1. 기능 요구사항 충족 여부
+       - proposal.md 목표와 구현 매칭
+       - spec.md 비즈니스 로직 준수
+       - tasks.md 완료 기준 충족
+
+    2. API 계약 준수
+       - Repository 인터페이스 시그니처
+       - UseCase 입출력 타입
+       - DTO/Entity 필드 매칭
+
+    3. 에러 처리 완전성
+       - spec.md에 정의된 Failure 케이스 구현
+       - 사용자 대면 에러 메시지 준수
+
+    4. 범위 준수
+       - In-scope 기능만 구현 (over-engineering 탐지)
+       - Out-of-scope 침범 없음
+```
+
+**Stage 1 통과 조건**:
+```
+□ 기능 요구사항 100% 충족
+□ API 계약 위반 없음
+□ 정의된 Failure 케이스 모두 구현
+□ 범위 이탈 없음
+```
+
+**Stage 1 실패 시**: Stage 2 진행하지 않고 피드백 반환
+
+---
+
+### Step 3: Stage 2 - Quality Review (3명 병렬 실행)
+**Stage 1 통과 후, 코드 품질 검증을 병렬로 실행합니다:**
 
 ```
 Task 1: security-reviewer
@@ -50,14 +95,15 @@ Task 3: architecture-reviewer
   - 분석: 레이어 위반, 패턴 준수, 파일 위치, Failure 처리
 ```
 
-### Step 3: 결과 통합
+### Step 4: 결과 통합
 각 리뷰어의 결과를 수집하여 심각도 기준으로 통합 정렬:
-1. Critical (보안 취약점, 아키텍처 원칙 위반)
-2. Major (성능 이슈, 패턴 위반)
-3. Minor (최적화 권장, 코드 스타일)
-4. Info (제안, 참고)
+1. **Spec Violation** (Stage 1 - 요구사항 미충족, API 계약 위반)
+2. **Critical** (보안 취약점, 아키텍처 원칙 위반)
+3. **Major** (성능 이슈, 패턴 위반)
+4. **Minor** (최적화 권장, 코드 스타일)
+5. **Info** (제안, 참고)
 
-### Step 4: 통합 리포트 출력
+### Step 5: 통합 리포트 출력
 
 ## 출력 형식
 
@@ -68,10 +114,20 @@ Task 3: architecture-reviewer
 
 대상: lib/presentation/screens/
 파일: 12개
-리뷰어: 3명 (보안, 성능, 아키텍처)
+리뷰어: Stage 1 (Spec) + Stage 2 (보안, 성능, 아키텍처)
+Spec 문서: docs/specs/diary-export/spec.md
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- 요약
+ Stage 1: Spec Compliance ✓ PASSED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+기능 요구사항: 5/5 충족 ✓
+API 계약: 위반 없음 ✓
+Failure 케이스: 3/3 구현 ✓
+범위 준수: In-scope only ✓
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Stage 2: Quality Review 요약
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 | 심각도 | 보안 | 성능 | 아키텍처 | 합계 |
@@ -122,15 +178,16 @@ Task 3: architecture-reviewer
 
 ## 사용 예시
 
-### 디렉토리 리뷰
+### 디렉토리 리뷰 (2단계)
 ```
-> "/swarm-review lib/presentation/screens/"
+> "/swarm-review lib/presentation/screens/ --spec docs/specs/diary-export/"
 
 AI 응답:
 1. 12개 파일 수집
-2. 3개 리뷰어 병렬 실행
-3. 결과 통합: Critical 1, Major 3, Minor 4, Info 1
-4. 통합 리포트 출력
+2. Stage 1: Spec Compliance 단독 실행 → PASSED
+3. Stage 2: 3개 리뷰어 병렬 실행
+4. 결과 통합: Critical 1, Major 3, Minor 4, Info 1
+5. 통합 리포트 출력
 ```
 
 ### 단일 파일 리뷰
@@ -159,10 +216,11 @@ AI 응답:
 
 | 항목 | `/review` | `/swarm-review` |
 |------|-----------|-----------------|
-| 리뷰어 수 | 1명 (범용) | 3명 (전문) |
-| 실행 방식 | 순차 | 병렬 |
-| 분석 깊이 | 체크리스트 기반 | 전문 영역별 심층 |
+| 리뷰어 수 | 1명 (범용) | 1명 (Spec) + 3명 (품질) |
+| 실행 방식 | 순차 | Stage 1 순차 → Stage 2 병렬 |
+| 분석 깊이 | 체크리스트 기반 | Spec 준수 + 전문 영역별 심층 |
 | 적합 용도 | 단일 파일, 빠른 확인 | 디렉토리/모듈 단위 종합 검증 |
+| Spec 검증 | 없음 | Stage 1에서 필수 검증 |
 
 ## 연관 스킬
 - `/review` - 단일 파일 빠른 리뷰
@@ -171,10 +229,12 @@ AI 응답:
 - `/refactor-plan` - 리팩토링 계획 수립
 
 ## 주의사항
-- 3개 병렬 에이전트는 토큰을 많이 사용하므로 범위를 적절히 제한
+- Stage 1 + Stage 2 순차-병렬 구조로 토큰 사용량 고려
 - lib/ 전체 대상 시 경고 표시
+- **Stage 1 실패 시 Stage 2로 진행하지 않음** (설계 준수 우선)
 - 각 리뷰어의 False positive는 통합 단계에서 필터링
 - 기존 `/review`를 대체하지 않음 (용도가 다름)
+- OpenSpec 문서 없이 실행 시 Stage 1은 일반 요구사항 추론으로 동작
 
 ---
 
@@ -186,4 +246,4 @@ AI 응답:
 | Category | quality |
 | Dependencies | - |
 | Created | 2026-01-27 |
-| Updated | 2026-01-27 |
+| Updated | 2026-02-05 |
