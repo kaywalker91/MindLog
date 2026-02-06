@@ -147,6 +147,11 @@ AI 응답:
 | SetSelectedAiCharacterUseCase | SettingsRepository | AI 캐릭터 설정 |
 | GetNotificationSettingsUseCase | SettingsRepository | 알림 설정 조회 |
 | SetNotificationSettingsUseCase | SettingsRepository | 알림 설정 변경 |
+| GetSelfEncouragementMessagesUseCase | SettingsRepository | 응원 메시지 목록 조회 |
+| AddSelfEncouragementMessageUseCase | SettingsRepository | 응원 메시지 추가 |
+| UpdateSelfEncouragementMessageUseCase | SettingsRepository | 응원 메시지 수정 |
+| DeleteSelfEncouragementMessageUseCase | SettingsRepository | 응원 메시지 삭제 |
+| GetNextSelfEncouragementMessageUseCase | SettingsRepository | 다음 표시 메시지 선택 |
 
 ## 연관 스킬
 - `/scaffold [feature]` - 전체 기능 스캐폴딩 (Entity, Repository, UseCase 포함)

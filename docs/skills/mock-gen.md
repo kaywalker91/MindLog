@@ -221,8 +221,27 @@ test('저장 메서드가 호출되어야 한다', () async {
 | Repository | 메서드 수 | Mock 상태 |
 |------------|---------|----------|
 | DiaryRepository | 8 | 생성됨 |
-| SettingsRepository | 4 | 생성 필요 |
+| SettingsRepository | 12 | 생성됨 (MockSettingsRepositoryWithMessages) |
 | StatisticsRepository | 3 | 생성 필요 |
+
+## 새 Mock 패턴 (2026-02-05)
+
+### MockSettingsRepositoryWithMessages
+`test/mocks/mock_repositories.dart` 참조
+
+```dart
+/// 응원 메시지 기능 포함 Mock
+class MockSettingsRepositoryWithMessages implements SettingsRepository {
+  // === 응원 메시지 Mock 데이터 ===
+  List<SelfEncouragementMessage> mockMessages = [];
+  SelfEncouragementMessage? addedMessage;
+  SelfEncouragementMessage? updatedMessage;
+  String? deletedMessageId;
+  List<String>? reorderedIds;
+
+  // ... 기존 메서드 + 응원 메시지 메서드 구현
+}
+```
 
 ## 연관 스킬
 - `/test-unit-gen [파일]` - Mock을 사용하는 테스트 생성

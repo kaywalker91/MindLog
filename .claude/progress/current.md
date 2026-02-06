@@ -1,106 +1,56 @@
 # Current Progress
 
 ## 현재 작업
-- 마음케어알림 테스트 강화 ✓
+- 마음케어알림 종합 점검 완료 → 이슈 수정 대기
 
 ## 완료된 항목 (이번 세션)
 
-### FCM 통합 테스트 (2월 5일)
-- [x] FCMService 리팩토링 (테스트 주입 포인트 추가)
-- [x] `buildPersonalizedMessage` 메서드 추출 (@visibleForTesting)
-- [x] FCM 통합 테스트 16개 추가 (`fcm_service_test.dart`)
-- [x] 가중치 분포 검증 테스트 6개 추가 (`notification_messages_test.dart`)
-- [x] 총 76개 관련 테스트 전체 통과
+### 마음케어알림 종합 점검 (2월 6일)
+4개 병렬 에이전트로 51개 파일 (6,600줄) 점검 완료
 
-### Phase 3: 감정 기반 알림 (2월 4일)
-- [x] EmotionLevel enum 추가 (low/medium/high)
-- [x] EmotionScoreService 신규 생성 (SQLite 감정 점수 조회)
-- [x] 가중치 기반 메시지 선택 (`_selectBodiesWithWeight`)
-- [x] FCM 포그라운드 핸들러에서 감정 기반 메시지 적용
-- [x] 감정 데이터 없을 때 graceful fallback
-- [x] 18개 테스트 추가 (notification_messages 10, emotion_score_service 8)
-- [x] TIL 메모리 저장 (`til-emotion-notification-patterns.md`)
+**점검 결과**: 85/100
+- ❌ Critical 1건, ⚠️ P1 4건, P2 4건, P3 3건, 🔍 테스트 미작성 6건
+- 상세: `memory/notification-audit-2026-02-06.md`
 
 ## 이전 세션 완료 항목
 
-### UI/UX 개선 (완료)
+### Swarm Review 코드리뷰 (2월 5일)
+- [x] Critical 4개 + Major 5개 수정 완료
 
-#### P0-A: SOS 카드 소프트 랜딩 ✓
-- [x] 빨간색 배경 → amber 톤(`sosBackground/sosBorder`) 변경
-- [x] 단계적 페이드인 애니메이션 (공감 → 정보 → 액션)
-- [x] 공감적 메시지 먼저 표시 ("많이 힘드셨군요")
-- [x] 긴급 버튼에만 빨간색 유지
+### 알림 섹션 UI/UX + 개인 응원 메시지 기능 (2월 5일)
+- [x] Domain/Data/Core/Presentation 전 레이어 구현
+- [x] UseCase 5개, Controller 2개, 위젯 3종, 테스트 다수
 
-#### P0-B: 분석 대기 메시지 로테이션 ✓
-- [x] `LoadingIndicator`에 메시지 로테이션 기능 추가
-- [x] 2초마다 메시지 전환 (Timer + AnimatedSwitcher)
-- [x] 안심 메시지 포함 ("어떤 결과가 나와도 괜찮아요")
-- [x] `diary_screen.dart`에서 로테이션 메시지 적용
-
-#### P0-C: 최초 사용자 온보딩 ✓
-- [x] `OnboardingScreen` 신규 생성 (3단계 PageView)
-- [x] `PreferencesLocalDataSource`에 `onboarding_completed` 키 추가
-- [x] `SplashScreen`에서 온보딩 라우팅 조건 추가
-- [x] `smooth_page_indicator` 패키지 추가
-- [x] Analytics 이벤트 추가 (`onboarding_started/completed/skipped`)
-
-#### P1: 공감적 에러 메시지 ✓
-- [x] `statistics_screen.dart` 에러 메시지 공감적 톤으로 변경
-- [x] `diary_list_screen.dart` 에러 메시지 개선
-- [x] 아이콘 변경 (error_outline → cloud_off_outlined)
-- [x] "다시 시도해볼게요" 버튼 스타일 개선
-
-### 이전 세션 완료 항목
-- [x] Peter의 AI 코딩 10가지 원칙 적용 개선
-- [x] DB 복원 후 통계 미표시 버그픽스
-- [x] Phase 0-4: 엔터프라이즈 리팩토링 완료
-
-## 새로 추가/수정된 파일
-```
-lib/presentation/screens/onboarding_screen.dart      # 신규 (온보딩 화면)
-lib/presentation/widgets/sos_card.dart               # 수정 (소프트 랜딩)
-lib/presentation/widgets/loading_indicator.dart      # 수정 (메시지 로테이션)
-lib/presentation/screens/splash_screen.dart          # 수정 (온보딩 라우팅)
-lib/presentation/screens/statistics_screen.dart      # 수정 (공감 에러)
-lib/presentation/screens/diary_list_screen.dart      # 수정 (공감 에러)
-lib/presentation/screens/diary_screen.dart           # 수정 (로테이션 메시지)
-lib/presentation/router/app_router.dart              # 수정 (온보딩 라우트)
-lib/data/datasources/local/preferences_local_datasource.dart  # 수정 (온보딩 키)
-lib/core/services/analytics_service.dart             # 수정 (logEvent 추가)
-pubspec.yaml                                         # 수정 (smooth_page_indicator)
-```
+### FCM 통합 테스트 (2월 5일)
+- [x] FCM 통합 테스트 16개 + 가중치 분포 검증 6개
 
 ## 다음 단계 (우선순위)
 
-### 필수 (P0)
-1. **커밋 & 푸시**: FCM 통합 테스트 22개 추가
-2. **디바이스 테스트**: 온보딩 플로우, SOS 카드 트리거, 에러 상태
+### 즉시 (P0) — 30분
+1. **C-1 수정**: 순차 모드 메시지 삭제 시 lastDisplayedIndex 미조정
+   - 파일: `self_encouragement_controller.dart:97-113`
+   - 수정: deleteMessage() 내 삭제 위치 기준 인덱스 조정
 
-### 권장 (P1)
-3. **메시지 풀 중복 정리**: `notification_messages.dart` 가중치 정확도 개선
-4. **성취 축하 애니메이션**: Confetti/Lottie (일기 저장, 스트릭 달성)
+### 이번 주 (P1) — 4-6시간
+2. **P1-1**: FCM 백그라운드 핸들러 감정 개인화 (`fcm_service.dart:266-277`)
+3. **P1-2**: FCM 토픽 구독 에러 핸들링 (`notification_settings_service.dart:192-196`)
+4. **P1-3**: NotificationSettings 시간 유효성 검증 (`notification_settings.dart`)
+5. **P1-4**: JSON 역직렬화 에러 핸들링 (`preferences_local_datasource.dart:157-171`)
 
-### 선택 (P2)
-5. **백그라운드 FCM 핸들러 테스트**: `firebaseMessagingBackgroundHandler`
-6. **다크 모드 색상 최적화**
+### 다음 스프린트 (P2) — 8-10시간
+6. **서비스 계층 테스트 작성**: NotificationSettingsService (0%), SelfEncouragementController (0%)
+7. **P2-1~4**: 앱 재설치 동기화, UI 피드백, 중복 로직 제거, 인덱스 계산 단일화
 
-## 검증 방법
-
-### 기능 검증
-1. **온보딩**: `shared_preferences` 클리어 후 앱 재실행 → 온보딩 표시 확인
-2. **분석 대기**: 일기 분석 중 메시지 2회 이상 전환 확인
-3. **SOS 카드**: 안전 필터 트리거 시 부드러운 전환 확인
-4. **에러 메시지**: 네트워크 끊고 통계/일기 화면 진입 시 공감 메시지 확인
-
-### 접근성 검증
-- TalkBack/VoiceOver로 온보딩 화면 읽기 테스트
-- `MediaQuery.disableAnimations` 활성화 시 애니메이션 스킵 확인
+### 보류 (이전 세션)
+8. ARCH-001/002: splash_screen, onboarding_screen 레이어 위반 수정
+9. 예시 메시지 빠른 추가 UI
 
 ## 주의사항
-- 기존 유저는 온보딩 스킵 (`_isOnboardingCompleted` 기본값 true)
-- SOS 카드 테스트 시 실제 전화 발신 주의
+- `notification-audit-2026-02-06.md`에 각 이슈의 수정 코드 스니펫 포함
+- NotificationSettingsService, SelfEncouragementController 테스트 0% — 수정 후 반드시 테스트 추가
+- uuid 패키지 추가 필요 (이전 세션 이슈)
 
 ## 마지막 업데이트
-- 날짜: 2026-02-05
-- 세션: fcm-integration-test
-- 작업: FCM 통합 테스트 22개 추가 + 가중치 분포 검증
+- 날짜: 2026-02-06
+- 세션: notification-audit
+- 작업: 마음케어알림 종합 점검 (4 병렬 에이전트)
