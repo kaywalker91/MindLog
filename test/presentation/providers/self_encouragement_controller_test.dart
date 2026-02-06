@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/entities/self_encouragement_message.dart';
 import 'package:mindlog/domain/usecases/set_notification_settings_usecase.dart';
@@ -698,6 +699,48 @@ void main() {
         expect(messages[0].id, 'm3');
         expect(messages[1].id, 'm1');
         expect(messages[2].id, 'm2');
+      });
+    });
+
+    group('에러 전파 (error propagation)', () {
+      test('addMessage 중 repository 에러 시 예외가 전파되어야 한다', () async {
+        // Arrange
+        mockRepository.messages = [];
+        container = createContainer();
+        await container.read(selfEncouragementProvider.future);
+
+        // repository에서 에러 발생하도록 설정
+        mockRepository.shouldThrowOnSet = true;
+        mockRepository.failureToThrow =
+            const Failure.cache(message: '메시지 추가 실패');
+        final notifier = container.read(selfEncouragementProvider.notifier);
+
+        // Act & Assert
+        expect(
+          () => notifier.addMessage('새 메시지'),
+          throwsA(isA<Failure>()),
+        );
+      });
+
+      test('deleteMessage 중 repository 에러 시 예외가 전파되어야 한다', () async {
+        // Arrange
+        mockRepository.messages = [
+          _makeMessage('m1', displayOrder: 0, content: '메시지 1'),
+        ];
+        container = createContainer();
+        await container.read(selfEncouragementProvider.future);
+
+        // repository에서 에러 발생하도록 설정
+        mockRepository.shouldThrowOnSet = true;
+        mockRepository.failureToThrow =
+            const Failure.cache(message: '메시지 삭제 실패');
+        final notifier = container.read(selfEncouragementProvider.notifier);
+
+        // Act & Assert
+        expect(
+          () => notifier.deleteMessage('m1'),
+          throwsA(isA<Failure>()),
+        );
       });
     });
   });

@@ -286,15 +286,28 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       body: result.body,
       payload: message.data.isEmpty ? null : jsonEncode(message.data),
     );
-  } catch (e) {
+  } catch (e, stackTrace) {
     if (kDebugMode) {
       debugPrint('[FCM] Background personalization failed: $e');
     }
-    // 폴백: 원본 서버 메시지 표시
-    await NotificationService.showNotification(
-      title: message.notification?.title ?? 'MindLog',
-      body: message.notification?.body ?? '',
-      payload: message.data.isEmpty ? null : jsonEncode(message.data),
+    await CrashlyticsService.recordError(
+      e,
+      stackTrace,
+      reason: 'FCM background handler personalization failed',
     );
+    // 폴백: 원본 서버 메시지 표시
+    try {
+      await NotificationService.showNotification(
+        title: message.notification?.title ?? 'MindLog',
+        body: message.notification?.body ?? '',
+        payload: message.data.isEmpty ? null : jsonEncode(message.data),
+      );
+    } catch (fallbackError, fallbackStack) {
+      await CrashlyticsService.recordError(
+        fallbackError,
+        fallbackStack,
+        reason: 'FCM background handler fallback notification failed',
+      );
+    }
   }
 }

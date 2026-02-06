@@ -1,0 +1,334 @@
+# {{FEATURE_NAME}} Technical Specification
+
+> OpenSpec 기술 스펙 - {{CREATED_DATE}}
+>
+> 관련 제안서: [proposal.md](./proposal.md)
+
+---
+
+## 개요 (Overview)
+
+### 기능 설명
+{{FEATURE_DESCRIPTION}}
+
+### 주요 사용 시나리오
+1. {{SCENARIO_1}}
+2. {{SCENARIO_2}}
+3. {{SCENARIO_3}}
+
+---
+
+## 아키텍처 설계 (Architecture)
+
+### 전체 구조
+```
+┌─────────────────────────────────────────────────────────┐
+│                   Presentation Layer                     │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+│  │   Screen    │  │   Widget    │  │   Provider  │     │
+│  └─────────────┘  └─────────────┘  └─────────────┘     │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                     Domain Layer                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+│  │   Entity    │  │  Repository │  │   UseCase   │     │
+│  │             │  │ (interface) │  │             │     │
+│  └─────────────┘  └─────────────┘  └─────────────┘     │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                      Data Layer                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+│  │ Repository  │  │ DataSource  │  │   DTO/Model │     │
+│  │   (impl)    │  │             │  │             │     │
+│  └─────────────┘  └─────────────┘  └─────────────┘     │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Domain Layer
+
+#### Entity 정의
+```dart
+// lib/domain/entities/{{entity_name}}.dart
+
+class {{EntityName}} {
+  final String id;
+  {{ENTITY_FIELDS}}
+
+  const {{EntityName}}({
+    required this.id,
+    {{ENTITY_CONSTRUCTOR_PARAMS}}
+  });
+
+  {{EntityName}} copyWith({
+    {{COPYWIDTH_PARAMS}}
+  });
+}
+```
+
+#### Repository Interface
+```dart
+// lib/domain/repositories/{{repository_name}}_repository.dart
+
+abstract class {{RepositoryName}}Repository {
+  {{REPOSITORY_METHODS}}
+}
+```
+
+#### UseCase 정의
+```dart
+// lib/domain/usecases/{{usecase_name}}.dart
+
+class {{UseCaseName}} {
+  final {{RepositoryName}}Repository _repository;
+
+  {{UseCaseName}}(this._repository);
+
+  Future<Either<Failure, {{ReturnType}}>> execute({{PARAMS}}) async {
+    {{USECASE_LOGIC}}
+  }
+}
+```
+
+### Data Layer
+
+#### Repository Implementation
+```dart
+// lib/data/repositories/{{repository_name}}_repository_impl.dart
+
+class {{RepositoryName}}RepositoryImpl implements {{RepositoryName}}Repository {
+  final {{DataSourceName}}DataSource _dataSource;
+
+  {{RepositoryName}}RepositoryImpl(this._dataSource);
+
+  {{REPOSITORY_IMPL_METHODS}}
+}
+```
+
+#### DataSource
+```dart
+// lib/data/datasources/{{datasource_name}}_data_source.dart
+
+abstract class {{DataSourceName}}DataSource {
+  {{DATASOURCE_METHODS}}
+}
+
+class {{DataSourceName}}DataSourceImpl implements {{DataSourceName}}DataSource {
+  {{DATASOURCE_IMPL}}
+}
+```
+
+#### DTO/Model
+```dart
+// lib/data/models/{{model_name}}_model.dart
+
+class {{ModelName}}Model {
+  {{MODEL_FIELDS}}
+
+  factory {{ModelName}}Model.fromJson(Map<String, dynamic> json) {
+    {{FROM_JSON}}
+  }
+
+  Map<String, dynamic> toJson() {
+    {{TO_JSON}}
+  }
+
+  {{EntityName}} toEntity() {
+    {{TO_ENTITY}}
+  }
+}
+```
+
+### Presentation Layer
+
+#### Provider 설계
+```dart
+// lib/presentation/providers/{{provider_name}}_provider.dart
+
+{{PROVIDER_DEFINITION}}
+```
+
+#### Screen 설계
+```dart
+// lib/presentation/screens/{{screen_name}}_screen.dart
+
+class {{ScreenName}}Screen extends ConsumerWidget {
+  {{SCREEN_STRUCTURE}}
+}
+```
+
+---
+
+## 데이터베이스 스키마 (Database Schema)
+
+### 테이블 정의 (해당 시)
+```sql
+-- 새 테이블 (필요 시)
+CREATE TABLE {{table_name}} (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  {{COLUMNS}}
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+### 마이그레이션 전략
+```dart
+// 버전 증가: _currentVersion = {{NEW_VERSION}}
+// _onUpgrade에 추가:
+
+if (oldVersion < {{NEW_VERSION}}) {
+  {{MIGRATION_SQL}}
+}
+```
+
+---
+
+## API 설계 (API Design) - 해당 시
+
+### Endpoint 정의
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| {{METHOD}} | {{ENDPOINT}} | {{DESCRIPTION}} |
+
+### Request/Response
+```json
+// Request
+{{REQUEST_SCHEMA}}
+
+// Response
+{{RESPONSE_SCHEMA}}
+```
+
+---
+
+## 에러 처리 (Error Handling)
+
+### Failure 케이스
+```dart
+// lib/core/errors/failures.dart 확장
+
+sealed class {{FeatureName}}Failure extends Failure {
+  {{FAILURE_CASES}}
+}
+```
+
+### 사용자 대면 에러 메시지
+| Failure | 메시지 | 액션 |
+|---------|--------|------|
+| {{FAILURE_1}} | {{MESSAGE_1}} | {{ACTION_1}} |
+| {{FAILURE_2}} | {{MESSAGE_2}} | {{ACTION_2}} |
+
+---
+
+## 보안 고려사항 (Security)
+
+### 인증/인가
+- {{AUTH_REQUIREMENT}}
+
+### 데이터 보호
+- {{DATA_PROTECTION}}
+
+### 입력 검증
+- {{INPUT_VALIDATION}}
+
+### MindLog 특수 (해당 시)
+- SafetyBlockedFailure 처리: {{SAFETY_HANDLING}}
+- is_emergency 필드 보존: {{EMERGENCY_HANDLING}}
+
+---
+
+## 비즈니스 로직 (Business Logic)
+
+### 핵심 플로우
+```
+{{FLOW_DIAGRAM}}
+```
+
+### 상태 전이 (해당 시)
+```
+{{STATE_DIAGRAM}}
+```
+
+### 엣지 케이스 처리
+| 케이스 | 처리 방법 |
+|--------|----------|
+| {{EDGE_CASE_1}} | {{HANDLING_1}} |
+| {{EDGE_CASE_2}} | {{HANDLING_2}} |
+
+---
+
+## 테스트 전략 (Testing Strategy)
+
+### Unit Test
+- {{UNIT_TEST_TARGET_1}}
+- {{UNIT_TEST_TARGET_2}}
+
+### Widget Test
+- {{WIDGET_TEST_TARGET_1}}
+
+### Integration Test (선택)
+- {{INTEGRATION_TEST_TARGET}}
+
+---
+
+## 의존성 (Dependencies)
+
+### 기존 의존성
+- {{EXISTING_DEP_1}}
+- {{EXISTING_DEP_2}}
+
+### 신규 패키지 (해당 시)
+```yaml
+# pubspec.yaml
+dependencies:
+  {{NEW_PACKAGE}}: ^{{VERSION}}
+```
+
+---
+
+## 파일 구조 (File Structure)
+
+```
+lib/
+├── domain/
+│   ├── entities/
+│   │   └── {{entity_name}}.dart
+│   ├── repositories/
+│   │   └── {{repository_name}}_repository.dart
+│   └── usecases/
+│       └── {{usecase_name}}.dart
+├── data/
+│   ├── repositories/
+│   │   └── {{repository_name}}_repository_impl.dart
+│   ├── datasources/
+│   │   └── {{datasource_name}}_data_source.dart
+│   └── models/
+│       └── {{model_name}}_model.dart
+└── presentation/
+    ├── providers/
+    │   └── {{provider_name}}_provider.dart
+    ├── screens/
+    │   └── {{screen_name}}_screen.dart
+    └── widgets/
+        └── {{widget_name}}.dart
+
+test/
+├── domain/usecases/
+│   └── {{usecase_name}}_test.dart
+├── data/repositories/
+│   └── {{repository_name}}_repository_impl_test.dart
+└── presentation/
+    └── {{screen_name}}_screen_test.dart
+```
+
+---
+
+## 변경 이력
+
+| 날짜 | 버전 | 변경 내용 | 작성자 |
+|------|------|----------|--------|
+| {{CREATED_DATE}} | 1.0 | 초안 작성 | {{AUTHOR}} |

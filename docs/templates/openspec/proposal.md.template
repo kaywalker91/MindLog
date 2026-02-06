@@ -1,0 +1,110 @@
+# {{FEATURE_NAME}} Proposal
+
+> OpenSpec 제안서 - {{CREATED_DATE}}
+
+## 배경 (Background)
+
+### 문제 상황
+{{PROBLEM_STATEMENT}}
+
+### 현재 상태
+{{CURRENT_STATE}}
+
+### 기회/필요성
+{{OPPORTUNITY}}
+
+---
+
+## 목표 (Objectives)
+
+### 주요 목표
+1. {{PRIMARY_GOAL_1}}
+2. {{PRIMARY_GOAL_2}}
+3. {{PRIMARY_GOAL_3}}
+
+### 부차적 목표
+- {{SECONDARY_GOAL_1}}
+- {{SECONDARY_GOAL_2}}
+
+---
+
+## 범위 (Scope)
+
+### In-scope (포함)
+- [ ] {{INSCOPE_1}}
+- [ ] {{INSCOPE_2}}
+- [ ] {{INSCOPE_3}}
+
+### Out-of-scope (제외)
+- {{OUTSCOPE_1}}
+- {{OUTSCOPE_2}}
+
+### 향후 고려사항
+- {{FUTURE_CONSIDERATION}}
+
+---
+
+## 성공 지표 (Success Metrics)
+
+| 지표 | 현재 | 목표 | 측정 방법 |
+|------|------|------|----------|
+| {{METRIC_1}} | {{CURRENT_1}} | {{TARGET_1}} | {{METHOD_1}} |
+| {{METRIC_2}} | {{CURRENT_2}} | {{TARGET_2}} | {{METHOD_2}} |
+
+---
+
+## 이해관계자 (Stakeholders)
+
+| 역할 | 책임 |
+|------|------|
+| 개발자 | 구현 및 테스트 |
+| 사용자 | 피드백 및 검증 |
+| {{STAKEHOLDER}} | {{RESPONSIBILITY}} |
+
+---
+
+## 관련 이슈 (References)
+
+- **GitHub Issue**: #{{ISSUE_NUMBER}} (있을 경우)
+- **선행 기능**: {{PREREQUISITE}}
+- **의존성**: {{DEPENDENCIES}}
+- **관련 문서**: {{RELATED_DOCS}}
+
+---
+
+## 타임라인 (Timeline)
+
+| 단계 | 예상 기간 | 비고 |
+|------|----------|------|
+| 스펙 설계 | {{DESIGN_DURATION}} | |
+| 구현 | {{IMPL_DURATION}} | |
+| 테스트 | {{TEST_DURATION}} | |
+| 리뷰 | {{REVIEW_DURATION}} | |
+
+---
+
+## 리스크 (Risks)
+
+| 리스크 | 영향도 | 완화 전략 |
+|--------|--------|----------|
+| {{RISK_1}} | 높음/중간/낮음 | {{MITIGATION_1}} |
+| {{RISK_2}} | 높음/중간/낮음 | {{MITIGATION_2}} |
+
+---
+
+## 승인 (Approval)
+
+- [ ] 기술 검토 완료
+- [ ] 범위 합의 완료
+- [ ] 리소스 확보 확인
+
+**승인자**: {{APPROVER}}
+**승인일**: {{APPROVAL_DATE}}
+
+---
+
+## 변경 이력
+
+| 날짜 | 버전 | 변경 내용 | 작성자 |
+|------|------|----------|--------|
+| {{CREATED_DATE}} | 1.0 | 초안 작성 | {{AUTHOR}} |

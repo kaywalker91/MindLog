@@ -1,0 +1,248 @@
+# {{FEATURE_NAME}} Implementation Tasks
+
+> OpenSpec 구현 태스크 - {{CREATED_DATE}}
+>
+> 관련 스펙: [spec.md](./spec.md)
+
+---
+
+## 개요
+
+- **총 태스크 수**: {{TOTAL_TASKS}}
+- **예상 복잡도**: {{COMPLEXITY}} (낮음/중간/높음)
+- **선행 조건**: {{PREREQUISITES}}
+
+---
+
+## Phase 1: Domain Layer
+
+> 순수 비즈니스 로직 - 외부 의존성 없음
+
+### Task 1.1: Entity 생성
+- **파일**: `lib/domain/entities/{{entity_name}}.dart`
+- **내용**:
+  - [ ] Entity 클래스 정의
+  - [ ] 필드 정의 (immutable)
+  - [ ] copyWith 메서드
+  - [ ] Equatable 또는 == 연산자 (필요 시)
+- **완료 기준**: 컴파일 성공, 테스트 통과
+
+### Task 1.2: Repository Interface 정의
+- **파일**: `lib/domain/repositories/{{repository_name}}_repository.dart`
+- **내용**:
+  - [ ] abstract class 정의
+  - [ ] CRUD 메서드 시그니처
+  - [ ] Either<Failure, T> 반환 타입
+- **완료 기준**: 컴파일 성공
+
+### Task 1.3: UseCase 구현
+- **파일**: `lib/domain/usecases/{{usecase_name}}.dart`
+- **내용**:
+  - [ ] UseCase 클래스 정의
+  - [ ] Repository 의존성 주입
+  - [ ] execute 메서드 구현
+  - [ ] 비즈니스 로직 구현
+  - [ ] Failure 케이스 처리
+- **완료 기준**: 컴파일 성공, 단위 테스트 통과
+
+---
+
+## Phase 2: Data Layer
+
+> Repository 구현 및 데이터 소스 연결
+
+### Task 2.1: Model/DTO 생성
+- **파일**: `lib/data/models/{{model_name}}_model.dart`
+- **내용**:
+  - [ ] Model 클래스 정의
+  - [ ] fromJson factory
+  - [ ] toJson 메서드
+  - [ ] toEntity 변환 메서드
+- **완료 기준**: JSON 직렬화/역직렬화 테스트 통과
+
+### Task 2.2: DataSource 구현
+- **파일**: `lib/data/datasources/{{datasource_name}}_data_source.dart`
+- **내용**:
+  - [ ] abstract DataSource 정의
+  - [ ] Impl 클래스 구현
+  - [ ] DB/API 연동 로직
+  - [ ] 에러 처리 (Exception → Failure)
+- **완료 기준**: Mock 테스트 통과
+
+### Task 2.3: Repository Implementation
+- **파일**: `lib/data/repositories/{{repository_name}}_repository_impl.dart`
+- **내용**:
+  - [ ] Repository 인터페이스 구현
+  - [ ] DataSource 의존성 주입
+  - [ ] try-catch + Either 변환
+  - [ ] 캐싱 로직 (필요 시)
+- **완료 기준**: 통합 테스트 통과
+
+---
+
+## Phase 3: Presentation Layer
+
+> UI 및 상태 관리
+
+### Task 3.1: Provider 구현
+- **파일**: `lib/presentation/providers/{{provider_name}}_provider.dart`
+- **내용**:
+  - [ ] Provider/Notifier 정의
+  - [ ] State 클래스 정의 (필요 시)
+  - [ ] UseCase 연동
+  - [ ] 에러 상태 처리
+  - [ ] 로딩 상태 처리
+- **완료 기준**: Provider 테스트 통과
+
+### Task 3.2: Screen 구현
+- **파일**: `lib/presentation/screens/{{screen_name}}_screen.dart`
+- **내용**:
+  - [ ] ConsumerWidget/ConsumerStatefulWidget 구현
+  - [ ] Provider 연결 (ref.watch)
+  - [ ] 상태별 UI 분기 (loading/error/data)
+  - [ ] 사용자 인터랙션 핸들러
+- **완료 기준**: UI 렌더링 정상, 인터랙션 동작
+
+### Task 3.3: Widget 구현 (해당 시)
+- **파일**: `lib/presentation/widgets/{{widget_name}}.dart`
+- **내용**:
+  - [ ] 재사용 가능한 위젯 분리
+  - [ ] Props 정의
+  - [ ] const 생성자 (가능 시)
+- **완료 기준**: 위젯 테스트 통과
+
+---
+
+## Phase 4: Integration
+
+> 라우팅 및 의존성 주입
+
+### Task 4.1: 라우팅 설정
+- **파일**: `lib/core/routes/app_router.dart`
+- **내용**:
+  - [ ] 라우트 경로 추가
+  - [ ] 파라미터 처리 (필요 시)
+  - [ ] 네비게이션 테스트
+- **완료 기준**: 화면 전환 정상
+
+### Task 4.2: DI 등록
+- **파일**: `lib/presentation/providers/providers.dart` 또는 해당 파일
+- **내용**:
+  - [ ] Provider 등록
+  - [ ] 의존성 체인 확인
+- **완료 기준**: ProviderScope에서 정상 동작
+
+### Task 4.3: DB 마이그레이션 (해당 시)
+- **파일**: `lib/data/datasources/local/database_helper.dart`
+- **내용**:
+  - [ ] 버전 증가
+  - [ ] _onCreate 업데이트
+  - [ ] _onUpgrade 마이그레이션 추가
+- **완료 기준**: 기존 데이터 보존 + 신규 스키마 적용
+
+---
+
+## Phase 5: Testing
+
+> 품질 보증
+
+### Task 5.1: Unit Test - UseCase
+- **파일**: `test/domain/usecases/{{usecase_name}}_test.dart`
+- **내용**:
+  - [ ] 성공 케이스 테스트
+  - [ ] 실패 케이스 테스트
+  - [ ] 엣지 케이스 테스트
+  - [ ] Mock Repository 사용
+- **완료 기준**: 커버리지 80% 이상
+
+### Task 5.2: Unit Test - Repository
+- **파일**: `test/data/repositories/{{repository_name}}_repository_impl_test.dart`
+- **내용**:
+  - [ ] 성공/실패 케이스
+  - [ ] DataSource 예외 처리 테스트
+  - [ ] Mock DataSource 사용
+- **완료 기준**: 커버리지 80% 이상
+
+### Task 5.3: Widget Test (선택)
+- **파일**: `test/presentation/{{screen_name}}_screen_test.dart`
+- **내용**:
+  - [ ] 초기 상태 렌더링
+  - [ ] 로딩 상태 표시
+  - [ ] 에러 상태 표시
+  - [ ] 인터랙션 테스트
+- **완료 기준**: 주요 시나리오 커버
+
+### Task 5.4: Integration Test (선택)
+- **파일**: `integration_test/{{feature_name}}_test.dart`
+- **내용**:
+  - [ ] E2E 시나리오 테스트
+  - [ ] 실제 DB/API 연동 (테스트 환경)
+- **완료 기준**: 핵심 플로우 통과
+
+---
+
+## Phase 6: Quality Assurance
+
+> 최종 검증
+
+### Task 6.1: Lint Check
+- **명령어**: `flutter analyze`
+- **완료 기준**: 경고 0개
+
+### Task 6.2: 전체 테스트 실행
+- **명령어**: `flutter test`
+- **완료 기준**: 모든 테스트 통과, 기존 테스트 회귀 없음
+
+### Task 6.3: Code Review 준비
+- **내용**:
+  - [ ] 변경 파일 목록 정리
+  - [ ] PR 설명 작성
+  - [ ] 테스트 커버리지 확인
+- **완료 기준**: `/swarm-review` 또는 `/review` 실행 가능
+
+---
+
+## 완료 체크리스트
+
+### 필수
+- [ ] 모든 Task 체크 완료
+- [ ] `flutter analyze` 경고 0개
+- [ ] `flutter test` 전체 통과
+- [ ] 기존 테스트 회귀 없음
+
+### 권장
+- [ ] Unit Test 커버리지 80% 이상
+- [ ] Widget Test 주요 시나리오 커버
+- [ ] Code Review 완료
+
+---
+
+## 참고사항
+
+### 의존 태스크 순서
+```
+Task 1.1 → Task 1.2 → Task 1.3
+    ↓
+Task 2.1 → Task 2.2 → Task 2.3
+    ↓
+Task 3.1 → Task 3.2 → Task 3.3
+    ↓
+Task 4.1, Task 4.2, Task 4.3 (병렬 가능)
+    ↓
+Task 5.1, Task 5.2, Task 5.3 (병렬 가능)
+    ↓
+Task 6.1 → Task 6.2 → Task 6.3
+```
+
+### 중단점 (Checkpoint)
+- Phase 1 완료 후: Domain 레이어 검증
+- Phase 3 완료 후: UI 동작 확인
+- Phase 5 완료 후: 전체 테스트 통과
+
+---
+
+## 변경 이력
+
+| 날짜 | 버전 | 변경 내용 | 작성자 |
+|------|------|----------|--------|
+| {{CREATED_DATE}} | 1.0 | 초안 작성 | {{AUTHOR}} |

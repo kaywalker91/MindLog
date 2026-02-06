@@ -89,6 +89,8 @@ class NotificationSettings {
       return lastDisplayed != 0 ? 0 : null;
     }
     if (deletedIndex > lastDisplayed) return null; // 변경 불필요
+    // Wraps pointer to end of list when deletedIndex == lastDisplayed == 0
+    // (playlist-style wrap-around behavior)
     final adjusted = (lastDisplayed - 1 + remainingCount) % remainingCount;
     return adjusted != lastDisplayed ? adjusted : null;
   }

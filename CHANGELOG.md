@@ -7,7 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.4.35] - Current
+## [1.4.36] - 2026-02-06
+
+### Fixed
+- **[C-1] 마음케어알림 Critical 수정**: FCM 백그라운드 핸들러 개인화 실패 시 Crashlytics 로깅 + 이중 try-catch 폴백 처리
+- **[P1-1~P1-4] 알림 시스템 방어 코드 강화**:
+  - `reminderHour`/`reminderMinute` 값에 `.clamp(0, 23)` / `.clamp(0, 59)` 방어 (`PreferencesLocalDataSource`)
+  - `selectMessage()` 인덱스 경계값 방어 (`NotificationMessages`)
+  - FCM 백그라운드 핸들러 Crashlytics 에러 로깅 추가 (`FCMService`)
+- **이름 개인화 정규식 확장**: `{name}님을`, `{name}님이` 등 한글 조사(을/이) 패턴 매칭 추가
+  - 정규식: `\{name\}님[,의은]?` → `\{name\}님[,의은을이]?`
+
+### Refactored
+- **[P2-4] NotificationSettingsService 메서드 추출**:
+  - `_checkPermissions()`: 권한 확인 로직 분리 (platform channel 실패 시 안전한 기본값)
+  - `_manageFcmTopics()`: FCM 토픽 구독/해제 로직 분리
+  - `applySettings()` 메서드 복잡도 감소 (모듈화)
+- **NotificationSettings 엔티티**: `adjustIndexAfterDeletion()` 코멘트 개선 (playlist-style wrap-around 설명)
+
+### Added (Tests — 80개 이상)
+- **NotificationSettingsService 테스트 48개**: applySettings 16개 + selectMessage 16개 + 엔티티 인덱스 15개 + 기타
+- **SelfEncouragementController 테스트 32개**: CRUD, 순서 변경, 순차 재생, 인덱스 보정, 에러 전파
+- **NotificationMessages 테스트 확장 6개**: 한글 조사(을/이) + 에지 케이스(한 글자, 이모지, {name} 포함 이름)
+- **SelfEncouragementController 에러 전파 테스트 2개**: addMessage/deleteMessage repository 에러 전파
+- **DB Recovery Service 테스트**: `db_recovery_service_test.dart` 신규
+- **Validators 테스트**: `validators_test.dart` 신규
+- **SOS Card 위젯 테스트**: `sos_card_test.dart` 신규
+
+### Added (Docs & Tooling)
+- **README 재구성**: 빅테크 스타일 751줄 → 177줄 압축
+- **Superpowers 패턴 문서**: 디버깅, 브레인스토밍, 2단계 리뷰, TDD 워크플로우
+- **마음케어알림 점검 보고서**: 85/100점 평가 + 이슈 트래킹
+- **Flutter 공식 문서 가이드**: Context7 연동 스킬 (`c7-flutter.md`)
+- **신규 스킬**: `feature-pipeline-v2.md`, `openspec-review.md`, `responsive-overflow-fix.md`, `test-quality-review.md`
+- **OpenSpec 템플릿**: `docs/templates/` 디렉토리 추가
+- **테스트 품질 리뷰 에이전트**: `.claude/agents/test-quality-review/`
+
+### Dependencies
+- `url_launcher_platform_interface: ^2.3.0` dev dependency 추가 (위젯 테스트 URL 런처 모킹용)
+
+---
+
+## [1.4.35]
 ### Added
 - **Cheer Me - 나만의 응원 메시지 기능:**
   - SelfEncouragementMessage 엔티티 (최대 10개, 각 100자)

@@ -630,6 +630,48 @@ void main() {
         );
         expect(result, '충분히 잘하고 있어요');
       });
+
+      test('한 글자 이름이 올바르게 치환되어야 한다', () {
+        final result = NotificationMessages.applyNamePersonalization(
+          '{name}님, 오늘도 파이팅!',
+          '수',
+        );
+        expect(result, '수님, 오늘도 파이팅!');
+      });
+
+      test('이모지 이름이 올바르게 치환되어야 한다', () {
+        final result = NotificationMessages.applyNamePersonalization(
+          '{name}님, 좋은 아침이에요',
+          '😊',
+        );
+        expect(result, '😊님, 좋은 아침이에요');
+      });
+
+      test('{name} 문자열을 포함한 이름도 올바르게 처리되어야 한다', () {
+        // 이름 자체에 "{name}" 문자열이 포함된 경우 — 치환 후 재귀 치환 없음 확인
+        final result = NotificationMessages.applyNamePersonalization(
+          '{name}님, 안녕하세요',
+          '{name}테스트',
+        );
+        // 첫 번째 {name}이 이름으로 치환됨 → "{name}테스트님, 안녕하세요"
+        expect(result, '{name}테스트님, 안녕하세요');
+      });
+
+      test('{name}님을 패턴이 null 이름에서 깔끔하게 제거되어야 한다', () {
+        final result = NotificationMessages.applyNamePersonalization(
+          '{name}님을 응원합니다',
+          null,
+        );
+        expect(result, '응원합니다');
+      });
+
+      test('{name}님이 패턴이 null 이름에서 깔끔하게 제거되어야 한다', () {
+        final result = NotificationMessages.applyNamePersonalization(
+          '{name}님이 잘하고 있어요',
+          null,
+        );
+        expect(result, '잘하고 있어요');
+      });
     });
 
     group('가중치 분포 검증 (통계적 테스트)', () {

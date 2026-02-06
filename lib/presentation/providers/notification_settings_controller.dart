@@ -57,6 +57,7 @@ class NotificationSettingsController
     try {
       final messages =
           ref.read(selfEncouragementProvider).valueOrNull ?? [];
+      // TODO: Consider wrapping NotificationSettingsService.applySettings in UseCase
       final nextIndex = await NotificationSettingsService.applySettings(
         settings,
         messages: messages,

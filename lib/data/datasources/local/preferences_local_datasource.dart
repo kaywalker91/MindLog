@@ -65,8 +65,8 @@ class PreferencesLocalDataSource {
   Future<void> setNotificationSettings(NotificationSettings settings) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_reminderEnabledKey, settings.isReminderEnabled);
-    await prefs.setInt(_reminderHourKey, settings.reminderHour);
-    await prefs.setInt(_reminderMinuteKey, settings.reminderMinute);
+    await prefs.setInt(_reminderHourKey, settings.reminderHour.clamp(0, 23));
+    await prefs.setInt(_reminderMinuteKey, settings.reminderMinute.clamp(0, 59));
     await prefs.setBool(
       _mindcareTopicEnabledKey,
       settings.isMindcareTopicEnabled,

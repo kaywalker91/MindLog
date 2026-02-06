@@ -54,6 +54,7 @@ class NotificationSettingsService {
   static Future<void> Function(String topic)? unsubscribeFromTopicOverride;
 
   /// AnalyticsService 호출 기록 (검증용)
+  /// WARNING: Setting this to non-null disables production analytics/crashlytics
   @visibleForTesting
   static List<Map<String, dynamic>>? analyticsLog;
 
@@ -68,6 +69,101 @@ class NotificationSettingsService {
     subscribeToTopicOverride = null;
     unsubscribeFromTopicOverride = null;
     analyticsLog = null;
+  }
+
+  /// 권한 상태 확인 (platform channel 실패 시 안전한 기본값 사용)
+  ///
+  /// Returns: (notificationsEnabled, canScheduleExact, isIgnoringBattery)
+  static Future<({bool? notificationsEnabled, bool? canScheduleExact, bool isIgnoringBattery})>
+      _checkPermissions() async {
+    bool? notificationsEnabled;
+    bool? canScheduleExact;
+    bool isIgnoringBattery = false;
+    try {
+      notificationsEnabled = areNotificationsEnabledOverride != null
+          ? await areNotificationsEnabledOverride!()
+          : await NotificationService.areNotificationsEnabled();
+      canScheduleExact = canScheduleExactAlarmsOverride != null
+          ? await canScheduleExactAlarmsOverride!()
+          : await NotificationService.canScheduleExactAlarms();
+      isIgnoringBattery = isIgnoringBatteryOverride != null
+          ? await isIgnoringBatteryOverride!()
+          : await NotificationPermissionService
+              .isIgnoringBatteryOptimizations();
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint(
+          '[NotificationSettings] Permission check failed: $e',
+        );
+      }
+      if (analyticsLog == null) {
+        await CrashlyticsService.recordError(
+          e,
+          stackTrace,
+          reason: 'notification_permission_check_failed',
+        );
+      } else {
+        analyticsLog!.add({
+          'event': 'permission_check_error',
+          'error': e.toString(),
+        });
+      }
+    }
+    return (
+      notificationsEnabled: notificationsEnabled,
+      canScheduleExact: canScheduleExact,
+      isIgnoringBattery: isIgnoringBattery,
+    );
+  }
+
+  /// FCM 토픽 구독/해제 관리
+  static Future<void> _manageFcmTopics(NotificationSettings settings) async {
+    try {
+      if (settings.isMindcareTopicEnabled) {
+        if (subscribeToTopicOverride != null) {
+          await subscribeToTopicOverride!(mindcareTopic);
+        } else {
+          await FCMService.subscribeToTopic(mindcareTopic);
+        }
+      } else {
+        if (unsubscribeFromTopicOverride != null) {
+          await unsubscribeFromTopicOverride!(mindcareTopic);
+        } else {
+          await FCMService.unsubscribeFromTopic(mindcareTopic);
+        }
+      }
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[NotificationSettings] FCM topic operation failed: $e');
+      }
+      if (analyticsLog == null) {
+        await CrashlyticsService.recordError(
+          e,
+          stackTrace,
+          reason: 'fcm_topic_subscription_error',
+          fatal: false,
+        );
+        await AnalyticsService.logEvent(
+          'fcm_topic_error',
+          parameters: {
+            'topic': mindcareTopic,
+            'action': settings.isMindcareTopicEnabled
+                ? 'subscribe'
+                : 'unsubscribe',
+            'error': e.toString(),
+          },
+        );
+      } else {
+        analyticsLog!.add({
+          'event': 'fcm_topic_error',
+          'topic': mindcareTopic,
+          'action': settings.isMindcareTopicEnabled
+              ? 'subscribe'
+              : 'unsubscribe',
+          'error': e.toString(),
+        });
+      }
+    }
   }
 
   /// 알림 설정 적용
@@ -117,16 +213,10 @@ class NotificationSettingsService {
       }
 
       // 권한 상태 확인
-      final notificationsEnabled = areNotificationsEnabledOverride != null
-          ? await areNotificationsEnabledOverride!()
-          : await NotificationService.areNotificationsEnabled();
-      final canScheduleExact = canScheduleExactAlarmsOverride != null
-          ? await canScheduleExactAlarmsOverride!()
-          : await NotificationService.canScheduleExactAlarms();
-      final isIgnoringBattery = isIgnoringBatteryOverride != null
-          ? await isIgnoringBatteryOverride!()
-          : await NotificationPermissionService
-              .isIgnoringBatteryOptimizations();
+      final permissions = await _checkPermissions();
+      final notificationsEnabled = permissions.notificationsEnabled;
+      final canScheduleExact = permissions.canScheduleExact;
+      final isIgnoringBattery = permissions.isIgnoringBattery;
 
       if (kDebugMode) {
         debugPrint(
@@ -281,52 +371,7 @@ class NotificationSettingsService {
       }
     }
 
-    try {
-      if (settings.isMindcareTopicEnabled) {
-        if (subscribeToTopicOverride != null) {
-          await subscribeToTopicOverride!(mindcareTopic);
-        } else {
-          await FCMService.subscribeToTopic(mindcareTopic);
-        }
-      } else {
-        if (unsubscribeFromTopicOverride != null) {
-          await unsubscribeFromTopicOverride!(mindcareTopic);
-        } else {
-          await FCMService.unsubscribeFromTopic(mindcareTopic);
-        }
-      }
-    } catch (e, stackTrace) {
-      if (kDebugMode) {
-        debugPrint('[NotificationSettings] FCM topic operation failed: $e');
-      }
-      if (analyticsLog == null) {
-        await CrashlyticsService.recordError(
-          e,
-          stackTrace,
-          reason: 'fcm_topic_subscription_error',
-          fatal: false,
-        );
-        await AnalyticsService.logEvent(
-          'fcm_topic_error',
-          parameters: {
-            'topic': mindcareTopic,
-            'action': settings.isMindcareTopicEnabled
-                ? 'subscribe'
-                : 'unsubscribe',
-            'error': e.toString(),
-          },
-        );
-      } else {
-        analyticsLog!.add({
-          'event': 'fcm_topic_error',
-          'topic': mindcareTopic,
-          'action': settings.isMindcareTopicEnabled
-              ? 'subscribe'
-              : 'unsubscribe',
-          'error': e.toString(),
-        });
-      }
-    }
+    await _manageFcmTopics(settings);
 
     return nextIndex;
   }

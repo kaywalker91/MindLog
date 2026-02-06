@@ -317,7 +317,7 @@ class NotificationMessages {
   /// 개인화 템플릿 패턴
   /// - "{name}님, " → 이름이 있으면 "지수님, ", 없으면 제거
   /// - "{name}" → 이름이 있으면 "지수", 없으면 제거
-  static final RegExp _nameWithSuffixPattern = RegExp(r'\{name\}님[,의은]?\s*');
+  static final RegExp _nameWithSuffixPattern = RegExp(r'\{name\}님[,의은을이]?\s*');
   static final RegExp _nameOnlyPattern = RegExp(r'\{name\}');
 
   /// 메시지에 이름 개인화 적용

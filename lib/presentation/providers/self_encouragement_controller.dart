@@ -119,6 +119,8 @@ class SelfEncouragementController
   }
 
   /// 삭제 위치 기반 lastDisplayedIndex 보정 (순차 모드 전용)
+  // Note: bidirectional dependency with NotificationSettingsController
+  // — this controller reads/invalidates notificationSettingsProvider
   Future<void> _adjustLastDisplayedIndex(
     int deletedIndex,
     int remainingCount,
