@@ -274,4 +274,27 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (kDebugMode) {
     debugPrint('[FCM] Background: ${message.notification?.title}');
   }
+
+  try {
+    final result = await FCMService.buildPersonalizedMessage(
+      serverTitle: message.notification?.title,
+      serverBody: message.notification?.body,
+    );
+
+    await NotificationService.showNotification(
+      title: result.title,
+      body: result.body,
+      payload: message.data.isEmpty ? null : jsonEncode(message.data),
+    );
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('[FCM] Background personalization failed: $e');
+    }
+    // 폴백: 원본 서버 메시지 표시
+    await NotificationService.showNotification(
+      title: message.notification?.title ?? 'MindLog',
+      body: message.notification?.body ?? '',
+      payload: message.data.isEmpty ? null : jsonEncode(message.data),
+    );
+  }
 }

@@ -8,7 +8,11 @@ class NotificationSettings {
     required this.isMindcareTopicEnabled,
     this.rotationMode = MessageRotationMode.random,
     this.lastDisplayedIndex = 0,
-  });
+  })  : assert(reminderHour >= 0 && reminderHour <= 23, 'hour must be 0-23'),
+        assert(
+          reminderMinute >= 0 && reminderMinute <= 59,
+          'minute must be 0-59',
+        );
 
   final bool isReminderEnabled;
   final int reminderHour;

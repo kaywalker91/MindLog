@@ -5,6 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../domain/entities/notification_settings.dart';
 import '../../domain/entities/self_encouragement_message.dart';
 import 'analytics_service.dart';
+import 'crashlytics_service.dart';
 import 'fcm_service.dart';
 import 'notification_permission_service.dart';
 import 'notification_service.dart';
@@ -189,10 +190,32 @@ class NotificationSettingsService {
       await AnalyticsService.logReminderCancelled(source: source);
     }
 
-    if (settings.isMindcareTopicEnabled) {
-      await FCMService.subscribeToTopic(mindcareTopic);
-    } else {
-      await FCMService.unsubscribeFromTopic(mindcareTopic);
+    try {
+      if (settings.isMindcareTopicEnabled) {
+        await FCMService.subscribeToTopic(mindcareTopic);
+      } else {
+        await FCMService.unsubscribeFromTopic(mindcareTopic);
+      }
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[NotificationSettings] FCM topic operation failed: $e');
+      }
+      await CrashlyticsService.recordError(
+        e,
+        stackTrace,
+        reason: 'fcm_topic_subscription_error',
+        fatal: false,
+      );
+      await AnalyticsService.logEvent(
+        'fcm_topic_error',
+        parameters: {
+          'topic': mindcareTopic,
+          'action': settings.isMindcareTopicEnabled
+              ? 'subscribe'
+              : 'unsubscribe',
+          'error': e.toString(),
+        },
+      );
     }
 
     return nextIndex;

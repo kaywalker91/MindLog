@@ -161,13 +161,19 @@ class PreferencesLocalDataSource {
       return [];
     }
 
-    final List<dynamic> jsonList = json.decode(jsonString) as List<dynamic>;
-    return jsonList
-        .map(
-          (e) =>
-              SelfEncouragementMessage.fromJson(e as Map<String, dynamic>),
-        )
-        .toList();
+    try {
+      final List<dynamic> jsonList = json.decode(jsonString) as List<dynamic>;
+      return jsonList
+          .map(
+            (e) =>
+                SelfEncouragementMessage.fromJson(e as Map<String, dynamic>),
+          )
+          .toList();
+    } catch (e) {
+      // 손상된 데이터 제거 후 빈 리스트 반환
+      await prefs.remove(_selfMessagesKey);
+      return [];
+    }
   }
 
   /// 개인 응원 메시지 목록 저장

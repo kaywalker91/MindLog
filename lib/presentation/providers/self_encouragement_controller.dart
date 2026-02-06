@@ -96,6 +96,8 @@ class SelfEncouragementController
   /// 메시지 삭제
   Future<void> deleteMessage(String id) async {
     final current = state.valueOrNull ?? [];
+    final deletedIndex = current.indexWhere((m) => m.id == id);
+
     await _repository.deleteSelfEncouragementMessage(id);
 
     // displayOrder 재정렬
@@ -107,8 +109,50 @@ class SelfEncouragementController
 
     state = AsyncValue.data(remaining);
 
+    // 순차 모드: 삭제 위치에 따라 lastDisplayedIndex 보정
+    await _adjustLastDisplayedIndex(deletedIndex, remaining.length);
+
     if (kDebugMode) {
       debugPrint('[SelfEncouragement] Message deleted: $id');
+    }
+  }
+
+  /// 삭제 위치 기반 lastDisplayedIndex 보정 (순차 모드 전용)
+  Future<void> _adjustLastDisplayedIndex(
+    int deletedIndex,
+    int remainingCount,
+  ) async {
+    if (deletedIndex < 0) return;
+
+    final settings = ref.read(notificationSettingsProvider).valueOrNull;
+    if (settings == null ||
+        settings.rotationMode != MessageRotationMode.sequential) {
+      return;
+    }
+
+    final last = settings.lastDisplayedIndex;
+    int adjusted;
+
+    if (remainingCount == 0) {
+      adjusted = 0;
+    } else if (deletedIndex <= last) {
+      // 삭제 위치가 현재 인덱스 이하 → 1 감소 (wrap-around 처리)
+      adjusted = (last - 1 + remainingCount) % remainingCount;
+    } else {
+      return; // 삭제 위치가 현재 인덱스 이후 → 변경 불필요
+    }
+
+    if (adjusted != last) {
+      final updated = settings.copyWith(lastDisplayedIndex: adjusted);
+      final useCase = ref.read(setNotificationSettingsUseCaseProvider);
+      await useCase.execute(updated);
+      ref.invalidate(notificationSettingsProvider);
+
+      if (kDebugMode) {
+        debugPrint(
+          '[SelfEncouragement] lastDisplayedIndex adjusted: $last -> $adjusted',
+        );
+      }
     }
   }
 
