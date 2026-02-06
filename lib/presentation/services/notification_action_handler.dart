@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/ui_state_providers.dart';
 import '../router/app_router.dart';
 
-enum _NotificationDestination { diaryList, newDiary, statistics, settings }
+enum _NotificationDestination { diaryList, newDiary, statistics, settings, selfEncouragement }
 
 class NotificationActionHandler {
   NotificationActionHandler._();
@@ -79,6 +79,10 @@ class NotificationActionHandler {
       case 'new_diary':
       case 'write':
         return _NotificationDestination.newDiary;
+      case 'self_encouragement':
+      case 'cheerme':
+        return _NotificationDestination.selfEncouragement;
+      case 'mindcare':
       case 'statistics':
       case 'stats':
         return _NotificationDestination.statistics;
@@ -114,6 +118,9 @@ class NotificationActionHandler {
 
     if (destination == _NotificationDestination.newDiary) {
       context.push(AppRoutes.diaryNew);
+    } else if (destination == _NotificationDestination.selfEncouragement) {
+      // Cheer Me 탭 → 설정 탭으로 이동 후 Cheer Me 관리 화면 push
+      context.pushSelfEncouragement();
     }
   }
 
@@ -122,6 +129,7 @@ class NotificationActionHandler {
       case _NotificationDestination.statistics:
         return 1;
       case _NotificationDestination.settings:
+      case _NotificationDestination.selfEncouragement:
         return 2;
       case _NotificationDestination.diaryList:
       case _NotificationDestination.newDiary:

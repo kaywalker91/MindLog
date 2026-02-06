@@ -13,6 +13,10 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
   static const int _dailyReminderId = 1001;
 
+  // 알림 채널 ID
+  static const String channelCheerMe = 'mindlog_cheerme';
+  static const String channelMindcare = 'mindlog_mindcare';
+
   static Future<void> initialize({
     void Function(String? payload)? onNotificationResponse,
   }) async {
@@ -59,33 +63,46 @@ class NotificationService {
   }
 
   static Future<void> _createNotificationChannel() async {
-    const channel = AndroidNotificationChannel(
-      'mindlog_reminders',
-      'Cheer Me',
-      description: '내가 작성한 응원 메시지를 알려드립니다',
+    final androidPlugin = _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (androidPlugin == null) return;
+
+    // Cheer Me 채널: 사용자가 직접 쓴 자기 응원 메시지
+    const cheerMeChannel = AndroidNotificationChannel(
+      channelCheerMe,
+      '나의 응원 (Cheer Me)',
+      description: '내가 직접 쓴 응원 메시지를 매일 전달해드려요',
       importance: Importance.high,
     );
 
-    await _notifications
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(channel);
+    // 마음케어 채널: 감정 분석 기반 전문 케어
+    const mindcareChannel = AndroidNotificationChannel(
+      channelMindcare,
+      '마음케어',
+      description: '감정 분석 기반 전문 마음 케어 메시지를 보내드려요',
+      importance: Importance.high,
+    );
+
+    await androidPlugin.createNotificationChannel(cheerMeChannel);
+    await androidPlugin.createNotificationChannel(mindcareChannel);
   }
 
   static Future<void> showNotification({
     required String title,
     required String body,
     String? payload,
+    String channel = channelMindcare,
   }) async {
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: AndroidNotificationDetails(
-        'mindlog_reminders',
-        '일기 작성 리마인더',
+        channel,
+        channel == channelCheerMe ? '나의 응원 (Cheer Me)' : '마음케어',
         importance: Importance.high,
         priority: Priority.high,
       ),
-      iOS: DarwinNotificationDetails(),
+      iOS: const DarwinNotificationDetails(),
     );
 
     await _notifications.show(
@@ -146,9 +163,9 @@ class NotificationService {
         scheduledDate,
         const NotificationDetails(
           android: AndroidNotificationDetails(
-            'mindlog_reminders',
-            'Cheer Me',
-            channelDescription: '내가 작성한 응원 메시지를 알려드립니다',
+            channelCheerMe,
+            '나의 응원 (Cheer Me)',
+            channelDescription: '내가 직접 쓴 응원 메시지를 매일 전달해드려요',
             importance: Importance.high,
             priority: Priority.high,
             enableVibration: true,
@@ -241,7 +258,8 @@ class NotificationService {
     await showNotification(
       title: '[테스트] ${message.title}',
       body: message.body,
-      payload: '{"type":"test_mindcare"}',
+      payload: '{"type":"mindcare"}',
+      channel: channelMindcare,
     );
   }
 

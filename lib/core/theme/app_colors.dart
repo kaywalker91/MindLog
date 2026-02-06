@@ -26,6 +26,10 @@ class AppColors {
   static const Color sentimentPositive = Color(0xFFFFB74D); // 7-8점
   static const Color sentimentVeryPositive = Color(0xFFFFD54F); // 9-10점
 
+  // Notification Brand Colors
+  static const Color cheerMeAccent = Color(0xFFFFA726); // Warm Amber
+  static const Color mindcareAccent = Color(0xFF26A69A); // Calm Teal
+
   // Status Colors
   static const Color success = Color(0xFF4CAF50);
   static const Color warning = Color(0xFFFF9800);

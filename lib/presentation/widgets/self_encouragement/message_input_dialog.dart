@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/self_encouragement_message.dart';
 
 /// 응원 메시지 입력 바텀시트
@@ -62,18 +63,57 @@ class MessageInputDialog extends StatefulWidget {
   State<MessageInputDialog> createState() => _MessageInputDialogState();
 }
 
+/// 프리셋 카테고리
+enum _PresetCategory {
+  morningAffirmation('아침 다짐', Icons.wb_sunny_outlined),
+  selfComfort('자기 위로', Icons.favorite_outline),
+  gratitude('감사 확인', Icons.auto_awesome_outlined),
+  growthAck('성장 인정', Icons.trending_up_outlined),
+  pastSelf('과거의 나에서', Icons.history_outlined);
+
+  const _PresetCategory(this.label, this.icon);
+  final String label;
+  final IconData icon;
+}
+
+/// 프리셋 템플릿 데이터
+const Map<_PresetCategory, List<String>> _presetTemplates = {
+  _PresetCategory.morningAffirmation: [
+    '오늘 하루도 내 속도로 괜찮아',
+    '작은 것부터 시작해보자',
+    '오늘도 한 걸음 나아가자',
+    '나는 할 수 있어, 천천히',
+  ],
+  _PresetCategory.selfComfort: [
+    '힘들 때 쉬어가는 것도 용기야',
+    '지금의 감정도 괜찮아',
+    '완벽하지 않아도 충분해',
+    '나 자신을 먼저 안아줘야지',
+  ],
+  _PresetCategory.gratitude: [
+    '작은 것에도 감사할 줄 아는 내가 좋아',
+    '오늘도 무사히 하루를 보낸 것에 감사',
+    '내 곁에 있는 사람들이 고마워',
+    '이 순간이 있어서 다행이야',
+  ],
+  _PresetCategory.growthAck: [
+    '어제보다 나은 오늘의 나',
+    '조금씩 성장하고 있어',
+    '실패해도 배울 수 있었어',
+    '포기하지 않은 내가 대단해',
+  ],
+  _PresetCategory.pastSelf: [
+    '지난번 힘들었을 때도 잘 이겨냈잖아',
+    '그때의 나도 충분히 용감했어',
+    '과거의 나, 고마워',
+    '힘든 시간을 견딘 나를 믿어',
+  ],
+};
+
 class _MessageInputDialogState extends State<MessageInputDialog> {
   late final TextEditingController _controller;
   final _focusNode = FocusNode();
-
-  /// 추천 예시 메시지
-  static const List<String> _suggestions = [
-    '오늘도 힘내자! 💪',
-    '나는 충분히 잘하고 있어',
-    '한 걸음씩 나아가자',
-    '힘들 때일수록 더 빛나는 나',
-    '오늘 하루도 수고했어',
-  ];
+  _PresetCategory _selectedCategory = _PresetCategory.morningAffirmation;
 
   @override
   void initState() {
@@ -169,79 +209,115 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
               ),
             ),
 
-            // 추천 칩 (새 메시지 작성 시에만)
+            // 프리셋 템플릿 (새 메시지 작성 시에만)
             if (!widget.isEditing) ...[
               const SizedBox(height: 12),
-              Text(
-                '💡 탭해서 입력',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+
+              // 카테고리 선택 칩
+              SizedBox(
+                height: 36,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  itemCount: _PresetCategory.values.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  itemBuilder: (_, index) {
+                    final category = _PresetCategory.values[index];
+                    final isSelected = _selectedCategory == category;
+
+                    return GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _selectedCategory = category);
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.cheerMeAccent.withValues(alpha: 0.15)
+                              : colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.cheerMeAccent.withValues(alpha: 0.5)
+                                : Colors.transparent,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              category.icon,
+                              size: 14,
+                              color: isSelected
+                                  ? AppColors.cheerMeAccent
+                                  : colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              category.label,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: isSelected
+                                    ? AppColors.cheerMeAccent
+                                    : colorScheme.onSurfaceVariant,
+                                fontWeight: isSelected ? FontWeight.w600 : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 8),
 
-              // 가로 스크롤 칩 with ShaderMask 그라데이션
-              SizedBox(
-                height: 36,
-                child: ShaderMask(
-                  shaderCallback: (Rect bounds) {
-                    return LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [
-                        Colors.transparent,
-                        colorScheme.surface,
-                        colorScheme.surface,
-                        Colors.transparent,
-                      ],
-                      stops: const [0.0, 0.02, 0.95, 1.0],
-                    ).createShader(bounds);
-                  },
-                  blendMode: BlendMode.dstIn,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    itemCount: _suggestions.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 8),
-                    itemBuilder: (_, index) {
-                      final suggestion = _suggestions[index];
-                      final isSelected = _controller.text == suggestion;
-
-                      return GestureDetector(
-                        onTap: () => _selectSuggestion(suggestion),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
+              // 선택된 카테고리의 프리셋 메시지
+              ...(_presetTemplates[_selectedCategory] ?? []).map(
+                (suggestion) {
+                  final isSelected = _controller.text == suggestion;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: GestureDetector(
+                      onTap: () => _selectSuggestion(suggestion),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.cheerMeAccent.withValues(alpha: 0.12)
+                              : colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
                             color: isSelected
-                                ? colorScheme.primaryContainer
-                                : colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(
-                              color: isSelected
-                                  ? colorScheme.primary.withValues(alpha: 0.5)
-                                  : Colors.transparent,
-                            ),
-                          ),
-                          child: Text(
-                            suggestion,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: isSelected
-                                  ? colorScheme.onPrimaryContainer
-                                  : colorScheme.onSurfaceVariant,
-                            ),
+                                ? AppColors.cheerMeAccent.withValues(alpha: 0.4)
+                                : Colors.transparent,
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
+                        child: Text(
+                          '"$suggestion"',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isSelected
+                                ? AppColors.cheerMeAccent
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 4),
               Text(
                 '최대 ${SelfEncouragementMessage.maxMessageCount}개까지 등록 가능',
                 style: theme.textTheme.bodySmall?.copyWith(

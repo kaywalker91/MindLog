@@ -15,6 +15,33 @@ enum TimeSlot {
   night,
 }
 
+/// 마음케어 CBT 기법별 카테고리
+enum MindcareCategory {
+  /// 행동 활성화 (가벼운 활동 제안)
+  behavioralActivation,
+
+  /// 마인드풀니스 (현재 순간 집중)
+  mindfulness,
+
+  /// 그라운딩 기법 (감각 자각)
+  grounding,
+
+  /// 인지적 재구조화 (생각 전환)
+  cognitiveReframe,
+
+  /// 자기 자비 (자기 돌봄)
+  selfCompassion,
+
+  /// 사회적 연결 (관계 활성화)
+  socialConnection,
+
+  /// 감사 실천
+  gratitude,
+
+  /// 신체 자각 (호흡/스트레칭)
+  bodyAwareness,
+}
+
 /// 감정 레벨 (최근 감정 점수 기반)
 enum EmotionLevel {
   /// 1-3점: 낮은 감정 상태 → 위로/공감 중심
@@ -83,47 +110,110 @@ class NotificationMessages {
     '오늘의 격려',
   ];
 
-  /// 마음케어 본문 - 격려/자기돌봄/긍정/공감 메시지
-  static const List<String> _mindcareBodies = [
-    // 격려/응원
-    '오늘도 당신의 하루를 응원해요',
-    '작은 것에도 감사하는 하루 되세요',
-    '당신은 충분히 잘하고 있어요',
-    '오늘 하루도 당신을 믿어요',
-    '작은 성취도 큰 의미가 있어요',
-    // 자기 돌봄
-    '잠시 깊게 숨을 쉬어보세요',
-    '오늘 자신에게 친절해보세요',
-    '충분히 쉬어도 괜찮아요',
-    '당신의 감정은 소중해요',
-    '자신을 먼저 챙기는 것도 중요해요',
-    // 긍정 관점
-    '오늘 하루도 새로운 시작이에요',
-    '작은 행복을 발견해보세요',
-    '좋은 일이 기다리고 있을 거예요',
-    '오늘도 소중한 하루가 될 거예요',
-    '당신의 존재 자체가 의미 있어요',
-    // 공감/위로
-    '힘든 날도 지나갈 거예요',
-    '지치면 잠시 쉬어가도 괜찮아요',
-    '완벽하지 않아도 괜찮아요',
-    '당신의 마음을 응원해요',
-    '오늘도 수고한 당신에게 박수를',
-    // 행동 활성화 (Behavioral Activation)
+  /// 마음케어 본문 - CBT 기법별 구조화
+  ///
+  /// 각 카테고리에 맞는 심리학적 기법 기반 메시지.
+  /// 모든 메시지를 통합한 [_mindcareBodies]와
+  /// 카테고리별 접근용 [_mindcareBodiesByCategory] 제공.
+
+  // ── 행동 활성화 (Behavioral Activation) ──
+  static const List<String> _behavioralActivationBodies = [
     '잠깐 기지개를 펴볼까요?',
     '좋아하는 음료 한 잔 어때요?',
     '창밖을 잠시 바라봐요',
     '가볍게 스트레칭 해보세요',
-    // 마인드풀니스 (Mindfulness)
+    '좋아하는 음악 한 곡 들어볼까요?',
+    '5분만 바깥 공기를 마셔봐요',
+  ];
+
+  // ── 마인드풀니스 (Mindfulness) ──
+  static const List<String> _mindfulnessBodies = [
     '지금 이 순간에 집중해보세요',
     '5초만 깊게 숨 쉬어볼까요?',
     '지금 느끼는 감정에 귀 기울여보세요',
     '잠시 멈추고 현재를 느껴보세요',
-    // 사회적 연결 (Social Connection)
+    '지금 들리는 소리에 귀 기울여보세요',
+    '이 순간, 있는 그대로 충분해요',
+  ];
+
+  // ── 그라운딩 (Grounding) ──
+  static const List<String> _groundingBodies = [
+    '주변에서 좋아하는 색 3가지를 찾아보세요',
+    '발바닥이 바닥에 닿는 느낌을 느껴보세요',
+    '지금 손에 닿는 것의 질감을 느껴봐요',
+    '주위에서 들리는 소리를 하나씩 세어보세요',
+    '깊게 숨 쉬며 향기를 느껴보세요',
+  ];
+
+  // ── 인지적 재구조화 (Cognitive Reframe) ──
+  static const List<String> _cognitiveReframeBodies = [
+    '오늘 하루도 새로운 시작이에요',
+    '작은 성취도 큰 의미가 있어요',
+    '힘든 날도 지나갈 거예요',
+    '완벽하지 않아도 괜찮아요',
+    '실패도 성장의 일부예요',
+    '다른 시각으로 바라보면 답이 보여요',
+  ];
+
+  // ── 자기 자비 (Self-Compassion) ──
+  static const List<String> _selfCompassionBodies = [
+    '오늘 자신에게 친절해보세요',
+    '충분히 쉬어도 괜찮아요',
+    '당신의 감정은 소중해요',
+    '자신을 먼저 챙기는 것도 중요해요',
+    '지치면 잠시 쉬어가도 괜찮아요',
+    '있는 그대로의 당신이 좋아요',
+  ];
+
+  // ── 사회적 연결 (Social Connection) ──
+  static const List<String> _socialConnectionBodies = [
     '소중한 사람이 떠오르나요?',
     '따뜻한 말 한마디의 힘을 믿어요',
     '누군가에게 안부를 전해보세요',
     '연결의 소중함을 기억해요',
+    '함께하는 시간이 마음을 채워줘요',
+  ];
+
+  // ── 감사 실천 (Gratitude) ──
+  static const List<String> _gratitudeBodies = [
+    '작은 것에도 감사하는 하루 되세요',
+    '오늘 감사한 것 하나를 떠올려봐요',
+    '당신의 존재 자체가 의미 있어요',
+    '오늘도 소중한 하루가 될 거예요',
+    '좋은 일이 기다리고 있을 거예요',
+  ];
+
+  // ── 신체 자각 (Body Awareness) ──
+  static const List<String> _bodyAwarenessBodies = [
+    '잠시 깊게 숨을 쉬어보세요',
+    '어깨에 힘을 빼고 내려놓아보세요',
+    '턱을 부드럽게 풀어주세요',
+    '가볍게 목을 돌려보세요',
+    '호흡에 집중하면 마음이 편안해져요',
+  ];
+
+  /// CBT 카테고리별 메시지 맵
+  static const Map<MindcareCategory, List<String>> _mindcareBodiesByCategory = {
+    MindcareCategory.behavioralActivation: _behavioralActivationBodies,
+    MindcareCategory.mindfulness: _mindfulnessBodies,
+    MindcareCategory.grounding: _groundingBodies,
+    MindcareCategory.cognitiveReframe: _cognitiveReframeBodies,
+    MindcareCategory.selfCompassion: _selfCompassionBodies,
+    MindcareCategory.socialConnection: _socialConnectionBodies,
+    MindcareCategory.gratitude: _gratitudeBodies,
+    MindcareCategory.bodyAwareness: _bodyAwarenessBodies,
+  };
+
+  /// 통합 마음케어 본문 (기존 API 호환)
+  static final List<String> _mindcareBodies = [
+    ..._behavioralActivationBodies,
+    ..._mindfulnessBodies,
+    ..._groundingBodies,
+    ..._cognitiveReframeBodies,
+    ..._selfCompassionBodies,
+    ..._socialConnectionBodies,
+    ..._gratitudeBodies,
+    ..._bodyAwarenessBodies,
   ];
 
   // ===== 시간대별 마음케어 메시지 =====
@@ -487,6 +577,23 @@ class NotificationMessages {
     }
   }
 
+  // ===== CBT 카테고리 기반 API =====
+
+  /// 특정 CBT 카테고리의 메시지 반환
+  static ({String title, String body}) getMindcareMessageByCategory(
+    MindcareCategory category, [
+    TimeSlot? slot,
+  ]) {
+    final timeSlot = slot ?? getCurrentTimeSlot();
+    final titles = _getTitlesForSlot(timeSlot);
+    final bodies = _mindcareBodiesByCategory[category] ?? _mindcareBodies;
+
+    return (
+      title: titles[_random.nextInt(titles.length)],
+      body: bodies[_random.nextInt(bodies.length)],
+    );
+  }
+
   // ===== 감정 기반 테스트용 접근자 =====
 
   static List<String> get empathyBodies => List.unmodifiable(_empathyBodies);
@@ -496,4 +603,12 @@ class NotificationMessages {
   /// 감정 레벨별 본문 목록 반환 (테스트용)
   static List<String> getBodiesForEmotionLevel(EmotionLevel level) =>
       List.unmodifiable(_getBodiesForEmotionLevel(level));
+
+  /// CBT 카테고리별 본문 목록 반환 (테스트용)
+  static List<String> getBodiesForCategory(MindcareCategory category) =>
+      List.unmodifiable(_mindcareBodiesByCategory[category] ?? []);
+
+  /// 전체 카테고리 목록 반환 (테스트용)
+  static Map<MindcareCategory, List<String>> get mindcareBodiesByCategory =>
+      Map.unmodifiable(_mindcareBodiesByCategory);
 }

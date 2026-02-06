@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/analytics_service.dart';
 import '../../../core/services/notification_permission_service.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/notification_settings.dart';
 import '../../../domain/entities/self_encouragement_message.dart';
 import '../../providers/providers.dart';
@@ -43,13 +44,14 @@ class NotificationSection extends ConsumerWidget {
       children: [
         const SettingsSectionHeader(title: '알림'),
 
-        // === Cheer Me 카드 ===
-        SettingsCard(
+        // === Cheer Me 카드 (자기 응원) ===
+        _AccentSettingsCard(
+          accentColor: AppColors.cheerMeAccent,
           children: [
             SettingsToggleItem(
               icon: Icons.notifications_active_outlined,
-              title: 'Cheer Me',
-              subtitle: '매일 지정한 시간에 나만의 응원 메시지를 알려드려요.',
+              title: 'Cheer Me — 자기 응원',
+              subtitle: '내가 쓴 응원 메시지로 매일 나를 다독여요',
               value: notificationSettings.isReminderEnabled,
               enabled: notificationsReady,
               onChanged: (value) {
@@ -133,15 +135,14 @@ class NotificationSection extends ConsumerWidget {
 
         const SizedBox(height: 16),
 
-        // === 마음 케어 알림 카드 ===
-        SettingsCard(
+        // === 마음케어 카드 (전문 케어) ===
+        _AccentSettingsCard(
+          accentColor: AppColors.mindcareAccent,
           children: [
-            // v1.4.35: 감정 기반 개인화 기능 설명 반영
-            // 관련: NotificationMessages.getMindcareMessageByEmotion()
             SettingsToggleItem(
               icon: Icons.favorite_border,
-              title: '마음 케어 알림',
-              subtitle: '매일 저녁 9시, 나만을 위한 마음 케어 메시지가 도착해요.',
+              title: '마음케어',
+              subtitle: '감정 분석 기반 전문 마음 케어를 받아보세요',
               value: notificationSettings.isMindcareTopicEnabled,
               enabled: notificationsReady,
               onChanged: (value) {
@@ -317,5 +318,45 @@ class NotificationSection extends ConsumerWidget {
         );
       }
     }
+  }
+}
+
+/// 좌측 accent 컬러 스트라이프가 있는 설정 카드
+class _AccentSettingsCard extends StatelessWidget {
+  final Color accentColor;
+  final List<Widget> children;
+
+  const _AccentSettingsCard({
+    required this.accentColor,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outline.withAlpha(51),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 4, color: accentColor),
+              Expanded(
+                child: Column(children: children),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

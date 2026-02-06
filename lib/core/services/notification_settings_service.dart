@@ -15,7 +15,7 @@ class NotificationSettingsService {
   NotificationSettingsService._();
 
   static const String mindcareTopic = 'mindlog_mindcare';
-  static const String reminderPayload = '{"type":"self_encouragement"}';
+  static const String reminderPayload = '{"type":"cheerme"}';
 
   // ── 테스트 오버라이드 ──
 
