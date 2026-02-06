@@ -41,8 +41,8 @@ class NotificationSettings {
   }) {
     return NotificationSettings(
       isReminderEnabled: isReminderEnabled ?? this.isReminderEnabled,
-      reminderHour: reminderHour ?? this.reminderHour,
-      reminderMinute: reminderMinute ?? this.reminderMinute,
+      reminderHour: (reminderHour ?? this.reminderHour).clamp(0, 23),
+      reminderMinute: (reminderMinute ?? this.reminderMinute).clamp(0, 59),
       isMindcareTopicEnabled:
           isMindcareTopicEnabled ?? this.isMindcareTopicEnabled,
       rotationMode: rotationMode ?? this.rotationMode,

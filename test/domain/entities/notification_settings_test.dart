@@ -147,6 +147,44 @@ void main() {
       });
     });
 
+    group('copyWith clamp 방어', () {
+      test('reminderHour이 범위 초과 시 clamp 처리한다', () {
+        final original = NotificationSettings.defaults();
+
+        final tooHigh = original.copyWith(reminderHour: 25);
+        expect(tooHigh.reminderHour, 23);
+
+        final negative = original.copyWith(reminderHour: -1);
+        expect(negative.reminderHour, 0);
+      });
+
+      test('reminderMinute이 범위 초과 시 clamp 처리한다', () {
+        final original = NotificationSettings.defaults();
+
+        final tooHigh = original.copyWith(reminderMinute: 75);
+        expect(tooHigh.reminderMinute, 59);
+
+        final negative = original.copyWith(reminderMinute: -5);
+        expect(negative.reminderMinute, 0);
+      });
+
+      test('경계값이 정상 통과한다', () {
+        final original = NotificationSettings.defaults();
+
+        final hour0 = original.copyWith(reminderHour: 0);
+        expect(hour0.reminderHour, 0);
+
+        final hour23 = original.copyWith(reminderHour: 23);
+        expect(hour23.reminderHour, 23);
+
+        final min0 = original.copyWith(reminderMinute: 0);
+        expect(min0.reminderMinute, 0);
+
+        final min59 = original.copyWith(reminderMinute: 59);
+        expect(min59.reminderMinute, 59);
+      });
+    });
+
     group('시간 값 유효성', () {
       test('유효한 시간 범위를 허용한다 (0-23시)', () {
         // 0시 (자정)

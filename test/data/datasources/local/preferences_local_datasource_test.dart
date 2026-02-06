@@ -120,6 +120,98 @@ void main() {
       });
     });
 
+    group('알림 시간 clamp 방어', () {
+      test('범위 초과 reminderHour을 clamp 처리해야 한다', () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('notification_reminder_hour', 25);
+        await prefs.setInt('notification_reminder_minute', 0);
+
+        final settings = await dataSource.getNotificationSettings();
+
+        expect(settings.reminderHour, 23);
+      });
+
+      test('음수 reminderHour을 0으로 clamp 처리해야 한다', () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('notification_reminder_hour', -1);
+
+        final settings = await dataSource.getNotificationSettings();
+
+        expect(settings.reminderHour, 0);
+      });
+
+      test('범위 초과 reminderMinute을 clamp 처리해야 한다', () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('notification_reminder_minute', 75);
+
+        final settings = await dataSource.getNotificationSettings();
+
+        expect(settings.reminderMinute, 59);
+      });
+
+      test('음수 reminderMinute을 0으로 clamp 처리해야 한다', () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('notification_reminder_minute', -10);
+
+        final settings = await dataSource.getNotificationSettings();
+
+        expect(settings.reminderMinute, 0);
+      });
+    });
+
+    group('개인 응원 메시지 손상 JSON 방어', () {
+      test('손상된 JSON 저장 시 빈 리스트를 반환해야 한다', () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('self_encouragement_messages', 'invalid json{{{');
+
+        final messages = await dataSource.getSelfEncouragementMessages();
+
+        expect(messages, isEmpty);
+      });
+
+      test('손상된 JSON은 제거되어야 한다', () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('self_encouragement_messages', 'not a json');
+
+        await dataSource.getSelfEncouragementMessages();
+
+        // 손상 데이터가 제거되었으므로 다시 조회하면 빈 리스트
+        final secondRead = await dataSource.getSelfEncouragementMessages();
+        expect(secondRead, isEmpty);
+
+        // SharedPreferences에서도 키가 제거됨
+        expect(prefs.getString('self_encouragement_messages'), isNull);
+      });
+
+      test('빈 문자열 저장 시 빈 리스트를 반환해야 한다', () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('self_encouragement_messages', '');
+
+        final messages = await dataSource.getSelfEncouragementMessages();
+
+        expect(messages, isEmpty);
+      });
+
+      test('null 키 시 빈 리스트를 반환해야 한다', () async {
+        final messages = await dataSource.getSelfEncouragementMessages();
+
+        expect(messages, isEmpty);
+      });
+
+      test('유효하지 않은 구조의 JSON 배열 시 빈 리스트를 반환해야 한다', () async {
+        final prefs = await SharedPreferences.getInstance();
+        // 배열이지만 Map이 아닌 요소
+        await prefs.setString(
+          'self_encouragement_messages',
+          '[1, 2, "hello"]',
+        );
+
+        final messages = await dataSource.getSelfEncouragementMessages();
+
+        expect(messages, isEmpty);
+      });
+    });
+
     group('유저 이름', () {
       test('미설정 시 null을 반환해야 한다', () async {
         final userName = await dataSource.getUserName();

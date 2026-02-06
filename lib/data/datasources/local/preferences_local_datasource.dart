@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/ai_character.dart';
+import '../../../core/services/crashlytics_service.dart';
 import '../../../domain/entities/notification_settings.dart';
 import '../../../domain/entities/self_encouragement_message.dart';
 
@@ -40,16 +41,19 @@ class PreferencesLocalDataSource {
         ? MessageRotationMode.sequential
         : MessageRotationMode.random;
 
+    final rawHour =
+        prefs.getInt(_reminderHourKey) ??
+        NotificationSettings.defaultReminderHour;
+    final rawMinute =
+        prefs.getInt(_reminderMinuteKey) ??
+        NotificationSettings.defaultReminderMinute;
+
     return NotificationSettings(
       isReminderEnabled:
           prefs.getBool(_reminderEnabledKey) ??
           NotificationSettings.defaultReminderEnabled,
-      reminderHour:
-          prefs.getInt(_reminderHourKey) ??
-          NotificationSettings.defaultReminderHour,
-      reminderMinute:
-          prefs.getInt(_reminderMinuteKey) ??
-          NotificationSettings.defaultReminderMinute,
+      reminderHour: rawHour.clamp(0, 23),
+      reminderMinute: rawMinute.clamp(0, 59),
       isMindcareTopicEnabled:
           prefs.getBool(_mindcareTopicEnabledKey) ??
           NotificationSettings.defaultMindcareTopicEnabled,
@@ -169,8 +173,13 @@ class PreferencesLocalDataSource {
                 SelfEncouragementMessage.fromJson(e as Map<String, dynamic>),
           )
           .toList();
-    } catch (e) {
-      // 손상된 데이터 제거 후 빈 리스트 반환
+    } catch (e, stack) {
+      // 손상된 데이터 로깅 후 제거, 빈 리스트 반환
+      await CrashlyticsService.recordError(
+        e,
+        stack,
+        reason: 'Corrupted self-encouragement messages JSON removed',
+      );
       await prefs.remove(_selfMessagesKey);
       return [];
     }
