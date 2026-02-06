@@ -487,6 +487,151 @@ void main() {
       });
     });
 
+    group('실제 메시지 템플릿 이름 개인화 통합 테스트', () {
+      test('감정 기반 메시지 + 이름 적용 시 {name}이 치환되어야 한다', () {
+        // 여러 시드로 반복 검증
+        for (int seed = 0; seed < 20; seed++) {
+          NotificationMessages.setRandom(Random(seed));
+          final message =
+              NotificationMessages.getMindcareMessageByEmotion(8.0);
+          final personalized =
+              NotificationMessages.applyNameToMessage(message, '지수');
+
+          expect(
+            personalized.title,
+            isNot(contains('{name}')),
+            reason: 'seed=$seed title: ${personalized.title}',
+          );
+          expect(
+            personalized.body,
+            isNot(contains('{name}')),
+            reason: 'seed=$seed body: ${personalized.body}',
+          );
+        }
+      });
+
+      test('이름이 null이면 {name} 패턴이 깔끔하게 제거되어야 한다', () {
+        for (int seed = 0; seed < 20; seed++) {
+          NotificationMessages.setRandom(Random(seed));
+          final message =
+              NotificationMessages.getMindcareMessageByEmotion(2.0);
+          final personalized =
+              NotificationMessages.applyNameToMessage(message, null);
+
+          expect(
+            personalized.title,
+            isNot(contains('{name}')),
+            reason: 'seed=$seed title: ${personalized.title}',
+          );
+          expect(
+            personalized.body,
+            isNot(contains('{name}')),
+            reason: 'seed=$seed body: ${personalized.body}',
+          );
+        }
+      });
+
+      test('시간대별 메시지에도 이름이 적용되어야 한다', () {
+        for (final slot in TimeSlot.values) {
+          NotificationMessages.setRandom(MockRandom());
+          final message =
+              NotificationMessages.getMindcareMessageByTimeSlot(slot);
+          final personalized =
+              NotificationMessages.applyNameToMessage(message, '민수');
+
+          expect(
+            personalized.title,
+            isNot(contains('{name}')),
+            reason: '$slot title: ${personalized.title}',
+          );
+          expect(
+            personalized.body,
+            isNot(contains('{name}')),
+            reason: '$slot body: ${personalized.body}',
+          );
+        }
+      });
+
+      test('모든 메시지 풀에서 {name} 패턴이 올바르게 처리되어야 한다', () {
+        final allMessages = [
+          ...NotificationMessages.reminderTitles,
+          ...NotificationMessages.reminderBodies,
+          ...NotificationMessages.mindcareTitles,
+          ...NotificationMessages.mindcareBodies,
+          ...NotificationMessages.morningTitles,
+          ...NotificationMessages.morningBodies,
+          ...NotificationMessages.afternoonTitles,
+          ...NotificationMessages.afternoonBodies,
+          ...NotificationMessages.eveningTitles,
+          ...NotificationMessages.eveningBodies,
+          ...NotificationMessages.nightTitles,
+          ...NotificationMessages.nightBodies,
+          ...NotificationMessages.empathyBodies,
+          ...NotificationMessages.encouragementBodies,
+        ];
+
+        for (final msg in allMessages) {
+          final withName =
+              NotificationMessages.applyNamePersonalization(msg, '테스트');
+          final withoutName =
+              NotificationMessages.applyNamePersonalization(msg, null);
+
+          expect(
+            withName,
+            isNot(contains('{name}')),
+            reason: '이름 적용 후에도 {name} 남음: $withName (원본: $msg)',
+          );
+          expect(
+            withoutName,
+            isNot(contains('{name}')),
+            reason: '이름 제거 후에도 {name} 남음: $withoutName (원본: $msg)',
+          );
+        }
+      });
+
+      test('{name} 포함 메시지가 전체의 30% 이상이어야 한다', () {
+        final allMessages = [
+          ...NotificationMessages.reminderTitles,
+          ...NotificationMessages.mindcareTitles,
+          ...NotificationMessages.morningTitles,
+          ...NotificationMessages.afternoonTitles,
+          ...NotificationMessages.eveningTitles,
+          ...NotificationMessages.nightTitles,
+          ...NotificationMessages.empathyBodies,
+          ...NotificationMessages.encouragementBodies,
+        ];
+
+        final nameCount =
+            allMessages.where((m) => m.contains('{name}')).length;
+        final ratio = nameCount / allMessages.length;
+
+        expect(
+          ratio,
+          greaterThanOrEqualTo(0.30),
+          reason:
+              '{name} 포함 비율: ${(ratio * 100).toStringAsFixed(1)}% '
+              '($nameCount/${allMessages.length})',
+        );
+      });
+
+      test('{name}님의 패턴이 null 이름에서 깔끔하게 제거되어야 한다', () {
+        // {name}님의 패턴 테스트
+        final result = NotificationMessages.applyNamePersonalization(
+          '{name}님의 오늘의 격려',
+          null,
+        );
+        expect(result, '오늘의 격려');
+      });
+
+      test('{name}님은 패턴이 null 이름에서 깔끔하게 제거되어야 한다', () {
+        final result = NotificationMessages.applyNamePersonalization(
+          '{name}님은 충분히 잘하고 있어요',
+          null,
+        );
+        expect(result, '충분히 잘하고 있어요');
+      });
+    });
+
     group('가중치 분포 검증 (통계적 테스트)', () {
       const int sampleSize = 1000;
       // 허용 오차: 기대값 ± 10%

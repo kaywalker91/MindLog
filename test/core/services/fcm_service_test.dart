@@ -67,12 +67,13 @@ void main() {
           // MockRandom으로 결정론적이므로 첫 번째 항목 선택됨
           expect(result.body, isNotEmpty);
           // 공감 메시지 풀 또는 시간대별 메시지 풀에 포함되어야 함
+          // 이름이 null이므로 {name} 패턴 제거된 메시지와 비교
           final allPossibleBodies = [
             ...NotificationMessages.empathyBodies,
             ...NotificationMessages.getBodiesForSlot(
               NotificationMessages.getCurrentTimeSlot(),
             ),
-          ];
+          ].map((b) => NotificationMessages.applyNamePersonalization(b, null)).toList();
           expect(allPossibleBodies, contains(result.body));
         });
 
@@ -90,12 +91,13 @@ void main() {
 
           // Assert: 높은 감정 시 격려/긍정 메시지 풀에서 선택 (60% 가중치)
           expect(result.body, isNotEmpty);
+          // 이름이 null이므로 {name} 패턴 제거된 메시지와 비교
           final allPossibleBodies = [
             ...NotificationMessages.encouragementBodies,
             ...NotificationMessages.getBodiesForSlot(
               NotificationMessages.getCurrentTimeSlot(),
             ),
-          ];
+          ].map((b) => NotificationMessages.applyNamePersonalization(b, null)).toList();
           expect(allPossibleBodies, contains(result.body));
         });
 
@@ -113,12 +115,13 @@ void main() {
 
           // Assert: 보통 감정 시 모든 메시지 풀에서 균등 선택
           expect(result.body, isNotEmpty);
+          // 이름이 null이므로 {name} 패턴 제거된 메시지와 비교
           final allPossibleBodies = [
             ...NotificationMessages.mindcareBodies,
             ...NotificationMessages.getBodiesForSlot(
               NotificationMessages.getCurrentTimeSlot(),
             ),
-          ];
+          ].map((b) => NotificationMessages.applyNamePersonalization(b, null)).toList();
           expect(allPossibleBodies, contains(result.body));
         });
 
@@ -134,10 +137,11 @@ void main() {
             serverBody: '서버 본문',
           );
 
-          // Assert: 메시지에 {name} 템플릿이 있었다면 치환됨
-          // 현재 메시지 풀에는 {name} 템플릿이 없으므로 그대로 반환
+          // Assert: 메시지에 {name} 템플릿이 이름으로 치환됨
           expect(result.title, isNotEmpty);
           expect(result.body, isNotEmpty);
+          expect(result.title, isNot(contains('{name}')));
+          expect(result.body, isNot(contains('{name}')));
         });
       });
 
@@ -299,8 +303,11 @@ void main() {
           );
 
           // Assert: 현재 시간대 제목 목록에 포함
+          // 이름이 null이므로 {name} 패턴 제거된 제목과 비교
           final currentSlot = NotificationMessages.getCurrentTimeSlot();
-          final titles = NotificationMessages.getTitlesForSlot(currentSlot);
+          final titles = NotificationMessages.getTitlesForSlot(currentSlot)
+              .map((t) => NotificationMessages.applyNamePersonalization(t, null))
+              .toList();
           expect(titles, contains(result.title));
         });
       });
