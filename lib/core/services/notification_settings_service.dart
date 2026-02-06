@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../constants/notification_messages.dart';
 import '../../domain/entities/notification_settings.dart';
 import '../../domain/entities/self_encouragement_message.dart';
 import 'analytics_service.dart';
@@ -177,6 +178,7 @@ class NotificationSettingsService {
     NotificationSettings settings, {
     List<SelfEncouragementMessage> messages = const [],
     String source = 'user_toggle',
+    String? userName,
   }) async {
     var nextIndex = settings.lastDisplayedIndex;
     if (settings.isReminderEnabled && messages.isNotEmpty) {
@@ -268,21 +270,30 @@ class NotificationSettingsService {
         );
       }
 
+      // 이름 개인화 적용
+      final personalizedBody = selectedMessage?.content != null
+          ? NotificationMessages.applyNamePersonalization(
+              selectedMessage!.content, userName)
+          : null;
+
+      // 알림 제목 개인화 (Cheer Me 전용 제목 템플릿 사용)
+      final cheerMeTitle = NotificationMessages.getCheerMeTitle(userName);
+
       // 스케줄링 실행 (사용자 메시지 사용)
       final success = scheduleDailyReminderOverride != null
           ? await scheduleDailyReminderOverride!(
               hour: settings.reminderHour,
               minute: settings.reminderMinute,
-              title: 'Cheer Me',
-              body: selectedMessage?.content,
+              title: cheerMeTitle,
+              body: personalizedBody,
               payload: reminderPayload,
               scheduleMode: scheduleMode,
             )
           : await NotificationService.scheduleDailyReminder(
               hour: settings.reminderHour,
               minute: settings.reminderMinute,
-              title: 'Cheer Me',
-              body: selectedMessage?.content,
+              title: cheerMeTitle,
+              body: personalizedBody,
               payload: reminderPayload,
               scheduleMode: scheduleMode,
             );

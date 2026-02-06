@@ -57,11 +57,13 @@ class NotificationSettingsController
     try {
       final messages =
           ref.read(selfEncouragementProvider).valueOrNull ?? [];
+      final userName = ref.read(userNameProvider).valueOrNull;
       // TODO: Consider wrapping NotificationSettingsService.applySettings in UseCase
       final nextIndex = await NotificationSettingsService.applySettings(
         settings,
         messages: messages,
         source: source,
+        userName: userName,
       );
 
       await _updateSequentialIndex(settings, nextIndex);
@@ -95,10 +97,12 @@ class NotificationSettingsController
     if (!current.isReminderEnabled) return;
 
     try {
+      final userName = ref.read(userNameProvider).valueOrNull;
       final nextIndex = await NotificationSettingsService.applySettings(
         current,
         messages: messages,
         source: 'message_change',
+        userName: userName,
       );
 
       await _updateSequentialIndex(current, nextIndex);

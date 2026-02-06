@@ -9,7 +9,14 @@ class NotificationPreviewWidget extends StatelessWidget {
   /// 미리보기에 표시할 메시지 (기본값: 예시 메시지)
   final String? previewMessage;
 
-  const NotificationPreviewWidget({super.key, this.previewMessage});
+  /// 미리보기에 표시할 알림 제목 (기본값: '💌 Cheer Me')
+  final String? previewTitle;
+
+  const NotificationPreviewWidget({
+    super.key,
+    this.previewMessage,
+    this.previewTitle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +92,7 @@ class NotificationPreviewWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '💌 Cheer Me',
+                      '💌 ${previewTitle ?? 'Cheer Me'}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w500,
                         color: colorScheme.onSurfaceVariant,

@@ -293,6 +293,80 @@ void main() {
       });
     });
 
+    group('Cheer Me 제목 (getCheerMeTitle)', () {
+      test('cheerMeTitles 목록이 8개여야 한다', () {
+        expect(NotificationMessages.cheerMeTitles, hasLength(8));
+      });
+
+      test('cheerMeTitles 목록이 불변이어야 한다', () {
+        expect(
+          () => NotificationMessages.cheerMeTitles.add('test'),
+          throwsUnsupportedError,
+        );
+      });
+
+      test('이름이 있으면 {name}을 치환한 제목을 반환해야 한다', () {
+        NotificationMessages.setRandom(MockRandom());
+        final title = NotificationMessages.getCheerMeTitle('지수');
+        expect(title, isNot(contains('{name}')));
+        // MockRandom은 counter=0 → index 0 → '{name}님의 응원 메시지'
+        expect(title, '지수님의 응원 메시지');
+      });
+
+      test('이름이 null이면 {name} 패턴을 제거한 제목을 반환해야 한다', () {
+        NotificationMessages.setRandom(MockRandom());
+        final title = NotificationMessages.getCheerMeTitle(null);
+        expect(title, isNot(contains('{name}')));
+        // '{name}님의 응원 메시지' → '응원 메시지'
+        expect(title, '응원 메시지');
+      });
+
+      test('Mock Random으로 결정론적 제목 선택을 확인해야 한다', () {
+        NotificationMessages.setRandom(MockRandom());
+        final first = NotificationMessages.getCheerMeTitle('민수');
+
+        NotificationMessages.setRandom(MockRandom());
+        final second = NotificationMessages.getCheerMeTitle('민수');
+
+        expect(first, equals(second));
+      });
+
+      test('cheerMeTitles 중 {name} 포함 비율이 50% 이상이어야 한다', () {
+        final titles = NotificationMessages.cheerMeTitles;
+        final nameCount = titles.where((t) => t.contains('{name}')).length;
+        final ratio = nameCount / titles.length;
+        expect(
+          ratio,
+          greaterThanOrEqualTo(0.50),
+          reason: '{name} 포함 비율: ${(ratio * 100).toStringAsFixed(1)}%',
+        );
+      });
+
+      test('모든 cheerMeTitles에 이름 개인화가 올바르게 적용되어야 한다', () {
+        for (final title in NotificationMessages.cheerMeTitles) {
+          final withName = NotificationMessages.applyNamePersonalization(
+            title,
+            '테스트',
+          );
+          final withoutName = NotificationMessages.applyNamePersonalization(
+            title,
+            null,
+          );
+          expect(
+            withName,
+            isNot(contains('{name}')),
+            reason: '이름 적용 후 {name} 남음: $withName (원본: $title)',
+          );
+          expect(
+            withoutName,
+            isNot(contains('{name}')),
+            reason: '이름 제거 후 {name} 남음: $withoutName (원본: $title)',
+          );
+          expect(withoutName.trim(), isNotEmpty, reason: '제거 후 빈 문자열: $title');
+        }
+      });
+    });
+
     group('이름 개인화 (applyNamePersonalization)', () {
       test('이름이 있으면 {name}을 실제 이름으로 치환해야 한다', () {
         const message = '{name}님, 오늘 하루 수고하셨어요';
@@ -554,6 +628,7 @@ void main() {
 
       test('모든 메시지 풀에서 {name} 패턴이 올바르게 처리되어야 한다', () {
         final allMessages = [
+          ...NotificationMessages.cheerMeTitles,
           ...NotificationMessages.reminderTitles,
           ...NotificationMessages.reminderBodies,
           ...NotificationMessages.mindcareTitles,
@@ -591,6 +666,7 @@ void main() {
 
       test('{name} 포함 메시지가 전체의 30% 이상이어야 한다', () {
         final allMessages = [
+          ...NotificationMessages.cheerMeTitles,
           ...NotificationMessages.reminderTitles,
           ...NotificationMessages.mindcareTitles,
           ...NotificationMessages.morningTitles,

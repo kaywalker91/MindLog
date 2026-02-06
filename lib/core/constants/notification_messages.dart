@@ -204,6 +204,26 @@ class NotificationMessages {
     '따뜻한 잠자리 되세요',
   ];
 
+  // ===== Cheer Me 제목 (로컬 알림 - 개인 응원) =====
+
+  /// Cheer Me 알림 제목 - 따뜻한 인사 + 응원 톤
+  static const List<String> _cheerMeTitles = [
+    '{name}님의 응원 메시지',
+    '{name}님, 오늘도 파이팅!',
+    '오늘의 응원 한마디',
+    '{name}님에게 보내는 응원',
+    '힘을 주는 한마디',
+    '{name}님, 오늘도 빛나는 하루!',
+    '마음의 응원',
+    '{name}님, 잠깐 쉬어가요',
+  ];
+
+  /// Cheer Me 알림 제목 반환 (이름 개인화 적용)
+  static String getCheerMeTitle(String? userName) {
+    final template = _cheerMeTitles[_random.nextInt(_cheerMeTitles.length)];
+    return applyNamePersonalization(template, userName);
+  }
+
   // ===== 리마인더 API =====
 
   /// 랜덤 리마인더 제목 반환
@@ -287,6 +307,7 @@ class NotificationMessages {
 
   // ===== 테스트용 접근자 =====
 
+  static List<String> get cheerMeTitles => List.unmodifiable(_cheerMeTitles);
   static List<String> get reminderTitles => List.unmodifiable(_reminderTitles);
   static List<String> get reminderBodies => List.unmodifiable(_reminderBodies);
   static List<String> get mindcareTitles => List.unmodifiable(_mindcareTitles);

@@ -19,6 +19,8 @@ import 'l10n/app_localizations.dart';
 import 'core/di/infra_providers.dart';
 import 'presentation/providers/statistics_providers.dart';
 import 'presentation/providers/diary_list_controller.dart';
+import 'presentation/providers/self_encouragement_controller.dart';
+import 'presentation/providers/user_name_controller.dart';
 import 'presentation/services/notification_action_handler.dart';
 import 'presentation/router/app_router.dart';
 import 'presentation/providers/app_info_provider.dart';
@@ -90,9 +92,15 @@ Future<void> _rescheduleNotificationsIfNeeded() async {
       );
     }
 
+    // Riverpod 컨테이너에서 메시지와 사용자 이름 읽기
+    final messages = await appContainer.read(selfEncouragementProvider.future);
+    final userName = await appContainer.read(userNameProvider.future);
+
     await NotificationSettingsService.applySettings(
       settings,
+      messages: messages,
       source: 'app_start',
+      userName: userName,
     );
 
     if (kDebugMode) {
@@ -181,6 +189,14 @@ Future<void> _initializeApp() async {
   unawaited(
     FCMService.initialize(
       onMessageOpened: NotificationActionHandler.handleRemoteData,
+      getUserName: () async {
+        try {
+          return await appContainer.read(userNameProvider.future);
+        } catch (_) {
+          final repo = appContainer.read(settingsRepositoryProvider);
+          return repo.getUserName();
+        }
+      },
     ),
   );
 

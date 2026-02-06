@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260206-v1436">
+    <link rel="stylesheet" href="style.css?v=20260206-v1437">
 </head>
 <body>
     <header class="hero">
@@ -88,27 +88,27 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.36에서는 알림 시스템 안정성 대규모 개선, 80개 이상의 테스트 추가, 코드 리팩토링을 진행했습니다.</p>
+            <p class="section-subtitle">v1.4.37에서는 Cheer Me 알림 제목/본문 이름 개인화, 이름 변경 시 자동 재스케줄링, 22개 이상의 테스트를 추가했습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
-                    <span class="update-tag">Stability</span>
-                    <h3>🛡️ 알림 시스템 안정성 강화</h3>
-                    <p>FCM 백그라운드 핸들러에 Crashlytics 에러 로깅과 이중 폴백 처리를 적용했습니다. 알림 시간 설정에 clamp 방어 코드를 추가하여 잘못된 값이 저장되는 것을 방지합니다.</p>
+                    <span class="update-tag">Personalization</span>
+                    <h3>💌 알림 제목 개인화</h3>
+                    <p>기존 하드코딩 "Cheer Me" 제목 대신 8종의 따뜻한 제목 템플릿 풀에서 랜덤 선택합니다. 이름을 등록하면 '지수님의 응원 메시지', '지수님, 오늘도 파이팅!' 같은 개인화된 알림을 받을 수 있습니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">UX</span>
+                    <h3>🔄 이름 변경 자동 반영</h3>
+                    <p>설정에서 이름을 변경하면 다음 알림부터 자동으로 반영됩니다. UserNameController에서 NotificationSettingsController로의 크로스 컨트롤러 재스케줄링을 구현하여, 실패해도 이름 저장에 영향을 주지 않습니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Architecture</span>
+                    <h3>💉 FCM 의존성 주입 개선</h3>
+                    <p>FCMService.initialize()에 getUserName 콜백을 주입하여 Riverpod 컨테이너와 연결합니다. 백그라운드 isolate에서는 SharedPreferences fallback을 사용하여 안정성을 확보했습니다.</p>
                 </div>
                 <div class="update-card">
                     <span class="update-tag">Testing</span>
-                    <h3>🧪 테스트 커버리지 대폭 확대</h3>
-                    <p>NotificationSettingsService 48개, SelfEncouragementController 32개 등 80개 이상의 단위 테스트를 추가했습니다. 에러 전파, 에지 케이스, 방어 코드를 체계적으로 검증합니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">Refactor</span>
-                    <h3>🔧 서비스 레이어 리팩토링</h3>
-                    <p>NotificationSettingsService의 applySettings() 메서드를 _checkPermissions(), _manageFcmTopics()로 분리하여 단일 책임 원칙을 적용하고 테스트 용이성을 향상시켰습니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">i18n</span>
-                    <h3>🇰🇷 한글 개인화 정규식 확장</h3>
-                    <p>이름 개인화 패턴에 한글 조사(을/이) 지원을 추가했습니다. '{name}님을 응원합니다', '{name}님이 잘하고 있어요' 등 더 자연스러운 한국어 표현을 지원합니다.</p>
+                    <h3>🧪 개인화 테스트 22개 추가</h3>
+                    <p>Cheer Me 제목 7개, FCM DI 3개, 알림 서비스 이름 개인화 8개, 크로스 컨트롤러 재스케줄 4개 등 총 22개 이상의 단위/위젯/통합 테스트를 추가하여 개인화 기능의 안정성을 검증합니다.</p>
                 </div>
             </div>
         </div>

@@ -328,5 +328,55 @@ void main() {
         expect(FCMService.fcmToken, isNull);
       });
     });
+
+    group('getUserName DI', () {
+      test('userNameProvider가 설정되면 buildPersonalizedMessage에서 사용해야 한다',
+          () async {
+        // Arrange
+        String? calledName;
+        FCMService.userNameProvider = () async {
+          calledName = '콜백호출됨';
+          return '콜백유저';
+        };
+        FCMService.emotionScoreProvider = () async => null;
+
+        // Act
+        final result = await FCMService.buildPersonalizedMessage(
+          serverTitle: '{name}님, 안녕하세요',
+          serverBody: '테스트 본문',
+        );
+
+        // Assert: 콜백이 호출되었고 이름이 적용됨
+        expect(calledName, '콜백호출됨');
+        expect(result.title, '콜백유저님, 안녕하세요');
+      });
+
+      test('userNameProvider가 null이면 SharedPreferences fallback을 사용해야 한다',
+          () async {
+        // Arrange: userNameProvider를 설정하지 않음 (null)
+        // SharedPreferences 접근이 실패해도 null 반환
+        FCMService.emotionScoreProvider = () async => null;
+
+        // Act
+        final result = await FCMService.buildPersonalizedMessage(
+          serverTitle: '{name}님, 안녕하세요',
+          serverBody: '테스트 본문',
+        );
+
+        // Assert: {name} 패턴 제거 (이름 없음 = SharedPrefs fallback에서 null)
+        expect(result.title, '안녕하세요');
+      });
+
+      test('resetForTesting이 userNameProvider를 초기화해야 한다', () {
+        // Arrange
+        FCMService.userNameProvider = () async => 'test';
+
+        // Act
+        FCMService.resetForTesting();
+
+        // Assert
+        expect(FCMService.userNameProvider, isNull);
+      });
+    });
   });
 }

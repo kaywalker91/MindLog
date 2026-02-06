@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.37] - 2026-02-06
+
+### Added
+- **Cheer Me 알림 제목 개인화**: 기존 하드코딩 "Cheer Me" → 8개 제목 템플릿 풀 + `{name}` 치환
+  - `_cheerMeTitles`: `'{name}님의 응원 메시지'`, `'오늘의 응원 한마디'` 등 8종
+  - `getCheerMeTitle(userName)`: 랜덤 선택 + 이름 개인화 적용
+  - 62.5% `{name}` 포함 → 이름 등록 사용자에게 따뜻한 경험 제공
+- **알림 본문 이름 개인화**: `NotificationSettingsService.applySettings()`에 `userName` 파라미터 추가
+  - 메시지 본문에 `applyNamePersonalization()` 적용
+  - `{name}님, 힘내세요!` → `지수님, 힘내세요!` 변환
+- **이름 변경 → 알림 자동 재스케줄링**: `UserNameController.setUserName()` 호출 시 `rescheduleWithMessages()` 자동 트리거
+  - try-catch로 감싸 재스케줄링 실패가 이름 저장을 방해하지 않음
+- **FCM getUserName DI**: `FCMService.initialize(getUserName:)` 콜백 주입
+  - Riverpod 컨테이너에서 이름을 읽는 콜백을 main.dart에서 전달
+  - null이면 SharedPreferences fallback 사용 (백그라운드 isolate 호환)
+- **앱 시작 시 메시지+이름 전달**: `_rescheduleNotificationsIfNeeded()`에서 `selfEncouragementProvider.future` + `userNameProvider.future` 읽기
+  - 미전달 시 빈 리스트 → 리마인더 취소되는 버그 수정
+
+### Changed
+- **MessageCard → ConsumerStatefulWidget**: `ref.watch(userNameProvider)`로 실시간 이름 반영
+  - 메시지 본문에 `applyNamePersonalization()` 적용하여 `{name}` 치환 표시
+- **NotificationPreviewWidget**: `previewTitle` 파라미터 추가
+  - 미리보기에 `getCheerMeTitle()` 결과 표시 (기존: 하드코딩 `'Cheer Me'`)
+- **SelfEncouragementScreen**: 미리보기 메시지/제목 모두 이름 개인화 적용
+
+### Added (Tests — 22+개)
+- **NotificationMessages 테스트 7개**: `cheerMeTitles` 목록 검증, `getCheerMeTitle()` 이름 치환/제거, 결정론적 선택, `{name}` 비율 검증, 전체 풀 개인화 검증
+- **FCMService 테스트 3개**: `getUserName` DI 콜백 호출 확인, SharedPreferences fallback, `resetForTesting` 초기화
+- **NotificationSettingsService 테스트 8개**: `userName` 본문 개인화 5개 + `cheerMeTitle` 제목 개인화 3개
+- **UserNameController 테스트 4개**: 이름 변경 시 reschedule 트리거, 메시지 없을 때 skip, reschedule 실패 시 이름 저장 유지, 이름 삭제 시 reschedule
+- **신규 테스트 파일 2개**:
+  - `test/integration/name_propagation_test.dart` (244줄): 이름 전파 통합 테스트
+  - `test/presentation/widgets/self_encouragement/message_card_test.dart` (225줄): MessageCard 위젯 테스트
+
+---
+
 ## [1.4.36] - 2026-02-06
 
 ### Fixed

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mindlog/presentation/providers/providers.dart';
 
@@ -19,6 +20,21 @@ class UserNameController extends AsyncNotifier<String?> {
 
     await repository.setUserName(finalName);
     state = AsyncValue.data(finalName);
+
+    // 이름 변경 → 알림 재스케줄링 (개인화 반영)
+    try {
+      final messages =
+          ref.read(selfEncouragementProvider).valueOrNull ?? [];
+      if (messages.isNotEmpty) {
+        await ref
+            .read(notificationSettingsProvider.notifier)
+            .rescheduleWithMessages(messages);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('[UserNameController] Reschedule failed: $e');
+      }
+    }
   }
 }
 

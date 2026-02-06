@@ -19,7 +19,10 @@ class FCMService {
   static bool _initialized = false;
   static bool _handlersSetup = false;
 
-  /// 테스트용: 사용자 이름 조회 함수 오버라이드
+  /// 사용자 이름 조회 함수 (DI 또는 테스트 주입)
+  ///
+  /// [initialize]의 `getUserName` 파라미터로 주입하거나,
+  /// 테스트에서 직접 설정 가능. null이면 SharedPreferences fallback 사용.
   @visibleForTesting
   static Future<String?> Function()? userNameProvider;
 
@@ -42,10 +45,18 @@ class FCMService {
   static String? get fcmToken => _fcmToken;
 
   /// 초기화
+  ///
+  /// [getUserName] Riverpod provider에서 이름을 읽는 콜백.
+  /// null이면 SharedPreferences fallback 사용 (백그라운드 isolate 호환).
   static Future<void> initialize({
     void Function(Map<String, dynamic> data)? onMessageOpened,
+    Future<String?> Function()? getUserName,
   }) async {
     if (_initialized) return;
+
+    if (getUserName != null) {
+      userNameProvider = getUserName;
+    }
 
     final messaging = FirebaseMessaging.instance;
     _messaging = messaging;

@@ -7,9 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/constants/notification_messages.dart';
 import '../../domain/entities/self_encouragement_message.dart';
-import '../providers/notification_settings_controller.dart';
-import '../providers/self_encouragement_controller.dart';
+import '../providers/providers.dart';
 import '../widgets/self_encouragement/empty_message_view.dart';
 import '../widgets/self_encouragement/message_card.dart';
 import '../widgets/self_encouragement/message_input_dialog.dart';
@@ -164,8 +164,14 @@ class _MessageListState extends ConsumerState<_MessageList> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: NotificationPreviewWidget(
                 previewMessage: widget.messages.isNotEmpty
-                    ? widget.messages.first.content
+                    ? NotificationMessages.applyNamePersonalization(
+                        widget.messages.first.content,
+                        ref.watch(userNameProvider).valueOrNull,
+                      )
                     : null,
+                previewTitle: NotificationMessages.getCheerMeTitle(
+                  ref.watch(userNameProvider).valueOrNull,
+                ),
               ),
             ),
 

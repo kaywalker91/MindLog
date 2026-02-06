@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mindlog/core/constants/notification_messages.dart';
 import 'package:mindlog/core/services/notification_settings_service.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/entities/self_encouragement_message.dart';
@@ -344,7 +345,12 @@ void main() {
         expect(scheduleCalls, hasLength(1));
         expect(scheduleCalls[0]['hour'], 8);
         expect(scheduleCalls[0]['minute'], 30);
-        expect(scheduleCalls[0]['title'], 'Cheer Me');
+        // 제목은 cheerMeTitles 풀에서 선택됨 (개인화 적용)
+        final title = scheduleCalls[0]['title'] as String;
+        final allCheerMeTitles = NotificationMessages.cheerMeTitles.map(
+          (t) => NotificationMessages.applyNamePersonalization(t, null),
+        );
+        expect(allCheerMeTitles, contains(title));
         expect(scheduleCalls[0]['body'], '힘내세요!');
         expect(
           scheduleCalls[0]['payload'],
@@ -567,6 +573,153 @@ void main() {
             log.where((e) => e['event'] == 'fcm_topic_error').toList();
         expect(topicError, hasLength(1));
         expect(topicError[0]['action'], 'subscribe');
+      });
+    });
+
+    group('이름 개인화 (userName)', () {
+      test('userName이 있으면 메시지 본문이 개인화되어야 한다', () async {
+        final messages = [
+          createMessage(0, content: '{name}님, 힘내세요!'),
+        ];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+          userName: '지수',
+        );
+
+        expect(scheduleCalls, hasLength(1));
+        expect(scheduleCalls[0]['body'], '지수님, 힘내세요!');
+      });
+
+      test('userName이 null이면 {name} 패턴이 제거되어야 한다', () async {
+        final messages = [
+          createMessage(0, content: '{name}님, 힘내세요!'),
+        ];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+          userName: null,
+        );
+
+        expect(scheduleCalls, hasLength(1));
+        expect(scheduleCalls[0]['body'], '힘내세요!');
+      });
+
+      test('userName이 빈 문자열이면 {name} 패턴이 제거되어야 한다', () async {
+        final messages = [
+          createMessage(0, content: '{name}님의 하루'),
+        ];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+          userName: '',
+        );
+
+        expect(scheduleCalls, hasLength(1));
+        expect(scheduleCalls[0]['body'], '하루');
+      });
+
+      test('{name}이 없는 메시지는 변경 없이 전달되어야 한다', () async {
+        final messages = [
+          createMessage(0, content: '오늘도 화이팅!'),
+        ];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+          userName: '지수',
+        );
+
+        expect(scheduleCalls, hasLength(1));
+        expect(scheduleCalls[0]['body'], '오늘도 화이팅!');
+      });
+
+      test('userName 미전달(기본값) 시 기존 동작 유지', () async {
+        final messages = [
+          createMessage(0, content: '{name}님, 좋은 하루!'),
+        ];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+          // userName 미전달 → null 기본값
+        );
+
+        expect(scheduleCalls, hasLength(1));
+        // userName=null → {name}님, 패턴 제거
+        expect(scheduleCalls[0]['body'], '좋은 하루!');
+      });
+    });
+
+    group('알림 제목 개인화 (cheerMeTitle)', () {
+      test('userName이 있으면 제목에 이름이 포함되어야 한다', () async {
+        final messages = [createMessage(0, content: '화이팅!')];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+          userName: '지수',
+        );
+
+        expect(scheduleCalls, hasLength(1));
+        final title = scheduleCalls[0]['title'] as String;
+        // cheerMeTitles 풀에서 선택된 제목이어야 함
+        final allTitles = NotificationMessages.cheerMeTitles.map(
+          (t) => NotificationMessages.applyNamePersonalization(t, '지수'),
+        );
+        expect(allTitles, contains(title));
+        // {name} 패턴이 남아있으면 안 됨
+        expect(title, isNot(contains('{name}')));
+      });
+
+      test('userName이 null이면 제목에서 {name} 패턴이 제거되어야 한다', () async {
+        final messages = [createMessage(0, content: '화이팅!')];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+          userName: null,
+        );
+
+        expect(scheduleCalls, hasLength(1));
+        final title = scheduleCalls[0]['title'] as String;
+        expect(title, isNot(contains('{name}')));
+        // cheerMeTitles 풀에서 선택된 제목이어야 함
+        final allTitles = NotificationMessages.cheerMeTitles.map(
+          (t) => NotificationMessages.applyNamePersonalization(t, null),
+        );
+        expect(allTitles, contains(title));
+      });
+
+      test('제목이 cheerMeTitles 풀에서 선택되어야 한다', () async {
+        final messages = [createMessage(0, content: '테스트')];
+        final settings = createSettings();
+
+        // 10회 반복으로 다양한 제목 선택 확인
+        for (var i = 0; i < 10; i++) {
+          scheduleCalls.clear();
+          await NotificationSettingsService.applySettings(
+            settings,
+            messages: messages,
+            userName: '민수',
+          );
+
+          final title = scheduleCalls[0]['title'] as String;
+          final allTitles = NotificationMessages.cheerMeTitles.map(
+            (t) => NotificationMessages.applyNamePersonalization(t, '민수'),
+          );
+          expect(allTitles, contains(title), reason: 'title "$title" not in pool');
+        }
       });
     });
 

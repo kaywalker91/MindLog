@@ -1,10 +1,62 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/errors/failures.dart';
+import 'package:mindlog/domain/entities/notification_settings.dart';
+import 'package:mindlog/domain/entities/self_encouragement_message.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
+import 'package:mindlog/presentation/providers/notification_settings_controller.dart';
+import 'package:mindlog/presentation/providers/self_encouragement_controller.dart';
 import 'package:mindlog/presentation/providers/user_name_controller.dart';
 
 import '../../mocks/mock_repositories.dart';
+
+/// 테스트용 메시지 팩토리
+SelfEncouragementMessage _makeMessage(String id, {String? content}) {
+  return SelfEncouragementMessage(
+    id: id,
+    content: content ?? '메시지 $id',
+    createdAt: DateTime(2026, 1, 1),
+    displayOrder: 0,
+  );
+}
+
+/// rescheduleWithMessages 호출을 추적하는 Fake Controller
+class _TrackingNotificationSettingsController
+    extends AsyncNotifier<NotificationSettings>
+    implements NotificationSettingsController {
+  final List<List<SelfEncouragementMessage>> rescheduleCalls = [];
+  bool shouldThrow = false;
+
+  @override
+  FutureOr<NotificationSettings> build() => NotificationSettings.defaults();
+
+  @override
+  Future<void> updateReminderEnabled(bool enabled) async {}
+
+  @override
+  Future<void> updateReminderTime({
+    required int hour,
+    required int minute,
+  }) async {}
+
+  @override
+  Future<void> updateMindcareTopicEnabled(bool enabled) async {}
+
+  @override
+  Future<void> updateRotationMode(MessageRotationMode mode) async {}
+
+  @override
+  Future<void> rescheduleWithMessages(
+    List<SelfEncouragementMessage> messages,
+  ) async {
+    if (shouldThrow) {
+      throw Exception('Reschedule failed');
+    }
+    rescheduleCalls.add(List.from(messages));
+  }
+}
 
 void main() {
   late ProviderContainer container;
@@ -185,6 +237,114 @@ void main() {
       });
     });
 
+    group('이름 변경 시 알림 재스케줄링', () {
+      late _TrackingNotificationSettingsController trackingController;
+      late ProviderContainer rescheduleContainer;
+
+      setUp(() {
+        trackingController = _TrackingNotificationSettingsController();
+      });
+
+      ProviderContainer createRescheduleContainer({
+        List<SelfEncouragementMessage> messages = const [],
+      }) {
+        final c = ProviderContainer(
+          overrides: [
+            settingsRepositoryProvider.overrideWithValue(mockRepository),
+            notificationSettingsProvider.overrideWith(() {
+              return trackingController;
+            }),
+            selfEncouragementProvider.overrideWith(() {
+              return _FakeSelfEncouragementController(messages);
+            }),
+          ],
+        );
+        addTearDown(c.dispose);
+        return c;
+      }
+
+      test('setUserName 후 rescheduleWithMessages가 트리거되어야 한다',
+          () async {
+        final messages = [_makeMessage('m1', content: '{name}님, 힘내세요!')];
+        rescheduleContainer = createRescheduleContainer(messages: messages);
+
+        // 초기화
+        await rescheduleContainer.read(userNameProvider.future);
+        await rescheduleContainer.read(selfEncouragementProvider.future);
+
+        // Act
+        final notifier =
+            rescheduleContainer.read(userNameProvider.notifier);
+        await notifier.setUserName('지수');
+
+        // Assert
+        expect(trackingController.rescheduleCalls, hasLength(1));
+        expect(trackingController.rescheduleCalls[0], hasLength(1));
+        expect(
+          trackingController.rescheduleCalls[0][0].content,
+          '{name}님, 힘내세요!',
+        );
+      });
+
+      test('메시지 없을 때 reschedule을 건너뛰어야 한다', () async {
+        rescheduleContainer =
+            createRescheduleContainer(messages: []);
+
+        // 초기화
+        await rescheduleContainer.read(userNameProvider.future);
+        await rescheduleContainer.read(selfEncouragementProvider.future);
+
+        // Act
+        final notifier =
+            rescheduleContainer.read(userNameProvider.notifier);
+        await notifier.setUserName('지수');
+
+        // Assert
+        expect(trackingController.rescheduleCalls, isEmpty);
+      });
+
+      test('reschedule 실패해도 이름 설정이 성공해야 한다', () async {
+        final messages = [_makeMessage('m1')];
+        trackingController.shouldThrow = true;
+        rescheduleContainer = createRescheduleContainer(messages: messages);
+
+        // 초기화
+        await rescheduleContainer.read(userNameProvider.future);
+        await rescheduleContainer.read(selfEncouragementProvider.future);
+
+        // Act
+        final notifier =
+            rescheduleContainer.read(userNameProvider.notifier);
+        await notifier.setUserName('지수');
+
+        // Assert — 이름은 정상 저장됨
+        final state = rescheduleContainer.read(userNameProvider);
+        expect(state.value, '지수');
+        // reschedule 호출은 시도됨 (throw됨)
+        expect(trackingController.rescheduleCalls, isEmpty);
+      });
+
+      test('이름 삭제(null) 시에도 reschedule이 트리거되어야 한다', () async {
+        final messages = [_makeMessage('m1', content: '{name}님, 화이팅!')];
+        mockRepository.setMockUserName('기존이름');
+        rescheduleContainer = createRescheduleContainer(messages: messages);
+
+        // 초기화
+        await rescheduleContainer.read(userNameProvider.future);
+        await rescheduleContainer.read(selfEncouragementProvider.future);
+
+        // Act
+        final notifier =
+            rescheduleContainer.read(userNameProvider.notifier);
+        await notifier.setUserName(null);
+
+        // Assert
+        expect(trackingController.rescheduleCalls, hasLength(1));
+        final state = rescheduleContainer.read(userNameProvider);
+        expect(state.value, isNull);
+      });
+    });
+
     group('특수 문자 처리', () {
       test('한글 이름을 올바르게 저장해야 한다', () async {
         // Arrange
@@ -223,4 +383,28 @@ void main() {
       });
     });
   });
+}
+
+/// Fake SelfEncouragementController that returns pre-set messages
+class _FakeSelfEncouragementController
+    extends AsyncNotifier<List<SelfEncouragementMessage>>
+    implements SelfEncouragementController {
+  _FakeSelfEncouragementController(this._messages);
+
+  final List<SelfEncouragementMessage> _messages;
+
+  @override
+  FutureOr<List<SelfEncouragementMessage>> build() => _messages;
+
+  @override
+  Future<bool> addMessage(String content) async => true;
+
+  @override
+  Future<bool> updateMessage(String id, String content) async => true;
+
+  @override
+  Future<void> deleteMessage(String id) async {}
+
+  @override
+  Future<void> reorder(int oldIndex, int newIndex) async {}
 }

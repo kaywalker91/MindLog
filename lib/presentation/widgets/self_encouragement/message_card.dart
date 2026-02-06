@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/notification_messages.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/self_encouragement_message.dart';
+import '../../providers/user_name_controller.dart';
 
 /// 개인 응원 메시지 카드 위젯
 ///
@@ -12,7 +15,7 @@ import '../../../domain/entities/self_encouragement_message.dart';
 /// - 이모지 뱃지 (메시지에서 추출 또는 기본값)
 /// - TappableCard 패턴 (scale + 햅틱)
 /// - Dismissible 스와이프 제스처 (왼쪽: 삭제, 오른쪽: 수정)
-class MessageCard extends StatefulWidget {
+class MessageCard extends ConsumerStatefulWidget {
   final SelfEncouragementMessage message;
   final int index;
   final VoidCallback? onEdit;
@@ -27,10 +30,10 @@ class MessageCard extends StatefulWidget {
   });
 
   @override
-  State<MessageCard> createState() => _MessageCardState();
+  ConsumerState<MessageCard> createState() => _MessageCardState();
 }
 
-class _MessageCardState extends State<MessageCard> {
+class _MessageCardState extends ConsumerState<MessageCard> {
   bool _isPressed = false;
 
   /// 이모지 추출용 정규식 (static으로 한 번만 생성)
@@ -49,7 +52,12 @@ class _MessageCardState extends State<MessageCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final emoji = _extractEmoji(widget.message.content);
+    final userName = ref.watch(userNameProvider).valueOrNull;
+    final personalizedContent = NotificationMessages.applyNamePersonalization(
+      widget.message.content,
+      userName,
+    );
+    final emoji = _extractEmoji(personalizedContent);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -187,7 +195,7 @@ class _MessageCardState extends State<MessageCard> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.message.content,
+                                personalizedContent,
                                 style: theme.textTheme.bodyLarge?.copyWith(
                                   fontWeight: FontWeight.w500,
                                   color: AppColors.textPrimary,
