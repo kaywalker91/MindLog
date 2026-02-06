@@ -331,15 +331,15 @@ void main() {
         expect(first, equals(second));
       });
 
-      test('cheerMeTitles 중 {name} 포함 비율이 50% 이상이어야 한다', () {
+      test('모든 cheerMeTitles에 {name}이 포함되어야 한다 (100%)', () {
         final titles = NotificationMessages.cheerMeTitles;
-        final nameCount = titles.where((t) => t.contains('{name}')).length;
-        final ratio = nameCount / titles.length;
-        expect(
-          ratio,
-          greaterThanOrEqualTo(0.50),
-          reason: '{name} 포함 비율: ${(ratio * 100).toStringAsFixed(1)}%',
-        );
+        for (final title in titles) {
+          expect(
+            title.contains('{name}'),
+            isTrue,
+            reason: '"{name}" 패턴 누락: "$title"',
+          );
+        }
       });
 
       test('모든 cheerMeTitles에 이름 개인화가 올바르게 적용되어야 한다', () {
@@ -664,30 +664,39 @@ void main() {
         }
       });
 
-      test('{name} 포함 메시지가 전체의 30% 이상이어야 한다', () {
-        final allMessages = [
-          ...NotificationMessages.cheerMeTitles,
-          ...NotificationMessages.reminderTitles,
+      test('{name} 포함 메시지는 Cheer Me/리마인더에만 존재해야 한다', () {
+        // 마음케어/시간대/감정 메시지에는 {name}이 없어야 함
+        final mindcareMessages = [
           ...NotificationMessages.mindcareTitles,
+          ...NotificationMessages.mindcareBodies,
           ...NotificationMessages.morningTitles,
+          ...NotificationMessages.morningBodies,
           ...NotificationMessages.afternoonTitles,
+          ...NotificationMessages.afternoonBodies,
           ...NotificationMessages.eveningTitles,
+          ...NotificationMessages.eveningBodies,
           ...NotificationMessages.nightTitles,
+          ...NotificationMessages.nightBodies,
           ...NotificationMessages.empathyBodies,
           ...NotificationMessages.encouragementBodies,
         ];
 
-        final nameCount =
-            allMessages.where((m) => m.contains('{name}')).length;
-        final ratio = nameCount / allMessages.length;
+        for (final msg in mindcareMessages) {
+          expect(
+            msg.contains('{name}'),
+            isFalse,
+            reason: '마음케어 메시지에 {name} 패턴 발견: "$msg"',
+          );
+        }
 
-        expect(
-          ratio,
-          greaterThanOrEqualTo(0.30),
-          reason:
-              '{name} 포함 비율: ${(ratio * 100).toStringAsFixed(1)}% '
-              '($nameCount/${allMessages.length})',
-        );
+        // Cheer Me와 리마인더에는 {name}이 포함된 메시지가 있어야 함
+        final localMessages = [
+          ...NotificationMessages.cheerMeTitles,
+          ...NotificationMessages.reminderTitles,
+        ];
+        final nameCount =
+            localMessages.where((m) => m.contains('{name}')).length;
+        expect(nameCount, greaterThan(0));
       });
 
       test('{name}님의 패턴이 null 이름에서 깔끔하게 제거되어야 한다', () {

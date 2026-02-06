@@ -153,36 +153,21 @@ void main() {
       expect(repoValue, isNull);
     });
 
-    test('FCM 콜백이 Riverpod provider에서 이름을 읽어야 한다', () async {
-      // Arrange
-      await mockRepo.setUserName('하늘');
-
-      final container = ProviderContainer(
-        overrides: [
-          settingsRepositoryProvider.overrideWithValue(mockRepo),
-        ],
-      );
-      addTearDown(container.dispose);
-
-      // FCM getUserName 콜백 설정 (main.dart 패턴 시뮬레이션)
-      FCMService.userNameProvider = () async {
-        try {
-          return await container.read(userNameProvider.future);
-        } catch (_) {
-          final repo = container.read(settingsRepositoryProvider);
-          return repo.getUserName();
-        }
-      };
+    test('FCM 메시지에 userName 개인화가 적용되지 않아야 한다', () async {
+      // Arrange: FCM은 백그라운드에서 OS가 직접 표시하므로 userName 개인화 불가
       FCMService.emotionScoreProvider = () async => null;
 
       // Act
       final result = await FCMService.buildPersonalizedMessage(
-        serverTitle: '{name}님, 좋은 하루',
+        serverTitle: '좋은 하루',
         serverBody: '테스트 본문',
       );
 
-      // Assert: Provider에서 읽은 이름이 적용됨
-      expect(result.title, '하늘님, 좋은 하루');
+      // Assert: 서버 메시지 그대로 사용 (userName 개인화 없음)
+      expect(result.title, '좋은 하루');
+      expect(result.body, '테스트 본문');
+      expect(result.title, isNot(contains('{name}')));
+      expect(result.body, isNot(contains('{name}')));
     });
 
     test('빈 문자열 이름 → null로 정규화', () async {

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../firebase_options.dart';
 import '../constants/notification_messages.dart';
 import 'crashlytics_service.dart';
@@ -19,13 +18,6 @@ class FCMService {
   static bool _initialized = false;
   static bool _handlersSetup = false;
 
-  /// 사용자 이름 조회 함수 (DI 또는 테스트 주입)
-  ///
-  /// [initialize]의 `getUserName` 파라미터로 주입하거나,
-  /// 테스트에서 직접 설정 가능. null이면 SharedPreferences fallback 사용.
-  @visibleForTesting
-  static Future<String?> Function()? userNameProvider;
-
   /// 테스트용: 감정 점수 조회 함수 오버라이드
   @visibleForTesting
   static Future<double?> Function()? emotionScoreProvider;
@@ -38,25 +30,16 @@ class FCMService {
     _messaging = null;
     _fcmToken = null;
     _onMessageOpened = null;
-    userNameProvider = null;
     emotionScoreProvider = null;
   }
 
   static String? get fcmToken => _fcmToken;
 
   /// 초기화
-  ///
-  /// [getUserName] Riverpod provider에서 이름을 읽는 콜백.
-  /// null이면 SharedPreferences fallback 사용 (백그라운드 isolate 호환).
   static Future<void> initialize({
     void Function(Map<String, dynamic> data)? onMessageOpened,
-    Future<String?> Function()? getUserName,
   }) async {
     if (_initialized) return;
-
-    if (getUserName != null) {
-      userNameProvider = getUserName;
-    }
 
     final messaging = FirebaseMessaging.instance;
     _messaging = messaging;
@@ -179,17 +162,13 @@ class FCMService {
   /// [serverBody] 서버에서 전송된 원본 본문
   ///
   /// 반환:
-  /// - 감정 데이터 있음: 감정 기반 메시지 + 이름 개인화
-  /// - 감정 데이터 없음: 서버 메시지 + 이름 개인화
+  /// - 감정 데이터 있음: 감정 기반 메시지 사용
+  /// - 감정 데이터 없음: 서버 메시지 그대로 사용
   @visibleForTesting
   static Future<({String title, String body})> buildPersonalizedMessage({
     required String? serverTitle,
     required String? serverBody,
   }) async {
-    // 테스트 주입 또는 실제 조회
-    final userName = userNameProvider != null
-        ? await userNameProvider!()
-        : await _getUserName();
     final avgScore = emotionScoreProvider != null
         ? await emotionScoreProvider!()
         : await EmotionScoreService.getRecentAverageScore();
@@ -198,49 +177,25 @@ class FCMService {
     String body;
 
     if (avgScore != null) {
-      // 감정 기반 메시지 재선택 (서버 메시지 무시, 개인화된 메시지 사용)
+      // 감정 기반 메시지 재선택 (서버 메시지 무시)
       if (kDebugMode) {
         debugPrint('[FCM] Using emotion-based message (avgScore: $avgScore)');
       }
       final emotionMessage = NotificationMessages.getMindcareMessageByEmotion(
         avgScore,
       );
-      // 이름 개인화 적용
-      final personalizedMessage = NotificationMessages.applyNameToMessage(
-        emotionMessage,
-        userName,
-      );
-      title = personalizedMessage.title;
-      body = personalizedMessage.body;
+      title = emotionMessage.title;
+      body = emotionMessage.body;
     } else {
-      // 감정 데이터 없음: 서버 메시지에 이름 개인화만 적용
+      // 감정 데이터 없음: 서버 메시지 그대로 사용
       if (kDebugMode) {
         debugPrint('[FCM] No emotion data, using server message');
       }
-      title = NotificationMessages.applyNamePersonalization(
-        serverTitle ?? 'MindLog',
-        userName,
-      );
-      body = NotificationMessages.applyNamePersonalization(
-        serverBody ?? '',
-        userName,
-      );
+      title = serverTitle ?? 'MindLog';
+      body = serverBody ?? '';
     }
 
     return (title: title, body: body);
-  }
-
-  /// SharedPreferences에서 사용자 이름 조회
-  static Future<String?> _getUserName() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getString('user_name');
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('[FCM] Failed to get user name: $e');
-      }
-      return null;
-    }
   }
 
   static void _onMessageOpenedApp(RemoteMessage message) {

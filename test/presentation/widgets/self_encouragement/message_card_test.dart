@@ -34,7 +34,7 @@ Widget _buildTestWidget({
     child: MaterialApp(
       home: Scaffold(
         body: ReorderableListView(
-          onReorder: (_, __) {},
+          onReorder: (oldIndex, newIndex) {},
           children: [
             MessageCard(
               key: ValueKey(message.id),

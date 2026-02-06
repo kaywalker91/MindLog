@@ -189,14 +189,6 @@ Future<void> _initializeApp() async {
   unawaited(
     FCMService.initialize(
       onMessageOpened: NotificationActionHandler.handleRemoteData,
-      getUserName: () async {
-        try {
-          return await appContainer.read(userNameProvider.future);
-        } catch (_) {
-          final repo = appContainer.read(settingsRepositoryProvider);
-          return repo.getUserName();
-        }
-      },
     ),
   );
 

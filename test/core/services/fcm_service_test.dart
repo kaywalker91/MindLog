@@ -34,7 +34,6 @@ void main() {
       group('감정 데이터가 있을 때', () {
         test('감정 기반 메시지를 선택해야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => null;
           FCMService.emotionScoreProvider = () async => 5.0;
           NotificationMessages.setRandom(MockRandom());
 
@@ -53,7 +52,6 @@ void main() {
 
         test('낮은 감정 점수(1-3)에서 공감/위로 메시지를 선택해야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => null;
           FCMService.emotionScoreProvider = () async => 2.0; // low
           NotificationMessages.setRandom(MockRandom());
 
@@ -73,13 +71,12 @@ void main() {
             ...NotificationMessages.getBodiesForSlot(
               NotificationMessages.getCurrentTimeSlot(),
             ),
-          ].map((b) => NotificationMessages.applyNamePersonalization(b, null)).toList();
+          ].toList();
           expect(allPossibleBodies, contains(result.body));
         });
 
         test('높은 감정 점수(7-10)에서 격려/긍정 메시지를 선택해야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => null;
           FCMService.emotionScoreProvider = () async => 8.0; // high
           NotificationMessages.setRandom(MockRandom());
 
@@ -97,13 +94,12 @@ void main() {
             ...NotificationMessages.getBodiesForSlot(
               NotificationMessages.getCurrentTimeSlot(),
             ),
-          ].map((b) => NotificationMessages.applyNamePersonalization(b, null)).toList();
+          ].toList();
           expect(allPossibleBodies, contains(result.body));
         });
 
         test('보통 감정 점수(4-6)에서 균형 메시지를 선택해야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => null;
           FCMService.emotionScoreProvider = () async => 5.0; // medium
           NotificationMessages.setRandom(MockRandom());
 
@@ -121,13 +117,12 @@ void main() {
             ...NotificationMessages.getBodiesForSlot(
               NotificationMessages.getCurrentTimeSlot(),
             ),
-          ].map((b) => NotificationMessages.applyNamePersonalization(b, null)).toList();
+          ].toList();
           expect(allPossibleBodies, contains(result.body));
         });
 
-        test('이름이 있으면 개인화를 적용해야 한다', () async {
+        test('메시지에 {name} 패턴이 포함되지 않아야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => '지수';
           FCMService.emotionScoreProvider = () async => 5.0;
           NotificationMessages.setRandom(MockRandom());
 
@@ -137,7 +132,7 @@ void main() {
             serverBody: '서버 본문',
           );
 
-          // Assert: 메시지에 {name} 템플릿이 이름으로 치환됨
+          // Assert: 마음케어 메시지에 {name} 템플릿이 없어야 함
           expect(result.title, isNotEmpty);
           expect(result.body, isNotEmpty);
           expect(result.title, isNot(contains('{name}')));
@@ -148,7 +143,6 @@ void main() {
       group('감정 데이터가 없을 때', () {
         test('서버 메시지를 그대로 사용해야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => null;
           FCMService.emotionScoreProvider = () async => null;
 
           // Act
@@ -164,7 +158,6 @@ void main() {
 
         test('서버 메시지가 null이면 기본값을 사용해야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => null;
           FCMService.emotionScoreProvider = () async => null;
 
           // Act
@@ -178,43 +171,11 @@ void main() {
           expect(result.body, '');
         });
 
-        test('서버 메시지에 이름 개인화를 적용해야 한다', () async {
-          // Arrange
-          FCMService.userNameProvider = () async => '민수';
-          FCMService.emotionScoreProvider = () async => null;
-
-          // Act
-          final result = await FCMService.buildPersonalizedMessage(
-            serverTitle: '{name}님, 좋은 아침이에요',
-            serverBody: '{name}의 하루를 응원해요',
-          );
-
-          // Assert: 이름 치환됨
-          expect(result.title, '민수님, 좋은 아침이에요');
-          expect(result.body, '민수의 하루를 응원해요');
-        });
-
-        test('이름이 없으면 {name} 패턴을 제거해야 한다', () async {
-          // Arrange
-          FCMService.userNameProvider = () async => null;
-          FCMService.emotionScoreProvider = () async => null;
-
-          // Act
-          final result = await FCMService.buildPersonalizedMessage(
-            serverTitle: '{name}님, 좋은 아침이에요',
-            serverBody: '오늘도 힘내세요',
-          );
-
-          // Assert: {name}님, 패턴 제거
-          expect(result.title, '좋은 아침이에요');
-          expect(result.body, '오늘도 힘내세요');
-        });
       });
 
       group('경계값 테스트', () {
         test('감정 점수 3.0은 low로 분류되어야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => null;
           FCMService.emotionScoreProvider = () async => 3.0;
           NotificationMessages.setRandom(MockRandom());
 
@@ -231,7 +192,6 @@ void main() {
 
         test('감정 점수 3.1은 medium으로 분류되어야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => null;
           FCMService.emotionScoreProvider = () async => 3.1;
           NotificationMessages.setRandom(MockRandom());
 
@@ -248,7 +208,6 @@ void main() {
 
         test('감정 점수 6.0은 medium으로 분류되어야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => null;
           FCMService.emotionScoreProvider = () async => 6.0;
 
           // Assert: 감정 레벨 확인
@@ -257,7 +216,6 @@ void main() {
 
         test('감정 점수 6.1은 high로 분류되어야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => null;
           FCMService.emotionScoreProvider = () async => 6.1;
 
           // Assert: 감정 레벨 확인
@@ -268,7 +226,6 @@ void main() {
       group('결정론적 동작', () {
         test('같은 조건에서 같은 메시지를 반환해야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => '테스트';
           FCMService.emotionScoreProvider = () async => 5.0;
 
           NotificationMessages.setRandom(MockRandom());
@@ -292,7 +249,6 @@ void main() {
       group('시간대별 메시지', () {
         test('현재 시간대에 맞는 제목을 선택해야 한다', () async {
           // Arrange
-          FCMService.userNameProvider = () async => null;
           FCMService.emotionScoreProvider = () async => 5.0;
           NotificationMessages.setRandom(MockRandom());
 
@@ -303,11 +259,8 @@ void main() {
           );
 
           // Assert: 현재 시간대 제목 목록에 포함
-          // 이름이 null이므로 {name} 패턴 제거된 제목과 비교
           final currentSlot = NotificationMessages.getCurrentTimeSlot();
-          final titles = NotificationMessages.getTitlesForSlot(currentSlot)
-              .map((t) => NotificationMessages.applyNamePersonalization(t, null))
-              .toList();
+          final titles = NotificationMessages.getTitlesForSlot(currentSlot);
           expect(titles, contains(result.title));
         });
       });
@@ -316,66 +269,14 @@ void main() {
     group('resetForTesting', () {
       test('모든 테스트 주입을 초기화해야 한다', () {
         // Arrange
-        FCMService.userNameProvider = () async => 'test';
         FCMService.emotionScoreProvider = () async => 5.0;
 
         // Act
         FCMService.resetForTesting();
 
         // Assert
-        expect(FCMService.userNameProvider, isNull);
         expect(FCMService.emotionScoreProvider, isNull);
         expect(FCMService.fcmToken, isNull);
-      });
-    });
-
-    group('getUserName DI', () {
-      test('userNameProvider가 설정되면 buildPersonalizedMessage에서 사용해야 한다',
-          () async {
-        // Arrange
-        String? calledName;
-        FCMService.userNameProvider = () async {
-          calledName = '콜백호출됨';
-          return '콜백유저';
-        };
-        FCMService.emotionScoreProvider = () async => null;
-
-        // Act
-        final result = await FCMService.buildPersonalizedMessage(
-          serverTitle: '{name}님, 안녕하세요',
-          serverBody: '테스트 본문',
-        );
-
-        // Assert: 콜백이 호출되었고 이름이 적용됨
-        expect(calledName, '콜백호출됨');
-        expect(result.title, '콜백유저님, 안녕하세요');
-      });
-
-      test('userNameProvider가 null이면 SharedPreferences fallback을 사용해야 한다',
-          () async {
-        // Arrange: userNameProvider를 설정하지 않음 (null)
-        // SharedPreferences 접근이 실패해도 null 반환
-        FCMService.emotionScoreProvider = () async => null;
-
-        // Act
-        final result = await FCMService.buildPersonalizedMessage(
-          serverTitle: '{name}님, 안녕하세요',
-          serverBody: '테스트 본문',
-        );
-
-        // Assert: {name} 패턴 제거 (이름 없음 = SharedPrefs fallback에서 null)
-        expect(result.title, '안녕하세요');
-      });
-
-      test('resetForTesting이 userNameProvider를 초기화해야 한다', () {
-        // Arrange
-        FCMService.userNameProvider = () async => 'test';
-
-        // Act
-        FCMService.resetForTesting();
-
-        // Assert
-        expect(FCMService.userNameProvider, isNull);
       });
     });
   });
