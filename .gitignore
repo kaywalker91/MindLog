@@ -78,3 +78,6 @@ android/fastlane/mindlog-*.json
 android/vendor/bundle/
 android/Gemfile.lock
 android/.bundle/
+
+# FVM Version Cache
+.fvm/

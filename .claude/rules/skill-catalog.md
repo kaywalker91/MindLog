@@ -8,7 +8,7 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 |---------|-----------|---------|
 | `/scaffold [name]` | `feature-scaffold.md` | Clean Architecture scaffolding |
 | `/test-unit-gen [file]` | `test-unit-gen.md` | Unit test generation (TDD 강화) |
-| `/debug [action]` | `systematic-debugging.md` | 4단계 체계적 디버깅 (NEW) |
+| `/debug [action]` | `systematic-debugging.md` | 4단계 체계적 디버깅 + 병렬 에이전트 커맨드 |
 | `/groq [action]` | `groq-expert.md` | AI prompt optimization |
 | `/db [action]` | `database-expert.md` | SQLite schema management |
 | `/resilience [action]` | `resilience-expert.md` | Error handling patterns |
@@ -127,6 +127,7 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 - **PR Pre-check**: `/swarm-review [lib/]` + `/test-quality-review [test/]`
 - **Feature Complete**: `/test-unit-gen` -> `/test-quality-review` -> `/coverage`
 - **Systematic debugging**: `/debug analyze` -> 4단계 프로세스 -> 실패 테스트 작성 -> 수정
+- **Parallel debugging**: `/debug [issue]` (3-agent 병렬 탐색 -> 통합 분석 -> 수정)
 - **TDD workflow**: 테스트 작성 (RED) -> `/test-unit-gen` -> 구현 (GREEN) -> 리팩토링
 - **Official docs lookup**: `/c7-flutter [topic]` -> 공식 패턴 확인 -> memories 참조
 - **New pattern learning**: `/c7-flutter [topic]` -> 코드 적용 -> `/til-save [topic]`
