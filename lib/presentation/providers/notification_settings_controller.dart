@@ -55,7 +55,6 @@ class NotificationSettingsController
 
     // 안전망: 설정은 저장됨, 스케줄링 실패 시 크래시 방지
     try {
-      // 응원 메시지 목록 조회
       final messages =
           ref.read(selfEncouragementProvider).valueOrNull ?? [];
       final nextIndex = await NotificationSettingsService.applySettings(
@@ -64,20 +63,26 @@ class NotificationSettingsController
         source: source,
       );
 
-      // 순차 모드에서 다음 인덱스 업데이트
-      if (settings.rotationMode == MessageRotationMode.sequential &&
-          nextIndex != settings.lastDisplayedIndex) {
-        final updatedWithIndex =
-            settings.copyWith(lastDisplayedIndex: nextIndex);
-        await useCase.execute(updatedWithIndex);
-        state = AsyncValue.data(updatedWithIndex);
-      }
+      await _updateSequentialIndex(settings, nextIndex);
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint('[NotificationSettingsController] applySettings failed: $e');
         debugPrint('[NotificationSettingsController] Stack trace: $stackTrace');
       }
-      // 설정 저장됨, 스케줄링만 실패 - 앱 크래시 방지
+    }
+  }
+
+  /// 순차 모드에서 다음 인덱스 업데이트 (공통 헬퍼)
+  Future<void> _updateSequentialIndex(
+    NotificationSettings settings,
+    int nextIndex,
+  ) async {
+    if (settings.rotationMode == MessageRotationMode.sequential &&
+        nextIndex != settings.lastDisplayedIndex) {
+      final updated = settings.copyWith(lastDisplayedIndex: nextIndex);
+      final useCase = ref.read(setNotificationSettingsUseCaseProvider);
+      await useCase.execute(updated);
+      state = AsyncValue.data(updated);
     }
   }
 
@@ -95,13 +100,7 @@ class NotificationSettingsController
         source: 'message_change',
       );
 
-      if (current.rotationMode == MessageRotationMode.sequential &&
-          nextIndex != current.lastDisplayedIndex) {
-        final updated = current.copyWith(lastDisplayedIndex: nextIndex);
-        final useCase = ref.read(setNotificationSettingsUseCaseProvider);
-        await useCase.execute(updated);
-        state = AsyncValue.data(updated);
-      }
+      await _updateSequentialIndex(current, nextIndex);
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint('[NotificationSettingsController] reschedule failed: $e');

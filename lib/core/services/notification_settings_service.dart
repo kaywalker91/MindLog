@@ -16,6 +16,60 @@ class NotificationSettingsService {
   static const String mindcareTopic = 'mindlog_mindcare';
   static const String reminderPayload = '{"type":"self_encouragement"}';
 
+  // ── 테스트 오버라이드 ──
+
+  /// NotificationService.areNotificationsEnabled() 대체
+  @visibleForTesting
+  static Future<bool?> Function()? areNotificationsEnabledOverride;
+
+  /// NotificationService.canScheduleExactAlarms() 대체
+  @visibleForTesting
+  static Future<bool?> Function()? canScheduleExactAlarmsOverride;
+
+  /// NotificationPermissionService.isIgnoringBatteryOptimizations() 대체
+  @visibleForTesting
+  static Future<bool> Function()? isIgnoringBatteryOverride;
+
+  /// NotificationService.scheduleDailyReminder() 대체
+  @visibleForTesting
+  static Future<bool> Function({
+    required int hour,
+    required int minute,
+    required String title,
+    String? body,
+    String? payload,
+    AndroidScheduleMode? scheduleMode,
+  })? scheduleDailyReminderOverride;
+
+  /// NotificationService.cancelDailyReminder() 대체
+  @visibleForTesting
+  static Future<void> Function()? cancelDailyReminderOverride;
+
+  /// FCMService.subscribeToTopic() 대체
+  @visibleForTesting
+  static Future<void> Function(String topic)? subscribeToTopicOverride;
+
+  /// FCMService.unsubscribeFromTopic() 대체
+  @visibleForTesting
+  static Future<void> Function(String topic)? unsubscribeFromTopicOverride;
+
+  /// AnalyticsService 호출 기록 (검증용)
+  @visibleForTesting
+  static List<Map<String, dynamic>>? analyticsLog;
+
+  /// 테스트 상태 리셋
+  @visibleForTesting
+  static void resetForTesting() {
+    areNotificationsEnabledOverride = null;
+    canScheduleExactAlarmsOverride = null;
+    isIgnoringBatteryOverride = null;
+    scheduleDailyReminderOverride = null;
+    cancelDailyReminderOverride = null;
+    subscribeToTopicOverride = null;
+    unsubscribeFromTopicOverride = null;
+    analyticsLog = null;
+  }
+
   /// 알림 설정 적용
   ///
   /// [settings] 적용할 알림 설정
@@ -31,11 +85,12 @@ class NotificationSettingsService {
     var nextIndex = settings.lastDisplayedIndex;
     if (settings.isReminderEnabled && messages.isNotEmpty) {
       // 메시지 선택
-      final selectedMessage = _selectMessage(settings, messages);
+      final selectedMessage = selectMessage(settings, messages);
       if (selectedMessage != null) {
         // 순차 모드에서 다음 인덱스 계산
         if (settings.rotationMode == MessageRotationMode.sequential) {
-          nextIndex = (settings.lastDisplayedIndex + 1) % messages.length;
+          nextIndex =
+              NotificationSettings.nextIndex(settings.lastDisplayedIndex, messages.length);
         }
       }
 
@@ -62,12 +117,16 @@ class NotificationSettingsService {
       }
 
       // 권한 상태 확인
-      final notificationsEnabled =
-          await NotificationService.areNotificationsEnabled();
-      final canScheduleExact =
-          await NotificationService.canScheduleExactAlarms();
-      final isIgnoringBattery =
-          await NotificationPermissionService.isIgnoringBatteryOptimizations();
+      final notificationsEnabled = areNotificationsEnabledOverride != null
+          ? await areNotificationsEnabledOverride!()
+          : await NotificationService.areNotificationsEnabled();
+      final canScheduleExact = canScheduleExactAlarmsOverride != null
+          ? await canScheduleExactAlarmsOverride!()
+          : await NotificationService.canScheduleExactAlarms();
+      final isIgnoringBattery = isIgnoringBatteryOverride != null
+          ? await isIgnoringBatteryOverride!()
+          : await NotificationPermissionService
+              .isIgnoringBatteryOptimizations();
 
       if (kDebugMode) {
         debugPrint(
@@ -120,22 +179,39 @@ class NotificationSettingsService {
       }
 
       // 스케줄링 실행 (사용자 메시지 사용)
-      final success = await NotificationService.scheduleDailyReminder(
-        hour: settings.reminderHour,
-        minute: settings.reminderMinute,
-        title: 'Cheer Me',
-        body: selectedMessage?.content,
-        payload: reminderPayload,
-        scheduleMode: scheduleMode,
-      );
+      final success = scheduleDailyReminderOverride != null
+          ? await scheduleDailyReminderOverride!(
+              hour: settings.reminderHour,
+              minute: settings.reminderMinute,
+              title: 'Cheer Me',
+              body: selectedMessage?.content,
+              payload: reminderPayload,
+              scheduleMode: scheduleMode,
+            )
+          : await NotificationService.scheduleDailyReminder(
+              hour: settings.reminderHour,
+              minute: settings.reminderMinute,
+              title: 'Cheer Me',
+              body: selectedMessage?.content,
+              payload: reminderPayload,
+              scheduleMode: scheduleMode,
+            );
 
       if (success) {
-        // Analytics 이벤트: 스케줄링 성공
-        await AnalyticsService.logReminderScheduled(
-          hour: settings.reminderHour,
-          minute: settings.reminderMinute,
-          source: source,
-        );
+        if (analyticsLog != null) {
+          analyticsLog!.add({
+            'event': 'reminder_scheduled',
+            'hour': settings.reminderHour,
+            'minute': settings.reminderMinute,
+            'source': source,
+          });
+        } else {
+          await AnalyticsService.logReminderScheduled(
+            hour: settings.reminderHour,
+            minute: settings.reminderMinute,
+            source: source,
+          );
+        }
 
         if (kDebugMode) {
           debugPrint(
@@ -143,21 +219,26 @@ class NotificationSettingsService {
           );
         }
       } else {
-        // Analytics 이벤트: 스케줄링 실패
-        await AnalyticsService.logReminderScheduleFailed(
-          errorType: 'schedule_returned_false',
-        );
+        if (analyticsLog != null) {
+          analyticsLog!.add({
+            'event': 'reminder_schedule_failed',
+            'errorType': 'schedule_returned_false',
+          });
+        } else {
+          await AnalyticsService.logReminderScheduleFailed(
+            errorType: 'schedule_returned_false',
+          );
+        }
 
         if (kDebugMode) {
           debugPrint(
             '[NotificationSettings] ❌ Schedule failed (returned false)',
           );
         }
-        // 크래시 방지: rethrow 제거 - 설정은 저장됨, 스케줄링만 실패
       }
 
-      // 예약된 알림 확인
-      if (kDebugMode) {
+      // 예약된 알림 확인 (테스트 모드에서는 skip)
+      if (kDebugMode && analyticsLog == null) {
         final pending = await NotificationService.getPendingNotifications();
         debugPrint(
           '[NotificationSettings] ─────────────────────────────────────────',
@@ -184,38 +265,67 @@ class NotificationSettingsService {
           debugPrint('[NotificationSettings] 🔕 Cancelling daily reminder');
         }
       }
-      await NotificationService.cancelDailyReminder();
+      if (cancelDailyReminderOverride != null) {
+        await cancelDailyReminderOverride!();
+      } else {
+        await NotificationService.cancelDailyReminder();
+      }
 
-      // Analytics 이벤트: 리마인더 취소
-      await AnalyticsService.logReminderCancelled(source: source);
+      if (analyticsLog != null) {
+        analyticsLog!.add({
+          'event': 'reminder_cancelled',
+          'source': source,
+        });
+      } else {
+        await AnalyticsService.logReminderCancelled(source: source);
+      }
     }
 
     try {
       if (settings.isMindcareTopicEnabled) {
-        await FCMService.subscribeToTopic(mindcareTopic);
+        if (subscribeToTopicOverride != null) {
+          await subscribeToTopicOverride!(mindcareTopic);
+        } else {
+          await FCMService.subscribeToTopic(mindcareTopic);
+        }
       } else {
-        await FCMService.unsubscribeFromTopic(mindcareTopic);
+        if (unsubscribeFromTopicOverride != null) {
+          await unsubscribeFromTopicOverride!(mindcareTopic);
+        } else {
+          await FCMService.unsubscribeFromTopic(mindcareTopic);
+        }
       }
     } catch (e, stackTrace) {
       if (kDebugMode) {
         debugPrint('[NotificationSettings] FCM topic operation failed: $e');
       }
-      await CrashlyticsService.recordError(
-        e,
-        stackTrace,
-        reason: 'fcm_topic_subscription_error',
-        fatal: false,
-      );
-      await AnalyticsService.logEvent(
-        'fcm_topic_error',
-        parameters: {
+      if (analyticsLog == null) {
+        await CrashlyticsService.recordError(
+          e,
+          stackTrace,
+          reason: 'fcm_topic_subscription_error',
+          fatal: false,
+        );
+        await AnalyticsService.logEvent(
+          'fcm_topic_error',
+          parameters: {
+            'topic': mindcareTopic,
+            'action': settings.isMindcareTopicEnabled
+                ? 'subscribe'
+                : 'unsubscribe',
+            'error': e.toString(),
+          },
+        );
+      } else {
+        analyticsLog!.add({
+          'event': 'fcm_topic_error',
           'topic': mindcareTopic,
           'action': settings.isMindcareTopicEnabled
               ? 'subscribe'
               : 'unsubscribe',
           'error': e.toString(),
-        },
-      );
+        });
+      }
     }
 
     return nextIndex;
@@ -225,7 +335,8 @@ class NotificationSettingsService {
   ///
   /// [messages]는 이미 displayOrder 순으로 정렬된 상태로 전달되어야 합니다.
   /// (SelfEncouragementController에서 정렬 후 전달)
-  static SelfEncouragementMessage? _selectMessage(
+  @visibleForTesting
+  static SelfEncouragementMessage? selectMessage(
     NotificationSettings settings,
     List<SelfEncouragementMessage> messages,
   ) {
@@ -237,7 +348,8 @@ class NotificationSettingsService {
       case MessageRotationMode.random:
         return messages[Random().nextInt(messages.length)];
       case MessageRotationMode.sequential:
-        final index = settings.lastDisplayedIndex % messages.length;
+        final index =
+            NotificationSettings.currentIndex(settings.lastDisplayedIndex, messages.length);
         return messages[index];
     }
   }

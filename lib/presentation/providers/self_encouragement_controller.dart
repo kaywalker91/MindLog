@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../domain/entities/notification_settings.dart';
 import '../../domain/entities/self_encouragement_message.dart';
 import '../../domain/repositories/settings_repository.dart';
 import 'providers.dart';
@@ -122,27 +123,19 @@ class SelfEncouragementController
     int deletedIndex,
     int remainingCount,
   ) async {
-    if (deletedIndex < 0) return;
-
     final settings = ref.read(notificationSettingsProvider).valueOrNull;
     if (settings == null ||
         settings.rotationMode != MessageRotationMode.sequential) {
       return;
     }
 
-    final last = settings.lastDisplayedIndex;
-    int adjusted;
+    final adjusted = NotificationSettings.adjustIndexAfterDeletion(
+      settings.lastDisplayedIndex,
+      deletedIndex,
+      remainingCount,
+    );
 
-    if (remainingCount == 0) {
-      adjusted = 0;
-    } else if (deletedIndex <= last) {
-      // 삭제 위치가 현재 인덱스 이하 → 1 감소 (wrap-around 처리)
-      adjusted = (last - 1 + remainingCount) % remainingCount;
-    } else {
-      return; // 삭제 위치가 현재 인덱스 이후 → 변경 불필요
-    }
-
-    if (adjusted != last) {
+    if (adjusted != null) {
       final updated = settings.copyWith(lastDisplayedIndex: adjusted);
       final useCase = ref.read(setNotificationSettingsUseCaseProvider);
       await useCase.execute(updated);
@@ -150,7 +143,8 @@ class SelfEncouragementController
 
       if (kDebugMode) {
         debugPrint(
-          '[SelfEncouragement] lastDisplayedIndex adjusted: $last -> $adjusted',
+          '[SelfEncouragement] lastDisplayedIndex adjusted: '
+          '${settings.lastDisplayedIndex} -> $adjusted',
         );
       }
     }

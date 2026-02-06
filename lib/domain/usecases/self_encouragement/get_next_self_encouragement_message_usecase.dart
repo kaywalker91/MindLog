@@ -42,9 +42,10 @@ class GetNextSelfEncouragementMessageUseCase {
           return messages[_random.nextInt(messages.length)];
 
         case MessageRotationMode.sequential:
-          // 다음 인덱스 계산 (순환)
-          final nextIndex =
-              (settings.lastDisplayedIndex + 1) % messages.length;
+          final nextIndex = NotificationSettings.nextIndex(
+            settings.lastDisplayedIndex,
+            messages.length,
+          );
           return messages[nextIndex];
       }
     } on Failure {
@@ -55,8 +56,8 @@ class GetNextSelfEncouragementMessageUseCase {
   }
 
   /// 순차 모드에서 다음 인덱스 계산
+  /// [NotificationSettings.nextIndex]에 위임
   int getNextIndex(int currentIndex, int totalCount) {
-    if (totalCount == 0) return 0;
-    return (currentIndex + 1) % totalCount;
+    return NotificationSettings.nextIndex(currentIndex, totalCount);
   }
 }

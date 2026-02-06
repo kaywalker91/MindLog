@@ -1,0 +1,621 @@
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mindlog/core/services/notification_settings_service.dart';
+import 'package:mindlog/domain/entities/notification_settings.dart';
+import 'package:mindlog/domain/entities/self_encouragement_message.dart';
+
+void main() {
+  // 테스트용 메시지 팩토리
+  SelfEncouragementMessage createMessage(int order, {String? content}) {
+    return SelfEncouragementMessage(
+      id: 'msg_$order',
+      content: content ?? '메시지 $order',
+      createdAt: DateTime(2026, 1, 1),
+      displayOrder: order,
+    );
+  }
+
+  NotificationSettings createSettings({
+    bool isReminderEnabled = true,
+    int reminderHour = 19,
+    int reminderMinute = 0,
+    bool isMindcareTopicEnabled = false,
+    MessageRotationMode mode = MessageRotationMode.sequential,
+    int lastDisplayedIndex = 0,
+  }) {
+    return NotificationSettings(
+      isReminderEnabled: isReminderEnabled,
+      reminderHour: reminderHour,
+      reminderMinute: reminderMinute,
+      isMindcareTopicEnabled: isMindcareTopicEnabled,
+      rotationMode: mode,
+      lastDisplayedIndex: lastDisplayedIndex,
+    );
+  }
+
+  group('NotificationSettingsService.selectMessage', () {
+    group('공통 동작', () {
+      test('빈 메시지 목록이면 null을 반환해야 한다', () {
+        final settings = createSettings();
+        final result =
+            NotificationSettingsService.selectMessage(settings, []);
+        expect(result, isNull);
+      });
+    });
+
+    group('순차 모드 (sequential)', () {
+      test('lastDisplayedIndex=0이면 첫 번째 메시지를 반환해야 한다', () {
+        final messages = [
+          createMessage(0),
+          createMessage(1),
+          createMessage(2),
+        ];
+        final settings = createSettings(lastDisplayedIndex: 0);
+
+        final result =
+            NotificationSettingsService.selectMessage(settings, messages);
+
+        expect(result, equals(messages[0]));
+      });
+
+      test('lastDisplayedIndex=2이면 세 번째 메시지를 반환해야 한다', () {
+        final messages = [
+          createMessage(0),
+          createMessage(1),
+          createMessage(2),
+        ];
+        final settings = createSettings(lastDisplayedIndex: 2);
+
+        final result =
+            NotificationSettingsService.selectMessage(settings, messages);
+
+        expect(result, equals(messages[2]));
+      });
+
+      test('lastDisplayedIndex가 메시지 수를 초과하면 modulo로 래핑해야 한다', () {
+        final messages = [
+          createMessage(0),
+          createMessage(1),
+          createMessage(2),
+        ];
+        // 5 % 3 = 2 → messages[2]
+        final settings = createSettings(lastDisplayedIndex: 5);
+
+        final result =
+            NotificationSettingsService.selectMessage(settings, messages);
+
+        expect(result, equals(messages[2]));
+      });
+
+      test('lastDisplayedIndex가 메시지 수와 같으면 첫 번째로 돌아가야 한다', () {
+        final messages = [
+          createMessage(0),
+          createMessage(1),
+          createMessage(2),
+        ];
+        // 3 % 3 = 0 → messages[0]
+        final settings = createSettings(lastDisplayedIndex: 3);
+
+        final result =
+            NotificationSettingsService.selectMessage(settings, messages);
+
+        expect(result, equals(messages[0]));
+      });
+
+      test('메시지가 1개일 때 항상 해당 메시지를 반환해야 한다', () {
+        final messages = [createMessage(0, content: '유일한 메시지')];
+
+        for (var i = 0; i < 5; i++) {
+          final settings = createSettings(lastDisplayedIndex: i);
+          final result =
+              NotificationSettingsService.selectMessage(settings, messages);
+          expect(result, equals(messages[0]), reason: 'index=$i');
+        }
+      });
+
+      test('큰 lastDisplayedIndex도 안전하게 처리해야 한다', () {
+        final messages = [
+          createMessage(0),
+          createMessage(1),
+        ];
+        // 999 % 2 = 1 → messages[1]
+        final settings = createSettings(lastDisplayedIndex: 999);
+
+        final result =
+            NotificationSettingsService.selectMessage(settings, messages);
+
+        expect(result, equals(messages[1]));
+      });
+
+      test('lastDisplayedIndex=0, 메시지 10개 → 첫 번째 반환', () {
+        final messages =
+            List.generate(10, (i) => createMessage(i));
+        final settings = createSettings(lastDisplayedIndex: 0);
+
+        final result =
+            NotificationSettingsService.selectMessage(settings, messages);
+
+        expect(result, equals(messages[0]));
+      });
+
+      test('lastDisplayedIndex=9, 메시지 10개 → 마지막 반환', () {
+        final messages =
+            List.generate(10, (i) => createMessage(i));
+        final settings = createSettings(lastDisplayedIndex: 9);
+
+        final result =
+            NotificationSettingsService.selectMessage(settings, messages);
+
+        expect(result, equals(messages[9]));
+      });
+    });
+
+    group('랜덤 모드 (random)', () {
+      test('반환된 메시지가 목록에 포함되어야 한다', () {
+        final messages = [
+          createMessage(0),
+          createMessage(1),
+          createMessage(2),
+        ];
+        final settings = createSettings(
+          mode: MessageRotationMode.random,
+        );
+
+        // 100회 반복으로 항상 유효한 메시지 반환 검증
+        for (var i = 0; i < 100; i++) {
+          final result =
+              NotificationSettingsService.selectMessage(settings, messages);
+          expect(result, isNotNull);
+          expect(messages, contains(result));
+        }
+      });
+
+      test('메시지가 1개일 때 항상 해당 메시지를 반환해야 한다', () {
+        final messages = [createMessage(0, content: '유일한 메시지')];
+        final settings = createSettings(
+          mode: MessageRotationMode.random,
+        );
+
+        for (var i = 0; i < 20; i++) {
+          final result =
+              NotificationSettingsService.selectMessage(settings, messages);
+          expect(result, equals(messages[0]));
+        }
+      });
+
+      test('여러 메시지에서 다양한 선택이 이루어져야 한다 (통계적 검증)', () {
+        final messages = List.generate(5, (i) => createMessage(i));
+        final settings = createSettings(
+          mode: MessageRotationMode.random,
+        );
+
+        final selectedIds = <String>{};
+        // 200회 실행 시 5개 메시지 중 최소 2개 이상 선택되어야 함
+        for (var i = 0; i < 200; i++) {
+          final result =
+              NotificationSettingsService.selectMessage(settings, messages);
+          selectedIds.add(result!.id);
+        }
+
+        expect(
+          selectedIds.length,
+          greaterThanOrEqualTo(2),
+          reason: '200회 시행 시 최소 2종류 이상 선택되어야 함',
+        );
+      });
+
+      test('lastDisplayedIndex가 랜덤 모드 선택에 영향을 주지 않아야 한다', () {
+        final messages = [
+          createMessage(0),
+          createMessage(1),
+          createMessage(2),
+        ];
+
+        // 다양한 lastDisplayedIndex로 테스트
+        for (final idx in [0, 1, 5, 99]) {
+          final settings = createSettings(
+            mode: MessageRotationMode.random,
+            lastDisplayedIndex: idx,
+          );
+          final result =
+              NotificationSettingsService.selectMessage(settings, messages);
+          expect(result, isNotNull);
+          expect(messages, contains(result));
+        }
+      });
+    });
+
+    group('경계값 테스트', () {
+      test('메시지 최대 개수(10개)에서 순차 모드가 올바르게 작동해야 한다', () {
+        final messages = List.generate(
+          SelfEncouragementMessage.maxMessageCount,
+          (i) => createMessage(i),
+        );
+
+        for (var i = 0; i < SelfEncouragementMessage.maxMessageCount; i++) {
+          final settings = createSettings(lastDisplayedIndex: i);
+          final result =
+              NotificationSettingsService.selectMessage(settings, messages);
+          expect(result, equals(messages[i]), reason: 'index=$i');
+        }
+      });
+
+      test('메시지 최대 개수에서 래핑이 올바르게 작동해야 한다', () {
+        const max = SelfEncouragementMessage.maxMessageCount;
+        final messages = List.generate(max, (i) => createMessage(i));
+
+        // index=max → messages[0] (래핑)
+        final settings = createSettings(lastDisplayedIndex: max);
+        final result =
+            NotificationSettingsService.selectMessage(settings, messages);
+        expect(result, equals(messages[0]));
+      });
+
+      test('메시지 최대 개수에서 랜덤 모드가 올바르게 작동해야 한다', () {
+        final messages = List.generate(
+          SelfEncouragementMessage.maxMessageCount,
+          (i) => createMessage(i),
+        );
+        final settings = createSettings(
+          mode: MessageRotationMode.random,
+        );
+
+        for (var i = 0; i < 50; i++) {
+          final result =
+              NotificationSettingsService.selectMessage(settings, messages);
+          expect(result, isNotNull);
+          expect(messages, contains(result));
+        }
+      });
+    });
+  });
+
+  // ── applySettings 통합 테스트 ──
+
+  group('NotificationSettingsService.applySettings', () {
+    // 스케줄링 호출 기록
+    late List<Map<String, dynamic>> scheduleCalls;
+    late bool cancelCalled;
+    late List<String> subscribedTopics;
+    late List<String> unsubscribedTopics;
+
+    setUp(() {
+      NotificationSettingsService.resetForTesting();
+      scheduleCalls = [];
+      cancelCalled = false;
+      subscribedTopics = [];
+      unsubscribedTopics = [];
+
+      // 기본 mock 설정
+      NotificationSettingsService.areNotificationsEnabledOverride =
+          () async => true;
+      NotificationSettingsService.canScheduleExactAlarmsOverride =
+          () async => true;
+      NotificationSettingsService.isIgnoringBatteryOverride =
+          () async => true;
+      NotificationSettingsService.scheduleDailyReminderOverride = ({
+        required int hour,
+        required int minute,
+        required String title,
+        String? body,
+        String? payload,
+        AndroidScheduleMode? scheduleMode,
+      }) async {
+        scheduleCalls.add({
+          'hour': hour,
+          'minute': minute,
+          'title': title,
+          'body': body,
+          'payload': payload,
+          'scheduleMode': scheduleMode,
+        });
+        return true;
+      };
+      NotificationSettingsService.cancelDailyReminderOverride = () async {
+        cancelCalled = true;
+      };
+      NotificationSettingsService.subscribeToTopicOverride = (topic) async {
+        subscribedTopics.add(topic);
+      };
+      NotificationSettingsService.unsubscribeFromTopicOverride = (topic) async {
+        unsubscribedTopics.add(topic);
+      };
+      NotificationSettingsService.analyticsLog = [];
+    });
+
+    tearDown(() {
+      NotificationSettingsService.resetForTesting();
+    });
+
+    group('리마인더 활성화 + 메시지 있음', () {
+      test('스케줄링이 올바른 파라미터로 호출되어야 한다', () async {
+        final messages = [createMessage(0, content: '힘내세요!')];
+        final settings = createSettings(
+          reminderHour: 8,
+          reminderMinute: 30,
+        );
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+          source: 'user_toggle',
+        );
+
+        expect(scheduleCalls, hasLength(1));
+        expect(scheduleCalls[0]['hour'], 8);
+        expect(scheduleCalls[0]['minute'], 30);
+        expect(scheduleCalls[0]['title'], 'Cheer Me');
+        expect(scheduleCalls[0]['body'], '힘내세요!');
+        expect(
+          scheduleCalls[0]['payload'],
+          NotificationSettingsService.reminderPayload,
+        );
+      });
+
+      test('exact alarm 권한이 있으면 EXACT 모드로 스케줄링해야 한다', () async {
+        final messages = [createMessage(0)];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        expect(
+          scheduleCalls[0]['scheduleMode'],
+          AndroidScheduleMode.exactAllowWhileIdle,
+        );
+      });
+
+      test('exact alarm 권한 없으면 INEXACT fallback이어야 한다', () async {
+        NotificationSettingsService.canScheduleExactAlarmsOverride =
+            () async => false;
+        final messages = [createMessage(0)];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        expect(
+          scheduleCalls[0]['scheduleMode'],
+          AndroidScheduleMode.inexactAllowWhileIdle,
+        );
+      });
+
+      test('스케줄링 성공 시 analytics 이벤트가 기록되어야 한다', () async {
+        final messages = [createMessage(0)];
+        final settings = createSettings(reminderHour: 21, reminderMinute: 0);
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+          source: 'time_change',
+        );
+
+        final log = NotificationSettingsService.analyticsLog!;
+        expect(log, hasLength(1));
+        expect(log[0]['event'], 'reminder_scheduled');
+        expect(log[0]['hour'], 21);
+        expect(log[0]['minute'], 0);
+        expect(log[0]['source'], 'time_change');
+      });
+
+      test('스케줄링 실패 시 실패 analytics 이벤트가 기록되어야 한다', () async {
+        NotificationSettingsService.scheduleDailyReminderOverride = ({
+          required int hour,
+          required int minute,
+          required String title,
+          String? body,
+          String? payload,
+          AndroidScheduleMode? scheduleMode,
+        }) async {
+          scheduleCalls.add({'hour': hour});
+          return false; // 실패
+        };
+        final messages = [createMessage(0)];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        final log = NotificationSettingsService.analyticsLog!;
+        expect(log, hasLength(1));
+        expect(log[0]['event'], 'reminder_schedule_failed');
+        expect(log[0]['errorType'], 'schedule_returned_false');
+      });
+    });
+
+    group('순차 모드 nextIndex 계산', () {
+      test('순차 모드에서 nextIndex를 반환해야 한다', () async {
+        final messages = [
+          createMessage(0),
+          createMessage(1),
+          createMessage(2),
+        ];
+        // lastDisplayedIndex=0 → nextIndex = (0+1)%3 = 1
+        final settings = createSettings(lastDisplayedIndex: 0);
+
+        final result = await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        expect(result, 1);
+      });
+
+      test('마지막 인덱스에서 0으로 래핑해야 한다', () async {
+        final messages = [
+          createMessage(0),
+          createMessage(1),
+          createMessage(2),
+        ];
+        // lastDisplayedIndex=2 → nextIndex = (2+1)%3 = 0
+        final settings = createSettings(lastDisplayedIndex: 2);
+
+        final result = await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        expect(result, 0);
+      });
+
+      test('랜덤 모드에서는 현재 인덱스를 유지해야 한다', () async {
+        final messages = [
+          createMessage(0),
+          createMessage(1),
+          createMessage(2),
+        ];
+        final settings = createSettings(
+          mode: MessageRotationMode.random,
+          lastDisplayedIndex: 5,
+        );
+
+        final result = await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        expect(result, 5); // 변경 없음
+      });
+    });
+
+    group('리마인더 비활성화', () {
+      test('cancelDailyReminder가 호출되어야 한다', () async {
+        final settings = createSettings(isReminderEnabled: false);
+
+        await NotificationSettingsService.applySettings(settings);
+
+        expect(cancelCalled, isTrue);
+        expect(scheduleCalls, isEmpty);
+      });
+
+      test('취소 analytics 이벤트가 기록되어야 한다', () async {
+        final settings = createSettings(isReminderEnabled: false);
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          source: 'user_toggle',
+        );
+
+        final log = NotificationSettingsService.analyticsLog!;
+        expect(log, hasLength(1));
+        expect(log[0]['event'], 'reminder_cancelled');
+        expect(log[0]['source'], 'user_toggle');
+      });
+    });
+
+    group('메시지 없음 (활성화 상태)', () {
+      test('메시지가 없으면 cancel이 호출되어야 한다', () async {
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: [],
+        );
+
+        expect(cancelCalled, isTrue);
+        expect(scheduleCalls, isEmpty);
+      });
+    });
+
+    group('FCM 토픽 관리', () {
+      test('mindcareTopicEnabled=true면 구독해야 한다', () async {
+        final settings = createSettings(
+          isReminderEnabled: false,
+          isMindcareTopicEnabled: true,
+        );
+
+        await NotificationSettingsService.applySettings(settings);
+
+        expect(subscribedTopics, ['mindlog_mindcare']);
+        expect(unsubscribedTopics, isEmpty);
+      });
+
+      test('mindcareTopicEnabled=false면 구독 해제해야 한다', () async {
+        final settings = createSettings(
+          isReminderEnabled: false,
+          isMindcareTopicEnabled: false,
+        );
+
+        await NotificationSettingsService.applySettings(settings);
+
+        expect(unsubscribedTopics, ['mindlog_mindcare']);
+        expect(subscribedTopics, isEmpty);
+      });
+
+      test('FCM 토픽 구독 실패 시 에러를 삼키고 analytics에 기록해야 한다', () async {
+        NotificationSettingsService.subscribeToTopicOverride = (topic) async {
+          throw Exception('Network error');
+        };
+        final settings = createSettings(
+          isReminderEnabled: false,
+          isMindcareTopicEnabled: true,
+        );
+
+        // 예외 없이 완료되어야 함
+        final result =
+            await NotificationSettingsService.applySettings(settings);
+
+        expect(result, 0); // 정상 반환
+        final log = NotificationSettingsService.analyticsLog!;
+        final topicError =
+            log.where((e) => e['event'] == 'fcm_topic_error').toList();
+        expect(topicError, hasLength(1));
+        expect(topicError[0]['action'], 'subscribe');
+      });
+    });
+
+    group('복합 시나리오', () {
+      test('리마인더 + FCM 토픽 동시 설정이 정상 작동해야 한다', () async {
+        final messages = [createMessage(0, content: '화이팅!')];
+        final settings = createSettings(
+          reminderHour: 7,
+          reminderMinute: 0,
+          isMindcareTopicEnabled: true,
+        );
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+          source: 'app_start',
+        );
+
+        // 스케줄링 호출 확인
+        expect(scheduleCalls, hasLength(1));
+        expect(scheduleCalls[0]['body'], '화이팅!');
+
+        // FCM 구독 확인
+        expect(subscribedTopics, ['mindlog_mindcare']);
+
+        // Analytics 확인
+        final log = NotificationSettingsService.analyticsLog!;
+        expect(
+          log.where((e) => e['event'] == 'reminder_scheduled').length,
+          1,
+        );
+      });
+
+      test('canScheduleExact=null일 때 INEXACT fallback해야 한다', () async {
+        NotificationSettingsService.canScheduleExactAlarmsOverride =
+            () async => null;
+        final messages = [createMessage(0)];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        expect(
+          scheduleCalls[0]['scheduleMode'],
+          AndroidScheduleMode.inexactAllowWhileIdle,
+        );
+      });
+    });
+  });
+}

@@ -60,4 +60,36 @@ class NotificationSettings {
       lastDisplayedIndex: 0,
     );
   }
+
+  /// 순차 모드에서 현재 인덱스 계산 (modulo wrap-around)
+  static int currentIndex(int lastDisplayed, int totalCount) {
+    if (totalCount == 0) return 0;
+    return lastDisplayed % totalCount;
+  }
+
+  /// 순차 모드에서 다음 인덱스 계산
+  static int nextIndex(int current, int totalCount) {
+    if (totalCount == 0) return 0;
+    return (current + 1) % totalCount;
+  }
+
+  /// 메시지 삭제 후 lastDisplayedIndex 보정
+  ///
+  /// [lastDisplayed] 현재 lastDisplayedIndex
+  /// [deletedIndex] 삭제된 메시지의 인덱스
+  /// [remainingCount] 삭제 후 남은 메시지 수
+  /// Returns: 보정된 인덱스, 또는 변경 불필요 시 null
+  static int? adjustIndexAfterDeletion(
+    int lastDisplayed,
+    int deletedIndex,
+    int remainingCount,
+  ) {
+    if (deletedIndex < 0) return null;
+    if (remainingCount == 0) {
+      return lastDisplayed != 0 ? 0 : null;
+    }
+    if (deletedIndex > lastDisplayed) return null; // 변경 불필요
+    final adjusted = (lastDisplayed - 1 + remainingCount) % remainingCount;
+    return adjusted != lastDisplayed ? adjusted : null;
+  }
 }
