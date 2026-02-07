@@ -213,7 +213,7 @@ void main() {
       expect(NotificationMessages.mindcareBodies, contains(args['body']));
 
       // 페이로드 타입 확인
-      expect(args['payload'], '{"type":"test_mindcare"}');
+      expect(args['payload'], '{"type":"mindcare"}');
     });
 
     test('showNotification 호출 시 지정된 title과 body로 show가 호출된다', () async {

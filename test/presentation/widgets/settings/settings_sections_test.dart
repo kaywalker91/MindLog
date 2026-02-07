@@ -7,7 +7,6 @@ import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/presentation/providers/app_info_provider.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
-import 'package:mindlog/presentation/widgets/settings/settings_card.dart';
 import 'package:mindlog/presentation/widgets/settings/settings_sections.dart';
 
 import '../../../mocks/mock_repositories.dart';
@@ -278,12 +277,12 @@ void main() {
 
       // Assert
       expect(find.text('알림'), findsOneWidget);
-      expect(find.text('Cheer Me'), findsOneWidget);
+      expect(find.text('Cheer Me — 자기 응원'), findsOneWidget);
       expect(find.text('응원 메시지 관리'), findsOneWidget);
       expect(find.text('메시지 순서'), findsOneWidget);
       expect(find.text('알림 시간'), findsOneWidget);
       expect(find.text('테스트 알림 보내기'), findsOneWidget);
-      expect(find.text('마음 케어 알림'), findsOneWidget);
+      expect(find.text('마음케어'), findsOneWidget);
     });
 
     testWidgets('리마인더 토글 상태가 올바르게 표시되어야 한다', (tester) async {
@@ -316,7 +315,7 @@ void main() {
       expect(switchWidget.value, false);
     });
 
-    testWidgets('알림 섹션이 2개의 SettingsCard로 분리되어 렌더링되어야 한다', (tester) async {
+    testWidgets('알림 섹션이 2개의 AccentSettingsCard로 분리되어 렌더링되어야 한다', (tester) async {
       // Arrange
       mockSettingsRepo.setMockNotificationSettings(
         NotificationSettings.defaults(),
@@ -335,9 +334,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Assert - 2개의 카드가 존재 (Cheer Me + 마음 케어 알림)
-      final cardFinder = find.byType(SettingsCard);
-      expect(cardFinder, findsNWidgets(2));
+      // Assert - 2개의 AccentSettingsCard가 존재 (Cheer Me + 마음케어)
+      // _AccentSettingsCard는 IntrinsicHeight를 사용하므로 이를 통해 확인
+      expect(find.byType(IntrinsicHeight), findsNWidgets(2));
+
+      // 두 섹션의 타이틀이 모두 존재하는지 확인
+      expect(find.text('Cheer Me — 자기 응원'), findsOneWidget);
+      expect(find.text('마음케어'), findsOneWidget);
     });
 
     testWidgets('마음케어 비활성화 시 테스트 알림이 비활성화되어야 한다', (tester) async {
