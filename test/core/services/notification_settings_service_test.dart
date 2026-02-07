@@ -321,6 +321,11 @@ void main() {
       NotificationSettingsService.unsubscribeFromTopicOverride = (topic) async {
         unsubscribedTopics.add(topic);
       };
+      NotificationSettingsService.scheduleWeeklyInsightOverride = ({
+        required bool enabled,
+      }) async {
+        return true;
+      };
       NotificationSettingsService.analyticsLog = [];
     });
 
@@ -401,7 +406,7 @@ void main() {
         );
 
         final log = NotificationSettingsService.analyticsLog!;
-        expect(log, hasLength(1));
+        expect(log.length, greaterThanOrEqualTo(1));
         expect(log[0]['event'], 'reminder_scheduled');
         expect(log[0]['hour'], 21);
         expect(log[0]['minute'], 0);
@@ -429,7 +434,7 @@ void main() {
         );
 
         final log = NotificationSettingsService.analyticsLog!;
-        expect(log, hasLength(1));
+        expect(log.length, greaterThanOrEqualTo(1));
         expect(log[0]['event'], 'reminder_schedule_failed');
         expect(log[0]['errorType'], 'schedule_returned_false');
       });
@@ -509,7 +514,7 @@ void main() {
         );
 
         final log = NotificationSettingsService.analyticsLog!;
-        expect(log, hasLength(1));
+        expect(log.length, greaterThanOrEqualTo(1));
         expect(log[0]['event'], 'reminder_cancelled');
         expect(log[0]['source'], 'user_toggle');
       });
@@ -768,6 +773,359 @@ void main() {
           scheduleCalls[0]['scheduleMode'],
           AndroidScheduleMode.inexactAllowWhileIdle,
         );
+      });
+    });
+
+    group('주간 인사이트 설정', () {
+      test('isWeeklyInsightEnabled=true일 때 scheduleWeeklyInsight이 호출되어야 한다', () async {
+        final settings = createSettings(
+          isReminderEnabled: false,
+          isMindcareTopicEnabled: false,
+        ).copyWith(isWeeklyInsightEnabled: true);
+
+        await NotificationSettingsService.applySettings(settings);
+
+        // Analytics 확인
+        final log = NotificationSettingsService.analyticsLog!;
+        expect(
+          log.where((e) => e['event'] == 'weekly_insight_scheduled').length,
+          1,
+          reason: 'weekly_insight_scheduled 이벤트가 기록되어야 함',
+        );
+      });
+
+      test('isWeeklyInsightEnabled=false일 때 취소 이벤트가 기록되어야 한다', () async {
+        final settings = createSettings(
+          isReminderEnabled: false,
+          isMindcareTopicEnabled: false,
+        ).copyWith(isWeeklyInsightEnabled: false);
+
+        await NotificationSettingsService.applySettings(settings);
+
+        // Analytics 확인
+        final log = NotificationSettingsService.analyticsLog!;
+        expect(
+          log.where((e) => e['event'] == 'weekly_insight_cancelled').length,
+          1,
+          reason: 'weekly_insight_cancelled 이벤트가 기록되어야 함',
+        );
+      });
+    });
+
+    group('emotionAware 모드', () {
+      test('recentEmotionScore가 null이면 랜덤 메시지를 선택해야 한다', () {
+        final messages = [
+          createMessage(0).copyWith(writtenEmotionScore: 3.0),
+          createMessage(1).copyWith(writtenEmotionScore: 7.0),
+          createMessage(2).copyWith(writtenEmotionScore: 9.0),
+        ];
+        final settings = createSettings(mode: MessageRotationMode.emotionAware);
+
+        // 100회 반복으로 랜덤 선택 확인
+        for (var i = 0; i < 100; i++) {
+          final result = NotificationSettingsService.selectMessage(
+            settings,
+            messages,
+            recentEmotionScore: null,
+          );
+          expect(result, isNotNull);
+          expect(messages, contains(result));
+        }
+      });
+
+      test('모든 메시지의 writtenEmotionScore가 null이면 동일 가중치로 선택해야 한다', () {
+        final messages = [
+          createMessage(0),
+          createMessage(1),
+          createMessage(2),
+        ];
+        final settings = createSettings(mode: MessageRotationMode.emotionAware);
+
+        // 100회 반복으로 다양한 선택 확인
+        final selectedIds = <String>{};
+        for (var i = 0; i < 100; i++) {
+          final result = NotificationSettingsService.selectMessage(
+            settings,
+            messages,
+            recentEmotionScore: 5.0,
+          );
+          selectedIds.add(result!.id);
+        }
+
+        // 최소 2개 이상 선택되어야 함
+        expect(
+          selectedIds.length,
+          greaterThanOrEqualTo(2),
+          reason: '모든 메시지가 동일 가중치로 선택되어야 함',
+        );
+      });
+
+      test('거리 ≤ 1.0인 메시지는 가중치 3을 가져야 한다', () {
+        final messages = [
+          createMessage(0, content: '5.0 점수').copyWith(writtenEmotionScore: 5.0),
+          createMessage(1, content: '5.5 점수').copyWith(writtenEmotionScore: 5.5),
+          createMessage(2, content: '9.0 점수').copyWith(writtenEmotionScore: 9.0),
+        ];
+        final settings = createSettings(mode: MessageRotationMode.emotionAware);
+
+        // recentEmotionScore=5.2일 때:
+        // - msg[0]: 거리 0.2 → 가중치 3
+        // - msg[1]: 거리 0.3 → 가중치 3
+        // - msg[2]: 거리 3.8 → 가중치 1
+        // 총 가중치 7, 5.0/5.5 메시지가 6/7 = ~85% 비율
+        final selectedContents = <String>[];
+        for (var i = 0; i < 1000; i++) {
+          final result = NotificationSettingsService.selectMessage(
+            settings,
+            messages,
+            recentEmotionScore: 5.2,
+          );
+          selectedContents.add(result!.content);
+        }
+
+        final closeMsgCount = selectedContents
+            .where((c) => c == '5.0 점수' || c == '5.5 점수')
+            .length;
+        final ratio = closeMsgCount / 1000;
+
+        expect(
+          ratio,
+          greaterThanOrEqualTo(0.70),
+          reason: '거리 1.0 이하 메시지가 70% 이상 선택되어야 함 (실제: ${(ratio * 100).toStringAsFixed(1)}%)',
+        );
+      });
+
+      test('거리 ≤ 3.0인 메시지는 가중치 2를 가져야 한다', () {
+        final messages = [
+          createMessage(0, content: '4.0 점수').copyWith(writtenEmotionScore: 4.0),
+          createMessage(1, content: '9.0 점수').copyWith(writtenEmotionScore: 9.0),
+        ];
+        final settings = createSettings(mode: MessageRotationMode.emotionAware);
+
+        // recentEmotionScore=6.0일 때:
+        // - msg[0]: 거리 2.0 → 가중치 2
+        // - msg[1]: 거리 3.0 → 가중치 2
+        // 동일 가중치이므로 균등 분포
+        final selectedContents = <String>[];
+        for (var i = 0; i < 500; i++) {
+          final result = NotificationSettingsService.selectMessage(
+            settings,
+            messages,
+            recentEmotionScore: 6.0,
+          );
+          selectedContents.add(result!.content);
+        }
+
+        final msg0Count = selectedContents.where((c) => c == '4.0 점수').length;
+        final ratio = msg0Count / 500;
+
+        // 동일 가중치이므로 40-60% 범위 (통계적 변동 고려)
+        expect(
+          ratio,
+          greaterThanOrEqualTo(0.35),
+          reason: '균등 분포 확인 (실제: ${(ratio * 100).toStringAsFixed(1)}%)',
+        );
+        expect(
+          ratio,
+          lessThanOrEqualTo(0.65),
+          reason: '균등 분포 확인 (실제: ${(ratio * 100).toStringAsFixed(1)}%)',
+        );
+      });
+
+      test('거리 > 3.0인 메시지는 가중치 1을 가져야 한다', () {
+        final messages = [
+          createMessage(0, content: '2.0 점수').copyWith(writtenEmotionScore: 2.0),
+          createMessage(1, content: '9.0 점수').copyWith(writtenEmotionScore: 9.0),
+        ];
+        final settings = createSettings(mode: MessageRotationMode.emotionAware);
+
+        // recentEmotionScore=6.0일 때:
+        // - msg[0]: 거리 4.0 → 가중치 1
+        // - msg[1]: 거리 3.0 → 가중치 2
+        // 총 가중치 3, 9.0 메시지가 2/3 = ~67% 비율
+        final selectedContents = <String>[];
+        for (var i = 0; i < 1000; i++) {
+          final result = NotificationSettingsService.selectMessage(
+            settings,
+            messages,
+            recentEmotionScore: 6.0,
+          );
+          selectedContents.add(result!.content);
+        }
+
+        final msg1Count = selectedContents.where((c) => c == '9.0 점수').length;
+        final ratio = msg1Count / 1000;
+
+        expect(
+          ratio,
+          greaterThanOrEqualTo(0.55),
+          reason: '거리 3.0 이하 메시지가 55% 이상 선택되어야 함 (실제: ${(ratio * 100).toStringAsFixed(1)}%)',
+        );
+      });
+
+      test('writtenEmotionScore가 null인 메시지는 가중치 1을 가져야 한다', () {
+        final messages = [
+          createMessage(0, content: '점수 없음'),
+          createMessage(1, content: '5.0 점수').copyWith(writtenEmotionScore: 5.0),
+        ];
+        final settings = createSettings(mode: MessageRotationMode.emotionAware);
+
+        // recentEmotionScore=5.0일 때:
+        // - msg[0]: null → 가중치 1
+        // - msg[1]: 거리 0.0 → 가중치 3
+        // 총 가중치 4, 5.0 메시지가 3/4 = 75% 비율
+        final selectedContents = <String>[];
+        for (var i = 0; i < 1000; i++) {
+          final result = NotificationSettingsService.selectMessage(
+            settings,
+            messages,
+            recentEmotionScore: 5.0,
+          );
+          selectedContents.add(result!.content);
+        }
+
+        final msg1Count = selectedContents.where((c) => c == '5.0 점수').length;
+        final ratio = msg1Count / 1000;
+
+        expect(
+          ratio,
+          greaterThanOrEqualTo(0.65),
+          reason: '점수 있는 메시지가 65% 이상 선택되어야 함 (실제: ${(ratio * 100).toStringAsFixed(1)}%)',
+        );
+      });
+
+      test('혼합 메시지(점수 있음/없음)에서 올바른 가중치가 적용되어야 한다', () {
+        final messages = [
+          createMessage(0, content: '점수 없음 1'),
+          createMessage(1, content: '5.0 점수').copyWith(writtenEmotionScore: 5.0),
+          createMessage(2, content: '점수 없음 2'),
+          createMessage(3, content: '8.0 점수').copyWith(writtenEmotionScore: 8.0),
+        ];
+        final settings = createSettings(mode: MessageRotationMode.emotionAware);
+
+        // recentEmotionScore=5.5일 때:
+        // - msg[0]: null → 가중치 1
+        // - msg[1]: 거리 0.5 → 가중치 3
+        // - msg[2]: null → 가중치 1
+        // - msg[3]: 거리 2.5 → 가중치 2
+        // 총 가중치 7, 점수 있는 메시지가 5/7 = ~71% 비율
+        final selectedContents = <String>[];
+        for (var i = 0; i < 1000; i++) {
+          final result = NotificationSettingsService.selectMessage(
+            settings,
+            messages,
+            recentEmotionScore: 5.5,
+          );
+          selectedContents.add(result!.content);
+        }
+
+        final withScoreCount = selectedContents
+            .where((c) => c == '5.0 점수' || c == '8.0 점수')
+            .length;
+        final ratio = withScoreCount / 1000;
+
+        expect(
+          ratio,
+          greaterThanOrEqualTo(0.60),
+          reason: '점수 있는 메시지가 60% 이상 선택되어야 함 (실제: ${(ratio * 100).toStringAsFixed(1)}%)',
+        );
+      });
+
+      test('거리 경계값 1.0에서 정확히 가중치 3이 적용되어야 한다', () {
+        final messages = [
+          createMessage(0, content: '정확히 1.0').copyWith(writtenEmotionScore: 4.0),
+          createMessage(1, content: '1.1 초과').copyWith(writtenEmotionScore: 6.2),
+        ];
+        final settings = createSettings(mode: MessageRotationMode.emotionAware);
+
+        // recentEmotionScore=5.0일 때:
+        // - msg[0]: 거리 1.0 → 가중치 3
+        // - msg[1]: 거리 1.2 → 가중치 2
+        // 총 가중치 5, msg[0]이 3/5 = 60% 비율
+        final selectedContents = <String>[];
+        for (var i = 0; i < 1000; i++) {
+          final result = NotificationSettingsService.selectMessage(
+            settings,
+            messages,
+            recentEmotionScore: 5.0,
+          );
+          selectedContents.add(result!.content);
+        }
+
+        final msg0Count = selectedContents.where((c) => c == '정확히 1.0').length;
+        final ratio = msg0Count / 1000;
+
+        expect(
+          ratio,
+          greaterThanOrEqualTo(0.50),
+          reason: '거리 1.0 메시지가 50% 이상 선택되어야 함 (실제: ${(ratio * 100).toStringAsFixed(1)}%)',
+        );
+      });
+
+      test('거리 경계값 3.0에서 정확히 가중치 2가 적용되어야 한다', () {
+        final messages = [
+          createMessage(0, content: '정확히 3.0').copyWith(writtenEmotionScore: 2.0),
+          createMessage(1, content: '3.1 초과').copyWith(writtenEmotionScore: 8.2),
+        ];
+        final settings = createSettings(mode: MessageRotationMode.emotionAware);
+
+        // recentEmotionScore=5.0일 때:
+        // - msg[0]: 거리 3.0 → 가중치 2
+        // - msg[1]: 거리 3.2 → 가중치 1
+        // 총 가중치 3, msg[0]이 2/3 = ~67% 비율
+        final selectedContents = <String>[];
+        for (var i = 0; i < 1000; i++) {
+          final result = NotificationSettingsService.selectMessage(
+            settings,
+            messages,
+            recentEmotionScore: 5.0,
+          );
+          selectedContents.add(result!.content);
+        }
+
+        final msg0Count = selectedContents.where((c) => c == '정확히 3.0').length;
+        final ratio = msg0Count / 1000;
+
+        expect(
+          ratio,
+          greaterThanOrEqualTo(0.55),
+          reason: '거리 3.0 메시지가 55% 이상 선택되어야 함 (실제: ${(ratio * 100).toStringAsFixed(1)}%)',
+        );
+      });
+
+      test('감정 점수가 1.0-10.0 범위의 모든 값에서 동작해야 한다', () {
+        final messages = [
+          createMessage(0).copyWith(writtenEmotionScore: 1.0),
+          createMessage(1).copyWith(writtenEmotionScore: 5.5),
+          createMessage(2).copyWith(writtenEmotionScore: 10.0),
+        ];
+        final settings = createSettings(mode: MessageRotationMode.emotionAware);
+
+        // 1.0부터 10.0까지 0.5 간격으로 테스트
+        for (var score = 1.0; score <= 10.0; score += 0.5) {
+          final result = NotificationSettingsService.selectMessage(
+            settings,
+            messages,
+            recentEmotionScore: score,
+          );
+          expect(result, isNotNull, reason: 'score=$score에서 메시지 선택 실패');
+          expect(messages, contains(result), reason: 'score=$score에서 잘못된 메시지 선택');
+        }
+      });
+
+      test('메시지 1개만 있어도 emotionAware 모드가 동작해야 한다', () {
+        final messages = [
+          createMessage(0).copyWith(writtenEmotionScore: 5.0),
+        ];
+        final settings = createSettings(mode: MessageRotationMode.emotionAware);
+
+        final result = NotificationSettingsService.selectMessage(
+          settings,
+          messages,
+          recentEmotionScore: 7.0,
+        );
+
+        expect(result, equals(messages[0]));
       });
     });
   });

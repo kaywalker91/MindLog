@@ -86,10 +86,11 @@ void main() {
   });
 
   group('MessageRotationMode', () {
-    test('should have random and sequential modes', () {
-      expect(MessageRotationMode.values.length, 2);
+    test('should have random, sequential, and emotionAware modes', () {
+      expect(MessageRotationMode.values.length, 3);
       expect(MessageRotationMode.random, isNotNull);
       expect(MessageRotationMode.sequential, isNotNull);
+      expect(MessageRotationMode.emotionAware, isNotNull);
     });
   });
 }

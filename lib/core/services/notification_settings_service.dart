@@ -54,6 +54,11 @@ class NotificationSettingsService {
   @visibleForTesting
   static Future<void> Function(String topic)? unsubscribeFromTopicOverride;
 
+  /// NotificationService.scheduleWeeklyInsight() 대체
+  @visibleForTesting
+  static Future<bool> Function({required bool enabled})?
+      scheduleWeeklyInsightOverride;
+
   /// AnalyticsService 호출 기록 (검증용)
   /// WARNING: Setting this to non-null disables production analytics/crashlytics
   @visibleForTesting
@@ -69,6 +74,7 @@ class NotificationSettingsService {
     cancelDailyReminderOverride = null;
     subscribeToTopicOverride = null;
     unsubscribeFromTopicOverride = null;
+    scheduleWeeklyInsightOverride = null;
     analyticsLog = null;
   }
 
@@ -179,11 +185,16 @@ class NotificationSettingsService {
     List<SelfEncouragementMessage> messages = const [],
     String source = 'user_toggle',
     String? userName,
+    double? recentEmotionScore,
   }) async {
     var nextIndex = settings.lastDisplayedIndex;
     if (settings.isReminderEnabled && messages.isNotEmpty) {
       // 메시지 선택
-      final selectedMessage = selectMessage(settings, messages);
+      final selectedMessage = selectMessage(
+        settings,
+        messages,
+        recentEmotionScore: recentEmotionScore,
+      );
       if (selectedMessage != null) {
         // 순차 모드에서 다음 인덱스 계산
         if (settings.rotationMode == MessageRotationMode.sequential) {
@@ -383,8 +394,57 @@ class NotificationSettingsService {
     }
 
     await _manageFcmTopics(settings);
+    await _manageWeeklyInsight(settings);
 
     return nextIndex;
+  }
+
+  /// 주간 인사이트 알림 관리
+  static Future<void> _manageWeeklyInsight(
+    NotificationSettings settings,
+  ) async {
+    try {
+      final success = scheduleWeeklyInsightOverride != null
+          ? await scheduleWeeklyInsightOverride!(
+              enabled: settings.isWeeklyInsightEnabled,
+            )
+          : await NotificationService.scheduleWeeklyInsight(
+              enabled: settings.isWeeklyInsightEnabled,
+            );
+
+      if (kDebugMode) {
+        debugPrint(
+          '[NotificationSettings] Weekly insight: ${settings.isWeeklyInsightEnabled ? "enabled" : "disabled"}, success: $success',
+        );
+      }
+
+      if (analyticsLog != null) {
+        analyticsLog!.add({
+          'event': settings.isWeeklyInsightEnabled
+              ? 'weekly_insight_scheduled'
+              : 'weekly_insight_cancelled',
+        });
+      }
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint(
+          '[NotificationSettings] Weekly insight operation failed: $e',
+        );
+      }
+      if (analyticsLog == null) {
+        await CrashlyticsService.recordError(
+          e,
+          stackTrace,
+          reason: 'weekly_insight_schedule_error',
+          fatal: false,
+        );
+      } else {
+        analyticsLog!.add({
+          'event': 'weekly_insight_error',
+          'error': e.toString(),
+        });
+      }
+    }
   }
 
   /// 설정에 따라 메시지 선택
@@ -394,8 +454,9 @@ class NotificationSettingsService {
   @visibleForTesting
   static SelfEncouragementMessage? selectMessage(
     NotificationSettings settings,
-    List<SelfEncouragementMessage> messages,
-  ) {
+    List<SelfEncouragementMessage> messages, {
+    double? recentEmotionScore,
+  }) {
     if (messages.isEmpty) return null;
 
     // Note: messages는 이미 정렬된 상태 (Controller에서 displayOrder 순 정렬)
@@ -407,6 +468,53 @@ class NotificationSettingsService {
         final index =
             NotificationSettings.currentIndex(settings.lastDisplayedIndex, messages.length);
         return messages[index];
+      case MessageRotationMode.emotionAware:
+        return _selectEmotionAwareMessage(messages, recentEmotionScore);
     }
+  }
+
+  /// 감정 기반 가중치 메시지 선택
+  ///
+  /// writtenEmotionScore와 recentEmotionScore의 거리 기반 가중치:
+  /// - 거리 ≤ 1.0 → 3배 (매우 유사한 감정)
+  /// - 거리 ≤ 3.0 → 2배 (비슷한 감정)
+  /// - 그 외 → 1배 (기본)
+  /// - writtenEmotionScore 없는 메시지 → 1배
+  /// - recentEmotionScore 없으면 → 랜덤 폴백
+  static SelfEncouragementMessage _selectEmotionAwareMessage(
+    List<SelfEncouragementMessage> messages,
+    double? recentEmotionScore,
+  ) {
+    // 최근 감정 점수가 없으면 랜덤 폴백
+    if (recentEmotionScore == null) {
+      return messages[Random().nextInt(messages.length)];
+    }
+
+    // 가중치 계산
+    final weights = <int>[];
+    for (final msg in messages) {
+      if (msg.writtenEmotionScore == null) {
+        weights.add(1);
+      } else {
+        final distance =
+            (msg.writtenEmotionScore! - recentEmotionScore).abs();
+        if (distance <= 1.0) {
+          weights.add(3);
+        } else if (distance <= 3.0) {
+          weights.add(2);
+        } else {
+          weights.add(1);
+        }
+      }
+    }
+
+    // 가중치 기반 랜덤 선택
+    final totalWeight = weights.fold(0, (sum, w) => sum + w);
+    var pick = Random().nextInt(totalWeight);
+    for (var i = 0; i < messages.length; i++) {
+      pick -= weights[i];
+      if (pick < 0) return messages[i];
+    }
+    return messages.last;
   }
 }

@@ -48,6 +48,9 @@ class _TrackingNotificationSettingsController
   Future<void> updateRotationMode(MessageRotationMode mode) async {}
 
   @override
+  Future<void> updateWeeklyInsightEnabled(bool enabled) async {}
+
+  @override
   Future<void> rescheduleWithMessages(
     List<SelfEncouragementMessage> messages,
   ) async {

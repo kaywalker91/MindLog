@@ -47,6 +47,10 @@ class GetNextSelfEncouragementMessageUseCase {
             messages.length,
           );
           return messages[nextIndex];
+
+        case MessageRotationMode.emotionAware:
+          // TODO: 감정 기반 선택 로직 구현 예정, 현재는 랜덤 폴백
+          return messages[_random.nextInt(messages.length)];
       }
     } on Failure {
       rethrow;

@@ -248,6 +248,195 @@ class NotificationService {
     await androidPlugin?.requestExactAlarmsPermission();
   }
 
+  // ===== Phase 2: 공통 API =====
+
+  /// 1회성 예약 알림 (SafetyFollowup, CognitivePattern용)
+  ///
+  /// [id] 알림 고유 ID
+  /// [title] 알림 제목
+  /// [body] 알림 본문
+  /// [scheduledDate] 예약 시간 (TZDateTime)
+  /// [payload] 알림 클릭 시 전달할 데이터
+  /// [channel] 알림 채널 (기본: channelMindcare)
+  ///
+  /// Returns: true 성공, false 실패
+  static Future<bool> scheduleOneTimeNotification({
+    required int id,
+    required String title,
+    required String body,
+    required tz.TZDateTime scheduledDate,
+    String? payload,
+    String channel = channelMindcare,
+  }) async {
+    try {
+      await _notifications.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduledDate,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            channel,
+            channel == channelCheerMe ? '나의 응원 (Cheer Me)' : '마음케어',
+            channelDescription: channel == channelCheerMe
+                ? '내가 직접 쓴 응원 메시지를 매일 전달해드려요'
+                : '감정 분석 기반 전문 마음 케어 메시지를 보내드려요',
+            importance: Importance.high,
+            priority: Priority.high,
+            enableVibration: true,
+            playSound: true,
+            visibility: NotificationVisibility.public,
+            autoCancel: true,
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        payload: payload,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+
+      if (kDebugMode) {
+        debugPrint(
+          '[Notification] One-time scheduled: id=$id at $scheduledDate',
+        );
+      }
+      return true;
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[Notification] Failed to schedule one-time: $e');
+        debugPrint('[Notification] Stack trace: $stackTrace');
+      }
+      return false;
+    }
+  }
+
+  /// 예약 알림 취소
+  static Future<void> cancelNotification(int id) async {
+    await _notifications.cancel(id);
+    if (kDebugMode) {
+      debugPrint('[Notification] Cancelled notification id=$id');
+    }
+  }
+
+  /// 주간 인사이트 알림 스케줄링 (매주 일요일 20:00)
+  ///
+  /// [enabled] true이면 스케줄, false이면 취소
+  ///
+  /// Returns: true 성공, false 실패
+  static Future<bool> scheduleWeeklyInsight({required bool enabled}) async {
+    const weeklyInsightId = 2002;
+
+    if (!enabled) {
+      await cancelNotification(weeklyInsightId);
+      return true;
+    }
+
+    try {
+      final now = tz.TZDateTime.now(tz.local);
+      // 다음 일요일 20:00 계산
+      var scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        20,
+        0,
+      );
+
+      // 현재 요일에서 다음 일요일까지의 차이 계산
+      final daysUntilSunday = (DateTime.sunday - scheduledDate.weekday) % 7;
+      scheduledDate = scheduledDate.add(Duration(days: daysUntilSunday));
+
+      // 이미 지났으면 다음 주 일요일
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 7));
+      }
+
+      final message = NotificationMessages.getRandomWeeklyInsightMessage();
+
+      await _notifications.zonedSchedule(
+        weeklyInsightId,
+        message.title,
+        message.body,
+        scheduledDate,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            channelMindcare,
+            '마음케어',
+            channelDescription: '감정 분석 기반 전문 마음 케어 메시지를 보내드려요',
+            importance: Importance.high,
+            priority: Priority.high,
+            enableVibration: true,
+            playSound: true,
+            visibility: NotificationVisibility.public,
+            autoCancel: true,
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        payload: '{"type":"mindcare","subtype":"weekly_insight"}',
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+      );
+
+      if (kDebugMode) {
+        debugPrint(
+          '[Notification] Weekly insight scheduled for: $scheduledDate',
+        );
+      }
+      return true;
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[Notification] Failed to schedule weekly insight: $e');
+        debugPrint('[Notification] Stack trace: $stackTrace');
+      }
+      return false;
+    }
+  }
+
+  /// 다음 날 아침 08:00 1회성 알림 스케줄링 (인지 패턴 CBT용)
+  ///
+  /// [patternName] 인지 패턴 이름 (동적 ID 생성용)
+  /// [title] 알림 제목
+  /// [body] 알림 본문
+  ///
+  /// Returns: true 성공, false 실패
+  static Future<bool> scheduleNextMorning({
+    required String patternName,
+    required String title,
+    required String body,
+  }) async {
+    final id = 3001 + patternName.hashCode.abs() % 1000;
+
+    final now = tz.TZDateTime.now(tz.local);
+    final tomorrow = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day + 1,
+      8,
+      0,
+    );
+
+    return scheduleOneTimeNotification(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: tomorrow,
+      payload: '{"type":"mindcare","subtype":"cognitive_pattern","pattern":"$patternName"}',
+    );
+  }
+
   /// 테스트 알림 즉시 표시 (디버깅용)
   /// 마음케어 메시지 형태로 표시하여 실제 알림 미리보기 제공
   static Future<void> showTestNotification() async {

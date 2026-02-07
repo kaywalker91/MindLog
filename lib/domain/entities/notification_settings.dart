@@ -8,6 +8,7 @@ class NotificationSettings {
     required this.isMindcareTopicEnabled,
     this.rotationMode = MessageRotationMode.random,
     this.lastDisplayedIndex = 0,
+    this.isWeeklyInsightEnabled = false,
   })  : assert(reminderHour >= 0 && reminderHour <= 23, 'hour must be 0-23'),
         assert(
           reminderMinute >= 0 && reminderMinute <= 59,
@@ -25,11 +26,15 @@ class NotificationSettings {
   /// 마지막으로 표시된 메시지 인덱스 (순차 모드용)
   final int lastDisplayedIndex;
 
+  /// 주간 감정 인사이트 알림 활성화 (매주 일요일 20:00)
+  final bool isWeeklyInsightEnabled;
+
   // 연구 기반: 17:00-20:00 참여율 최고, 19:00은 직장인 퇴근 후 여유 시간
   static const int defaultReminderHour = 19;
   static const int defaultReminderMinute = 0;
   static const bool defaultReminderEnabled = false;
   static const bool defaultMindcareTopicEnabled = false;
+  static const bool defaultWeeklyInsightEnabled = false;
 
   NotificationSettings copyWith({
     bool? isReminderEnabled,
@@ -38,6 +43,7 @@ class NotificationSettings {
     bool? isMindcareTopicEnabled,
     MessageRotationMode? rotationMode,
     int? lastDisplayedIndex,
+    bool? isWeeklyInsightEnabled,
   }) {
     return NotificationSettings(
       isReminderEnabled: isReminderEnabled ?? this.isReminderEnabled,
@@ -47,6 +53,8 @@ class NotificationSettings {
           isMindcareTopicEnabled ?? this.isMindcareTopicEnabled,
       rotationMode: rotationMode ?? this.rotationMode,
       lastDisplayedIndex: lastDisplayedIndex ?? this.lastDisplayedIndex,
+      isWeeklyInsightEnabled:
+          isWeeklyInsightEnabled ?? this.isWeeklyInsightEnabled,
     );
   }
 
@@ -58,6 +66,7 @@ class NotificationSettings {
       isMindcareTopicEnabled: defaultMindcareTopicEnabled,
       rotationMode: MessageRotationMode.random,
       lastDisplayedIndex: 0,
+      isWeeklyInsightEnabled: defaultWeeklyInsightEnabled,
     );
   }
 

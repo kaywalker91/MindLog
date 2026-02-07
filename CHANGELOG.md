@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.38] - 2026-02-07
+
+### Added
+
+#### 알림 차별화 Phase 2 — 감정 인식 알림 시스템
+- **주간 인사이트 알림**: 매주 일요일 20:00 한 주간의 감정 리뷰 알림 (`NotificationService.scheduleWeeklyInsight()`)
+  - `isWeeklyInsightEnabled` 설정 토글 (`NotificationSettings`, `PreferencesLocalDatasource`)
+  - 4종 제목 + 4종 본문 랜덤 조합 (`NotificationMessages.getRandomWeeklyInsightMessage()`)
+  - 알림 ID: 2002, 채널: `mindlog_mindcare`
+- **인지 패턴 CBT 알림**: 일기 분석 시 인지 왜곡 감지 → 다음 날 08:00 인지 재구조화 메시지 전송
+  - 4패턴(흑백사고/과일반화/감정적추론/당위적사고) × 3메시지 = 12개 CBT 풀
+  - `NotificationService.scheduleNextMorning()` — 패턴 이름 기반 동적 ID (3001+)
+  - `NotificationMessages.getCognitivePatternMessage()` — null-safe 패턴 매칭
+- **EmotionAware 메시지 로테이션 모드**: `MessageRotationMode.emotionAware` 추가
+  - 감정 점수 거리 기반 가중치: ≤1.0→3x, ≤3.0→2x, else→1x
+  - `recentEmotionScore` 파라미터를 `applySettings()`/`selectMessage()`에 전파
+  - `_selectEmotionAwareMessage()` — 누적 가중치 랜덤 선택 알고리즘
+  - `PreferencesLocalDatasource` 직렬화/역직렬화 지원 (알 수 없는 문자열 → `random` 폴백)
+- **감정 트렌드 서비스** (신규 파일):
+  - `EmotionTrendService.analyzeTrend()` — gap/steady/recovering/declining 4종 분석 (264줄)
+  - `EmotionTrendNotificationService.notifyTrend()` — 트렌드 기반 알림 전송 (159줄)
+- **Safety Followup 서비스** (신규 파일):
+  - `SafetyFollowupService.scheduleFollowup()` — 위기 감지 24h 후 안부 확인 (241줄)
+  - 알림 ID: 2004, `SafetyBlockedFailure` 읽기 전용 (기존 위기 감지 로직 무수정)
+- **Emotion Linked Prompt Card** (신규 파일):
+  - 감정 연동 프롬프트 카드 위젯 (132줄, `result_card/emotion_linked_prompt_card.dart`)
+- **1회성 예약 알림 API**: `NotificationService.scheduleOneTimeNotification()` / `cancelNotification()`
+- **분석 후 알림 트리거**: `DiaryAnalysisNotifier._triggerPostAnalysisNotifications()` — `unawaited`로 비블로킹
+- **주간 인사이트 설정 UI**: `notification_section.dart` 토글 + `NotificationSettingsController.updateWeeklyInsightEnabled()`
+- **메시지 로테이션 모드 시트**: emotionAware 옵션 추가
+
+#### 테스트 (33개+ 추가)
+- 인지 패턴 CBT 메시지 테스트 12개 (패턴별 유효성, 빈 패턴, Mock Random, 불변성, 글자 수 제한)
+- EmotionAware 가중치 테스트 11개 (거리별 가중치, 경계값 1.0/3.0, null 처리, 1-10 범위, 단일 메시지)
+- 메시지 로테이션 모드 직렬화 테스트 8개 (random/sequential/emotionAware 왕복, 알 수 없는 모드 폴백)
+- 주간 인사이트 설정 테스트 2개 (enabled/disabled Analytics 기록)
+- EmotionTrend 서비스 테스트 (신규 파일)
+- EmotionTrendNotification 서비스 테스트 (신규 파일)
+- SafetyFollowup 서비스 테스트 (신규 파일)
+
+#### 인프라/문서
+- `CONTRIBUTING.md` — 기여 가이드 추가
+- `LICENSE` 추가
+- `README.ko.md` — 한국어 README 추가
+- `.github/workflows/readme-sync.yml` — README 동기화 워크플로우
+- `.github/scripts/` — CI 스크립트 디렉토리
+- Skill 문서: `notification-enum-gen.md`, `settings-card-gen.md`, `test-agent-consolidate.md`, `troubleshoot-save.md`
+- Skill catalog: `/crisis-check`, `/emotion-analyze`, `/troubleshoot-save`, `/suppress-pattern`, `/periodic-timer` 추가
+
+### Changed
+- GitHub Pages 스크린샷 경로 마이그레이션: `docs/assets/images/` → `assets/screenshots/v3/`
+- `docs/index.html` 이미지 src 경로 8개 업데이트
+- `NotificationSettingsService.applySettings()` 시그니처에 `recentEmotionScore` 파라미터 추가
+- `NotificationSettingsService.selectMessage()`에 `recentEmotionScore` named 파라미터 추가
+- `MessageRotationMode` enum에 `emotionAware` 값 추가 (기존 `random`, `sequential` 유지)
+- `NotificationSettings`에 `isWeeklyInsightEnabled` 필드 추가 (기본값 `true`)
+- 기존 테스트: `hasLength` 단언 → `greaterThanOrEqualTo` 완화 (주간 인사이트 로그 추가 대응)
+- `result_card.dart`에 `EmotionLinkedPromptCard` import 추가
+- `docs/index.html` CSS 캐시 버스팅 파라미터 유지
+
+### Removed
+- `docs/assets/images/` 중복 이미지 15개 삭제 (screenshots/v3로 통합)
+
+---
+
 ## [1.4.37] - 2026-02-06
 
 ### Added

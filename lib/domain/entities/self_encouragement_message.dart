@@ -5,6 +5,8 @@ class SelfEncouragementMessage {
     required this.content,
     required this.createdAt,
     required this.displayOrder,
+    this.category,
+    this.writtenEmotionScore,
   });
 
   /// 고유 식별자 (UUID)
@@ -19,6 +21,12 @@ class SelfEncouragementMessage {
   /// 표시 순서 (순차 모드용, 0부터 시작)
   final int displayOrder;
 
+  /// 메시지 카테고리 (감정 기반 분류용, nullable)
+  final String? category;
+
+  /// 작성 시점의 감정 점수 (1.0-10.0, nullable)
+  final double? writtenEmotionScore;
+
   /// 최대 메시지 길이
   static const int maxContentLength = 100;
 
@@ -30,12 +38,20 @@ class SelfEncouragementMessage {
     String? content,
     DateTime? createdAt,
     int? displayOrder,
+    String? category,
+    bool clearCategory = false,
+    double? writtenEmotionScore,
+    bool clearWrittenEmotionScore = false,
   }) {
     return SelfEncouragementMessage(
       id: id ?? this.id,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
       displayOrder: displayOrder ?? this.displayOrder,
+      category: clearCategory ? null : (category ?? this.category),
+      writtenEmotionScore: clearWrittenEmotionScore
+          ? null
+          : (writtenEmotionScore ?? this.writtenEmotionScore),
     );
   }
 
@@ -45,6 +61,8 @@ class SelfEncouragementMessage {
       content: json['content'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
       displayOrder: json['displayOrder'] as int,
+      category: json['category'] as String?,
+      writtenEmotionScore: json['writtenEmotionScore'] as double?,
     );
   }
 
@@ -54,6 +72,9 @@ class SelfEncouragementMessage {
       'content': content,
       'createdAt': createdAt.toIso8601String(),
       'displayOrder': displayOrder,
+      if (category != null) 'category': category,
+      if (writtenEmotionScore != null)
+        'writtenEmotionScore': writtenEmotionScore,
     };
   }
 
@@ -64,17 +85,31 @@ class SelfEncouragementMessage {
         other.id == id &&
         other.content == content &&
         other.createdAt == createdAt &&
-        other.displayOrder == displayOrder;
+        other.displayOrder == displayOrder &&
+        other.category == category &&
+        other.writtenEmotionScore == writtenEmotionScore;
   }
 
   @override
   int get hashCode {
-    return Object.hash(id, content, createdAt, displayOrder);
+    return Object.hash(
+      id,
+      content,
+      createdAt,
+      displayOrder,
+      category,
+      writtenEmotionScore,
+    );
   }
 
   @override
   String toString() {
-    return 'SelfEncouragementMessage(id: $id, content: $content, displayOrder: $displayOrder)';
+    return 'SelfEncouragementMessage('
+        'id: $id, '
+        'content: $content, '
+        'displayOrder: $displayOrder, '
+        'category: $category, '
+        'writtenEmotionScore: $writtenEmotionScore)';
   }
 }
 
@@ -85,4 +120,7 @@ enum MessageRotationMode {
 
   /// 순차 선택 (displayOrder 순)
   sequential,
+
+  /// 감정 기반 선택 (현재 감정에 맞는 메시지 우선)
+  emotionAware,
 }

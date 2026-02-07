@@ -1,6 +1,7 @@
 {
   "title": "MindLog 트러블슈팅 가이드",
-  "description": "알려진 이슈와 해결 방법",
+  "description": "알려진 이슈와 해결 방법 — 2-Layer Retrieval Memory (JSON Index + MD Detail)",
+  "schemaVersion": "2.0",
   "issues": [
     {
       "id": "notification-not-firing-release",
@@ -8,13 +9,26 @@
       "status": "resolved",
       "resolvedAt": "2026-01-09",
       "affectedVersions": ["< 1.4.11"],
+      "fixedInVersion": "1.4.11",
       "category": "notification",
       "severity": "critical",
+      "platform": "android",
+      "rootCauseType": "environment",
       "summary": "Release APK에서 예약된 일기 리마인더 알림이 설정 시간에 발생하지 않음",
+      "symptoms": [
+        "알림이 안 옴",
+        "Release에서만 발생",
+        "Debug에서는 정상",
+        "리마인더 시간 지나도 무반응"
+      ],
       "cause": "Proguard/R8 난독화가 flutter_local_notifications의 ScheduledNotificationReceiver 클래스를 제거/변경하여 AlarmManager가 찾지 못함",
       "solution": "proguard-rules.pro에 keep 규칙 추가: -keep class com.dexterous.flutterlocalnotifications.** { *; }",
       "documentation": "troubleshooting/notification-not-firing-release.md",
-      "tags": ["android", "proguard", "r8", "notification", "alarmmanager"]
+      "relatedIssues": [],
+      "relatedCommits": [],
+      "tags": ["android", "proguard", "r8", "notification", "alarmmanager", "release-build", "flutter_local_notifications"],
+      "preventionRule": "외부 패키지의 BroadcastReceiver/Service 사용 시 proguard keep 규칙 필수 확인",
+      "confidence": "high"
     }
   ],
   "categories": {
@@ -22,7 +36,22 @@
     "ui": "UI/UX 관련",
     "build": "빌드/배포 관련",
     "api": "API 연동 관련",
-    "database": "데이터베이스 관련"
+    "database": "데이터베이스 관련",
+    "state": "상태 관리 관련",
+    "navigation": "라우팅/네비게이션 관련",
+    "performance": "성능 관련"
   },
-  "updatedAt": "2026-01-09"
+  "rootCauseTypes": {
+    "config": "설정/구성 오류 (proguard, manifest, yaml 등)",
+    "dependency": "외부 패키지/라이브러리 이슈",
+    "timing": "비동기/타이밍/레이스 컨디션",
+    "state": "상태 관리 버그 (Provider, DB 등)",
+    "platform": "플랫폼 특이 동작 (Android/iOS 차이)",
+    "logic": "비즈니스 로직 오류",
+    "environment": "환경 차이 (Debug/Release, CI/Local)",
+    "data": "데이터 무결성/형식 오류",
+    "integration": "컴포넌트 간 통합 이슈",
+    "ui": "레이아웃/렌더링/UX 이슈"
+  },
+  "updatedAt": "2026-02-07"
 }

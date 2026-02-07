@@ -103,6 +103,23 @@ class MessageRotationModeSheet extends ConsumerWidget {
                     ),
                     activeColor: theme.colorScheme.primary,
                   ),
+                  RadioListTile<MessageRotationMode>(
+                    value: MessageRotationMode.emotionAware,
+                    controlAffinity: ListTileControlAffinity.trailing,
+                    title: Text(
+                      '감정 맞춤 선택',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '최근 감정과 비슷한 때 쓴 메시지가 우선 표시돼요',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    activeColor: theme.colorScheme.primary,
+                  ),
                 ],
               ),
             ),

@@ -21,12 +21,25 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 | `/suppress-pattern [entity] [duration]` | `suppress-pattern.md` | Time-based suppression (24h, 7d, etc) |
 | `/periodic-timer [name] [interval]` | `periodic-timer.md` | Periodic background task with cleanup |
 
+## Troubleshooting & Knowledge Base Commands
+
+| Command | Skill File | Purpose |
+|---------|-----------|---------|
+| `/troubleshoot-save [id]` | `troubleshoot-save.md` | 해결된 이슈 → 구조화 트러블슈팅 메모리 저장 (JSON + MD) |
+
 ## Mental Health & Safety Commands (NEW)
 
 | Command | Skill File | Purpose |
 |---------|-----------|---------|
 | `/crisis-check [action]` | `crisis-detection.md` | 위기 감지 및 안전 개입 프로토콜 (P0 Critical) |
 | `/emotion-analyze [action]` | `emotion-analyze.md` | 감정 분석 심화 및 Mental Health 패턴 |
+
+## Notification & Settings UI Commands
+
+| Command | Skill File | Purpose |
+|---------|-----------|---------|
+| `/notification-enum-gen [feature]` | `notification-enum-gen.md` | 메시지 풀 enum 카테고리 구조화 |
+| `/settings-card-gen [type] [categories]` | `settings-card-gen.md` | Accent 설정 카드 + 카테고리 칩 UI 생성 |
 
 ## Flutter Advanced Commands (NEW)
 
@@ -110,6 +123,7 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 - **Widget decompose**: `/widget-decompose [file]` -> `/barrel-export-gen [dir]` -> `/riverpod-widget-test-gen [file]`
 - **Overflow fix**: `/responsive-overflow-fix [file]` -> `flutter analyze` -> 디바이스 테스트
 - **Color migration**: `/color-migrate [file]` -> `/lint-fix` -> `flutter test`
+- **Notification categorization**: `/notification-enum-gen [feature]` -> `/settings-card-gen [type]` -> `/test-unit-gen`
 - **Dark mode audit (NEW)**: `/ui-dark-mode audit-theme` -> `/ui-dark-mode migrate-colors` -> `flutter test`
 - **Provider audit**: `/provider-invalidation-audit` -> `/provider-invalidate-chain [trigger]` -> 코드 적용
 - **Provider optimization (NEW)**: `/flutter-advanced audit-providers` -> `/flutter-advanced optimize-rebuilds`
@@ -120,7 +134,7 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 - **Safety audit (NEW)**: `/crisis-check audit` -> `/crisis-check validate-prompt` -> `/crisis-check test-scenarios`
 - **Emotion analysis (NEW)**: `/emotion-analyze audit-accuracy` -> `/emotion-analyze enhance-categories` -> `/emotion-analyze test-sentiment`
 - **CD troubleshoot**: `/fastlane-audit` -> `/cd-diagnose [run_id]` -> 수정 -> 재배포
-- **Session end**: `/session-wrap` -> `/til-save [topic]` (TIL 메모리화)
+- **Session end**: `/session-wrap` -> `/til-save [topic]` + `/troubleshoot-save [id]` (TIL + 트러블슈팅 메모리화)
 - **Parallel development**: `/parallel-dev [task]` (탐색+구현+검증 병렬)
 - **Creative exploration**: `/explore-creative [goal]` -> 선택 -> `/parallel-dev` 또는 `/feature-pipeline`
 - **Test Quality Audit**: `/test-quality-review [path]` -> 수정 -> 재검증
@@ -128,6 +142,8 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 - **Feature Complete**: `/test-unit-gen` -> `/test-quality-review` -> `/coverage`
 - **Systematic debugging**: `/debug analyze` -> 4단계 프로세스 -> 실패 테스트 작성 -> 수정
 - **Parallel debugging**: `/debug [issue]` (3-agent 병렬 탐색 -> 통합 분석 -> 수정)
+- **Bug→Memory pipeline**: `/debug` -> 해결 -> `/troubleshoot-save [id]` (트러블슈팅 메모리화)
+- **Troubleshoot search**: `/debug` Stage 1 시작 → `troubleshooting.json` 자동 검색 → 유사 이슈 참조
 - **TDD workflow**: 테스트 작성 (RED) -> `/test-unit-gen` -> 구현 (GREEN) -> 리팩토링
 - **Official docs lookup**: `/c7-flutter [topic]` -> 공식 패턴 확인 -> memories 참조
 - **New pattern learning**: `/c7-flutter [topic]` -> 코드 적용 -> `/til-save [topic]`

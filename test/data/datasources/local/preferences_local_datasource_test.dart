@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
+import 'package:mindlog/domain/entities/self_encouragement_message.dart';
 import 'package:mindlog/data/datasources/local/preferences_local_datasource.dart';
 
 void main() {
@@ -117,6 +118,111 @@ void main() {
         );
         expect(settings.reminderHour, 8);
         expect(settings.reminderMinute, 45);
+      });
+    });
+
+    group('메시지 로테이션 모드 직렬화', () {
+      test('random 모드가 올바르게 저장/조회되어야 한다', () async {
+        const settings = NotificationSettings(
+          isReminderEnabled: false,
+          reminderHour: 19,
+          reminderMinute: 0,
+          isMindcareTopicEnabled: false,
+          rotationMode: MessageRotationMode.random,
+        );
+
+        await dataSource.setNotificationSettings(settings);
+        final retrieved = await dataSource.getNotificationSettings();
+
+        expect(retrieved.rotationMode, MessageRotationMode.random);
+      });
+
+      test('sequential 모드가 올바르게 저장/조회되어야 한다', () async {
+        const settings = NotificationSettings(
+          isReminderEnabled: false,
+          reminderHour: 19,
+          reminderMinute: 0,
+          isMindcareTopicEnabled: false,
+          rotationMode: MessageRotationMode.sequential,
+        );
+
+        await dataSource.setNotificationSettings(settings);
+        final retrieved = await dataSource.getNotificationSettings();
+
+        expect(retrieved.rotationMode, MessageRotationMode.sequential);
+      });
+
+      test('emotionAware 모드가 "emotionAware" 문자열로 직렬화되어야 한다', () async {
+        const settings = NotificationSettings(
+          isReminderEnabled: false,
+          reminderHour: 19,
+          reminderMinute: 0,
+          isMindcareTopicEnabled: false,
+          rotationMode: MessageRotationMode.emotionAware,
+        );
+
+        await dataSource.setNotificationSettings(settings);
+
+        // SharedPreferences에서 직접 문자열 확인
+        final prefs = await SharedPreferences.getInstance();
+        final modeStr = prefs.getString('message_rotation_mode');
+
+        expect(modeStr, 'emotionAware');
+      });
+
+      test('"emotionAware" 문자열이 emotionAware 모드로 역직렬화되어야 한다', () async {
+        // SharedPreferences에 직접 문자열 설정
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('message_rotation_mode', 'emotionAware');
+
+        final settings = await dataSource.getNotificationSettings();
+
+        expect(settings.rotationMode, MessageRotationMode.emotionAware);
+      });
+
+      test('"sequential" 문자열이 sequential 모드로 역직렬화되어야 한다', () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('message_rotation_mode', 'sequential');
+
+        final settings = await dataSource.getNotificationSettings();
+
+        expect(settings.rotationMode, MessageRotationMode.sequential);
+      });
+
+      test('알 수 없는 모드 문자열은 random으로 대체되어야 한다', () async {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('message_rotation_mode', 'unknown_mode');
+
+        final settings = await dataSource.getNotificationSettings();
+
+        expect(settings.rotationMode, MessageRotationMode.random);
+      });
+
+      test('모드 미설정 시 기본값은 random이어야 한다', () async {
+        final settings = await dataSource.getNotificationSettings();
+
+        expect(settings.rotationMode, MessageRotationMode.random);
+      });
+
+      test('모든 모드가 왕복 직렬화/역직렬화되어야 한다', () async {
+        for (final mode in MessageRotationMode.values) {
+          final settings = NotificationSettings(
+            isReminderEnabled: false,
+            reminderHour: 19,
+            reminderMinute: 0,
+            isMindcareTopicEnabled: false,
+            rotationMode: mode,
+          );
+
+          await dataSource.setNotificationSettings(settings);
+          final retrieved = await dataSource.getNotificationSettings();
+
+          expect(
+            retrieved.rotationMode,
+            mode,
+            reason: '$mode 모드가 왕복 후 변경됨',
+          );
+        }
       });
     });
 

@@ -142,9 +142,15 @@ class _ResultCardState extends State<ResultCard> {
               isActionCompleted: _isActionCompleted,
               onActionCheck: _onActionCheck,
             ),
+            const SizedBox(height: 24),
+
+            // 6. 감정 연동 자기대화 프롬프트 카드
+            EmotionLinkedPromptCard(
+              sentimentScore: analysisResult.sentimentScore,
+            ),
             const SizedBox(height: 40),
 
-            // 6. 버튼
+            // 7. 버튼
             _buildNewDiaryButton(),
           ],
         )

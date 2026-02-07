@@ -97,9 +97,7 @@ class NotificationSection extends ConsumerWidget {
                   ? null
                   : colorScheme.outline,
               trailing: ModeTrailing(
-                label: notificationSettings.rotationMode == MessageRotationMode.random
-                    ? '무작위'
-                    : '순차',
+                label: _rotationModeLabel(notificationSettings.rotationMode),
                 enabled: notificationSettings.isReminderEnabled,
               ),
               onTap: notificationSettings.isReminderEnabled
@@ -147,6 +145,21 @@ class NotificationSection extends ConsumerWidget {
               enabled: notificationsReady,
               onChanged: (value) {
                 unawaited(_handleMindcareToggle(context, ref, value));
+              },
+            ),
+            const SettingsDivider(),
+            const SettingsDivider(),
+            SettingsToggleItem(
+              icon: Icons.insights_outlined,
+              title: '주간 감정 인사이트',
+              subtitle: '매주 일요일 저녁, 한 주 감정 요약 알림',
+              value: notificationSettings.isWeeklyInsightEnabled,
+              enabled: notificationsReady &&
+                  notificationSettings.isMindcareTopicEnabled,
+              onChanged: (value) {
+                ref
+                    .read(notificationSettingsProvider.notifier)
+                    .updateWeeklyInsightEnabled(value);
               },
             ),
             const SettingsDivider(),
@@ -294,6 +307,17 @@ class NotificationSection extends ConsumerWidget {
     await ref
         .read(notificationSettingsProvider.notifier)
         .updateReminderTime(hour: picked.hour, minute: picked.minute);
+  }
+
+  static String _rotationModeLabel(MessageRotationMode mode) {
+    switch (mode) {
+      case MessageRotationMode.random:
+        return '무작위';
+      case MessageRotationMode.sequential:
+        return '순차';
+      case MessageRotationMode.emotionAware:
+        return '감정 맞춤';
+    }
   }
 
   Future<void> _sendTestNotification(BuildContext context) async {

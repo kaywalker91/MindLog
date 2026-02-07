@@ -899,6 +899,139 @@ void main() {
         );
       });
 
+    group('인지 패턴 CBT 메시지 (getCognitivePatternMessage)', () {
+      test('흑백사고 패턴에 대해 유효한 메시지를 반환해야 한다', () {
+        final message = NotificationMessages.getCognitivePatternMessage('흑백사고');
+        expect(message, isNotNull);
+        expect(message!.title, isNotEmpty);
+        expect(message.body, isNotEmpty);
+      });
+
+      test('과일반화 패턴에 대해 유효한 메시지를 반환해야 한다', () {
+        final message = NotificationMessages.getCognitivePatternMessage('과일반화');
+        expect(message, isNotNull);
+        expect(message!.title, isNotEmpty);
+        expect(message.body, isNotEmpty);
+      });
+
+      test('감정적추론 패턴에 대해 유효한 메시지를 반환해야 한다', () {
+        final message = NotificationMessages.getCognitivePatternMessage('감정적추론');
+        expect(message, isNotNull);
+        expect(message!.title, isNotEmpty);
+        expect(message.body, isNotEmpty);
+      });
+
+      test('당위적사고 패턴에 대해 유효한 메시지를 반환해야 한다', () {
+        final message = NotificationMessages.getCognitivePatternMessage('당위적사고');
+        expect(message, isNotNull);
+        expect(message!.title, isNotEmpty);
+        expect(message.body, isNotEmpty);
+      });
+
+      test('알 수 없는 패턴에 대해 null을 반환해야 한다', () {
+        final message = NotificationMessages.getCognitivePatternMessage('존재하지_않는_패턴');
+        expect(message, isNull);
+      });
+
+      test('빈 문자열 패턴에 대해 null을 반환해야 한다', () {
+        final message = NotificationMessages.getCognitivePatternMessage('');
+        expect(message, isNull);
+      });
+
+      test('지원되는 모든 패턴이 최소 3개 이상의 메시지를 가져야 한다', () {
+        final patterns = NotificationMessages.supportedCognitivePatterns;
+        expect(patterns, isNotEmpty);
+
+        for (final pattern in patterns) {
+          final messages = NotificationMessages.cognitivePatternMessages[pattern];
+          expect(
+            messages,
+            isNotNull,
+            reason: '$pattern에 메시지 목록이 없음',
+          );
+          expect(
+            messages!.length,
+            greaterThanOrEqualTo(3),
+            reason: '$pattern에 메시지가 3개 미만 (실제: ${messages.length}개)',
+          );
+        }
+      });
+
+      test('모든 인지 패턴 메시지는 빈 문자열이 아니어야 한다', () {
+        final patterns = NotificationMessages.cognitivePatternMessages;
+        for (final entry in patterns.entries) {
+          for (final message in entry.value) {
+            expect(
+              message.title.trim(),
+              isNotEmpty,
+              reason: '${entry.key}의 title이 비어있음: "${message.title}"',
+            );
+            expect(
+              message.body.trim(),
+              isNotEmpty,
+              reason: '${entry.key}의 body가 비어있음: "${message.body}"',
+            );
+          }
+        }
+      });
+
+      test('인지 패턴 메시지 본문은 100자 이하여야 한다', () {
+        final patterns = NotificationMessages.cognitivePatternMessages;
+        for (final entry in patterns.entries) {
+          for (final message in entry.value) {
+            expect(
+              message.body.length,
+              lessThanOrEqualTo(100),
+              reason: '${entry.key}의 body가 100자 초과: "${message.body}" (${message.body.length}자)',
+            );
+          }
+        }
+      });
+
+      test('인지 패턴 메시지 제목은 30자 이하여야 한다', () {
+        final patterns = NotificationMessages.cognitivePatternMessages;
+        for (final entry in patterns.entries) {
+          for (final message in entry.value) {
+            expect(
+              message.title.length,
+              lessThanOrEqualTo(30),
+              reason: '${entry.key}의 title이 30자 초과: "${message.title}" (${message.title.length}자)',
+            );
+          }
+        }
+      });
+
+      test('Mock Random으로 결정론적 메시지 선택을 확인해야 한다', () {
+        NotificationMessages.setRandom(MockRandom());
+        final first = NotificationMessages.getCognitivePatternMessage('흑백사고');
+
+        NotificationMessages.setRandom(MockRandom());
+        final second = NotificationMessages.getCognitivePatternMessage('흑백사고');
+
+        expect(first, isNotNull);
+        expect(second, isNotNull);
+        expect(first!.title, equals(second!.title));
+        expect(first.body, equals(second.body));
+      });
+
+      test('supportedCognitivePatterns가 현재 지원 패턴 목록을 반환해야 한다', () {
+        final patterns = NotificationMessages.supportedCognitivePatterns;
+        expect(patterns, contains('흑백사고'));
+        expect(patterns, contains('과일반화'));
+        expect(patterns, contains('감정적추론'));
+        expect(patterns, contains('당위적사고'));
+        expect(patterns.length, equals(4));
+      });
+
+      test('cognitivePatternMessages 맵이 불변이어야 한다', () {
+        final messages = NotificationMessages.cognitivePatternMessages;
+        expect(
+          () => messages['새로운_패턴'] = [],
+          throwsUnsupportedError,
+        );
+      });
+    });
+
       test('각 감정 레벨에서 메시지 풀의 모든 항목이 선택 가능해야 한다', () {
         // Arrange
         NotificationMessages.resetForTesting();

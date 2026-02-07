@@ -17,6 +17,8 @@ class PreferencesLocalDataSource {
   static const String _lastDisplayedIndexKey = 'last_displayed_message_index';
   static const String _selfMessagesKey = 'self_encouragement_messages';
   static const String _userNameKey = 'user_name';
+  static const String _weeklyInsightEnabledKey =
+      'notification_weekly_insight_enabled';
   static const String _dismissedUpdateVersionKey = 'dismissed_update_version';
   static const String _dismissedUpdateTimestampKey =
       'dismissed_update_timestamp';
@@ -37,9 +39,15 @@ class PreferencesLocalDataSource {
   Future<NotificationSettings> getNotificationSettings() async {
     final prefs = await SharedPreferences.getInstance();
     final rotationModeStr = prefs.getString(_rotationModeKey);
-    final rotationMode = rotationModeStr == 'sequential'
-        ? MessageRotationMode.sequential
-        : MessageRotationMode.random;
+    final MessageRotationMode rotationMode;
+    switch (rotationModeStr) {
+      case 'sequential':
+        rotationMode = MessageRotationMode.sequential;
+      case 'emotionAware':
+        rotationMode = MessageRotationMode.emotionAware;
+      default:
+        rotationMode = MessageRotationMode.random;
+    }
 
     final rawHour =
         prefs.getInt(_reminderHourKey) ??
@@ -59,6 +67,9 @@ class PreferencesLocalDataSource {
           NotificationSettings.defaultMindcareTopicEnabled,
       rotationMode: rotationMode,
       lastDisplayedIndex: prefs.getInt(_lastDisplayedIndexKey) ?? 0,
+      isWeeklyInsightEnabled:
+          prefs.getBool(_weeklyInsightEnabledKey) ??
+          NotificationSettings.defaultWeeklyInsightEnabled,
     );
   }
 
@@ -73,11 +84,17 @@ class PreferencesLocalDataSource {
     );
     await prefs.setString(
       _rotationModeKey,
-      settings.rotationMode == MessageRotationMode.sequential
-          ? 'sequential'
-          : 'random',
+      switch (settings.rotationMode) {
+        MessageRotationMode.sequential => 'sequential',
+        MessageRotationMode.emotionAware => 'emotionAware',
+        MessageRotationMode.random => 'random',
+      },
     );
     await prefs.setInt(_lastDisplayedIndexKey, settings.lastDisplayedIndex);
+    await prefs.setBool(
+      _weeklyInsightEnabledKey,
+      settings.isWeeklyInsightEnabled,
+    );
   }
 
   /// 유저 이름 조회 (미설정 시 null 반환)

@@ -45,6 +45,12 @@ class NotificationSettingsController
     await _persistAndApply(updated, source: 'user_toggle');
   }
 
+  Future<void> updateWeeklyInsightEnabled(bool enabled) async {
+    final current = state.valueOrNull ?? NotificationSettings.defaults();
+    final updated = current.copyWith(isWeeklyInsightEnabled: enabled);
+    await _persistAndApply(updated, source: 'user_toggle');
+  }
+
   Future<void> _persistAndApply(
     NotificationSettings settings, {
     required String source,
@@ -58,12 +64,14 @@ class NotificationSettingsController
       final messages =
           ref.read(selfEncouragementProvider).valueOrNull ?? [];
       final userName = ref.read(userNameProvider).valueOrNull;
+      final recentScore = ref.read(todayEmotionProvider).sentimentScore;
       // TODO: Consider wrapping NotificationSettingsService.applySettings in UseCase
       final nextIndex = await NotificationSettingsService.applySettings(
         settings,
         messages: messages,
         source: source,
         userName: userName,
+        recentEmotionScore: recentScore?.toDouble(),
       );
 
       await _updateSequentialIndex(settings, nextIndex);
@@ -98,11 +106,13 @@ class NotificationSettingsController
 
     try {
       final userName = ref.read(userNameProvider).valueOrNull;
+      final recentScore = ref.read(todayEmotionProvider).sentimentScore;
       final nextIndex = await NotificationSettingsService.applySettings(
         current,
         messages: messages,
         source: 'message_change',
         userName: userName,
+        recentEmotionScore: recentScore?.toDouble(),
       );
 
       await _updateSequentialIndex(current, nextIndex);
