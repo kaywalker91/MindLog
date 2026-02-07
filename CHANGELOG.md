@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.39] - 2026-02-07
+
+### Fixed
+- **테스트 동기화**: Phase 2 프로덕션 코드 변경에 맞춰 테스트 3개 수정
+  - `notification_service_test.dart`: payload type `test_mindcare` → `mindcare` 정정
+  - `mindcare_welcome_dialog_test.dart`: 새 다이얼로그 UI 반영 (제목, 아이콘, CBT 텍스트, 뷰포트 800x1400 확장)
+  - `settings_sections_test.dart`: Cheer Me/마음케어 섹션 라벨 텍스트 동기화
+
+### Added
+- **CI/CD 개선**:
+  - `.github/workflows/test-health.yml`: 테스트 실패 자동 감지 워크플로우 추가
+  - `scripts/test-health.sh`: 테스트 실패 패턴 분석 스크립트
+  - `scripts/githooks/`: Git 훅 디렉토리 구조 추가
+  - `scripts/setup-hooks.sh`: Git 훅 설정 자동화 스크립트
+- **빌드 스크립트 강화**:
+  - `scripts/run.sh`: `build-appbundle`, `quality-gate` 명령어 개선
+  - 환경별 빌드 파라미터 자동 주입 (`GROQ_API_KEY`, `ENVIRONMENT`)
+
+### Changed
+- **CD 워크플로우 개선**: `cd.yml`에 API 키 주입 검증 및 환경 변수 처리 강화
+
+---
+
 ## [1.4.38] - 2026-02-07
 
 ### Added

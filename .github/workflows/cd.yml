@@ -43,8 +43,63 @@ jobs:
       - name: Generate Code
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Detect Changed Files
+        id: changes
+        run: |
+          echo "### Changed Dart Files" >> $GITHUB_STEP_SUMMARY
+          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.dart' 2>/dev/null || echo "")
+          if [ -z "$CHANGED" ]; then
+            echo "No Dart files changed." >> $GITHUB_STEP_SUMMARY
+          else
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "$CHANGED" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Affected Test Mirrors:**" >> $GITHUB_STEP_SUMMARY
+            echo "$CHANGED" | grep '^lib/' | while read -r src; do
+              relative="${src#lib/}"
+              mirror="test/${relative%.dart}_test.dart"
+              if [ -f "$mirror" ]; then
+                echo "- $src -> $mirror" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "- $src -> _(no test mirror)_" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
       - name: Run Tests
-        run: flutter test
+        id: tests
+        continue-on-error: true
+        run: flutter test --reporter=github 2>&1 | tee test-output.txt
+
+      - name: Parse Test Results
+        if: always()
+        run: |
+          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f test-output.txt ]; then
+            TOTAL=$(grep -cE '^\+[0-9]+.*:' test-output.txt 2>/dev/null || echo "?")
+            FAILURES=$(grep -cE '(FAILED|ERROR)' test-output.txt 2>/dev/null || echo "0")
+            echo "- **Total output lines**: $TOTAL" >> $GITHUB_STEP_SUMMARY
+            echo "- **Failures detected**: $FAILURES" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            if [ "$FAILURES" != "0" ]; then
+              echo "**Failed tests:**" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              grep -E '(FAILED|ERROR|failed)' test-output.txt | head -30 >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+            else
+              echo "All tests passed." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "test-output.txt not found." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if Tests Failed
+        if: steps.tests.outcome == 'failure'
+        run: |
+          echo "Tests failed. See summary above for details."
+          exit 1
 
   build-and-deploy:
     name: Build & Deploy with Fastlane

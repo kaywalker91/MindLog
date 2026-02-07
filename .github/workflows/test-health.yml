@@ -1,0 +1,30 @@
+name: Weekly Test Health Check
+
+on:
+  schedule:
+    # Every Monday at 09:00 UTC (18:00 KST)
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  test-health:
+    name: Test Health Report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Test Health Report
+        run: |
+          chmod +x scripts/test-health.sh
+          bash scripts/test-health.sh 2>&1 | tee health-output.txt
+
+      - name: Post Report to Summary
+        if: always()
+        run: |
+          echo "### Weekly Test Health Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          # Strip ANSI color codes for GitHub summary
+          sed 's/\x1b\[[0-9;]*m//g' health-output.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

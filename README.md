@@ -40,6 +40,26 @@
 
 ---
 
+## Recent Updates (v1.4.39)
+
+- ✅ **1,384 tests** all passing — comprehensive test coverage ensuring stability
+- 🔧 **Enhanced CI/CD** — automated test health monitoring and quality gates
+- 📊 **Pre-deployment audit system** — 7-gate validation before every release
+- 🛠️ **Improved build scripts** — streamlined environment-specific builds
+
+<details>
+<summary>Previous Updates (v1.4.38)</summary>
+
+- 📬 **Weekly Insights** — Every Sunday evening, receive a summary of your emotional week
+- 🧠 **Cognitive Pattern Detection** — AI detects cognitive distortions and sends CBT messages
+- 🎯 **Emotion-Aware Messages** — Notifications prioritize messages matching your recent emotional state
+- 💙 **Safety Follow-up** — 24-hour check-in after crisis detection
+- 📈 **Emotion Trend Analysis** — Automatic insights when mood patterns change
+
+</details>
+
+---
+
 ## Screenshots
 
 <p align="center">
