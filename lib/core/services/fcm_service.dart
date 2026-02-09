@@ -141,18 +141,19 @@ class FCMService {
 
   static Future<void> _onForegroundMessage(RemoteMessage message) async {
     if (kDebugMode) {
-      debugPrint('[FCM] Foreground: ${message.notification?.title}');
+      debugPrint('[FCM] Foreground: ${message.data['title'] ?? message.notification?.title}');
     }
 
     final result = await buildPersonalizedMessage(
-      serverTitle: message.notification?.title,
-      serverBody: message.notification?.body,
+      serverTitle: message.data['title'] ?? message.notification?.title,
+      serverBody: message.data['body'] ?? message.notification?.body,
     );
 
     await NotificationService.showNotification(
       title: result.title,
       body: result.body,
       payload: message.data.isEmpty ? null : jsonEncode(message.data),
+      id: NotificationService.fcmMindcareId,
     );
   }
 
@@ -187,12 +188,16 @@ class FCMService {
       title = emotionMessage.title;
       body = emotionMessage.body;
     } else {
-      // 감정 데이터 없음: 서버 메시지 그대로 사용
+      // 감정 데이터 없음: 서버 메시지 사용 (빈 메시지 방어)
       if (kDebugMode) {
         debugPrint('[FCM] No emotion data, using server message');
       }
-      title = serverTitle ?? 'MindLog';
-      body = serverBody ?? '';
+      title = (serverTitle != null && serverTitle.isNotEmpty)
+          ? serverTitle
+          : 'MindLog';
+      body = (serverBody != null && serverBody.isNotEmpty)
+          ? serverBody
+          : NotificationMessages.getRandomMindcareBody();
     }
 
     return (title: title, body: body);
@@ -237,20 +242,27 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     );
   }
 
+  // 백그라운드 isolate에서 NotificationService 초기화 (채널 생성 + 플러그인 설정)
+  await NotificationService.initialize();
+
   if (kDebugMode) {
-    debugPrint('[FCM] Background: ${message.notification?.title}');
+    debugPrint('[FCM] Background: ${message.data['title'] ?? message.notification?.title}');
   }
+
+  final serverTitle = message.data['title'] as String? ?? message.notification?.title;
+  final serverBody = message.data['body'] as String? ?? message.notification?.body;
 
   try {
     final result = await FCMService.buildPersonalizedMessage(
-      serverTitle: message.notification?.title,
-      serverBody: message.notification?.body,
+      serverTitle: serverTitle,
+      serverBody: serverBody,
     );
 
     await NotificationService.showNotification(
       title: result.title,
       body: result.body,
       payload: message.data.isEmpty ? null : jsonEncode(message.data),
+      id: NotificationService.fcmMindcareId,
     );
   } catch (e, stackTrace) {
     if (kDebugMode) {
@@ -261,12 +273,20 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       stackTrace,
       reason: 'FCM background handler personalization failed',
     );
-    // 폴백: 원본 서버 메시지 표시
+    // 폴백: 원본 서버 메시지 표시 (빈 메시지 방어)
     try {
+      final fallbackTitle = (serverTitle != null && serverTitle.isNotEmpty)
+          ? serverTitle
+          : 'MindLog';
+      final fallbackBody = (serverBody != null && serverBody.isNotEmpty)
+          ? serverBody
+          : NotificationMessages.getRandomMindcareBody();
+
       await NotificationService.showNotification(
-        title: message.notification?.title ?? 'MindLog',
-        body: message.notification?.body ?? '',
+        title: fallbackTitle,
+        body: fallbackBody,
         payload: message.data.isEmpty ? null : jsonEncode(message.data),
+        id: NotificationService.fcmMindcareId,
       );
     } catch (fallbackError, fallbackStack) {
       await CrashlyticsService.recordError(

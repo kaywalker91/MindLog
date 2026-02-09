@@ -54,23 +54,19 @@ Future<void> _rescheduleNotificationsIfNeeded() async {
       return;
     }
 
-    // 이미 예약된 알림이 있는지 확인 (스마트 재스케줄링)
-    final pendingNotifications =
-        await NotificationService.getPendingNotifications();
-    final hasScheduledReminder = pendingNotifications.any(
-      (n) => n.id == 1001,
-    ); // _dailyReminderId
-
-    if (hasScheduledReminder) {
-      if (kDebugMode) {
-        debugPrint('[Main] Reminder already scheduled, skipping reschedule');
-        for (final notification in pendingNotifications) {
-          debugPrint(
-            '[Main]   • ID: ${notification.id}, Title: ${notification.title}',
-          );
-        }
+    // 앱 시작 시 항상 재스케줄링 (PendingNotificationRequest에는 scheduledDate가 없어
+    // 기존 알림의 예약 시간이 설정과 일치하는지 확인 불가능하므로 항상 재스케줄)
+    if (kDebugMode) {
+      final pendingNotifications =
+          await NotificationService.getPendingNotifications();
+      debugPrint(
+        '[Main] App start reschedule — pending: ${pendingNotifications.length}',
+      );
+      for (final notification in pendingNotifications) {
+        debugPrint(
+          '[Main]   • ID: ${notification.id}, Title: ${notification.title}',
+        );
       }
-      return; // 이미 예약되어 있으면 재스케줄 불필요
     }
 
     // SharedPreferences에서 알림 설정 읽기

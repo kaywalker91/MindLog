@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.40] - 2026-02-09
+
+### Fixed
+- **FCM 마음케어 중복 알림 근본 수정**: Android 백그라운드/killed 상태에서 OS 자동 표시 + 핸들러 표시로 인한 이중 알림 해결
+  - 서버(`fcm.service.ts`): `notification` 필드 제거 → `data`에 title/body 이동 (data-only payload)
+  - iOS 호환: `apns.payload.aps.alert`에 title/body 별도 추가
+  - `sendToTopic()`도 동일하게 data-only 전환 + APNS 설정 추가
+  - 미사용 `ANDROID_CHANNEL_ID` import 제거
+- **빈 알림 방어 3-Layer Defense**:
+  - Layer 1: `FCMService.buildPersonalizedMessage()` — 빈 title/body를 `'MindLog'`/`getRandomMindcareBody()`로 대체
+  - Layer 2: `firebaseMessagingBackgroundHandler` fallback — catch 블록에서도 빈 메시지 방어
+  - Layer 3: `NotificationService.showNotification()` — 최종 guard (`safeTitle`/`safeBody`)
+- **Background Isolate FCM 초기화 누락 수정**: 백그라운드 핸들러 내 `NotificationService.initialize()` 호출 추가
+  - 미초기화 시 `MissingPluginException` → Android OS가 빈 알림 표시하던 문제 해결
+- **클라이언트 data-first 읽기**: `message.data['title'] ?? message.notification?.title` (구/신 서버 하위 호환)
+- **고정 Notification ID**: FCM 알림에 `fcmMindcareId = 2001` 상수 ID 사용 → 핸들러 중복 실행 시 덮어쓰기
+- **main.dart 재스케줄링 전략 변경**: "스마트 재스케줄링(이미 예약된 알림 스킵)" → "항상 재스케줄"
+  - `PendingNotificationRequest`에 `scheduledDate` 필드 없음 → 설정과 실제 불일치 확인 불가
+- **notification_section.dart**: 중복 `SettingsDivider` 1개 제거
+
+### Added
+- **NotificationDiagnosticService** (`notification_diagnostic_service.dart` 신규):
+  - 알림 권한, 예약 상태, 정확한 알람 허용, 배터리 최적화, 시간대 정보 수집
+  - `NotificationDiagnosticData` 데이터 클래스 + `hasAnyIssue` 판별
+- **알림 진단 UI 위젯** (`_NotificationDiagnosticWidget`):
+  - 설정 화면 리마인더 섹션 하단에 항상 표시
+  - 예약 알림 개수, 정확한 알람 허용 여부, 배터리 최적화 상태, 시간대 표시
+  - FutureBuilder 기반 비동기 로딩 + 새로고침 버튼
+- **Analytics breadcrumb 강화**:
+  - `AnalyticsService.logReminderScheduled()`에 `scheduleMode`, `timezoneName` 파라미터 추가
+  - `NotificationSettingsService.applySettings()`에서 스케줄 모드/시간대 자동 기록
+- **테스트 7개 추가**:
+  - `fcm_service_test.dart`: 빈 문자열 title/body 방어 테스트 4개 (null, empty, title-only empty, body-only empty)
+  - `notification_service_test.dart`: 빈 title/body showNotification 방어 테스트 3개
+  - `notification_settings_service_test.dart`: timezone 초기화 `setUpAll` 추가
+
+### Changed
+- **서버-클라이언트 FCM 페이로드 구조**: `notification` + `data` 혼합 → `data`-only (Android) + `apns.alert` (iOS)
+- **`NotificationService.showNotification()` 시그니처**: `id` optional 파라미터 추가 (기존: timestamp 기반 동적 ID)
+- **claude-mem 메모리 수출 스크립트**: API 엔드포인트 `/api/observation` → `/api/memory/save` 변경, `PROJECT_NAME` 추가
+
+### Docs
+- claude-mem Phase 1~2 문서: 평가 보고서, 수출 스크립트 가이드, Phase 완료 보고서
+
+---
+
 ## [1.4.39] - 2026-02-07
 
 ### Fixed

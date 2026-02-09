@@ -9,7 +9,7 @@
 
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
-import { MINDCARE_TOPIC, ANDROID_CHANNEL_ID } from "../config/constants";
+import { MINDCARE_TOPIC } from "../config/constants";
 import { MindcarePayload, SendResult } from "../types";
 
 /**
@@ -23,22 +23,17 @@ export async function sendToMindcareTopic(
 ): Promise<SendResult> {
   const message: admin.messaging.Message = {
     topic: MINDCARE_TOPIC,
-    notification: {
+    // notification 필드 제거: Android 백그라운드에서 OS 자동 표시 방지 (중복 알림 원인)
+    data: {
       title: payload.title,
       body: payload.body,
-    },
-    data: {
       ...payload.data,
       type: "mindcare",
       sentAt: new Date().toISOString(),
     },
     android: {
       priority: "high",
-      notification: {
-        channelId: ANDROID_CHANNEL_ID,
-        sound: "default",
-        priority: "high",
-      },
+      // notification 섹션 제거: data-only → 핸들러가 직접 표시
     },
     apns: {
       headers: {
@@ -47,6 +42,10 @@ export async function sendToMindcareTopic(
       },
       payload: {
         aps: {
+          alert: {
+            title: payload.title,
+            body: payload.body,
+          },
           sound: "default",
           badge: 1,
           contentAvailable: true,
@@ -91,11 +90,32 @@ export async function sendToTopic(
 ): Promise<SendResult> {
   const message: admin.messaging.Message = {
     topic,
-    notification: {
+    // notification 필드 제거: Android 중복 알림 방지 (data-only)
+    data: {
       title: payload.title,
       body: payload.body,
+      ...payload.data,
     },
-    data: payload.data,
+    android: {
+      priority: "high",
+    },
+    apns: {
+      headers: {
+        "apns-priority": "10",
+        "apns-push-type": "alert",
+      },
+      payload: {
+        aps: {
+          alert: {
+            title: payload.title,
+            body: payload.body,
+          },
+          sound: "default",
+          badge: 1,
+          contentAvailable: true,
+        },
+      },
+    },
   };
 
   try {

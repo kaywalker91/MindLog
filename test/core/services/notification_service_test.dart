@@ -240,6 +240,59 @@ void main() {
       expect(args['payload'], payload);
     });
 
+    test('showNotification에 빈 title 전달 시 MindLog 기본값을 사용한다', () async {
+      // When
+      await NotificationService.showNotification(
+        title: '',
+        body: '본문 있음',
+      );
+
+      // Then
+      final call = mockPlatform.calls.firstWhere(
+        (call) => call.method == 'show',
+        orElse: () => throw Exception('show not called'),
+      );
+      final args = call.arguments as Map;
+      expect(args['title'], 'MindLog');
+      expect(args['body'], '본문 있음');
+    });
+
+    test('showNotification에 빈 body 전달 시 랜덤 마음케어 메시지를 사용한다', () async {
+      // When
+      await NotificationService.showNotification(
+        title: '제목 있음',
+        body: '',
+      );
+
+      // Then
+      final call = mockPlatform.calls.firstWhere(
+        (call) => call.method == 'show',
+        orElse: () => throw Exception('show not called'),
+      );
+      final args = call.arguments as Map;
+      expect(args['title'], '제목 있음');
+      expect(args['body'], isNotEmpty);
+      expect(NotificationMessages.mindcareBodies, contains(args['body']));
+    });
+
+    test('showNotification에 빈 title과 body 전달 시 둘 다 기본값을 사용한다', () async {
+      // When
+      await NotificationService.showNotification(
+        title: '',
+        body: '',
+      );
+
+      // Then
+      final call = mockPlatform.calls.firstWhere(
+        (call) => call.method == 'show',
+        orElse: () => throw Exception('show not called'),
+      );
+      final args = call.arguments as Map;
+      expect(args['title'], 'MindLog');
+      expect(args['body'], isNotEmpty);
+      expect(NotificationMessages.mindcareBodies, contains(args['body']));
+    });
+
     test(
       'getPendingNotifications 호출 시 pendingNotificationRequests가 호출된다',
       () async {

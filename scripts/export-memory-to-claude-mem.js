@@ -21,7 +21,8 @@ const MEMORY_PATH = path.join(
   process.env.HOME,
   '.claude/projects/-Users-kaywalker-AndroidStudioProjects-mindlog/memory/MEMORY.md'
 );
-const CLAUDE_MEM_API = 'http://localhost:37777/api/observation';
+const CLAUDE_MEM_API = 'http://localhost:37777/api/memory/save';
+const PROJECT_NAME = 'mindlog';
 
 // Date extraction regex patterns
 const DATE_PATTERNS = [
@@ -240,10 +241,18 @@ function sectionToObservation(section, index) {
  * Send observation to claude-mem API
  */
 async function sendObservation(observation) {
+  // Convert observation to claude-mem API format
+  // API expects: { text: string, title?: string, project?: string }
+  const payload = {
+    text: observation.content,
+    title: observation.title,
+    project: PROJECT_NAME,
+  };
+
   const response = await fetch(CLAUDE_MEM_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(observation),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

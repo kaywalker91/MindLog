@@ -123,23 +123,33 @@ class AnalyticsService {
   /// [hour] 스케줄된 시간 (0-23)
   /// [minute] 스케줄된 분 (0-59)
   /// [source] 스케줄링 트리거 소스 ('user_toggle', 'app_start', 'time_change')
+  /// [scheduleMode] 스케줄 모드 ('exact' 또는 'inexact')
+  /// [timezoneName] 현재 timezone 이름 (예: 'Asia/Seoul')
   static Future<void> logReminderScheduled({
     required int hour,
     required int minute,
     required String source,
+    String? scheduleMode,
+    String? timezoneName,
   }) async {
+    final params = <String, Object>{
+      'reminder_hour': hour,
+      'reminder_minute': minute,
+      'source': source,
+    };
+    if (scheduleMode != null) params['schedule_mode'] = scheduleMode;
+    if (timezoneName != null) params['timezone'] = timezoneName;
+
     await _instance()?.logEvent(
       name: 'reminder_scheduled',
-      parameters: {
-        'reminder_hour': hour,
-        'reminder_minute': minute,
-        'source': source,
-      },
+      parameters: params,
     );
     _debugLog('reminder_scheduled', {
       'hour': hour,
       'minute': minute,
       'source': source,
+      if (scheduleMode != null) 'schedule_mode': scheduleMode,
+      if (timezoneName != null) 'timezone': timezoneName,
     });
   }
 

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
 import '../constants/notification_messages.dart';
 import '../../domain/entities/notification_settings.dart';
 import '../../domain/entities/self_encouragement_message.dart';
@@ -309,6 +310,9 @@ class NotificationSettingsService {
               scheduleMode: scheduleMode,
             );
 
+      final scheduleModeLabel =
+          canScheduleExact == true ? 'exact' : 'inexact';
+
       if (success) {
         if (analyticsLog != null) {
           analyticsLog!.add({
@@ -316,12 +320,16 @@ class NotificationSettingsService {
             'hour': settings.reminderHour,
             'minute': settings.reminderMinute,
             'source': source,
+            'schedule_mode': scheduleModeLabel,
+            'timezone': tz.local.name,
           });
         } else {
           await AnalyticsService.logReminderScheduled(
             hour: settings.reminderHour,
             minute: settings.reminderMinute,
             source: source,
+            scheduleMode: scheduleModeLabel,
+            timezoneName: tz.local.name,
           );
         }
 

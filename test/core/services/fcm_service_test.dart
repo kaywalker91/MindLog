@@ -159,6 +159,7 @@ void main() {
         test('서버 메시지가 null이면 기본값을 사용해야 한다', () async {
           // Arrange
           FCMService.emotionScoreProvider = () async => null;
+          NotificationMessages.setRandom(MockRandom());
 
           // Act
           final result = await FCMService.buildPersonalizedMessage(
@@ -166,9 +167,59 @@ void main() {
             serverBody: null,
           );
 
-          // Assert: 기본값 사용
+          // Assert: title은 'MindLog', body는 랜덤 마음케어 메시지 (빈 문자열 아님)
           expect(result.title, 'MindLog');
-          expect(result.body, '');
+          expect(result.body, isNotEmpty);
+          expect(NotificationMessages.mindcareBodies, contains(result.body));
+        });
+
+        test('서버 메시지가 빈 문자열이면 기본값을 사용해야 한다', () async {
+          // Arrange
+          FCMService.emotionScoreProvider = () async => null;
+          NotificationMessages.setRandom(MockRandom());
+
+          // Act
+          final result = await FCMService.buildPersonalizedMessage(
+            serverTitle: '',
+            serverBody: '',
+          );
+
+          // Assert: 빈 문자열도 기본값으로 대체
+          expect(result.title, 'MindLog');
+          expect(result.body, isNotEmpty);
+          expect(NotificationMessages.mindcareBodies, contains(result.body));
+        });
+
+        test('서버 title만 빈 문자열이면 title만 기본값을 사용해야 한다', () async {
+          // Arrange
+          FCMService.emotionScoreProvider = () async => null;
+
+          // Act
+          final result = await FCMService.buildPersonalizedMessage(
+            serverTitle: '',
+            serverBody: '서버 본문 유지',
+          );
+
+          // Assert
+          expect(result.title, 'MindLog');
+          expect(result.body, '서버 본문 유지');
+        });
+
+        test('서버 body만 빈 문자열이면 body만 기본값을 사용해야 한다', () async {
+          // Arrange
+          FCMService.emotionScoreProvider = () async => null;
+          NotificationMessages.setRandom(MockRandom());
+
+          // Act
+          final result = await FCMService.buildPersonalizedMessage(
+            serverTitle: '서버 제목 유지',
+            serverBody: '',
+          );
+
+          // Assert
+          expect(result.title, '서버 제목 유지');
+          expect(result.body, isNotEmpty);
+          expect(NotificationMessages.mindcareBodies, contains(result.body));
         });
 
       });

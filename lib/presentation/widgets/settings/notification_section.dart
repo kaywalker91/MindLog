@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/analytics_service.dart';
+import '../../../core/services/notification_diagnostic_service.dart';
 import '../../../core/services/notification_permission_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
@@ -128,6 +129,10 @@ class NotificationSection extends ConsumerWidget {
                   ? null
                   : () => _pickReminderTime(context, ref, notificationSettings),
             ),
+            if (notificationSettings.isReminderEnabled) ...[
+              const SettingsDivider(),
+              const _NotificationDiagnosticWidget(),
+            ],
           ],
         ),
 
@@ -147,7 +152,6 @@ class NotificationSection extends ConsumerWidget {
                 unawaited(_handleMindcareToggle(context, ref, value));
               },
             ),
-            const SettingsDivider(),
             const SettingsDivider(),
             SettingsToggleItem(
               icon: Icons.insights_outlined,
@@ -342,6 +346,207 @@ class NotificationSection extends ConsumerWidget {
         );
       }
     }
+  }
+}
+
+/// 알림 진단 상태 위젯
+class _NotificationDiagnosticWidget extends StatefulWidget {
+  const _NotificationDiagnosticWidget();
+
+  @override
+  State<_NotificationDiagnosticWidget> createState() =>
+      _NotificationDiagnosticWidgetState();
+}
+
+class _NotificationDiagnosticWidgetState
+    extends State<_NotificationDiagnosticWidget> {
+  Future<NotificationDiagnosticData>? _diagnosticFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _diagnosticFuture = NotificationDiagnosticService.collect();
+  }
+
+  void _refresh() {
+    setState(() {
+      _diagnosticFuture = NotificationDiagnosticService.collect();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return FutureBuilder<NotificationDiagnosticData>(
+      future: _diagnosticFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '진단 확인 중...',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (!snapshot.hasData) return const SizedBox.shrink();
+
+        final data = snapshot.data!;
+        final cheerMeCount = data.pendingNotifications
+            .where((n) => n.id == 1001)
+            .length;
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.monitor_heart_outlined,
+                    size: 16,
+                    color: data.hasAnyIssue
+                        ? Colors.orange
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '알림 상태',
+                    style: textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: _refresh,
+                    child: Icon(
+                      Icons.refresh,
+                      size: 16,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _DiagnosticRow(
+                label: '예약 알림',
+                value: cheerMeCount > 0
+                    ? '$cheerMeCount개 (ID: 1001)'
+                    : '없음',
+                isWarning: cheerMeCount == 0,
+              ),
+              const SizedBox(height: 4),
+              _DiagnosticRow(
+                label: '정확한 알람',
+                value: data.canScheduleExact == true ? '허용됨' : '거부됨',
+                isWarning: data.hasExactAlarmIssue,
+                warningText: '알림이 지연될 수 있습니다',
+              ),
+              const SizedBox(height: 4),
+              _DiagnosticRow(
+                label: '배터리 최적화',
+                value: data.isIgnoringBattery ? '제외됨' : '활성화됨',
+                isWarning: data.hasBatteryIssue,
+                warningText: '알림이 억제될 수 있습니다',
+              ),
+              const SizedBox(height: 4),
+              _DiagnosticRow(
+                label: '시간대',
+                value: data.timezoneName,
+                isWarning: false,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// 진단 항목 행
+class _DiagnosticRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isWarning;
+  final String? warningText;
+
+  const _DiagnosticRow({
+    required this.label,
+    required this.value,
+    required this.isWarning,
+    this.warningText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final statusColor =
+        isWarning ? Colors.orange : colorScheme.onSurfaceVariant;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              isWarning ? '  \u26a0\ufe0f ' : '  \u2705 ',
+              style: const TextStyle(fontSize: 11),
+            ),
+            Text(
+              '$label: ',
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            Flexible(
+              child: Text(
+                value,
+                style: textTheme.bodySmall?.copyWith(
+                  color: statusColor,
+                  fontWeight: isWarning ? FontWeight.w600 : FontWeight.normal,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        if (isWarning && warningText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 32, top: 2),
+            child: Text(
+              warningText!,
+              style: textTheme.bodySmall?.copyWith(
+                color: Colors.orange.shade700,
+                fontSize: 11,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
 

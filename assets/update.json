@@ -1,33 +1,29 @@
 {
-  "latestVersion": "1.4.38",
+  "latestVersion": "1.4.40",
   "minimumVersion": "1.4.0",
   "releaseNotes": {
     "ko": {
-      "title": "v1.4.38 업데이트 안내",
+      "title": "v1.4.40 업데이트 안내",
       "features": [
-        "매주 일요일 저녁, 한 주간의 감정 변화를 돌아보는 '주간 인사이트' 알림이 추가되었어요!",
-        "AI가 인지 패턴(흑백사고, 과일반화 등)을 감지하면, 다음 날 아침 따뜻한 인지 재구조화 메시지를 보내드려요.",
-        "감정 기반 메시지 모드가 추가되었어요! 최근 감정 상태와 비슷한 감정에서 쓴 응원 메시지를 우선 전달해요.",
-        "위기 상황 감지 후 24시간 뒤 안부를 확인하는 팔로업 알림이 추가되었어요."
+        "설정 화면에 '알림 상태' 진단 기능이 추가되었어요! 알림 예약 상태, 배터리 최적화, 시간대 정보를 한눈에 확인할 수 있어요."
       ],
       "improvements": [
-        "감정 트렌드를 자동으로 분석해 기록이 뜸해지거나 감정 변화가 있을 때 알려드려요.",
-        "GitHub Pages 스크린샷이 최신 버전으로 업데이트되었어요.",
-        "33개 이상의 자동화 테스트가 추가되어 알림 시스템의 안정성이 크게 향상되었어요."
+        "마음케어 알림이 한 번만 울려요! 같은 알림이 두 번 뜨던 문제를 완전히 해결했어요.",
+        "알림이 빈 내용으로 뜨던 문제를 수정했어요. 이제 항상 따뜻한 메시지가 함께 도착해요.",
+        "앱을 열 때 알림 시간이 설정과 다르게 되는 문제를 수정했어요. 이제 항상 설정한 시간에 맞춰 알림이 도착해요.",
+        "7개의 자동화 테스트가 추가되어 알림 시스템의 안정성이 더욱 향상되었어요."
       ]
     },
     "en": {
-      "title": "v1.4.38 Update",
+      "title": "v1.4.40 Update",
       "features": [
-        "New 'Weekly Insight' notification every Sunday evening to reflect on your week's emotional journey!",
-        "When AI detects cognitive patterns (black-and-white thinking, overgeneralization, etc.), you'll receive a gentle cognitive restructuring message the next morning.",
-        "New Emotion-Aware message mode! Prioritizes encouragement messages written during similar emotional states.",
-        "Safety follow-up notification added — checks in 24 hours after a crisis detection."
+        "New 'Notification Status' diagnostic in settings! Check scheduled notifications, battery optimization, and timezone info at a glance."
       ],
       "improvements": [
-        "Automatic emotion trend analysis notifies you of recording gaps or emotional changes.",
-        "GitHub Pages screenshots updated to the latest version.",
-        "33+ automated tests added for significantly improved notification system stability."
+        "Fixed duplicate MindCare notifications — now each notification appears only once.",
+        "Fixed empty notification content — warm messages are always included now.",
+        "Fixed notification timing mismatch on app restart — notifications now always match your settings.",
+        "7 automated tests added for improved notification system stability."
       ]
     }
   },

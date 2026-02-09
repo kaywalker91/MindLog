@@ -12,6 +12,7 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
   static const int _dailyReminderId = 1001;
+  static const int fcmMindcareId = 2001;
 
   // 알림 채널 ID
   static const String channelCheerMe = 'mindlog_cheerme';
@@ -94,7 +95,14 @@ class NotificationService {
     required String body,
     String? payload,
     String channel = channelMindcare,
+    int? id,
   }) async {
+    // 빈 알림 방지: title 또는 body가 비어있으면 기본 메시지 사용
+    final safeTitle = title.isNotEmpty ? title : 'MindLog';
+    final safeBody = body.isNotEmpty
+        ? body
+        : NotificationMessages.getRandomMindcareBody();
+
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         channel,
@@ -106,9 +114,9 @@ class NotificationService {
     );
 
     await _notifications.show(
-      DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title,
-      body,
+      id ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      safeTitle,
+      safeBody,
       details,
       payload: payload,
     );

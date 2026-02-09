@@ -4,6 +4,8 @@ import 'package:mindlog/core/constants/notification_messages.dart';
 import 'package:mindlog/core/services/notification_settings_service.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/entities/self_encouragement_message.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tzlib;
 
 void main() {
   // 테스트용 메시지 팩토리
@@ -272,6 +274,11 @@ void main() {
   });
 
   // ── applySettings 통합 테스트 ──
+
+  setUpAll(() {
+    tz.initializeTimeZones();
+    tzlib.setLocalLocation(tzlib.getLocation('Asia/Seoul'));
+  });
 
   group('NotificationSettingsService.applySettings', () {
     // 스케줄링 호출 기록
