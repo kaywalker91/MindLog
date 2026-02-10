@@ -316,6 +316,120 @@ Step 4: 권장 조치 목록
   - 리팩토링 필요
 ```
 
+### Action 8: audit-http-timeouts
+HTTP 호출 타임아웃 누락 자동 감사
+
+```
+Step 1: 코드베이스 스캔
+  - lib/data/datasources/remote/ 디렉토리 대상
+  - http.Client의 .post(), .get(), .put(), .delete() 호출 탐색
+  - .timeout() 체인이 없는 호출 식별
+
+Step 2: 위험도 분류
+  - 🔴 P0: 사용자 대면 API (분석, 저장 등) — 무한 대기 → UX 블로킹
+  - 🟡 P1: 백그라운드 API (FCM, 업데이트 체크) — 리소스 누수
+  - 🟢 P2: 초기화 API (설정 로드) — 앱 시작 지연
+
+Step 3: 자동 수정 적용
+  - .post(url, ...) → .post(url, ...).timeout(Duration(seconds: 30))
+  - 기존 TimeoutException 핸들러 확인 → 없으면 추가 필요 경고
+
+Step 4: 검증
+  - 기존 테스트 실행 확인
+  - TimeoutException 핸들러 존재 여부 확인
+```
+
+**스캔 명령어:**
+```bash
+# 타임아웃 누락 HTTP 호출 찾기
+grep -rn "\.post\|\.get\|\.put\|\.delete" lib/data/datasources/remote/ \
+  --include="*.dart" | grep -v "timeout"
+```
+
+**수정 패턴:**
+```dart
+// ❌ 타임아웃 없음 — 무한 대기 가능
+final response = await _client.post(uri, headers: h, body: b);
+
+// ✅ 30초 타임아웃 적용
+static const Duration _httpTimeout = Duration(seconds: 30);
+final response = await _client.post(uri, headers: h, body: b)
+    .timeout(_httpTimeout);
+```
+
+**중요 규칙:**
+- 기존 retry 로직의 `on TimeoutException` 핸들러가 `.timeout()`과 연동됨
+- `.timeout()` 없이는 `TimeoutException`이 발생하지 않음 — 핸들러 무용지물
+- 클래스 상수로 `_httpTimeout` 정의 (테스트에서 조정 가능)
+
+---
+
+### Action 9: audit-image-cache
+이미지 cacheWidth/cacheHeight 누락 자동 감사
+
+```
+Step 1: 코드베이스 스캔
+  - Image.file(), Image.asset(), Image.network() 사용처 탐색
+  - cacheWidth/cacheHeight 미설정 위젯 식별
+
+Step 2: 표시 크기 분석
+  - width/height 속성에서 표시 크기 추출
+  - 없으면 컨텍스트에서 추론 (Container 부모, GridView 등)
+
+Step 3: 캐시 크기 계산 및 적용
+  - 고정 크기: displaySize × 3 (최대 DPR 대응)
+  - 동적 크기: MediaQuery.of(context).devicePixelRatio 활용
+  - 테스트 환경 guard: rawSize > 0 ? rawSize : null
+
+Step 4: 검증
+  - 위젯 테스트 실행 (MediaQuery.size == 0 assertion 체크)
+  - DevTools "Invert Oversized Images"로 시각적 확인
+```
+
+**스캔 명령어:**
+```bash
+# cacheWidth 누락 이미지 찾기
+grep -rn "Image\.\(file\|asset\|network\)" lib/presentation/ \
+  --include="*.dart" | grep -v "cacheWidth"
+```
+
+**수정 패턴 — 고정 크기:**
+```dart
+// ❌ 44x44 표시에 원본(수천 px) 로드
+Image.asset(path, width: 44, height: 44, fit: BoxFit.cover)
+
+// ✅ 3x DPR 대응 캐시 크기 (44 × 3 = 132)
+Image.asset(path, width: 44, height: 44,
+    cacheWidth: 132, cacheHeight: 132, fit: BoxFit.cover)
+```
+
+**수정 패턴 — 동적 크기 (그리드/리스트):**
+```dart
+// MediaQuery 기반 DPR-aware 캐시 크기
+final mq = MediaQuery.of(context);
+final rawSize = (displayWidth * mq.devicePixelRatio).toInt();
+final cacheSize = rawSize > 0 ? rawSize : null;  // 테스트 환경 guard
+
+Image.file(file, cacheWidth: cacheSize, cacheHeight: cacheSize,
+    fit: BoxFit.cover)
+```
+
+**캐시 크기 참조표:**
+| 표시 크기 | cacheWidth | 절감율 | 용도 |
+|-----------|-----------|--------|------|
+| 44×44 | 132 | ~95% | 아이콘, 썸네일 |
+| 80×80 | 240 | ~93% | 미리보기 타일 |
+| 화면 절반 | DPR 계산 | ~80% | 그리드 갤러리 |
+| 전체 화면 (줌) | **미적용** | 0% | FullscreenViewer (4x 줌) |
+
+**주의사항:**
+- `cacheWidth`/`cacheHeight`는 **반드시 > 0** (Flutter assertion)
+- 테스트 환경: `MediaQuery.of(context).size.width == 0` → null guard 필수
+- 전체화면 이미지 뷰어(InteractiveViewer): 줌 지원 시 캐시 미적용 권장
+- Image.asset의 경우 에셋 자체가 작으면 효과 제한적 (번들 해상도 확인)
+
+---
+
 ## 성능 체크리스트
 
 ### 렌더링 성능
@@ -344,6 +458,13 @@ Step 4: 권장 조치 목록
 □ 디바운스/스로틀 적용
 □ 결과 캐싱
 □ 에러 핸들링
+```
+
+### 자동 감사 (Automated Audits)
+```
+□ HTTP 호출 .timeout() 설정 (audit-http-timeouts)
+□ Image cacheWidth/cacheHeight 설정 (audit-image-cache)
+□ 테스트 환경 MediaQuery.size guard
 ```
 
 ## 출력 형식

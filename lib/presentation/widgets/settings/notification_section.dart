@@ -3,17 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/analytics_service.dart';
-import '../../../core/services/notification_diagnostic_service.dart';
 import '../../../core/services/notification_permission_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/notification_settings.dart';
 import '../../../domain/entities/self_encouragement_message.dart';
+import '../../../domain/entities/statistics.dart';
 import '../../providers/providers.dart';
 import '../../router/app_router.dart';
 import '../mindcare_welcome_dialog.dart';
-import 'permission_dialogs.dart';
+import '../weekly_insight_guide_dialog.dart';
 import 'message_rotation_mode_sheet.dart';
+import 'notification_diagnostic_widget.dart';
+import 'permission_dialogs.dart';
 import 'settings_card.dart';
 import 'settings_item.dart';
 import 'settings_trailing.dart';
@@ -22,6 +24,11 @@ import 'settings_utils.dart';
 /// 알림 섹션
 class NotificationSection extends ConsumerWidget {
   const NotificationSection({super.key});
+
+  static const String _mindcareFirstActivationShownKey =
+      'mindcare_first_activation_shown';
+  static const String _weeklyInsightFirstActivationShownKey =
+      'weekly_insight_first_activation_shown';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,7 +40,9 @@ class NotificationSection extends ConsumerWidget {
     final notificationsReady = !notificationSettingsAsync.isLoading;
     // PERF-004: select로 필요한 값만 watch하여 불필요한 리빌드 방지
     final messageCount = ref.watch(
-      selfEncouragementProvider.select((value) => value.valueOrNull?.length ?? 0),
+      selfEncouragementProvider.select(
+        (value) => value.valueOrNull?.length ?? 0,
+      ),
     );
 
     // 테스트 알림은 마음케어 활성화 상태에서만 발송 가능
@@ -131,7 +140,7 @@ class NotificationSection extends ConsumerWidget {
             ),
             if (notificationSettings.isReminderEnabled) ...[
               const SettingsDivider(),
-              const _NotificationDiagnosticWidget(),
+              const NotificationDiagnosticWidget(),
             ],
           ],
         ),
@@ -158,12 +167,11 @@ class NotificationSection extends ConsumerWidget {
               title: '주간 감정 인사이트',
               subtitle: '매주 일요일 저녁, 한 주 감정 요약 알림',
               value: notificationSettings.isWeeklyInsightEnabled,
-              enabled: notificationsReady &&
+              enabled:
+                  notificationsReady &&
                   notificationSettings.isMindcareTopicEnabled,
               onChanged: (value) {
-                ref
-                    .read(notificationSettingsProvider.notifier)
-                    .updateWeeklyInsightEnabled(value);
+                unawaited(_handleWeeklyInsightToggle(context, ref, value));
               },
             ),
             const SettingsDivider(),
@@ -277,10 +285,10 @@ class NotificationSection extends ConsumerWidget {
     if (value) {
       final prefs = await SharedPreferences.getInstance();
       final hasShownWelcome =
-          prefs.getBool('mindcare_first_activation_shown') ?? false;
+          prefs.getBool(_mindcareFirstActivationShownKey) ?? false;
 
       if (!hasShownWelcome) {
-        await prefs.setBool('mindcare_first_activation_shown', true);
+        await prefs.setBool(_mindcareFirstActivationShownKey, true);
         if (context.mounted) {
           await MindcareWelcomeDialog.show(context);
         }
@@ -292,6 +300,63 @@ class NotificationSection extends ConsumerWidget {
     } else {
       showSnackBar(context, '마음 케어 알림을 껐어요');
     }
+  }
+
+  Future<void> _handleWeeklyInsightToggle(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    await ref
+        .read(notificationSettingsProvider.notifier)
+        .updateWeeklyInsightEnabled(enabled);
+
+    if (!context.mounted) return;
+
+    if (!enabled) {
+      showSnackBar(context, '주간 감정 인사이트 알림을 껐어요');
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final hasShownGuide =
+        prefs.getBool(_weeklyInsightFirstActivationShownKey) ?? false;
+
+    if (hasShownGuide) {
+      showSnackBar(context, '주간 감정 인사이트 알림이 켜졌어요');
+      return;
+    }
+
+    await prefs.setBool(_weeklyInsightFirstActivationShownKey, true);
+    if (!context.mounted) return;
+
+    _logAnalyticsEventSafely('weekly_insight_guide_shown');
+
+    final result = await WeeklyInsightGuideDialog.show(context);
+    if (!context.mounted) return;
+
+    if (result == WeeklyInsightGuideResult.viewStats) {
+      _logAnalyticsEventSafely('weekly_insight_guide_view_stats');
+      ref.read(selectedStatisticsPeriodProvider.notifier).state =
+          StatisticsPeriod.week;
+      ref.read(selectedTabIndexProvider.notifier).state = 1;
+      return;
+    }
+
+    if (result == WeeklyInsightGuideResult.later) {
+      _logAnalyticsEventSafely('weekly_insight_guide_later');
+    }
+  }
+
+  void _logAnalyticsEventSafely(String eventName) {
+    unawaited(
+      AnalyticsService.logEvent(eventName).catchError((
+        Object _,
+        StackTrace __,
+      ) {
+        // 위젯 테스트/초기화 레이스에서 분석 SDK 예외를 무시한다.
+      }),
+    );
   }
 
   Future<void> _pickReminderTime(
@@ -349,207 +414,6 @@ class NotificationSection extends ConsumerWidget {
   }
 }
 
-/// 알림 진단 상태 위젯
-class _NotificationDiagnosticWidget extends StatefulWidget {
-  const _NotificationDiagnosticWidget();
-
-  @override
-  State<_NotificationDiagnosticWidget> createState() =>
-      _NotificationDiagnosticWidgetState();
-}
-
-class _NotificationDiagnosticWidgetState
-    extends State<_NotificationDiagnosticWidget> {
-  Future<NotificationDiagnosticData>? _diagnosticFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _diagnosticFuture = NotificationDiagnosticService.collect();
-  }
-
-  void _refresh() {
-    setState(() {
-      _diagnosticFuture = NotificationDiagnosticService.collect();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return FutureBuilder<NotificationDiagnosticData>(
-      future: _diagnosticFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 14,
-                  height: 14,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '진단 확인 중...',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        if (!snapshot.hasData) return const SizedBox.shrink();
-
-        final data = snapshot.data!;
-        final cheerMeCount = data.pendingNotifications
-            .where((n) => n.id == 1001)
-            .length;
-
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.monitor_heart_outlined,
-                    size: 16,
-                    color: data.hasAnyIssue
-                        ? Colors.orange
-                        : colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '알림 상태',
-                    style: textTheme.labelMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: _refresh,
-                    child: Icon(
-                      Icons.refresh,
-                      size: 16,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _DiagnosticRow(
-                label: '예약 알림',
-                value: cheerMeCount > 0
-                    ? '$cheerMeCount개 (ID: 1001)'
-                    : '없음',
-                isWarning: cheerMeCount == 0,
-              ),
-              const SizedBox(height: 4),
-              _DiagnosticRow(
-                label: '정확한 알람',
-                value: data.canScheduleExact == true ? '허용됨' : '거부됨',
-                isWarning: data.hasExactAlarmIssue,
-                warningText: '알림이 지연될 수 있습니다',
-              ),
-              const SizedBox(height: 4),
-              _DiagnosticRow(
-                label: '배터리 최적화',
-                value: data.isIgnoringBattery ? '제외됨' : '활성화됨',
-                isWarning: data.hasBatteryIssue,
-                warningText: '알림이 억제될 수 있습니다',
-              ),
-              const SizedBox(height: 4),
-              _DiagnosticRow(
-                label: '시간대',
-                value: data.timezoneName,
-                isWarning: false,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// 진단 항목 행
-class _DiagnosticRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isWarning;
-  final String? warningText;
-
-  const _DiagnosticRow({
-    required this.label,
-    required this.value,
-    required this.isWarning,
-    this.warningText,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final statusColor =
-        isWarning ? Colors.orange : colorScheme.onSurfaceVariant;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              isWarning ? '  \u26a0\ufe0f ' : '  \u2705 ',
-              style: const TextStyle(fontSize: 11),
-            ),
-            Text(
-              '$label: ',
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            Flexible(
-              child: Text(
-                value,
-                style: textTheme.bodySmall?.copyWith(
-                  color: statusColor,
-                  fontWeight: isWarning ? FontWeight.w600 : FontWeight.normal,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        if (isWarning && warningText != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 32, top: 2),
-            child: Text(
-              warningText!,
-              style: textTheme.bodySmall?.copyWith(
-                color: Colors.orange.shade700,
-                fontSize: 11,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
 /// 좌측 accent 컬러 스트라이프가 있는 설정 카드
 class _AccentSettingsCard extends StatelessWidget {
   final Color accentColor;
@@ -568,22 +432,15 @@ class _AccentSettingsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outline.withAlpha(51),
-        ),
+        border: Border.all(color: colorScheme.outline.withAlpha(51)),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(width: 4, color: accentColor),
-              Expanded(
-                child: Column(children: children),
-              ),
-            ],
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(left: BorderSide(color: accentColor, width: 4)),
           ),
+          child: Column(children: children),
         ),
       ),
     );

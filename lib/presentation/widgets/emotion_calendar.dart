@@ -136,12 +136,14 @@ class _EmotionCalendarState extends State<EmotionCalendar> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        CalendarHeader(
-          focusedMonth: _focusedMonth,
-          isCurrentMonth: _isCurrentMonth,
-          onPrevMonth: _prevMonth,
-          onNextMonth: _nextMonth,
-          onGoToToday: _goToToday,
+        RepaintBoundary(
+          child: CalendarHeader(
+            focusedMonth: _focusedMonth,
+            isCurrentMonth: _isCurrentMonth,
+            onPrevMonth: _prevMonth,
+            onNextMonth: _nextMonth,
+            onGoToToday: _goToToday,
+          ),
         ),
         const SizedBox(height: 12),
         const WeekdayHeader(),
@@ -165,13 +167,13 @@ class _EmotionCalendarState extends State<EmotionCalendar> {
                 _initialMonth.year,
                 _initialMonth.month + (index - _initialPageIndex),
               );
-              return _buildCalendarGrid(month);
+              return RepaintBoundary(child: _buildCalendarGrid(month));
             },
           ),
         ),
         if (widget.showLegend) ...[
           const SizedBox(height: 12),
-          const CalendarLegend(),
+          const RepaintBoundary(child: CalendarLegend()),
         ],
       ],
     );
@@ -239,6 +241,8 @@ class _EmotionCalendarState extends State<EmotionCalendar> {
     final isFuture = date.isAfter(now);
     final score = _normalizedActivityMap[normalizedDate];
 
+    // DayCell은 const 생성자를 사용하고 operator==를 오버라이드하여
+    // 파라미터가 변경되지 않으면 리빌드되지 않도록 최적화됨
     return DayCell(
       date: date,
       score: score,

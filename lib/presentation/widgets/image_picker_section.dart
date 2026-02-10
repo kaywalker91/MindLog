@@ -188,6 +188,10 @@ class _ImagePreviewTile extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: Image.file(
             File(imagePath),
+            width: 80,
+            height: 80,
+            cacheWidth: 240,
+            cacheHeight: 240,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return Container(

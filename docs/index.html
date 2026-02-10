@@ -88,27 +88,27 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.40에서는 FCM 푸시 알림의 안정성을 근본적으로 개선했습니다. Data-only payload 전환으로 중복 알림을 해결하고, 3-Layer 빈 알림 방어 체계를 구축했으며, 실시간 알림 진단 UI를 추가하여 사용자가 직접 알림 상태를 확인할 수 있습니다.</p>
+            <p class="section-subtitle">v1.4.41에서는 앱 성능과 개발 효율성을 대폭 개선했습니다. HTTP timeout 추가로 네트워크 무한 대기를 방지하고, 이미지 메모리 최적화로 배터리 효율을 높였으며, DevTools 관측성 강화로 개발자가 앱 상태를 실시간으로 추적할 수 있습니다. 사용자 경험 측면에서는 알림 진단 UI를 더욱 세밀하게 개선하고, 주간 인사이트 기능 안내를 추가했습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
-                    <span class="update-tag">Architecture</span>
-                    <h3>FCM Data-Only Payload 전환</h3>
-                    <p>Android 백그라운드/killed 상태에서 OS 자동 표시 + 핸들러 이중 실행으로 발생하던 중복 알림 문제를 근본적으로 해결했습니다. 서버 FCM 메시지를 notification → data-only로 전환하고, iOS는 APNS alert로 분리 처리합니다. 고정 notification ID(2001)로 덮어쓰기 안전장치도 추가했습니다.</p>
+                    <span class="update-tag">Performance</span>
+                    <h3>네트워크 안정성 및 이미지 최적화</h3>
+                    <p>Groq API 호출에 30초 timeout을 추가하여 네트워크 무한 대기 문제를 근본적으로 해결했습니다. 이미지 표시 시 cacheWidth를 적용(표시크기×3, DPR 대응)하여 메모리 사용량을 줄이고 배터리 효율을 높였습니다. 고해상도 이미지가 자동으로 다운샘플링되어 디바이스 성능이 향상됩니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Reliability</span>
-                    <h3>3-Layer 빈 알림 방어 체계</h3>
-                    <p>Background Isolate에서 NotificationService 미초기화로 빈 알림이 표시되던 문제를 해결했습니다. buildPersonalizedMessage → handler fallback → showNotification guard의 3단계 방어로, 어떤 상황에서도 의미 있는 메시지가 표시됩니다. Background Isolate 초기화 로직도 추가했습니다.</p>
+                    <span class="update-tag">DevTools</span>
+                    <h3>관측성 강화 — ProviderObserver</h3>
+                    <p>Riverpod Provider 상태 전이를 실시간으로 추적하는 AppProviderObserver를 추가했습니다. 디버그 모드에서만 동작하며 assert() 기반으로 구현되어 프로덕션 빌드에는 완전히 제거됩니다(zero overhead). Provider 생성/업데이트/폐기/실패 이벤트를 DevTools 콘솔에서 확인할 수 있어 상태 관리 디버깅이 훨씬 쉬워졌습니다.</p>
                 </div>
                 <div class="update-card">
                     <span class="update-tag">UX</span>
-                    <h3>알림 진단 대시보드</h3>
-                    <p>NotificationDiagnosticService를 신규 구축하여 알림 예약 상태, 정확한 알람 권한, 배터리 최적화, 시간대 정보를 실시간으로 수집합니다. 설정 화면에 진단 위젯을 추가해 사용자가 알림 상태를 한눈에 확인하고, 문제 시 원인을 즉시 파악할 수 있습니다.</p>
+                    <h3>알림 진단 UI 및 주간 인사이트 가이드</h3>
+                    <p>설정 화면에 NotificationDiagnosticWidget을 추가하여 알림 예약 상태, 정확한 알람 권한, 배터리 최적화, 시간대를 실시간으로 확인할 수 있습니다. 권한 문제 발견 시 해결 액션 버튼을 제공하며, 접기/펼치기 토글과 새로고침 기능으로 사용자 편의성을 높였습니다. 주간 인사이트 기능 안내 다이얼로그를 추가하여 매주 일요일 밤 8시 감정 리포트 알림을 쉽게 이해할 수 있습니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Quality</span>
-                    <h3>Analytics 강화 + 테스트 7개 추가</h3>
-                    <p>알림 스케줄링 시 scheduleMode(exact/inexact)와 timezone 정보를 Analytics에 기록하여 디버깅 추적성을 높였습니다. FCM 빈 문자열 방어 테스트 4개, showNotification 빈 알림 방어 테스트 3개를 추가하여 알림 시스템의 신뢰성을 검증합니다.</p>
+                    <span class="update-tag">Code Quality</span>
+                    <h3>위젯 리팩토링 및 테스트 강화</h3>
+                    <p>emotion_calendar/day_cell.dart에서 AnimationController를 제거하고 StatefulWidget으로 단순화하여 성능을 개선했습니다. IntrinsicHeight accent stripe 패턴을 Border.left로 전환하여 RenderFlex overflow 위험을 제거했습니다. cacheWidth 검증 테스트 4개, ProviderObserver 테스트, 알림 진단 위젯 테스트 등 8개 테스트 파일을 추가하여 앱 안정성을 강화했습니다.</p>
                 </div>
             </div>
         </div>

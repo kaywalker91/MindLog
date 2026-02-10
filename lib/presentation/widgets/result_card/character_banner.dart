@@ -28,6 +28,8 @@ class CharacterBanner extends StatelessWidget {
               character.imagePath,
               width: 44,
               height: 44,
+              cacheWidth: 132,
+              cacheHeight: 132,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(

@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.41] - 2026-02-10
+
+### Added
+- **DevTools 관측성 강화**:
+  - `AppProviderObserver` 신규 추가 (`lib/core/observability/app_provider_observer.dart`)
+  - 디버그 모드 전용 Provider 상태 전이 로깅 (생성/업데이트/폐기/실패)
+  - `assert()` 기반 zero overhead 구현 (프로덕션 빌드에 완전히 제거됨)
+  - main.dart에 `ProviderContainer.observers` 등록
+- **알림 진단 UI 추가**:
+  - `NotificationDiagnosticWidget` 신규 추가 (600줄, Material 3 기반)
+  - 설정 화면에서 알림 예약 상태, 정확한 알람 권한, 배터리 최적화, 시간대 실시간 표시
+  - 권한 문제 발견 시 해결 액션 버튼 제공 (정확한 알람 설정, 배터리 최적화 해제)
+  - 접기/펼치기 토글, 새로고침 버튼, 요약 배너 (정상/경고 tone)
+- **주간 인사이트 가이드 다이얼로그**:
+  - `WeeklyInsightGuideDialog` 신규 추가 (269줄)
+  - 주간 감정 리포트 기능 소개 (매주 일요일 밤 8시 알림 안내)
+  - "나중에" / "통계 보기" 액션 제공
+  - mindcareAccent 기반 브랜딩 적용
+- **테스트 추가** (8개 파일):
+  - `app_provider_observer_test.dart`: ProviderObserver 동작 검증
+  - `notification_diagnostic_widget_test.dart`: 진단 위젯 UI 테스트
+  - `weekly_insight_guide_dialog_test.dart`: 가이드 다이얼로그 테스트
+  - `diary_image_gallery_cachewidth_test.dart`: 이미지 갤러리 cacheWidth 검증
+  - `fullscreen_image_viewer_nocache_test.dart`: 전체화면 뷰어 cacheWidth=null 검증
+  - `image_picker_section_cachewidth_test.dart`: 이미지 피커 섹션 cacheWidth 검증
+  - `character_banner_cachewidth_test.dart`: 캐릭터 배너 cacheWidth 검증
+  - `groq_remote_datasource_test.dart`: HTTP timeout 동작 검증 테스트 추가
+
+### Changed
+- **DevTools 성능 최적화**:
+  - `GroqRemoteDataSource`: HTTP POST 요청에 30초 timeout 추가 (vision/text analysis 모두)
+  - 기존 `TimeoutException` 핸들러 활용 (Network Failure로 매핑)
+- **Image cacheWidth 최적화**:
+  - `DiaryImageGallery`, `ImagePickerSection`, `CharacterBanner`: 표시크기 × 3 (DPR 대응)
+  - `MediaQuery.size == 0` guard 추가 (테스트 환경 대응)
+  - cacheWidth 적용으로 메모리 사용량 감소 (고해상도 이미지 다운샘플링)
+- **위젯 리팩토링 및 성능 개선**:
+  - `emotion_calendar/day_cell.dart`: AnimationController 제거 → StatefulWidget 단순화 (131줄 → 재구성)
+    - `SingleTickerProviderStateMixin` 제거, `_isPressed` state 기반 탭 애니메이션으로 전환
+    - const 생성자 + == 연산자 오버라이드로 불필요한 리빌드 방지
+  - `mindcare_welcome_dialog.dart`: IntrinsicHeight accent stripe 패턴 제거 (307줄 리팩토링)
+    - Row(stretch) + Container(4px) → Container(decoration: Border(left)) 패턴으로 전환
+    - RenderFlex overflow 위험 제거, 동적 콘텐츠 대응 개선
+  - `emotion_linked_prompt_card.dart`: IntrinsicHeight 제거 (107줄 리팩토링)
+  - `message_input_dialog.dart`: IntrinsicHeight 제거 (347줄 리팩토링)
+  - `ai_character_sheet.dart`: cacheWidth 적용
+  - `notification_section.dart`: 303줄 → 간소화 (진단 위젯 통합)
+
+### Fixed
+- **테스트 환경 대응**:
+  - `MediaQuery.size.width == 0` 테스트 환경에서 cacheWidth 계산 오류 방지
+  - `rawSize > 0 ? rawSize : null` guard 적용
+
+### Docs
+- **DevTools 개선 패턴 문서화**: `.claude/RESTART-CHECKLIST.md`, `.claude/verification-updates.md` 추가
+- **Performance Expert 스킬 강화**: `docs/skills/performance-expert.md` 업데이트 (121줄 추가)
+  - HTTP timeout 자동 감사 기능 추가
+  - Image cacheWidth 자동 감사 기능 추가
+  - 성능 리포트 생성 기능 추가
+
+---
+
 ## [1.4.40] - 2026-02-09
 
 ### Fixed

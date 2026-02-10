@@ -755,6 +755,168 @@ void main() {
         expect(dataSourceWithDefaultClient, isNotNull);
       });
     });
+
+    group('analyzeDiaryWithImages (Vision path)', () {
+      late Directory tempDir;
+      late String tempImagePath;
+
+      setUp(() {
+        // ImageService.encodeMultipleToBase64DataUrls는 compute()로
+        // 실제 파일을 읽으므로 유효한 PNG 임시 파일이 필요
+        tempDir = Directory.systemTemp.createTempSync('mindlog_test_');
+        tempImagePath = '${tempDir.path}/test_image.png';
+        File(tempImagePath).writeAsBytesSync(
+          base64Decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ'
+            'AAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
+          ),
+        );
+      });
+
+      tearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+
+      test('성공 시 유효한 AnalysisResponseDto를 반환해야 한다', () async {
+        mockClient.setSuccessResponse(createValidApiResponse());
+
+        final result = await dataSource.analyzeDiaryWithImages(
+          '오늘 산책하며 예쁜 꽃을 봤다',
+          imagePaths: [tempImagePath],
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result, isNotNull);
+        expect(result.keywords, isNotEmpty);
+        expect(mockClient.callCount, 1);
+      });
+
+      test('API 키가 비어있으면 ApiException을 던져야 한다', () async {
+        final emptyKeyDataSource = GroqRemoteDataSource(
+          '',
+          client: mockClient,
+        );
+
+        await expectLater(
+          emptyKeyDataSource.analyzeDiaryWithImages(
+            '테스트',
+            imagePaths: [tempImagePath],
+            character: AiCharacter.warmCounselor,
+          ),
+          throwsA(isA<ApiException>()),
+        );
+      });
+
+      test('TimeoutException 발생 시 ApiException으로 래핑되어야 한다', () async {
+        // _analyzeDiaryWithImagesOnce의 catch 블록에서
+        // TimeoutException → ApiException으로 변환됨
+        final directClient = _DirectExceptionClient(
+          exceptionFactory: () => TimeoutException('Request timed out'),
+        );
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: directClient,
+        );
+
+        await expectLater(
+          customDataSource.analyzeDiaryWithImages(
+            '테스트',
+            imagePaths: [tempImagePath],
+            character: AiCharacter.warmCounselor,
+          ),
+          throwsA(isA<ApiException>()),
+        );
+        // ApiException으로 래핑되어 재시도 없이 1회만 호출
+        expect(directClient.callCount, 1);
+      });
+
+      test('SocketException 발생 시 ApiException으로 래핑되어야 한다', () async {
+        final directClient = _DirectExceptionClient(
+          exceptionFactory: () => const SocketException('Connection refused'),
+        );
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: directClient,
+        );
+
+        await expectLater(
+          customDataSource.analyzeDiaryWithImages(
+            '테스트',
+            imagePaths: [tempImagePath],
+            character: AiCharacter.warmCounselor,
+          ),
+          throwsA(isA<ApiException>()),
+        );
+        expect(directClient.callCount, 1);
+      });
+
+      test('429 Rate Limit 시 재시도 후 성공해야 한다', () async {
+        final customClient = _RetryMockHttpClient(
+          firstResponse: http.Response(
+            'Rate limit exceeded',
+            429,
+            headers: {'retry-after': '1'},
+          ),
+          secondResponse: http.Response.bytes(
+            utf8.encode(jsonEncode(createValidApiResponse())),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          ),
+        );
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: customClient,
+        );
+
+        final result = await customDataSource.analyzeDiaryWithImages(
+          '테스트',
+          imagePaths: [tempImagePath],
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result, isNotNull);
+        expect(customClient.callCount, 2);
+      });
+
+      test('CircuitBreaker와 함께 사용 시 정상 동작해야 한다', () async {
+        final circuitBreaker = CircuitBreaker();
+        final dataSourceWithCB = GroqRemoteDataSource(
+          'test-api-key',
+          client: mockClient,
+          circuitBreaker: circuitBreaker,
+        );
+
+        mockClient.setSuccessResponse(createValidApiResponse());
+
+        final result = await dataSourceWithCB.analyzeDiaryWithImages(
+          '테스트',
+          imagePaths: [tempImagePath],
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result, isNotNull);
+        expect(circuitBreaker.state, CircuitState.closed);
+      });
+
+      test('CircuitBreaker 없이도 정상 동작해야 한다', () async {
+        final dataSourceWithoutCB = GroqRemoteDataSource(
+          'test-api-key',
+          client: mockClient,
+        );
+
+        mockClient.setSuccessResponse(createValidApiResponse());
+
+        final result = await dataSourceWithoutCB.analyzeDiaryWithImages(
+          '테스트',
+          imagePaths: [tempImagePath],
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result, isNotNull);
+      });
+    });
   });
 }
 

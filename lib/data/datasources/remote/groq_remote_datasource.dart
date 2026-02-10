@@ -18,6 +18,7 @@ class GroqRemoteDataSource {
   static const int _maxRetries = 3;
   static const Duration _initialDelay = Duration(seconds: 1);
   static const double _backoffMultiplier = 2.0;
+  static const Duration _httpTimeout = Duration(seconds: 30);
 
   final String _apiKey;
   final String _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
@@ -247,7 +248,7 @@ class GroqRemoteDataSource {
           'max_tokens': 1500, // Vision 분석은 토큰을 더 많이 사용
           'response_format': {'type': 'json_object'},
         }),
-      );
+      ).timeout(_httpTimeout);
 
       if (response.statusCode != 200) {
         if (response.statusCode == 429) {
@@ -341,7 +342,7 @@ class GroqRemoteDataSource {
           'max_tokens': 1024,
           'response_format': {'type': 'json_object'},
         }),
-      );
+      ).timeout(_httpTimeout);
 
       if (response.statusCode != 200) {
         // Rate Limit(429) 처리: Retry-After 헤더 파싱

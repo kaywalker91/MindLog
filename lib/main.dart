@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/config/environment_service.dart';
+import 'core/observability/app_provider_observer.dart';
 import 'core/constants/app_constants.dart';
 import 'core/errors/error_boundary.dart';
 import 'core/services/fcm_service.dart';
@@ -26,7 +27,9 @@ import 'presentation/router/app_router.dart';
 import 'presentation/providers/app_info_provider.dart';
 import 'presentation/providers/update_state_provider.dart';
 
-final ProviderContainer appContainer = ProviderContainer();
+final ProviderContainer appContainer = ProviderContainer(
+  observers: [if (kDebugMode) AppProviderObserver()],
+);
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// 앱 시작 시 알림 재스케줄링

@@ -131,6 +131,12 @@ class _ImageTileState extends State<_ImageTile> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    // 2열 그리드 타일: 화면 너비의 ~절반, DPR 고려하여 캐시 크기 설정
+    final mediaQuery = MediaQuery.of(context);
+    final rawPixelSize =
+        (mediaQuery.size.width / 2 * mediaQuery.devicePixelRatio).toInt();
+    // cacheWidth must be > 0 (size can be 0 in test environments)
+    final tilePixelSize = rawPixelSize > 0 ? rawPixelSize : null;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -161,6 +167,8 @@ class _ImageTileState extends State<_ImageTile> {
             clipBehavior: Clip.antiAlias,
             child: Image.file(
               File(widget.imagePath),
+              cacheWidth: tilePixelSize,
+              cacheHeight: tilePixelSize,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(

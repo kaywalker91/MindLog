@@ -157,178 +157,215 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 드래그 핸들
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // 타이틀
-            Text(
-              widget.isEditing ? '메시지 수정' : '응원 메시지 작성',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // TextField
-            TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              maxLength: maxLength,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: '나에게 보내고 싶은 한마디를 작성해주세요',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                counterText: '',
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 8),
-
-            // 글자 수 카운터
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                '${_controller.text.length}/$maxLength',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: _controller.text.length > maxLength
-                      ? colorScheme.error
-                      : colorScheme.outline,
-                ),
-              ),
-            ),
-
-            // 프리셋 템플릿 (새 메시지 작성 시에만)
-            if (!widget.isEditing) ...[
-              const SizedBox(height: 12),
-
-              // 카테고리 선택 칩
-              SizedBox(
-                height: 36,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  itemCount: _PresetCategory.values.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 8),
-                  itemBuilder: (_, index) {
-                    final category = _PresetCategory.values[index];
-                    final isSelected = _selectedCategory == category;
-
-                    return GestureDetector(
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        setState(() => _selectedCategory = category);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
+            // Part 1: 스크롤 가능 영역 (키보드 올라올 때 오버플로우 방지)
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 드래그 핸들
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
                         decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.cheerMeAccent.withValues(alpha: 0.15)
-                              : colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.cheerMeAccent.withValues(alpha: 0.5)
-                                : Colors.transparent,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              category.icon,
-                              size: 14,
-                              color: isSelected
-                                  ? AppColors.cheerMeAccent
-                                  : colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              category.label,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: isSelected
-                                    ? AppColors.cheerMeAccent
-                                    : colorScheme.onSurfaceVariant,
-                                fontWeight: isSelected ? FontWeight.w600 : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // 선택된 카테고리의 프리셋 메시지
-              ...(_presetTemplates[_selectedCategory] ?? []).map(
-                (suggestion) {
-                  final isSelected = _controller.text == suggestion;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: GestureDetector(
-                      onTap: () => _selectSuggestion(suggestion),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.cheerMeAccent.withValues(alpha: 0.12)
-                              : colorScheme.surfaceContainerHighest
-                                  .withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.cheerMeAccent.withValues(alpha: 0.4)
-                                : Colors.transparent,
-                          ),
-                        ),
-                        child: Text(
-                          '"$suggestion"',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: isSelected
-                                ? AppColors.cheerMeAccent
-                                : colorScheme.onSurfaceVariant,
-                          ),
+                          color: colorScheme.onSurfaceVariant
+                              .withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
-                  );
-                },
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '최대 ${SelfEncouragementMessage.maxMessageCount}개까지 등록 가능',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: colorScheme.outline,
+                    const SizedBox(height: 16),
+
+                    // 타이틀
+                    Text(
+                      widget.isEditing ? '메시지 수정' : '응원 메시지 작성',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // TextField
+                    TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      maxLength: maxLength,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: '나에게 보내고 싶은 한마디를 작성해주세요',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        counterText: '',
+                      ),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // 글자 수 카운터
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        '${_controller.text.length}/$maxLength',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: _controller.text.length > maxLength
+                              ? colorScheme.error
+                              : colorScheme.outline,
+                        ),
+                      ),
+                    ),
+
+                    // 프리셋 템플릿 (새 메시지 작성 시에만)
+                    if (!widget.isEditing) ...[
+                      const SizedBox(height: 12),
+
+                      // 카테고리 선택 칩
+                      SizedBox(
+                        height: 36,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          physics: const BouncingScrollPhysics(),
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 4),
+                          itemCount: _PresetCategory.values.length,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(width: 8),
+                          itemBuilder: (_, index) {
+                            final category =
+                                _PresetCategory.values[index];
+                            final isSelected =
+                                _selectedCategory == category;
+
+                            return GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(
+                                  () => _selectedCategory = category,
+                                );
+                              },
+                              child: AnimatedContainer(
+                                duration:
+                                    const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.cheerMeAccent
+                                          .withValues(alpha: 0.15)
+                                      : colorScheme
+                                          .surfaceContainerHighest,
+                                  borderRadius:
+                                      BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? AppColors.cheerMeAccent
+                                            .withValues(alpha: 0.5)
+                                        : Colors.transparent,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      category.icon,
+                                      size: 14,
+                                      color: isSelected
+                                          ? AppColors.cheerMeAccent
+                                          : colorScheme
+                                              .onSurfaceVariant,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      category.label,
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                        color: isSelected
+                                            ? AppColors.cheerMeAccent
+                                            : colorScheme
+                                                .onSurfaceVariant,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // 선택된 카테고리의 프리셋 메시지
+                      ...(_presetTemplates[_selectedCategory] ?? []).map(
+                        (suggestion) {
+                          final isSelected =
+                              _controller.text == suggestion;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: GestureDetector(
+                              onTap: () =>
+                                  _selectSuggestion(suggestion),
+                              child: AnimatedContainer(
+                                duration:
+                                    const Duration(milliseconds: 150),
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.cheerMeAccent
+                                          .withValues(alpha: 0.12)
+                                      : colorScheme
+                                          .surfaceContainerHighest
+                                          .withValues(alpha: 0.5),
+                                  borderRadius:
+                                      BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? AppColors.cheerMeAccent
+                                            .withValues(alpha: 0.4)
+                                        : Colors.transparent,
+                                  ),
+                                ),
+                                child: Text(
+                                  '"$suggestion"',
+                                  style: theme.textTheme.bodySmall
+                                      ?.copyWith(
+                                    color: isSelected
+                                        ? AppColors.cheerMeAccent
+                                        : colorScheme
+                                            .onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '최대 ${SelfEncouragementMessage.maxMessageCount}개까지 등록 가능',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.outline,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-            ],
+            ),
 
+            // Part 2: 고정 버튼 (항상 하단에 표시)
             const SizedBox(height: 20),
 
-            // 버튼 Row
             Row(
               children: [
                 Expanded(

@@ -21,78 +21,57 @@ class EmotionLinkedPromptCard extends StatelessWidget {
     return InkWell(
       onTap: () => context.push('/settings/self-encouragement'),
       borderRadius: BorderRadius.circular(12),
-      child: IntrinsicHeight(
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.cheerMeAccent.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: const Border(
+            left: BorderSide(color: AppColors.cheerMeAccent, width: 4),
+          ),
+        ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Left accent stripe
-            Container(
-              width: 4,
-              decoration: const BoxDecoration(
-                color: AppColors.cheerMeAccent,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                ),
+            const Icon(
+              Icons.lightbulb_outline,
+              color: AppColors.cheerMeAccent,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    prompt.title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    prompt.subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
               ),
             ),
-            // Main content
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.cheerMeAccent.withValues(alpha: 0.05),
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.lightbulb_outline,
-                      color: AppColors.cheerMeAccent,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            prompt.title,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            prompt.subtitle,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                              height: 1.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.chevron_right,
-                      color: AppColors.textSecondary,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.textSecondary,
+              size: 20,
             ),
           ],
         ),

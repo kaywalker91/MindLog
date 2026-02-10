@@ -5,9 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
+import 'package:mindlog/domain/entities/statistics.dart';
 import 'package:mindlog/presentation/providers/app_info_provider.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
+import 'package:mindlog/presentation/providers/ui_state_providers.dart';
+import 'package:mindlog/presentation/widgets/weekly_insight_guide_dialog.dart';
 import 'package:mindlog/presentation/widgets/settings/settings_sections.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../mocks/mock_repositories.dart';
 
@@ -243,6 +247,7 @@ void main() {
     late MockSettingsRepository mockSettingsRepo;
 
     setUp(() {
+      SharedPreferences.setMockInitialValues({});
       mockSettingsRepo = MockSettingsRepository();
       container = ProviderContainer(
         overrides: [
@@ -315,7 +320,9 @@ void main() {
       expect(switchWidget.value, false);
     });
 
-    testWidgets('알림 섹션이 2개의 AccentSettingsCard로 분리되어 렌더링되어야 한다', (tester) async {
+    testWidgets('알림 섹션이 2개의 AccentSettingsCard로 분리되어 렌더링되어야 한다', (
+      tester,
+    ) async {
       // Arrange
       mockSettingsRepo.setMockNotificationSettings(
         NotificationSettings.defaults(),
@@ -335,8 +342,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert - 2개의 AccentSettingsCard가 존재 (Cheer Me + 마음케어)
-      // _AccentSettingsCard는 IntrinsicHeight를 사용하므로 이를 통해 확인
-      expect(find.byType(IntrinsicHeight), findsNWidgets(2));
+      // _AccentSettingsCard는 ClipRRect를 사용하므로 이를 통해 확인
+      expect(find.byType(ClipRRect), findsAtLeast(2));
 
       // 두 섹션의 타이틀이 모두 존재하는지 확인
       expect(find.text('Cheer Me — 자기 응원'), findsOneWidget);
@@ -403,6 +410,118 @@ void main() {
 
       // Assert - 테스트 알림 항목이 존재
       expect(find.text('테스트 알림 보내기'), findsOneWidget);
+    });
+
+    testWidgets('주간 인사이트 첫 활성화 시 가이드 다이얼로그가 표시되어야 한다', (tester) async {
+      // Arrange
+      mockSettingsRepo.setMockNotificationSettings(
+        const NotificationSettings(
+          isReminderEnabled: false,
+          reminderHour: 21,
+          reminderMinute: 0,
+          isMindcareTopicEnabled: true,
+          isWeeklyInsightEnabled: false,
+        ),
+      );
+
+      // Act
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(child: NotificationSection()),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('주간 감정 인사이트'));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.byType(WeeklyInsightGuideDialog), findsOneWidget);
+    });
+
+    testWidgets('주간 인사이트 가이드를 이미 본 경우 다이얼로그가 표시되지 않아야 한다', (tester) async {
+      // Arrange
+      SharedPreferences.setMockInitialValues({
+        'weekly_insight_first_activation_shown': true,
+      });
+      mockSettingsRepo.setMockNotificationSettings(
+        const NotificationSettings(
+          isReminderEnabled: false,
+          reminderHour: 21,
+          reminderMinute: 0,
+          isMindcareTopicEnabled: true,
+          isWeeklyInsightEnabled: false,
+        ),
+      );
+
+      // Act
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(child: NotificationSection()),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('주간 감정 인사이트'));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.byType(WeeklyInsightGuideDialog), findsNothing);
+    });
+
+    testWidgets('주간 인사이트 가이드에서 통계 보기를 누르면 통계 탭/주간 기간으로 전환되어야 한다', (
+      tester,
+    ) async {
+      // Arrange
+      mockSettingsRepo.setMockNotificationSettings(
+        const NotificationSettings(
+          isReminderEnabled: false,
+          reminderHour: 21,
+          reminderMinute: 0,
+          isMindcareTopicEnabled: true,
+          isWeeklyInsightEnabled: false,
+        ),
+      );
+      container.read(selectedTabIndexProvider.notifier).state = 2;
+      container.read(selectedStatisticsPeriodProvider.notifier).state =
+          StatisticsPeriod.month;
+
+      // Act
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(child: NotificationSection()),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('주간 감정 인사이트'));
+      await tester.pumpAndSettle();
+      expect(find.byType(WeeklyInsightGuideDialog), findsOneWidget);
+
+      await tester.tap(find.text('통계 보기'));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(container.read(selectedTabIndexProvider), 1);
+      expect(
+        container.read(selectedStatisticsPeriodProvider),
+        StatisticsPeriod.week,
+      );
     });
   });
 

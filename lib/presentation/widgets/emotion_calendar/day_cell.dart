@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 
 /// 개별 날짜 셀 위젯 (마이크로 인터랙션 지원)
+/// 성능 최적화를 위해 const 생성자와 == 연산자 오버라이드 구현
 class DayCell extends StatefulWidget {
   final DateTime date;
   final double? score;
@@ -31,28 +32,26 @@ class DayCell extends StatefulWidget {
   State<DayCell> createState() => _DayCellState();
 }
 
-class _DayCellState extends State<DayCell> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
+class _DayCellState extends State<DayCell> {
+  bool _isPressed = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 100),
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  void _handleTapDown(TapDownDetails details) {
+    if (!_shouldAnimate) return;
+    setState(() => _isPressed = true);
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  void _handleTapUp(TapUpDetails details) {
+    if (!_shouldAnimate) return;
+    setState(() => _isPressed = false);
+    widget.onTap?.call(widget.date);
   }
+
+  void _handleTapCancel() {
+    if (!_shouldAnimate) return;
+    setState(() => _isPressed = false);
+  }
+
+  bool get _shouldAnimate => widget.isCurrentMonth && !widget.isFuture;
 
   @override
   Widget build(BuildContext context) {
@@ -71,43 +70,45 @@ class _DayCellState extends State<DayCell> with SingleTickerProviderStateMixin {
     final isTodayNoRecord =
         widget.isToday && !hasRecord && widget.isCurrentMonth;
 
-    final Widget cell = Container(
-      margin: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        color: isTodayNoRecord
-            ? AppColors.todayGlow.withValues(alpha: 0.3)
-            : bgColor.withValues(alpha: opacity),
-        borderRadius: BorderRadius.circular(8),
-        border: widget.isToday
-            ? Border.all(color: AppColors.statsPrimary, width: 2)
-            : hasRecord && widget.isCurrentMonth && !widget.isFuture
-            ? Border.all(
-                color: AppColors.statsAccentMint.withValues(alpha: 0.4),
-                width: 0.8,
-              )
-            : Border.all(
-                color: AppColors.gardenSoilBorder.withValues(alpha: opacity),
-                width: 0.6,
+    final decoration = BoxDecoration(
+      color: isTodayNoRecord
+          ? AppColors.todayGlow.withValues(alpha: 0.3)
+          : bgColor.withValues(alpha: opacity),
+      borderRadius: BorderRadius.circular(8),
+      border: widget.isToday
+          ? Border.all(color: AppColors.statsPrimary, width: 2)
+          : hasRecord && widget.isCurrentMonth && !widget.isFuture
+              ? Border.all(
+                  color: AppColors.statsAccentMint.withValues(alpha: 0.4),
+                  width: 0.8,
+                )
+              : Border.all(
+                  color: AppColors.gardenSoilBorder.withValues(alpha: opacity),
+                  width: 0.6,
+                ),
+      // 기록 있는 셀에 Glow 효과
+      boxShadow: hasRecord && widget.isCurrentMonth && !widget.isFuture
+          ? [
+              BoxShadow(
+                color: AppColors.gardenGlow.withValues(alpha: 0.3),
+                blurRadius: 8,
+                spreadRadius: 1,
               ),
-        // 기록 있는 셀에 Glow 효과
-        boxShadow: hasRecord && widget.isCurrentMonth && !widget.isFuture
-            ? [
-                BoxShadow(
-                  color: AppColors.gardenGlow.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  spreadRadius: 1,
-                ),
-              ]
-            : isTodayNoRecord
-            ? [
-                BoxShadow(
-                  color: AppColors.todayGlow.withValues(alpha: 0.4),
-                  blurRadius: 6,
-                  spreadRadius: 0,
-                ),
-              ]
-            : null,
-      ),
+            ]
+          : isTodayNoRecord
+              ? [
+                  BoxShadow(
+                    color: AppColors.todayGlow.withValues(alpha: 0.4),
+                    blurRadius: 6,
+                    spreadRadius: 0,
+                  ),
+                ]
+              : null,
+    );
+
+    final Widget content = Container(
+      margin: const EdgeInsets.all(2),
+      decoration: decoration,
       child: FittedBox(
         fit: BoxFit.scaleDown,
         child: Padding(
@@ -121,9 +122,8 @@ class _DayCellState extends State<DayCell> with SingleTickerProviderStateMixin {
                 style: TextStyle(
                   color: _getDateTextColor().withValues(alpha: textOpacity),
                   fontSize: widget.dateFontSize,
-                  fontWeight: widget.isToday
-                      ? FontWeight.bold
-                      : FontWeight.normal,
+                  fontWeight:
+                      widget.isToday ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
               if (hasRecord && widget.isCurrentMonth && !widget.isFuture) ...[
@@ -138,22 +138,18 @@ class _DayCellState extends State<DayCell> with SingleTickerProviderStateMixin {
     );
 
     // 현재 월이고 미래가 아닌 경우만 툴팁과 탭 이벤트 추가
-    if (widget.isCurrentMonth && !widget.isFuture) {
-      // 애니메이션 적용 (접근성 설정 존중)
-      Widget animatedCell = reduceMotion
-          ? cell
-          : AnimatedBuilder(
-              animation: _scaleAnimation,
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _scaleAnimation.value,
-                  child: child,
-                );
-              },
-              child: cell,
+    if (_shouldAnimate) {
+      // 애니메이션 적용 (ImplicitlyAnimatedWidget 사용)
+      final Widget animatedCell = reduceMotion
+          ? content
+          : AnimatedScale(
+              scale: _isPressed ? 0.95 : 1.0,
+              duration: const Duration(milliseconds: 100),
+              curve: Curves.easeInOut,
+              child: content,
             );
 
-      animatedCell = Tooltip(
+      return Tooltip(
         message: _getTooltipMessage(),
         decoration: BoxDecoration(
           color: AppColors.statsTextPrimary,
@@ -161,25 +157,21 @@ class _DayCellState extends State<DayCell> with SingleTickerProviderStateMixin {
         ),
         textStyle: const TextStyle(color: Colors.white, fontSize: 12),
         child: GestureDetector(
-          onTapDown: reduceMotion ? null : (_) => _controller.forward(),
+          onTapDown: reduceMotion ? null : _handleTapDown,
           onTapUp: reduceMotion
               ? null
-              : (_) {
-                  _controller.reverse();
-                  widget.onTap?.call(widget.date);
-                },
-          onTapCancel: reduceMotion ? null : () => _controller.reverse(),
-          onTap: reduceMotion && widget.onTap != null
-              ? () => widget.onTap!(widget.date)
-              : null,
+              : _handleTapUp, // scale 복귀 후 onTap 호출은 _handleTapUp 내부에서 처리하거나, 별도로 Future.delayed 사용 가능하나 여기서는 단순화
+          onTapCancel: reduceMotion ? null : _handleTapCancel,
+          onTap:
+              reduceMotion && widget.onTap != null
+                  ? () => widget.onTap!(widget.date)
+                  : null, // reduceMotion일 때만 여기서 호출, 애니메이션시는 onTapUp에서 처리
           child: animatedCell,
         ),
       );
-
-      return animatedCell;
     }
 
-    return cell;
+    return content;
   }
 
   Color _getDateTextColor() {
