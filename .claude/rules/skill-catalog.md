@@ -46,6 +46,7 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 | Command | Skill File | Purpose |
 |---------|-----------|---------|
 | `/flutter-advanced [action]` | `flutter-advanced.md` | Riverpod 심화 패턴 및 성능 최적화 |
+| `/perf [action]` | `performance-expert.md` | 성능 분석/최적화 + 자동 감사 (http-timeout, image-cache) |
 | `/ui-dark-mode [action]` | `ui-dark-mode.md` | Dark Theme 최적화 및 디자인 시스템 |
 | `/c7-flutter [topic]` | `c7-flutter.md` | Context7 Flutter/Riverpod 공식 문서 조회 |
 
@@ -109,41 +110,5 @@ Skills are in `docs/skills/`. Read the relevant file on-demand when a command is
 | `/explore-creative [goal]` | `explore-creative.md` | 모호한 목표로 창의적 해결책 탐색 |
 
 ## Workflows
-- **New feature**: `/scaffold` -> `/usecase` -> `/test-unit-gen` -> `/coverage`
-- **New feature (auto)**: `/feature-pipeline [name]` (위 워크플로우 자동화)
-- **New feature (SSOT)**: `/feature-pipeline-v2 [name]` (9단계 OpenSpec 기반 파이프라인)
-- **Spec design**: `/openspec-design [feature]` -> `/openspec-review` -> `/feature-pipeline-v2`
-- **Release**: `/lint-fix` -> `/review` -> `/version-bump` -> `/changelog`
-- **AI improvement**: `/groq analyze-prompt` -> `/groq optimize-tokens`
-- **AI prompt optimization (NEW)**: `/prompt-opt analyze` -> `/prompt-opt compress` -> `/prompt-opt validate`
-- **DB change**: `/db add-column` -> `/db schema-report` -> `/test-unit-gen`
-- **DB migration (NEW)**: `/db-migrate-validate validate` -> `/db-migrate-validate dry-run` -> `flutter test`
-- **Refactoring**: `/arch-check` -> `/provider-centralize` -> `/refactor-plan` -> `/widget-decompose`
-- **Refactoring (swarm)**: `/refactor-plan` -> `/swarm-refactor [scope] [strategy]`
-- **Widget decompose**: `/widget-decompose [file]` -> `/barrel-export-gen [dir]` -> `/riverpod-widget-test-gen [file]`
-- **Overflow fix**: `/responsive-overflow-fix [file]` -> `flutter analyze` -> 디바이스 테스트
-- **Color migration**: `/color-migrate [file]` -> `/lint-fix` -> `flutter test`
-- **Notification categorization**: `/notification-enum-gen [feature]` -> `/settings-card-gen [type]` -> `/test-unit-gen`
-- **Dark mode audit (NEW)**: `/ui-dark-mode audit-theme` -> `/ui-dark-mode migrate-colors` -> `flutter test`
-- **Provider audit**: `/provider-invalidation-audit` -> `/provider-invalidate-chain [trigger]` -> 코드 적용
-- **Provider optimization (NEW)**: `/flutter-advanced audit-providers` -> `/flutter-advanced optimize-rebuilds`
-- **Provider ref fix**: `/provider-ref-fix --dry-run` -> `/provider-ref-fix [path]` -> `flutter test`
-- **DB recovery defense**: `/defensive-recovery-gen [trigger]` -> 코드 적용 -> 디바이스 테스트
-- **DB recovery test**: `/db-state-recovery verify` -> `/db-state-recovery test-gen` -> `/db-state-recovery checklist`
-- **Deep review**: `/swarm-review [path]` (보안+성능+아키텍처 병렬)
-- **Safety audit (NEW)**: `/crisis-check audit` -> `/crisis-check validate-prompt` -> `/crisis-check test-scenarios`
-- **Emotion analysis (NEW)**: `/emotion-analyze audit-accuracy` -> `/emotion-analyze enhance-categories` -> `/emotion-analyze test-sentiment`
-- **CD troubleshoot**: `/fastlane-audit` -> `/cd-diagnose [run_id]` -> 수정 -> 재배포
-- **Session end**: `/session-wrap` -> `/til-save [topic]` + `/troubleshoot-save [id]` (TIL + 트러블슈팅 메모리화)
-- **Parallel development**: `/parallel-dev [task]` (탐색+구현+검증 병렬)
-- **Creative exploration**: `/explore-creative [goal]` -> 선택 -> `/parallel-dev` 또는 `/feature-pipeline`
-- **Test Quality Audit**: `/test-quality-review [path]` -> 수정 -> 재검증
-- **PR Pre-check**: `/swarm-review [lib/]` + `/test-quality-review [test/]`
-- **Feature Complete**: `/test-unit-gen` -> `/test-quality-review` -> `/coverage`
-- **Systematic debugging**: `/debug analyze` -> 4단계 프로세스 -> 실패 테스트 작성 -> 수정
-- **Parallel debugging**: `/debug [issue]` (3-agent 병렬 탐색 -> 통합 분석 -> 수정)
-- **Bug→Memory pipeline**: `/debug` -> 해결 -> `/troubleshoot-save [id]` (트러블슈팅 메모리화)
-- **Troubleshoot search**: `/debug` Stage 1 시작 → `troubleshooting.json` 자동 검색 → 유사 이슈 참조
-- **TDD workflow**: 테스트 작성 (RED) -> `/test-unit-gen` -> 구현 (GREEN) -> 리팩토링
-- **Official docs lookup**: `/c7-flutter [topic]` -> 공식 패턴 확인 -> memories 참조
-- **New pattern learning**: `/c7-flutter [topic]` -> 코드 적용 -> `/til-save [topic]`
+
+스킬 조합 워크플로우는 `skill-workflows.md` 참조.
