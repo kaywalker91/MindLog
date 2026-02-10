@@ -1,0 +1,6 @@
+{
+  "disabledMcpServers": [
+    "playwright"
+  ],
+  "description": "MindLog 프로젝트 전용 설정 - E2E 테스트 MCP 서버 비활성화"
+}
