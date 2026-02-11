@@ -90,6 +90,8 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
           diary.status == DiaryStatus.safetyBlocked) {
         // topKeywordsProvider는 statisticsProvider의 파생이므로 자동 갱신
         _ref.invalidate(statisticsProvider);
+        // 일기 목록 Provider도 갱신하여 새 일기가 즉시 목록에 반영되도록 함
+        _ref.invalidate(diaryListControllerProvider);
       }
       // Phase 2: 분석 후 알림 트리거 (비동기, 실패해도 분석 결과에 영향 없음)
       if (diary.status == DiaryStatus.analyzed && analysisResult != null) {
