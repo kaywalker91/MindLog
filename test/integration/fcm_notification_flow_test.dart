@@ -34,7 +34,7 @@ void main() {
   group('Data-only Payload 플로우 (v1.4.40 중복 방지)', () {
     test('data-only payload는 title/body를 data 필드에서 읽어야 한다', () async {
       // Arrange - 서버에서 보낸 data-only payload
-      final message = RemoteMessage(
+      const message = RemoteMessage(
         data: {
           'title': '마음케어 알림',
           'body': '오늘 하루는 어떠셨나요? 잠시 마음을 돌아보는 시간을 가져보세요.',
@@ -59,12 +59,12 @@ void main() {
 
     test('backward-compatible: notification 필드 fallback이 동작해야 한다', () async {
       // Arrange - 구 서버에서 보낸 notification 필드 포함 메시지
-      final message = RemoteMessage(
-        notification: const RemoteNotification(
+      const message = RemoteMessage(
+        notification: RemoteNotification(
           title: 'Legacy Title',
           body: 'Legacy Body',
         ),
-        data: const {},
+        data: {},
       );
 
       // Act
@@ -81,8 +81,8 @@ void main() {
 
     test('data와 notification 모두 있으면 data를 우선해야 한다', () async {
       // Arrange
-      final message = RemoteMessage(
-        notification: const RemoteNotification(
+      const message = RemoteMessage(
+        notification: RemoteNotification(
           title: 'Old Title',
           body: 'Old Body',
         ),
@@ -285,7 +285,7 @@ void main() {
       FCMService.emotionScoreProvider = () async => 6.0;
 
       // FCM 메시지 수신 시뮬레이션
-      final message = RemoteMessage(
+      const message = RemoteMessage(
         data: {
           'title': '마음케어',
           'body': '오늘 하루는 어떠셨나요?',
@@ -315,7 +315,7 @@ void main() {
       FCMService.emotionScoreProvider = () async => null;
 
       // FCM 메시지 수신 시뮬레이션
-      final message = RemoteMessage(
+      const message = RemoteMessage(
         data: {
           'title': '마음케어',
           'body': '오늘 하루는 어떠셨나요?',
@@ -378,7 +378,7 @@ void main() {
       FCMService.emotionScoreProvider = () async => null;
 
       // Act - 완전히 빈 메시지
-      final message = RemoteMessage(data: const {});
+      const message = RemoteMessage(data: {});
 
       final personalized = await FCMService.buildPersonalizedMessage(
         serverTitle: message.data['title'] as String?,
@@ -460,11 +460,11 @@ void main() {
       // 감정 점수가 없을 때만 서버 메시지 사용
       FCMService.emotionScoreProvider = () async => null;
 
-      final newServerMessage = RemoteMessage(
+      const newServerMessage = RemoteMessage(
         data: {'title': 'New', 'body': 'New'},
       );
-      final oldServerMessage = RemoteMessage(
-        notification: const RemoteNotification(title: 'Old', body: 'Old'),
+      const oldServerMessage = RemoteMessage(
+        notification: RemoteNotification(title: 'Old', body: 'Old'),
       );
 
       // Act

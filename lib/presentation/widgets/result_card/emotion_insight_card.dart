@@ -8,7 +8,6 @@ import '../../extensions/emotion_emoji_extension.dart';
 /// 감정 인사이트 카드 (감정 범주 + 유발 요인)
 ///
 /// 감정 분류와 유발 요인을 표시하는 정보 카드입니다.
-/// 탭 인터랙션 없이 정보만 표시합니다.
 class EmotionInsightCard extends StatelessWidget {
   final AnalysisResult result;
 
@@ -102,9 +101,6 @@ class EmotionInsightCard extends StatelessWidget {
           ],
         ],
       ),
-    )
-        .animate()
-        .fadeIn(delay: 100.ms, duration: 500.ms)
-        .slideY(begin: 0.05);
+    ).animate().fadeIn(delay: 100.ms, duration: 500.ms).slideY(begin: 0.05);
   }
 }

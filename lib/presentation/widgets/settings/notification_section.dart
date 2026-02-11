@@ -323,7 +323,9 @@ class NotificationSection extends ConsumerWidget {
         prefs.getBool(_weeklyInsightFirstActivationShownKey) ?? false;
 
     if (hasShownGuide) {
-      showSnackBar(context, '주간 감정 인사이트 알림이 켜졌어요');
+      if (context.mounted) {
+        showSnackBar(context, '주간 감정 인사이트 알림이 켜졌어요');
+      }
       return;
     }
 
@@ -352,7 +354,7 @@ class NotificationSection extends ConsumerWidget {
     unawaited(
       AnalyticsService.logEvent(eventName).catchError((
         Object _,
-        StackTrace __,
+        StackTrace stackTrace,
       ) {
         // 위젯 테스트/초기화 레이스에서 분석 SDK 예외를 무시한다.
       }),

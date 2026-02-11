@@ -40,12 +40,13 @@
 
 ---
 
-## Recent Updates (v1.4.39)
+## Recent Updates (v1.4.42)
 
-- ✅ **1,384 tests** all passing — comprehensive test coverage ensuring stability
-- 🔧 **Enhanced CI/CD** — automated test health monitoring and quality gates
-- 📊 **Pre-deployment audit system** — 7-gate validation before every release
-- 🛠️ **Improved build scripts** — streamlined environment-specific builds
+- ✅ **1,505 tests** all passing — expanded test coverage with UI & integration tests
+- 🎯 **Provider invalidation chain** — fixed diary list refresh bug with proper state management
+- 🧪 **FCM integration tests** — comprehensive notification flow testing (foreground/background/killed states)
+- ♻️ **UX pattern restoration** — simplified "view more" interaction with toggle buttons
+- 🗑️ **Code cleanup** — removed 370 lines of unused bottom sheet code for better maintainability
 
 <details>
 <summary>Previous Updates (v1.4.38)</summary>

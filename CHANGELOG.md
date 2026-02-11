@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.42] - 2026-02-11
+
+### Fixed
+- **Provider 무효화 버그 수정**:
+  - 일기 생성/분석 후 `diaryListControllerProvider` 무효화 누락 수정
+  - 두 번째 일기 작성 시 목록에 즉시 표시되지 않던 버그 해결
+  - `DiaryAnalysisController.analyzeDiary()` 완료 후 `statisticsProvider` + `diaryListController` 함께 invalidate
+  - Provider 무효화 체인 패턴 확립: 생성은 invalidate, 삭제는 낙관적 업데이트
+- **Lint 수정**:
+  - `prefer_const_constructors` 8개 수정 (테스트 파일)
+  - `unnecessary_const` 5개 수정 (lint fix 부작용)
+
+### Changed
+- **UI/UX 더보기 패턴 복원** (MEMORY.md 2026-02-05 패턴 적용):
+  - 복잡한 인라인 펼치기/바텀시트 분리 방식 제거 → 단일 더보기 방식으로 UX 일관성 확보
+  - `EmpathyMessage`: 3줄 축약 → 4줄 기본 표시 + 하단 "전체보기/접기" 토글 버튼 추가
+  - `EmotionInsightCard`: 주석 정리 및 포맷팅 개선
+  - InkWell ripple + "자세히 보기" 힌트 + chevron 아이콘 패턴 권장
+
+### Removed
+- **불필요한 파일 제거**:
+  - `lib/presentation/widgets/result_card/analysis_detail_sheet.dart` 삭제 (370줄)
+    - 바텀시트 분리 방식 제거로 더 이상 사용하지 않음
+
+### Added
+- **FCM 통합 테스트**:
+  - `test/integration/fcm_notification_flow_test.dart` 추가 (포그라운드/백그라운드/killed 상태 시나리오)
+  - Data-only payload 및 notification payload 처리 검증
+  - 개인화 메시지 빌드 로직 테스트
+- **위젯 테스트**:
+  - `test/presentation/widgets/result_card/emotion_insight_card_test.dart` 추가
+  - `test/presentation/widgets/result_card/empathy_message_test.dart` 추가 (펼치기/접기 토글 검증)
+- **배포 검증 가이드**:
+  - `.claude/deployment-validation-guide.md` 추가 (4-level 검증 프레임워크)
+  - MindLog 특수 검증 항목 포함 (SafetyBlockedFailure 무결성, FCM 알림 ID 충돌 체크)
+- **구현 로그**:
+  - `.claude/implementation-log-view-all-restoration.md` 추가 (더보기 패턴 복원 과정 기록)
+
+### Technical Details
+- **Architecture**:
+  - Provider Invalidation Chain 패턴 문서화 (MEMORY.md)
+  - DiaryListController는 AsyncNotifier → invalidate 없으면 캐시된 오래된 리스트 유지
+  - 테스트 전략: `identical()` 사용한 Provider rebuild 검증
+- **Test Coverage**:
+  - 총 1,505개 테스트 (전체 통과)
+  - 커버리지 50.2% (domain/data 레이어 별도 검증 필요)
+
+---
+
 ## [1.4.41] - 2026-02-10
 
 ### Added

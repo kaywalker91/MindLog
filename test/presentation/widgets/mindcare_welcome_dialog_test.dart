@@ -231,10 +231,10 @@ void main() {
       });
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
-            child: const Scaffold(body: MindcareWelcomeDialog()),
+            data: MediaQueryData(textScaler: TextScaler.linear(1.3)),
+            child: Scaffold(body: MindcareWelcomeDialog()),
           ),
         ),
       );

@@ -1,29 +1,35 @@
 {
-  "latestVersion": "1.4.40",
+  "latestVersion": "1.4.42",
   "minimumVersion": "1.4.0",
   "releaseNotes": {
     "ko": {
-      "title": "v1.4.40 업데이트 안내",
+      "title": "v1.4.42 업데이트 안내",
       "features": [
-        "설정 화면에 '알림 상태' 진단 기능이 추가되었어요! 알림 예약 상태, 배터리 최적화, 시간대 정보를 한눈에 확인할 수 있어요."
+        "분석 결과 보기 방식이 더 간편해졌어요! 공감 메시지를 '전체보기/접기' 버튼으로 쉽게 펼칠 수 있어요."
       ],
       "improvements": [
-        "마음케어 알림이 한 번만 울려요! 같은 알림이 두 번 뜨던 문제를 완전히 해결했어요.",
-        "알림이 빈 내용으로 뜨던 문제를 수정했어요. 이제 항상 따뜻한 메시지가 함께 도착해요.",
-        "앱을 열 때 알림 시간이 설정과 다르게 되는 문제를 수정했어요. 이제 항상 설정한 시간에 맞춰 알림이 도착해요.",
-        "7개의 자동화 테스트가 추가되어 알림 시스템의 안정성이 더욱 향상되었어요."
+        "일기를 연속으로 작성할 때 목록이 바로바로 업데이트돼요! 두 번째 일기가 목록에 안 보이던 문제를 해결했어요.",
+        "앱의 안정성이 더욱 향상되었어요. 1,505개의 자동화 테스트가 모두 통과했어요.",
+        "알림 시스템의 품질을 검증하는 테스트가 추가되어 더 안정적으로 작동해요."
+      ],
+      "bugFixes": [
+        "일기 목록 갱신 로직 개선으로 작성 직후 즉시 확인 가능해요",
+        "불필요한 UI 파일 정리로 앱 용량과 성능이 개선되었어요"
       ]
     },
     "en": {
-      "title": "v1.4.40 Update",
+      "title": "v1.4.42 Update",
       "features": [
-        "New 'Notification Status' diagnostic in settings! Check scheduled notifications, battery optimization, and timezone info at a glance."
+        "Easier analysis result viewing! Expand empathy messages with a simple 'Show All/Collapse' button."
       ],
       "improvements": [
-        "Fixed duplicate MindCare notifications — now each notification appears only once.",
-        "Fixed empty notification content — warm messages are always included now.",
-        "Fixed notification timing mismatch on app restart — notifications now always match your settings.",
-        "7 automated tests added for improved notification system stability."
+        "Diary list updates instantly when writing multiple entries! Fixed the issue where the second diary wouldn't appear in the list.",
+        "Enhanced app stability with all 1,505 automated tests passing.",
+        "Added notification system quality tests for more reliable operation."
+      ],
+      "bugFixes": [
+        "Improved diary list refresh logic for immediate visibility after writing",
+        "Cleaned up unnecessary UI files for better app size and performance"
       ]
     }
   },
