@@ -19,10 +19,7 @@ enum EmotionTrend {
 
 /// 감정 추이 분석 결과
 class EmotionTrendResult {
-  const EmotionTrendResult({
-    required this.trend,
-    this.metadata = const {},
-  });
+  const EmotionTrendResult({required this.trend, this.metadata = const {}});
 
   /// 감지된 트렌드 유형
   final EmotionTrend trend;
@@ -46,8 +43,7 @@ class EmotionTrendResult {
   int get hashCode => Object.hash(trend, metadata.length);
 
   @override
-  String toString() =>
-      'EmotionTrendResult(trend: $trend, metadata: $metadata)';
+  String toString() => 'EmotionTrendResult(trend: $trend, metadata: $metadata)';
 }
 
 /// 감정 추이 분석 서비스
@@ -131,10 +127,8 @@ class EmotionTrendService {
 
     if (recentEntries.length < 3) return null;
 
-    final average = recentEntries.fold<double>(
-          0,
-          (sum, e) => sum + e.averageScore,
-        ) /
+    final average =
+        recentEntries.fold<double>(0, (sum, e) => sum + e.averageScore) /
         recentEntries.length;
 
     if (average >= 7.0) {
@@ -202,7 +196,7 @@ class EmotionTrendService {
       final lastThree = sorted.sublist(sorted.length - 3);
       final consecutiveDecline =
           lastThree[0].averageScore > lastThree[1].averageScore &&
-              lastThree[1].averageScore > lastThree[2].averageScore;
+          lastThree[1].averageScore > lastThree[2].averageScore;
 
       if (consecutiveDecline) {
         return EmotionTrendResult(
@@ -228,21 +222,18 @@ class EmotionTrendService {
           .toList();
       final previousWeek = sorted
           .where(
-            (e) => !e.date.isBefore(fourteenDaysAgo) &&
+            (e) =>
+                !e.date.isBefore(fourteenDaysAgo) &&
                 e.date.isBefore(sevenDaysAgo),
           )
           .toList();
 
       if (recentWeek.isNotEmpty && previousWeek.isNotEmpty) {
-        final recentAvg = recentWeek.fold<double>(
-              0,
-              (sum, e) => sum + e.averageScore,
-            ) /
+        final recentAvg =
+            recentWeek.fold<double>(0, (sum, e) => sum + e.averageScore) /
             recentWeek.length;
-        final previousAvg = previousWeek.fold<double>(
-              0,
-              (sum, e) => sum + e.averageScore,
-            ) /
+        final previousAvg =
+            previousWeek.fold<double>(0, (sum, e) => sum + e.averageScore) /
             previousWeek.length;
 
         if (previousAvg - recentAvg >= 2.0) {

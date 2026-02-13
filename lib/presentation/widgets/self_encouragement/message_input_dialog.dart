@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/cheer_me_section_palette.dart';
 import '../../../domain/entities/self_encouragement_message.dart';
 
 /// 응원 메시지 입력 바텀시트
@@ -27,32 +28,40 @@ class MessageInputDialog extends StatefulWidget {
     bool isEditing = false,
   }) {
     HapticFeedback.lightImpact();
-    final theme = Theme.of(context);
+    final baseTheme = Theme.of(context);
+    final sheetTheme = baseTheme.brightness == Brightness.dark
+        ? baseTheme
+        : baseTheme.copyWith(colorScheme: AppTheme.healingColorScheme());
 
     return showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       enableDrag: true,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 20,
-                offset: const Offset(0, -4),
-              ),
-            ],
+      builder: (context) => Theme(
+        data: sheetTheme,
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: MessageInputDialog(
-            initialValue: initialValue,
-            isEditing: isEditing,
+          child: Container(
+            decoration: BoxDecoration(
+              color: sheetTheme.colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+            ),
+            child: MessageInputDialog(
+              initialValue: initialValue,
+              isEditing: isEditing,
+            ),
           ),
         ),
       ),
@@ -148,6 +157,9 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final palette = theme.brightness == Brightness.dark
+        ? CheerMeSectionPalette.darkFallback(colorScheme)
+        : CheerMeSectionPalette.light();
     const maxLength = SelfEncouragementMessage.maxContentLength;
 
     return SafeArea(
@@ -170,8 +182,9 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: colorScheme.onSurfaceVariant
-                              .withValues(alpha: 0.4),
+                          color: colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.4,
+                          ),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -227,45 +240,44 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           physics: const BouncingScrollPhysics(),
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
                           itemCount: _PresetCategory.values.length,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(width: 8),
+                          separatorBuilder: (_, _) => const SizedBox(width: 8),
                           itemBuilder: (_, index) {
-                            final category =
-                                _PresetCategory.values[index];
-                            final isSelected =
-                                _selectedCategory == category;
+                            final category = _PresetCategory.values[index];
+                            final isSelected = _selectedCategory == category;
 
                             return GestureDetector(
                               onTap: () {
                                 HapticFeedback.selectionClick();
-                                setState(
-                                  () => _selectedCategory = category,
-                                );
+                                setState(() => _selectedCategory = category);
                               },
                               child: AnimatedContainer(
-                                duration:
-                                    const Duration(milliseconds: 150),
+                                duration: const Duration(milliseconds: 150),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? AppColors.cheerMeAccent
-                                          .withValues(alpha: 0.15)
-                                      : colorScheme
-                                          .surfaceContainerHighest,
-                                  borderRadius:
-                                      BorderRadius.circular(18),
+                                      ? palette.selectedChipBackground
+                                      : palette.unselectedChipBackground,
+                                  borderRadius: BorderRadius.circular(18),
                                   border: Border.all(
                                     color: isSelected
-                                        ? AppColors.cheerMeAccent
-                                            .withValues(alpha: 0.5)
+                                        ? palette.selectedChipBorder
                                         : Colors.transparent,
+                                    width: 1,
                                   ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: palette.signatureSky
+                                                .withValues(alpha: 0.10),
+                                            blurRadius: 6,
+                                          ),
+                                        ]
+                                      : null,
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -274,23 +286,21 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
                                       category.icon,
                                       size: 14,
                                       color: isSelected
-                                          ? AppColors.cheerMeAccent
-                                          : colorScheme
-                                              .onSurfaceVariant,
+                                          ? palette.selectedChipText
+                                          : palette.unselectedChipText,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
                                       category.label,
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
-                                        color: isSelected
-                                            ? AppColors.cheerMeAccent
-                                            : colorScheme
-                                                .onSurfaceVariant,
-                                        fontWeight: isSelected
-                                            ? FontWeight.w600
-                                            : null,
-                                      ),
+                                            color: isSelected
+                                                ? palette.selectedChipText
+                                                : palette.unselectedChipText,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : null,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -302,59 +312,59 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
                       const SizedBox(height: 8),
 
                       // 선택된 카테고리의 프리셋 메시지
-                      ...(_presetTemplates[_selectedCategory] ?? []).map(
-                        (suggestion) {
-                          final isSelected =
-                              _controller.text == suggestion;
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 6),
-                            child: GestureDetector(
-                              onTap: () =>
-                                  _selectSuggestion(suggestion),
-                              child: AnimatedContainer(
-                                duration:
-                                    const Duration(milliseconds: 150),
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
+                      ...(_presetTemplates[_selectedCategory] ?? []).map((
+                        suggestion,
+                      ) {
+                        final isSelected = _controller.text == suggestion;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: GestureDetector(
+                            onTap: () => _selectSuggestion(suggestion),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? palette.selectedSuggestionBackground
+                                    : palette.unselectedSuggestionBackground,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
                                   color: isSelected
-                                      ? AppColors.cheerMeAccent
-                                          .withValues(alpha: 0.12)
-                                      : colorScheme
-                                          .surfaceContainerHighest
-                                          .withValues(alpha: 0.5),
-                                  borderRadius:
-                                      BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isSelected
-                                        ? AppColors.cheerMeAccent
-                                            .withValues(alpha: 0.4)
-                                        : Colors.transparent,
-                                  ),
+                                      ? palette.selectedSuggestionBorder
+                                      : Colors.transparent,
+                                  width: 1,
                                 ),
-                                child: Text(
-                                  '"$suggestion"',
-                                  style: theme.textTheme.bodySmall
-                                      ?.copyWith(
-                                    color: isSelected
-                                        ? AppColors.cheerMeAccent
-                                        : colorScheme
-                                            .onSurfaceVariant,
-                                  ),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: palette.signatureSky
+                                              .withValues(alpha: 0.10),
+                                          blurRadius: 6,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              child: Text(
+                                '"$suggestion"',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: isSelected
+                                      ? palette.selectedSuggestionText
+                                      : palette.unselectedSuggestionText,
                                 ),
                               ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      }),
                       const SizedBox(height: 4),
                       Text(
                         '최대 ${SelfEncouragementMessage.maxMessageCount}개까지 등록 가능',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.outline,
+                          color: palette.footerHintText,
                         ),
                       ),
                     ],
@@ -372,6 +382,9 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
+                      backgroundColor: colorScheme.surface,
+                      foregroundColor: colorScheme.primary,
+                      side: BorderSide(color: colorScheme.outline),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -387,6 +400,12 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
                         ? null
                         : () => Navigator.pop(context, _controller.text.trim()),
                     style: FilledButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      disabledBackgroundColor:
+                          colorScheme.surfaceContainerHighest,
+                      disabledForegroundColor: colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.6),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

@@ -141,7 +141,9 @@ class FCMService {
 
   static Future<void> _onForegroundMessage(RemoteMessage message) async {
     if (kDebugMode) {
-      debugPrint('[FCM] Foreground: ${message.data['title'] ?? message.notification?.title}');
+      debugPrint(
+        '[FCM] Foreground: ${message.data['title'] ?? message.notification?.title}',
+      );
     }
 
     final result = await buildPersonalizedMessage(
@@ -246,11 +248,15 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await NotificationService.initialize();
 
   if (kDebugMode) {
-    debugPrint('[FCM] Background: ${message.data['title'] ?? message.notification?.title}');
+    debugPrint(
+      '[FCM] Background: ${message.data['title'] ?? message.notification?.title}',
+    );
   }
 
-  final serverTitle = message.data['title'] as String? ?? message.notification?.title;
-  final serverBody = message.data['body'] as String? ?? message.notification?.body;
+  final serverTitle =
+      message.data['title'] as String? ?? message.notification?.title;
+  final serverBody =
+      message.data['body'] as String? ?? message.notification?.body;
 
   try {
     final result = await FCMService.buildPersonalizedMessage(

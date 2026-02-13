@@ -53,14 +53,13 @@ class SelfEncouragementScreen extends ConsumerWidget {
             ],
           ),
         ),
-        data: (messages) => _MessageList(
-          messages: messages,
-          hintShownKey: _hintShownKey,
-        ),
+        data: (messages) =>
+            _MessageList(messages: messages, hintShownKey: _hintShownKey),
       ),
       // FAB는 메시지가 1개 이상일 때만 표시 (Empty State에서는 중앙 버튼만 사용)
       floatingActionButton: messagesAsync.maybeWhen(
-        data: (messages) => messages.isNotEmpty &&
+        data: (messages) =>
+            messages.isNotEmpty &&
                 messages.length < SelfEncouragementMessage.maxMessageCount
             ? FloatingActionButton.extended(
                 onPressed: () => _showAddDialog(context, ref),
@@ -77,8 +76,9 @@ class SelfEncouragementScreen extends ConsumerWidget {
     final result = await MessageInputDialog.show(context);
     if (result != null && result.isNotEmpty && context.mounted) {
       await HapticFeedback.mediumImpact();
-      final success =
-          await ref.read(selfEncouragementProvider.notifier).addMessage(result);
+      final success = await ref
+          .read(selfEncouragementProvider.notifier)
+          .addMessage(result);
       if (success && context.mounted) {
         // 알림 재스케줄링
         final messages = ref.read(selfEncouragementProvider).valueOrNull ?? [];
@@ -110,10 +110,7 @@ class _MessageList extends ConsumerStatefulWidget {
   final List<SelfEncouragementMessage> messages;
   final String hintShownKey;
 
-  const _MessageList({
-    required this.messages,
-    required this.hintShownKey,
-  });
+  const _MessageList({required this.messages, required this.hintShownKey});
 
   @override
   ConsumerState<_MessageList> createState() => _MessageListState();
@@ -181,11 +178,7 @@ class _MessageListState extends ConsumerState<_MessageList> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.swipe,
-                    size: 14,
-                    color: theme.colorScheme.outline,
-                  ),
+                  Icon(Icons.swipe, size: 14, color: theme.colorScheme.outline),
                   const SizedBox(width: 4),
                   Text(
                     '좌우로 스와이프하여 수정/삭제',
@@ -338,11 +331,7 @@ class _DragHintOverlay extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 // 드래그 아이콘 애니메이션
-                Icon(
-                  Icons.drag_handle,
-                  size: 48,
-                  color: colorScheme.primary,
-                )
+                Icon(Icons.drag_handle, size: 48, color: colorScheme.primary)
                     .animate(
                       onPlay: (controller) => controller.repeat(reverse: true),
                     )
@@ -367,11 +356,7 @@ class _DragHintOverlay extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.swipe,
-                      size: 16,
-                      color: colorScheme.outline,
-                    ),
+                    Icon(Icons.swipe, size: 16, color: colorScheme.outline),
                     const SizedBox(width: 4),
                     Text(
                       '좌우 스와이프로 수정/삭제도 가능해요',
@@ -382,10 +367,7 @@ class _DragHintOverlay extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                FilledButton(
-                  onPressed: onDismiss,
-                  child: const Text('알겠어요'),
-                ),
+                FilledButton(onPressed: onDismiss, child: const Text('알겠어요')),
               ],
             ),
           ),

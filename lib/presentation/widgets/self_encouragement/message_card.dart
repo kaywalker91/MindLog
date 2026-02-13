@@ -61,195 +61,207 @@ class _MessageCardState extends ConsumerState<MessageCard> {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Dismissible(
-        key: ValueKey('dismissible_${widget.message.id}'),
-        direction: DismissDirection.horizontal,
-        // 왼쪽 스와이프 배경 (삭제)
-        background: _buildSwipeBackground(
-          alignment: Alignment.centerLeft,
-          color: colorScheme.primary,
-          icon: Icons.edit_outlined,
-          label: '수정',
-        ),
-        // 오른쪽 스와이프 배경 (삭제)
-        secondaryBackground: _buildSwipeBackground(
-          alignment: Alignment.centerRight,
-          color: AppColors.error,
-          icon: Icons.delete_outlined,
-          label: '삭제',
-        ),
-        confirmDismiss: (direction) async {
-          await HapticFeedback.mediumImpact();
-          if (direction == DismissDirection.startToEnd) {
-            // 오른쪽으로 스와이프 → 수정
-            widget.onEdit?.call();
-            return false; // 원위치로 복귀
-          } else {
-            // 왼쪽으로 스와이프 → 삭제 확인
-            if (!context.mounted) return false;
-            return await _confirmDelete(context);
-          }
-        },
-        onDismissed: (_) {
-          widget.onDelete?.call();
-        },
-        child: GestureDetector(
-          onTapDown: (_) {
-            HapticFeedback.lightImpact();
-            setState(() => _isPressed = true);
-          },
-          onTapUp: (_) {
-            setState(() => _isPressed = false);
-            widget.onEdit?.call();
-          },
-          onTapCancel: () => setState(() => _isPressed = false),
-          child: AnimatedScale(
-            scale: _isPressed ? 0.97 : 1.0,
-            duration: const Duration(milliseconds: 100),
-            curve: Curves.easeOut,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 100),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.shadow.withValues(
-                      alpha: _isPressed ? 0.02 : 0.05,
-                    ),
-                    blurRadius: _isPressed ? 4 : 8,
-                    offset: Offset(0, _isPressed ? 2 : 4),
-                  ),
-                ],
-              ),
-              child: Card(
-                elevation: 0,
-                margin: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+      child:
+          Dismissible(
+                key: ValueKey('dismissible_${widget.message.id}'),
+                direction: DismissDirection.horizontal,
+                // 왼쪽 스와이프 배경 (삭제)
+                background: _buildSwipeBackground(
+                  alignment: Alignment.centerLeft,
+                  color: colorScheme.primary,
+                  icon: Icons.edit_outlined,
+                  label: '수정',
                 ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.gardenWarm1,
-                        AppColors.gardenWarm2.withValues(alpha: 0.7),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.gardenWarm3.withValues(alpha: 0.5),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        // 드래그 핸들 (순서 변경용)
-                        ReorderableDragStartListener(
-                          index: widget.message.displayOrder,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHighest
-                                  .withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(8),
+                // 오른쪽 스와이프 배경 (삭제)
+                secondaryBackground: _buildSwipeBackground(
+                  alignment: Alignment.centerRight,
+                  color: AppColors.error,
+                  icon: Icons.delete_outlined,
+                  label: '삭제',
+                ),
+                confirmDismiss: (direction) async {
+                  await HapticFeedback.mediumImpact();
+                  if (direction == DismissDirection.startToEnd) {
+                    // 오른쪽으로 스와이프 → 수정
+                    widget.onEdit?.call();
+                    return false; // 원위치로 복귀
+                  } else {
+                    // 왼쪽으로 스와이프 → 삭제 확인
+                    if (!context.mounted) return false;
+                    return await _confirmDelete(context);
+                  }
+                },
+                onDismissed: (_) {
+                  widget.onDelete?.call();
+                },
+                child: GestureDetector(
+                  onTapDown: (_) {
+                    HapticFeedback.lightImpact();
+                    setState(() => _isPressed = true);
+                  },
+                  onTapUp: (_) {
+                    setState(() => _isPressed = false);
+                    widget.onEdit?.call();
+                  },
+                  onTapCancel: () => setState(() => _isPressed = false),
+                  child: AnimatedScale(
+                    scale: _isPressed ? 0.97 : 1.0,
+                    duration: const Duration(milliseconds: 100),
+                    curve: Curves.easeOut,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 100),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colorScheme.shadow.withValues(
+                              alpha: _isPressed ? 0.02 : 0.05,
                             ),
-                            child: Icon(
-                              Icons.drag_handle,
-                              color: colorScheme.outline,
-                              size: 20,
-                            ),
+                            blurRadius: _isPressed ? 4 : 8,
+                            offset: Offset(0, _isPressed ? 2 : 4),
                           ),
+                        ],
+                      ),
+                      child: Card(
+                        elevation: 0,
+                        margin: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        const SizedBox(width: 12),
-
-                        // 이모지 뱃지
-                        Container(
-                          width: 40,
-                          height: 40,
+                        child: Container(
                           decoration: BoxDecoration(
-                            color: colorScheme.surface,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: colorScheme.shadow.withValues(alpha: 0.1),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.gardenWarm1,
+                                AppColors.gardenWarm2.withValues(alpha: 0.7),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.gardenWarm3.withValues(
+                                alpha: 0.5,
                               ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              emoji,
-                              style: const TextStyle(fontSize: 20),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-
-                        // 메시지 내용
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                personalizedContent,
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.textPrimary,
-                                ),
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.schedule_outlined,
-                                    size: 14,
-                                    color: colorScheme.outline,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    _formatDate(widget.message.createdAt),
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                // 드래그 핸들 (순서 변경용)
+                                ReorderableDragStartListener(
+                                  index: widget.message.displayOrder,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.surfaceContainerHighest
+                                          .withValues(alpha: 0.5),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.drag_handle,
                                       color: colorScheme.outline,
+                                      size: 20,
                                     ),
                                   ),
-                                ],
-                              ),
-                            ],
+                                ),
+                                const SizedBox(width: 12),
+
+                                // 이모지 뱃지
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.surface,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: colorScheme.shadow.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      emoji,
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+
+                                // 메시지 내용
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        personalizedContent,
+                                        style: theme.textTheme.bodyLarge
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w500,
+                                              color: AppColors.textPrimary,
+                                            ),
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.schedule_outlined,
+                                            size: 14,
+                                            color: colorScheme.outline,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _formatDate(
+                                              widget.message.createdAt,
+                                            ),
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: colorScheme.outline,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // 더보기 힌트
+                                Icon(
+                                  Icons.chevron_right,
+                                  color: colorScheme.outline.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                  size: 20,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-
-                        // 더보기 힌트
-                        Icon(
-                          Icons.chevron_right,
-                          color: colorScheme.outline.withValues(alpha: 0.5),
-                          size: 20,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
+              )
+              .animate()
+              .fadeIn(
+                delay: Duration(milliseconds: 50 * widget.index),
+                duration: 400.ms,
+              )
+              .slideX(
+                begin: 0.1,
+                delay: Duration(milliseconds: 50 * widget.index),
+                duration: 400.ms,
+                curve: Curves.easeOutCubic,
               ),
-            ),
-          ),
-        ),
-      )
-          .animate()
-          .fadeIn(
-            delay: Duration(milliseconds: 50 * widget.index),
-            duration: 400.ms,
-          )
-          .slideX(
-            begin: 0.1,
-            delay: Duration(milliseconds: 50 * widget.index),
-            duration: 400.ms,
-            curve: Curves.easeOutCubic,
-          ),
     );
   }
 
@@ -273,10 +285,7 @@ class _MessageCardState extends ConsumerState<MessageCard> {
             ? [
                 Text(
                   label,
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(color: color, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(width: 8),
                 Icon(icon, color: color),
@@ -286,10 +295,7 @@ class _MessageCardState extends ConsumerState<MessageCard> {
                 const SizedBox(width: 8),
                 Text(
                   label,
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(color: color, fontWeight: FontWeight.w600),
                 ),
               ],
       ),
@@ -309,9 +315,7 @@ class _MessageCardState extends ConsumerState<MessageCard> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.error,
-            ),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('삭제'),
           ),
         ],

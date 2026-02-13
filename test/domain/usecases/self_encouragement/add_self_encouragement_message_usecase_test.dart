@@ -45,55 +45,58 @@ void main() {
       final message = createMessage(content: '');
 
       // Act & Assert
-      expect(
-        () => useCase.execute(message),
-        throwsA(isA<ValidationFailure>()),
-      );
+      expect(() => useCase.execute(message), throwsA(isA<ValidationFailure>()));
       expect(mockRepository.addedMessages, isEmpty);
     });
 
-    test('should throw ValidationFailure when content is whitespace only',
-        () async {
-      // Arrange
-      final message = createMessage(content: '   ');
+    test(
+      'should throw ValidationFailure when content is whitespace only',
+      () async {
+        // Arrange
+        final message = createMessage(content: '   ');
 
-      // Act & Assert
-      expect(
-        () => useCase.execute(message),
-        throwsA(isA<ValidationFailure>()),
-      );
-    });
+        // Act & Assert
+        expect(
+          () => useCase.execute(message),
+          throwsA(isA<ValidationFailure>()),
+        );
+      },
+    );
 
-    test('should throw ValidationFailure when content exceeds max length',
-        () async {
-      // Arrange
-      final longContent = 'a' * 101; // max is 100
-      final message = createMessage(content: longContent);
+    test(
+      'should throw ValidationFailure when content exceeds max length',
+      () async {
+        // Arrange
+        final longContent = 'a' * 101; // max is 100
+        final message = createMessage(content: longContent);
 
-      // Act & Assert
-      expect(
-        () => useCase.execute(message),
-        throwsA(isA<ValidationFailure>()),
-      );
-    });
+        // Act & Assert
+        expect(
+          () => useCase.execute(message),
+          throwsA(isA<ValidationFailure>()),
+        );
+      },
+    );
 
-    test('should throw ValidationFailure when max message count reached',
-        () async {
-      // Arrange
-      mockRepository.messages = List.generate(
-        SelfEncouragementMessage.maxMessageCount, // 10
-        (i) => createMessage(displayOrder: i),
-      );
+    test(
+      'should throw ValidationFailure when max message count reached',
+      () async {
+        // Arrange
+        mockRepository.messages = List.generate(
+          SelfEncouragementMessage.maxMessageCount, // 10
+          (i) => createMessage(displayOrder: i),
+        );
 
-      final newMessage = createMessage();
+        final newMessage = createMessage();
 
-      // Act & Assert
-      expect(
-        () => useCase.execute(newMessage),
-        throwsA(isA<ValidationFailure>()),
-      );
-      expect(mockRepository.addedMessages, isEmpty);
-    });
+        // Act & Assert
+        expect(
+          () => useCase.execute(newMessage),
+          throwsA(isA<ValidationFailure>()),
+        );
+        expect(mockRepository.addedMessages, isEmpty);
+      },
+    );
 
     test('should allow adding when under max count', () async {
       // Arrange

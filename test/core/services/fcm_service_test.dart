@@ -221,7 +221,6 @@ void main() {
           expect(result.body, isNotEmpty);
           expect(NotificationMessages.mindcareBodies, contains(result.body));
         });
-
       });
 
       group('경계값 테스트', () {
@@ -253,7 +252,10 @@ void main() {
           );
 
           // Assert: 감정 레벨 확인
-          expect(NotificationMessages.getEmotionLevel(3.1), EmotionLevel.medium);
+          expect(
+            NotificationMessages.getEmotionLevel(3.1),
+            EmotionLevel.medium,
+          );
           expect(result.body, isNotEmpty);
         });
 
@@ -262,7 +264,10 @@ void main() {
           FCMService.emotionScoreProvider = () async => 6.0;
 
           // Assert: 감정 레벨 확인
-          expect(NotificationMessages.getEmotionLevel(6.0), EmotionLevel.medium);
+          expect(
+            NotificationMessages.getEmotionLevel(6.0),
+            EmotionLevel.medium,
+          );
         });
 
         test('감정 점수 6.1은 high로 분류되어야 한다', () async {

@@ -116,23 +116,20 @@ void main() {
 
       group('품질 검사 - 의미 있는 내용', () {
         test('의미 있는 단어 없이 50자 미만이면 에러를 반환한다', () {
-          final result = Validators.validateDiaryContent(
-            '아무말이나 적어봅니다 뭐라고 할까',
-          );
+          final result = Validators.validateDiaryContent('아무말이나 적어봅니다 뭐라고 할까');
           expect(result, isNotNull);
           expect(result, contains('의미'));
         });
 
         test('감정 키워드가 포함되면 통과한다', () {
-          final result = Validators.validateDiaryContent(
-            '오늘 기분이 좋았다 행복함',
-          );
+          final result = Validators.validateDiaryContent('오늘 기분이 좋았다 행복함');
           expect(result, isNull);
         });
 
         test('50자 이상이면 의미 키워드 없어도 통과한다', () {
           // 50자 이상의 일반 텍스트
-          const longText = '아무말이나 적어봅니다 뭐라고 할까요 이것저것 해보고 있는데 잘 모르겠네요 이렇게 저렇게 써봅니다';
+          const longText =
+              '아무말이나 적어봅니다 뭐라고 할까요 이것저것 해보고 있는데 잘 모르겠네요 이렇게 저렇게 써봅니다';
           expect(longText.length >= 50, isTrue);
           final result = Validators.validateDiaryContent(longText);
           expect(result, isNull);
@@ -229,8 +226,11 @@ void main() {
         const text =
             '오늘 아침 일찍 일어나서 산책하고 커피 마시고 공부하고 점심 먹고 '
             '친구 만나서 영화 보고 저녁 식사 후 집에서 독서하며 하루를 마무리했다';
-        final uniqueWords =
-            text.toLowerCase().split(RegExp(r'\s+')).toSet().length;
+        final uniqueWords = text
+            .toLowerCase()
+            .split(RegExp(r'\s+'))
+            .toSet()
+            .length;
         expect(uniqueWords >= 20, isTrue);
         final score = Validators.calculateTextQualityScore(text);
         // 단어 20개 이상이면 +20점 (10개 보너스 대체)
@@ -238,19 +238,13 @@ void main() {
       });
 
       test('감정 단어가 1개 이상이면 +5점', () {
-        final score = Validators.calculateTextQualityScore(
-          '오늘은 기쁨을 느꼈다',
-        );
-        final baseScore = Validators.calculateTextQualityScore(
-          '오늘은 무언가를 느꼈다',
-        );
+        final score = Validators.calculateTextQualityScore('오늘은 기쁨을 느꼈다');
+        final baseScore = Validators.calculateTextQualityScore('오늘은 무언가를 느꼈다');
         expect(score, greaterThanOrEqualTo(baseScore));
       });
 
       test('감정 단어가 2개 이상이면 +10점', () {
-        final score = Validators.calculateTextQualityScore(
-          '기쁨과 행복을 느낀 하루였다',
-        );
+        final score = Validators.calculateTextQualityScore('기쁨과 행복을 느낀 하루였다');
         expect(score, greaterThanOrEqualTo(55)); // 50 + 5(감정1) + 5(감정2)
       });
 
@@ -258,7 +252,8 @@ void main() {
         // 매우 긴 고품질 텍스트
         final highQuality =
             '오늘은 정말 행복한 하루였다. 기쁨과 만족감이 넘쳤다. 즐거움 속에서 평화를 느꼈다. '
-            '설렘과 기대로 가득한 순간이었다. 불안함도 있었지만 괜찮았다. ' * 10;
+                '설렘과 기대로 가득한 순간이었다. 불안함도 있었지만 괜찮았다. ' *
+            10;
         final score = Validators.calculateTextQualityScore(highQuality);
         expect(score, lessThanOrEqualTo(100));
         expect(score, greaterThanOrEqualTo(0));
@@ -270,9 +265,7 @@ void main() {
     // ============================================================
     group('analyzeText', () {
       test('TextAnalysisResult 필드가 올바르게 채워진다', () {
-        final result = Validators.analyzeText(
-          '오늘은 행복한 하루였다. 기분이 좋았다.',
-        );
+        final result = Validators.analyzeText('오늘은 행복한 하루였다. 기분이 좋았다.');
 
         expect(result.qualityScore, greaterThan(0));
         expect(result.characterCount, greaterThan(0));
@@ -304,9 +297,7 @@ void main() {
         });
 
         test('감정 단어가 없거나 동일하면 neutral을 반환한다', () {
-          final result = Validators.analyzeText(
-            '그냥 보통의 일상이었다. 평소처럼 지냈다.',
-          );
+          final result = Validators.analyzeText('그냥 보통의 일상이었다. 평소처럼 지냈다.');
           expect(result.emotionTone, equals(EmotionTone.neutral));
         });
       });
@@ -319,34 +310,22 @@ void main() {
 
         test('100자 미만 시 길게 작성 제안을 포함한다', () {
           final result = Validators.analyzeText('오늘 기분이 좋았다.');
-          expect(
-            result.suggestions.any((s) => s.contains('길게')),
-            isTrue,
-          );
+          expect(result.suggestions.any((s) => s.contains('길게')), isTrue);
         });
 
         test('단어 10개 미만 시 문장 분리 제안을 포함한다', () {
           final result = Validators.analyzeText('짧은 글입니다');
-          expect(
-            result.suggestions.any((s) => s.contains('문장')),
-            isTrue,
-          );
+          expect(result.suggestions.any((s) => s.contains('문장')), isTrue);
         });
 
         test('반복 글자가 있으면 반복 관련 제안을 포함한다', () {
           final result = Validators.analyzeText('좋아아아아 행복하다');
-          expect(
-            result.suggestions.any((s) => s.contains('반복')),
-            isTrue,
-          );
+          expect(result.suggestions.any((s) => s.contains('반복')), isTrue);
         });
 
         test('오늘이 포함되면 특별했던 순간 제안을 포함한다', () {
           final result = Validators.analyzeText('오늘 뭐했다');
-          expect(
-            result.suggestions.any((s) => s.contains('오늘')),
-            isTrue,
-          );
+          expect(result.suggestions.any((s) => s.contains('오늘')), isTrue);
         });
 
         test('제안은 최대 3개까지만 반환한다', () {

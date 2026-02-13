@@ -10,10 +10,8 @@ class GetNextSelfEncouragementMessageUseCase {
   final SettingsRepository _repository;
   final Random _random;
 
-  GetNextSelfEncouragementMessageUseCase(
-    this._repository, [
-    Random? random,
-  ]) : _random = random ?? Random();
+  GetNextSelfEncouragementMessageUseCase(this._repository, [Random? random])
+    : _random = random ?? Random();
 
   /// 알림에 표시할 다음 메시지 선택
   ///

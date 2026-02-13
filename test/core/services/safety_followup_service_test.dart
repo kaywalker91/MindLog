@@ -45,10 +45,13 @@ void main() {
           expect(channel, 'mindlog_mindcare');
           return true;
         }
+
         SafetyFollowupService.scheduleOneTimeOverride = testScheduleOverride;
 
         // Act
-        final result = await SafetyFollowupService.scheduleFollowup(emergencyTime);
+        final result = await SafetyFollowupService.scheduleFollowup(
+          emergencyTime,
+        );
 
         // Assert
         expect(result, isTrue);
@@ -69,14 +72,15 @@ void main() {
 
         // 첫 스케줄링
         SafetyFollowupService.nowOverride = () => firstEmergency;
-        SafetyFollowupService.scheduleOneTimeOverride = ({
-          required int id,
-          required String title,
-          required String body,
-          required dynamic scheduledDate,
-          String? payload,
-          String channel = '',
-        }) async => true;
+        SafetyFollowupService.scheduleOneTimeOverride =
+            ({
+              required int id,
+              required String title,
+              required String body,
+              required dynamic scheduledDate,
+              String? payload,
+              String channel = '',
+            }) async => true;
 
         await SafetyFollowupService.scheduleFollowup(firstEmergency);
 
@@ -84,7 +88,9 @@ void main() {
         SafetyFollowupService.nowOverride = () => secondEmergency;
 
         // Act
-        final result = await SafetyFollowupService.scheduleFollowup(secondEmergency);
+        final result = await SafetyFollowupService.scheduleFollowup(
+          secondEmergency,
+        );
 
         // Assert
         expect(result, isFalse);
@@ -97,14 +103,15 @@ void main() {
 
         // 첫 스케줄링
         SafetyFollowupService.nowOverride = () => firstEmergency;
-        SafetyFollowupService.scheduleOneTimeOverride = ({
-          required int id,
-          required String title,
-          required String body,
-          required dynamic scheduledDate,
-          String? payload,
-          String channel = '',
-        }) async => true;
+        SafetyFollowupService.scheduleOneTimeOverride =
+            ({
+              required int id,
+              required String title,
+              required String body,
+              required dynamic scheduledDate,
+              String? payload,
+              String channel = '',
+            }) async => true;
 
         await SafetyFollowupService.scheduleFollowup(firstEmergency);
 
@@ -112,7 +119,9 @@ void main() {
         SafetyFollowupService.nowOverride = () => secondEmergency;
 
         // Act
-        final result = await SafetyFollowupService.scheduleFollowup(secondEmergency);
+        final result = await SafetyFollowupService.scheduleFollowup(
+          secondEmergency,
+        );
 
         // Assert
         expect(result, isTrue);
@@ -128,17 +137,20 @@ void main() {
         // Arrange
         final emergencyTime = DateTime(2026, 2, 6, 10, 0);
         SafetyFollowupService.nowOverride = () => emergencyTime;
-        SafetyFollowupService.scheduleOneTimeOverride = ({
-          required int id,
-          required String title,
-          required String body,
-          required dynamic scheduledDate,
-          String? payload,
-          String channel = '',
-        }) async => false;
+        SafetyFollowupService.scheduleOneTimeOverride =
+            ({
+              required int id,
+              required String title,
+              required String body,
+              required dynamic scheduledDate,
+              String? payload,
+              String channel = '',
+            }) async => false;
 
         // Act
-        final result = await SafetyFollowupService.scheduleFollowup(emergencyTime);
+        final result = await SafetyFollowupService.scheduleFollowup(
+          emergencyTime,
+        );
 
         // Assert
         expect(result, isFalse);
@@ -164,6 +176,7 @@ void main() {
           selectedBody = body;
           return true;
         }
+
         SafetyFollowupService.scheduleOneTimeOverride = testScheduleOverride;
 
         // Act
@@ -180,19 +193,22 @@ void main() {
         // Arrange
         final emergencyTime = DateTime(2026, 2, 6, 10, 0);
         SafetyFollowupService.nowOverride = () => emergencyTime;
-        SafetyFollowupService.scheduleOneTimeOverride = ({
-          required int id,
-          required String title,
-          required String body,
-          required dynamic scheduledDate,
-          String? payload,
-          String channel = '',
-        }) async {
-          throw Exception('스케줄링 실패');
-        };
+        SafetyFollowupService.scheduleOneTimeOverride =
+            ({
+              required int id,
+              required String title,
+              required String body,
+              required dynamic scheduledDate,
+              String? payload,
+              String channel = '',
+            }) async {
+              throw Exception('스케줄링 실패');
+            };
 
         // Act
-        final result = await SafetyFollowupService.scheduleFollowup(emergencyTime);
+        final result = await SafetyFollowupService.scheduleFollowup(
+          emergencyTime,
+        );
 
         // Assert
         expect(result, isFalse);
@@ -201,7 +217,9 @@ void main() {
       test('알림 시간이 24시간 후로 설정되어야 한다', () async {
         // Arrange
         final emergencyTime = DateTime(2026, 2, 6, 10, 0);
-        final expectedScheduledTime = emergencyTime.add(const Duration(hours: 24));
+        final expectedScheduledTime = emergencyTime.add(
+          const Duration(hours: 24),
+        );
         SafetyFollowupService.nowOverride = () => emergencyTime;
 
         tz.TZDateTime? actualScheduledDate;
@@ -216,6 +234,7 @@ void main() {
           actualScheduledDate = scheduledDate as tz.TZDateTime;
           return true;
         }
+
         SafetyFollowupService.scheduleOneTimeOverride = testScheduleOverride;
 
         // Act
@@ -347,10 +366,7 @@ void main() {
         // Arrange - 아무 것도 설정하지 않음
 
         // Act & Assert (예외 없이 완료)
-        await expectLater(
-          SafetyFollowupService.cancelFollowup(),
-          completes,
-        );
+        await expectLater(SafetyFollowupService.cancelFollowup(), completes);
       });
     });
 
@@ -421,6 +437,7 @@ void main() {
           messages1.add((title: title, body: body));
           return true;
         }
+
         SafetyFollowupService.scheduleOneTimeOverride = testScheduleOverride1;
         await SafetyFollowupService.scheduleFollowup(emergencyTime);
 
@@ -442,6 +459,7 @@ void main() {
           messages2.add((title: title, body: body));
           return true;
         }
+
         SafetyFollowupService.scheduleOneTimeOverride = testScheduleOverride2;
         await SafetyFollowupService.scheduleFollowup(emergencyTime);
 
@@ -457,14 +475,15 @@ void main() {
       test('모든 오버라이드를 초기화해야 한다', () {
         // Arrange
         SafetyFollowupService.nowOverride = () => DateTime(2026, 1, 1);
-        SafetyFollowupService.scheduleOneTimeOverride = ({
-          required int id,
-          required String title,
-          required String body,
-          required dynamic scheduledDate,
-          String? payload,
-          String channel = '',
-        }) async => true;
+        SafetyFollowupService.scheduleOneTimeOverride =
+            ({
+              required int id,
+              required String title,
+              required String body,
+              required dynamic scheduledDate,
+              String? payload,
+              String channel = '',
+            }) async => true;
         SafetyFollowupService.setRandom(Random(999));
 
         // Act

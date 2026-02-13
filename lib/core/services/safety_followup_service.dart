@@ -28,11 +28,7 @@ class SafetyFollowupService {
 
   // ===== 메시지 풀 (따뜻한, 비임상적 한국어) =====
 
-  static const List<String> _titles = [
-    '마음은 좀 괜찮아졌나요?',
-    '안부를 전해요',
-    '하루가 지났어요',
-  ];
+  static const List<String> _titles = ['마음은 좀 괜찮아졌나요?', '안부를 전해요', '하루가 지났어요'];
 
   static const List<String> _bodies = [
     '어제의 마음이 조금이나마 가벼워졌길 바라요',
@@ -55,7 +51,8 @@ class SafetyFollowupService {
     required dynamic scheduledDate,
     String? payload,
     String channel,
-  })? scheduleOneTimeOverride;
+  })?
+  scheduleOneTimeOverride;
 
   /// Random 인스턴스 (테스트에서 결정론적 동작 보장)
   static Random _random = Random();
@@ -99,8 +96,9 @@ class SafetyFollowupService {
       // 중복 방지: 24시간 이내 이미 예약된 경우 스킵
       final lastTimestamp = prefs.getInt(_prefKey);
       if (lastTimestamp != null) {
-        final lastEmergency =
-            DateTime.fromMillisecondsSinceEpoch(lastTimestamp);
+        final lastEmergency = DateTime.fromMillisecondsSinceEpoch(
+          lastTimestamp,
+        );
         final elapsed = now.difference(lastEmergency);
         if (elapsed < _followupDelay) {
           if (kDebugMode) {
@@ -114,10 +112,7 @@ class SafetyFollowupService {
       }
 
       // 타임스탬프 저장
-      await prefs.setInt(
-        _prefKey,
-        emergencyTime.millisecondsSinceEpoch,
-      );
+      await prefs.setInt(_prefKey, emergencyTime.millisecondsSinceEpoch);
       await prefs.setBool(_followupSentKey, false);
 
       // 24시간 뒤 알림 시간 계산
@@ -182,8 +177,7 @@ class SafetyFollowupService {
 
       if (lastTimestamp == null) return false;
 
-      final lastEmergency =
-          DateTime.fromMillisecondsSinceEpoch(lastTimestamp);
+      final lastEmergency = DateTime.fromMillisecondsSinceEpoch(lastTimestamp);
       final elapsed = _now().difference(lastEmergency);
 
       // 48시간 초과 → 팔로업 불필요

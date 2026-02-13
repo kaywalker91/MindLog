@@ -145,7 +145,10 @@ void main() {
 
       // Cheer Me 비교 섹션 확인
       expect(find.text('Cheer Me와 무엇이 다른가요?'), findsOneWidget);
-      expect(find.textContaining('Cheer Me: 내가 쓴 응원을 나에게 전해요.'), findsOneWidget);
+      expect(
+        find.textContaining('Cheer Me: 내가 쓴 응원을 나에게 전해요.'),
+        findsOneWidget,
+      );
       expect(find.textContaining('마음케어: 전문 심리 기법으로 마음을 돌봐요.'), findsOneWidget);
     });
 

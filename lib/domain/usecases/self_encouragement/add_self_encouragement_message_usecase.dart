@@ -21,17 +21,13 @@ class AddSelfEncouragementMessageUseCase {
 
     // 유효성 검사: 최대 글자 수
     if (message.content.length > SelfEncouragementMessage.maxContentLength) {
-      throw const ValidationFailure(
-        message: '메시지는 100자 이내로 작성해주세요',
-      );
+      throw const ValidationFailure(message: '메시지는 100자 이내로 작성해주세요');
     }
 
     // 기존 메시지 개수 확인
     final existingMessages = await _repository.getSelfEncouragementMessages();
     if (existingMessages.length >= SelfEncouragementMessage.maxMessageCount) {
-      throw const ValidationFailure(
-        message: '최대 10개까지만 등록할 수 있습니다',
-      );
+      throw const ValidationFailure(message: '최대 10개까지만 등록할 수 있습니다');
     }
 
     await _repository.addSelfEncouragementMessage(message);

@@ -26,8 +26,7 @@ class NotificationDiagnosticData {
   });
 
   /// Cheer Me 알림(ID 1001)이 예약되어 있는지
-  bool get hasCheerMeScheduled =>
-      pendingNotifications.any((n) => n.id == 1001);
+  bool get hasCheerMeScheduled => pendingNotifications.any((n) => n.id == 1001);
 
   /// 정확한 알람 권한에 문제가 있는지
   bool get hasExactAlarmIssue => canScheduleExact != true;
@@ -62,9 +61,7 @@ class NotificationDiagnosticService {
 
     // 예약된 알림 목록
     final pending = await NotificationService.getPendingNotifications();
-    final pendingList = pending
-        .map((n) => (id: n.id, title: n.title))
-        .toList();
+    final pendingList = pending.map((n) => (id: n.id, title: n.title)).toList();
 
     // 권한 상태
     bool? canScheduleExact;

@@ -217,11 +217,7 @@ void main() {
           await dataSource.setNotificationSettings(settings);
           final retrieved = await dataSource.getNotificationSettings();
 
-          expect(
-            retrieved.rotationMode,
-            mode,
-            reason: '$mode 모드가 왕복 후 변경됨',
-          );
+          expect(retrieved.rotationMode, mode, reason: '$mode 모드가 왕복 후 변경됨');
         }
       });
     });
@@ -307,10 +303,7 @@ void main() {
       test('유효하지 않은 구조의 JSON 배열 시 빈 리스트를 반환해야 한다', () async {
         final prefs = await SharedPreferences.getInstance();
         // 배열이지만 Map이 아닌 요소
-        await prefs.setString(
-          'self_encouragement_messages',
-          '[1, 2, "hello"]',
-        );
+        await prefs.setString('self_encouragement_messages', '[1, 2, "hello"]');
 
         final messages = await dataSource.getSelfEncouragementMessages();
 

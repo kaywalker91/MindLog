@@ -238,10 +238,7 @@ void main() {
       });
 
       test('삭제 인덱스가 음수이면 null 반환', () {
-        expect(
-          NotificationSettings.adjustIndexAfterDeletion(2, -1, 5),
-          isNull,
-        );
+        expect(NotificationSettings.adjustIndexAfterDeletion(2, -1, 5), isNull);
       });
 
       test('남은 메시지가 0이고 lastDisplayed가 0이 아니면 0 반환', () {

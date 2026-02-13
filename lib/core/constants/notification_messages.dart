@@ -491,40 +491,19 @@ class NotificationMessages {
   /// 인지 왜곡 패턴별 CBT 메시지 맵
   /// 각 패턴에 대해 따뜻한 톤의 인지 재구조화 메시지 제공
   static const Map<String, List<({String title, String body})>>
-      _cognitivePatternMessages = {
+  _cognitivePatternMessages = {
     '흑백사고': [
-      (
-        title: '생각의 스펙트럼',
-        body: '완벽하지 않아도 괜찮아요. 중간 지점에서도 의미를 찾을 수 있어요.',
-      ),
-      (
-        title: '회색 지대의 아름다움',
-        body: '성공과 실패 사이에도 많은 가치가 있어요. 과정 자체를 인정해주세요.',
-      ),
-      (
-        title: '부분도 소중해요',
-        body: '전부가 아니어도 괜찮아요. 오늘 해낸 부분만으로도 충분해요.',
-      ),
+      (title: '생각의 스펙트럼', body: '완벽하지 않아도 괜찮아요. 중간 지점에서도 의미를 찾을 수 있어요.'),
+      (title: '회색 지대의 아름다움', body: '성공과 실패 사이에도 많은 가치가 있어요. 과정 자체를 인정해주세요.'),
+      (title: '부분도 소중해요', body: '전부가 아니어도 괜찮아요. 오늘 해낸 부분만으로도 충분해요.'),
     ],
     '과일반화': [
-      (
-        title: '이번 한 번일 뿐이에요',
-        body: '한 번의 경험이 모든 것을 말해주지 않아요. 다음은 다를 수 있어요.',
-      ),
-      (
-        title: '예외를 찾아보세요',
-        body: '"항상" 그런 건 아니에요. 잘 됐던 때를 떠올려보세요.',
-      ),
-      (
-        title: '하나의 사건일 뿐',
-        body: '한 번의 일로 패턴을 만들지 않아도 돼요. 각 상황은 독립적이에요.',
-      ),
+      (title: '이번 한 번일 뿐이에요', body: '한 번의 경험이 모든 것을 말해주지 않아요. 다음은 다를 수 있어요.'),
+      (title: '예외를 찾아보세요', body: '"항상" 그런 건 아니에요. 잘 됐던 때를 떠올려보세요.'),
+      (title: '하나의 사건일 뿐', body: '한 번의 일로 패턴을 만들지 않아도 돼요. 각 상황은 독립적이에요.'),
     ],
     '감정적추론': [
-      (
-        title: '감정과 사실은 달라요',
-        body: '불안하다고 해서 나쁜 일이 일어나는 건 아니에요. 감정은 일시적이에요.',
-      ),
+      (title: '감정과 사실은 달라요', body: '불안하다고 해서 나쁜 일이 일어나는 건 아니에요. 감정은 일시적이에요.'),
       (
         title: '느낌을 점검해보세요',
         body: '지금 느끼는 감정이 사실을 반영하는 건 아닐 수 있어요. 한 발짝 물러서 보세요.',
@@ -543,10 +522,7 @@ class NotificationMessages {
         title: '자신에게 너그럽게',
         body: '완벽한 기준 대신, 현실적인 기대를 가져보세요. 당신은 충분히 노력하고 있어요.',
       ),
-      (
-        title: '규칙을 유연하게',
-        body: '엄격한 규칙 대신 가이드라인으로 생각해보세요. 상황에 따라 유연해져도 괜찮아요.',
-      ),
+      (title: '규칙을 유연하게', body: '엄격한 규칙 대신 가이드라인으로 생각해보세요. 상황에 따라 유연해져도 괜찮아요.'),
     ],
   };
 
@@ -721,8 +697,7 @@ class NotificationMessages {
 
   /// 인지 패턴 메시지 맵 반환 (테스트용)
   static Map<String, List<({String title, String body})>>
-      get cognitivePatternMessages =>
-          Map.unmodifiable(_cognitivePatternMessages);
+  get cognitivePatternMessages => Map.unmodifiable(_cognitivePatternMessages);
 
   /// 지원되는 인지 패턴 목록 (테스트용)
   static List<String> get supportedCognitivePatterns =>

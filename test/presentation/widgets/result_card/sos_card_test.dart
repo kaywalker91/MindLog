@@ -60,11 +60,7 @@ void main() {
 
   Widget buildTestWidget() {
     return const MaterialApp(
-      home: Scaffold(
-        body: SingleChildScrollView(
-          child: SOSCard(),
-        ),
-      ),
+      home: Scaffold(body: SingleChildScrollView(child: SOSCard())),
     );
   }
 
@@ -88,24 +84,15 @@ void main() {
         await tester.pumpWidget(buildTestWidget());
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(
-          find.textContaining('혼자서 너무 힘들어하지 마세요'),
-          findsOneWidget,
-        );
-        expect(
-          find.textContaining('전문가가 기다리고 있습니다'),
-          findsOneWidget,
-        );
+        expect(find.textContaining('혼자서 너무 힘들어하지 마세요'), findsOneWidget);
+        expect(find.textContaining('전문가가 기다리고 있습니다'), findsOneWidget);
       });
 
       testWidgets('자살예방상담전화 버튼이 표시되어야 한다', (tester) async {
         await tester.pumpWidget(buildTestWidget());
         await tester.pump(const Duration(milliseconds: 100));
 
-        expect(
-          find.text('24시간 자살예방상담전화 (109)'),
-          findsOneWidget,
-        );
+        expect(find.text('24시간 자살예방상담전화 (109)'), findsOneWidget);
       });
 
       testWidgets('정신건강상담전화 버튼이 표시되어야 한다', (tester) async {
@@ -125,8 +112,7 @@ void main() {
     });
 
     group('인터랙션', () {
-      testWidgets('자살예방상담전화 버튼 탭 시 109로 전화 연결을 시도해야 한다',
-          (tester) async {
+      testWidgets('자살예방상담전화 버튼 탭 시 109로 전화 연결을 시도해야 한다', (tester) async {
         await tester.pumpWidget(buildTestWidget());
         await tester.pump(const Duration(milliseconds: 100));
 
@@ -136,8 +122,7 @@ void main() {
         expect(mockUrlLauncher.lastLaunchedUrl, 'tel:109');
       });
 
-      testWidgets('정신건강상담전화 버튼 탭 시 1577-0199로 전화 연결을 시도해야 한다',
-          (tester) async {
+      testWidgets('정신건강상담전화 버튼 탭 시 1577-0199로 전화 연결을 시도해야 한다', (tester) async {
         await tester.pumpWidget(buildTestWidget());
         await tester.pump(const Duration(milliseconds: 100));
 
@@ -147,8 +132,9 @@ void main() {
         expect(mockUrlLauncher.lastLaunchedUrl, 'tel:1577-0199');
       });
 
-      testWidgets('canLaunchUrl이 false면 launchUrl이 호출되지 않아야 한다',
-          (tester) async {
+      testWidgets('canLaunchUrl이 false면 launchUrl이 호출되지 않아야 한다', (
+        tester,
+      ) async {
         mockUrlLauncher.canLaunchResult = false;
 
         await tester.pumpWidget(buildTestWidget());

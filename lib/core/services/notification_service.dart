@@ -441,7 +441,8 @@ class NotificationService {
       title: title,
       body: body,
       scheduledDate: tomorrow,
-      payload: '{"type":"mindcare","subtype":"cognitive_pattern","pattern":"$patternName"}',
+      payload:
+          '{"type":"mindcare","subtype":"cognitive_pattern","pattern":"$patternName"}',
     );
   }
 

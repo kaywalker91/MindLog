@@ -69,9 +69,7 @@ void main() {
     return MaterialApp(
       home: Scaffold(
         body: SingleChildScrollView(
-          child: SosCard(
-            onClose: onClose ?? () => onCloseCalled = true,
-          ),
+          child: SosCard(onClose: onClose ?? () => onCloseCalled = true),
         ),
       ),
     );
@@ -106,10 +104,7 @@ void main() {
         await tester.pumpWidget(buildTestWidget());
         await pumpPastAnimations(tester);
 
-        expect(
-          find.textContaining('당신은 혼자가 아닙니다'),
-          findsOneWidget,
-        );
+        expect(find.textContaining('당신은 혼자가 아닙니다'), findsOneWidget);
       });
 
       testWidgets('잠시 쉬어가도 괜찮아요 텍스트가 표시되어야 한다', (tester) async {
@@ -161,10 +156,7 @@ void main() {
         await tester.pumpWidget(buildTestWidget());
         await pumpPastAnimations(tester);
 
-        expect(
-          find.textContaining('다른 내용으로 마음을 기록'),
-          findsOneWidget,
-        );
+        expect(find.textContaining('다른 내용으로 마음을 기록'), findsOneWidget);
       });
 
       testWidgets('다른 내용 작성하기 버튼이 표시되어야 한다', (tester) async {
@@ -189,8 +181,7 @@ void main() {
     });
 
     group('인터랙션', () {
-      testWidgets('다른 내용 작성하기 탭 시 onClose가 호출되어야 한다',
-          (tester) async {
+      testWidgets('다른 내용 작성하기 탭 시 onClose가 호출되어야 한다', (tester) async {
         await setLargeViewport(tester);
         addTearDown(() => tester.view.resetPhysicalSize());
 
@@ -203,8 +194,7 @@ void main() {
         expect(onCloseCalled, isTrue);
       });
 
-      testWidgets('상담 연결하기 버튼 탭 시 109로 전화를 시도해야 한다',
-          (tester) async {
+      testWidgets('상담 연결하기 버튼 탭 시 109로 전화를 시도해야 한다', (tester) async {
         await setLargeViewport(tester);
         addTearDown(() => tester.view.resetPhysicalSize());
 
@@ -218,8 +208,7 @@ void main() {
         expect(mockUrlLauncher.launchCallCount, 1);
       });
 
-      testWidgets('자살예방 상담전화 카드 탭 시 109로 전화를 시도해야 한다',
-          (tester) async {
+      testWidgets('자살예방 상담전화 카드 탭 시 109로 전화를 시도해야 한다', (tester) async {
         await setLargeViewport(tester);
         addTearDown(() => tester.view.resetPhysicalSize());
 
@@ -232,8 +221,7 @@ void main() {
         expect(mockUrlLauncher.lastLaunchedUrl, 'tel:109');
       });
 
-      testWidgets('정신건강 상담센터 카드 탭 시 1577-0199로 전화를 시도해야 한다',
-          (tester) async {
+      testWidgets('정신건강 상담센터 카드 탭 시 1577-0199로 전화를 시도해야 한다', (tester) async {
         await setLargeViewport(tester);
         addTearDown(() => tester.view.resetPhysicalSize());
 
@@ -257,16 +245,14 @@ void main() {
 
         final constrainedBoxFinder = find.byWidgetPredicate(
           (widget) =>
-              widget is ConstrainedBox &&
-              widget.constraints.maxWidth == 600,
+              widget is ConstrainedBox && widget.constraints.maxWidth == 600,
         );
         expect(constrainedBoxFinder, findsOneWidget);
       });
     });
 
     group('에러 처리', () {
-      testWidgets('전화 연결 실패 시 SnackBar가 표시되어야 한다',
-          (tester) async {
+      testWidgets('전화 연결 실패 시 SnackBar가 표시되어야 한다', (tester) async {
         await setLargeViewport(tester);
         addTearDown(() => tester.view.resetPhysicalSize());
         mockUrlLauncher.shouldThrow = true;

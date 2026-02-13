@@ -35,8 +35,9 @@ class EmptyMessageView extends ConsumerWidget {
                     Container(
                       padding: EdgeInsets.all(isCompact ? 20 : 28),
                       decoration: BoxDecoration(
-                        color:
-                            colorScheme.primaryContainer.withValues(alpha: 0.3),
+                        color: colorScheme.primaryContainer.withValues(
+                          alpha: 0.3,
+                        ),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(

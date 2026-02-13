@@ -20,9 +20,7 @@ class UpdateSelfEncouragementMessageUseCase {
 
     // 유효성 검사: 최대 글자 수
     if (message.content.length > SelfEncouragementMessage.maxContentLength) {
-      throw const ValidationFailure(
-        message: '메시지는 100자 이내로 작성해주세요',
-      );
+      throw const ValidationFailure(message: '메시지는 100자 이내로 작성해주세요');
     }
 
     await _repository.updateSelfEncouragementMessage(message);

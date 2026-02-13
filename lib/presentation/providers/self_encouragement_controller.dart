@@ -102,8 +102,7 @@ class SelfEncouragementController
     await _repository.deleteSelfEncouragementMessage(id);
 
     // displayOrder 재정렬
-    final remaining =
-        current.where((m) => m.id != id).toList();
+    final remaining = current.where((m) => m.id != id).toList();
     for (var i = 0; i < remaining.length; i++) {
       remaining[i] = remaining[i].copyWith(displayOrder: i);
     }
@@ -185,8 +184,8 @@ class SelfEncouragementController
 }
 
 /// 개인 응원 메시지 Provider
-final selfEncouragementProvider = AsyncNotifierProvider<
-    SelfEncouragementController,
-    List<SelfEncouragementMessage>>(
-  SelfEncouragementController.new,
-);
+final selfEncouragementProvider =
+    AsyncNotifierProvider<
+      SelfEncouragementController,
+      List<SelfEncouragementMessage>
+    >(SelfEncouragementController.new);

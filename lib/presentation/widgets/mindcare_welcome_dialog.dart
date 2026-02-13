@@ -38,7 +38,10 @@ class MindcareWelcomeDialog extends StatelessWidget {
               // 헤더 영역 — Calm Teal 브랜딩
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [

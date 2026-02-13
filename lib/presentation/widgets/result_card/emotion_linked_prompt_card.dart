@@ -9,10 +9,7 @@ import '../../../core/theme/app_colors.dart';
 class EmotionLinkedPromptCard extends StatelessWidget {
   final int sentimentScore;
 
-  const EmotionLinkedPromptCard({
-    super.key,
-    required this.sentimentScore,
-  });
+  const EmotionLinkedPromptCard({super.key, required this.sentimentScore});
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +19,7 @@ class EmotionLinkedPromptCard extends StatelessWidget {
       onTap: () => context.push('/settings/self-encouragement'),
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.cheerMeAccent.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
@@ -104,8 +98,5 @@ class _PromptData {
   final String title;
   final String subtitle;
 
-  const _PromptData({
-    required this.title,
-    required this.subtitle,
-  });
+  const _PromptData({required this.title, required this.subtitle});
 }

@@ -399,9 +399,7 @@ class MockSettingsRepositoryWithMessages extends MockSettingsRepository {
   }
 
   @override
-  Future<void> reorderSelfEncouragementMessages(
-    List<String> orderedIds,
-  ) async {
+  Future<void> reorderSelfEncouragementMessages(List<String> orderedIds) async {
     if (shouldThrowOnSet) {
       throw failureToThrow ?? const Failure.cache(message: '메시지 순서 변경 실패');
     }

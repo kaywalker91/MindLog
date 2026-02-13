@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'healing_color_schemes.dart';
+
 /// 앱 전체 테마 유틸리티
 class AppTheme {
   AppTheme._();
@@ -21,6 +23,17 @@ class AppTheme {
   static const Color darkSurface = Color(0xFF1E1E1E);
   static const Color darkCard = Color(0xFF2C2C2C);
   static const Color onDarkSurface = Color(0xFFFFFFFF);
+
+  // Cheer Me 모달 기본 팔레트 (1차 범위: 모달 한정)
+  static const HealingPaletteMode defaultHealingPaletteMode =
+      HealingPaletteMode.mutedTeal;
+
+  /// 힐링 모달 전용 팔레트 색상 반환
+  static ColorScheme healingColorScheme({
+    HealingPaletteMode mode = defaultHealingPaletteMode,
+  }) {
+    return HealingColorSchemes.resolve(mode);
+  }
 
   /// 라이트 테마
   static ThemeData get lightTheme {

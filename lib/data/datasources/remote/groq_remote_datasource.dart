@@ -229,26 +229,30 @@ class GroqRemoteDataSource {
         ),
       ];
 
-      final response = await _client.post(
-        Uri.parse(_baseUrl),
-        headers: {
-          'Authorization': 'Bearer $_apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': AppConstants.groqVisionModel,
-          'messages': [
-            {
-              'role': 'system',
-              'content': PromptConstants.systemInstructionForVision(character),
+      final response = await _client
+          .post(
+            Uri.parse(_baseUrl),
+            headers: {
+              'Authorization': 'Bearer $_apiKey',
+              'Content-Type': 'application/json',
             },
-            {'role': 'user', 'content': userContent},
-          ],
-          'temperature': 0.7,
-          'max_tokens': 1500, // Vision 분석은 토큰을 더 많이 사용
-          'response_format': {'type': 'json_object'},
-        }),
-      ).timeout(_httpTimeout);
+            body: jsonEncode({
+              'model': AppConstants.groqVisionModel,
+              'messages': [
+                {
+                  'role': 'system',
+                  'content': PromptConstants.systemInstructionForVision(
+                    character,
+                  ),
+                },
+                {'role': 'user', 'content': userContent},
+              ],
+              'temperature': 0.7,
+              'max_tokens': 1500, // Vision 분석은 토큰을 더 많이 사용
+              'response_format': {'type': 'json_object'},
+            }),
+          )
+          .timeout(_httpTimeout);
 
       if (response.statusCode != 200) {
         if (response.statusCode == 429) {
@@ -294,7 +298,9 @@ class GroqRemoteDataSource {
         throw ApiException(message: '응답 파싱 실패');
       }
     } catch (e) {
-      if (e is ApiException || e is NetworkException || e is RateLimitException) {
+      if (e is ApiException ||
+          e is NetworkException ||
+          e is RateLimitException) {
         rethrow;
       }
       throw ApiException(message: 'Groq Vision 분석 중 오류: $e');
@@ -323,26 +329,28 @@ class GroqRemoteDataSource {
         userName: userName,
       );
 
-      final response = await _client.post(
-        Uri.parse(_baseUrl),
-        headers: {
-          'Authorization': 'Bearer $_apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'model': AppConstants.groqModel,
-          'messages': [
-            {
-              'role': 'system',
-              'content': PromptConstants.systemInstructionFor(character),
+      final response = await _client
+          .post(
+            Uri.parse(_baseUrl),
+            headers: {
+              'Authorization': 'Bearer $_apiKey',
+              'Content-Type': 'application/json',
             },
-            {'role': 'user', 'content': prompt},
-          ],
-          'temperature': 0.7,
-          'max_tokens': 1024,
-          'response_format': {'type': 'json_object'},
-        }),
-      ).timeout(_httpTimeout);
+            body: jsonEncode({
+              'model': AppConstants.groqModel,
+              'messages': [
+                {
+                  'role': 'system',
+                  'content': PromptConstants.systemInstructionFor(character),
+                },
+                {'role': 'user', 'content': prompt},
+              ],
+              'temperature': 0.7,
+              'max_tokens': 1024,
+              'response_format': {'type': 'json_object'},
+            }),
+          )
+          .timeout(_httpTimeout);
 
       if (response.statusCode != 200) {
         // Rate Limit(429) 처리: Retry-After 헤더 파싱
@@ -407,7 +415,9 @@ class GroqRemoteDataSource {
         throw ApiException(message: '응답 파싱 실패');
       }
     } catch (e) {
-      if (e is ApiException || e is NetworkException || e is RateLimitException) {
+      if (e is ApiException ||
+          e is NetworkException ||
+          e is RateLimitException) {
         rethrow;
       }
       throw ApiException(message: 'Groq 분석 중 오류: $e');

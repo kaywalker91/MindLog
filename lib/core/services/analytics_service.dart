@@ -140,10 +140,7 @@ class AnalyticsService {
     if (scheduleMode != null) params['schedule_mode'] = scheduleMode;
     if (timezoneName != null) params['timezone'] = timezoneName;
 
-    await _instance()?.logEvent(
-      name: 'reminder_scheduled',
-      parameters: params,
-    );
+    await _instance()?.logEvent(name: 'reminder_scheduled', parameters: params);
     _debugLog('reminder_scheduled', {
       'hour': hour,
       'minute': minute,

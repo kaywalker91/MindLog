@@ -794,10 +794,7 @@ void main() {
       });
 
       test('API 키가 비어있으면 ApiException을 던져야 한다', () async {
-        final emptyKeyDataSource = GroqRemoteDataSource(
-          '',
-          client: mockClient,
-        );
+        final emptyKeyDataSource = GroqRemoteDataSource('', client: mockClient);
 
         await expectLater(
           emptyKeyDataSource.analyzeDiaryWithImages(

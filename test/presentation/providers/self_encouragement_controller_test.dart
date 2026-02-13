@@ -60,8 +60,9 @@ void main() {
         notificationSettingsProvider.overrideWith(() {
           return _FakeNotificationSettingsController(settings);
         }),
-        setNotificationSettingsUseCaseProvider
-            .overrideWithValue(mockSetUseCase),
+        setNotificationSettingsUseCaseProvider.overrideWithValue(
+          mockSetUseCase,
+        ),
       ],
     );
   }
@@ -88,8 +89,7 @@ void main() {
         container = createContainer();
 
         // Act
-        final messages =
-            await container.read(selfEncouragementProvider.future);
+        final messages = await container.read(selfEncouragementProvider.future);
 
         // Assert
         expect(messages.length, 2);
@@ -107,8 +107,7 @@ void main() {
         container = createContainer();
 
         // Act
-        final messages =
-            await container.read(selfEncouragementProvider.future);
+        final messages = await container.read(selfEncouragementProvider.future);
 
         // Assert
         expect(messages[0].id, 'm1');
@@ -121,8 +120,7 @@ void main() {
         container = createContainer();
 
         // Act
-        final messages =
-            await container.read(selfEncouragementProvider.future);
+        final messages = await container.read(selfEncouragementProvider.future);
 
         // Assert
         expect(messages, isEmpty);
@@ -191,9 +189,7 @@ void main() {
 
       test('최대 개수 초과 시 거부해야 한다', () async {
         // Arrange
-        for (var i = 0;
-            i < SelfEncouragementMessage.maxMessageCount;
-            i++) {
+        for (var i = 0; i < SelfEncouragementMessage.maxMessageCount; i++) {
           mockRepository.messages.add(
             _makeMessage('m$i', displayOrder: i, content: '메시지 $i'),
           );
@@ -450,8 +446,7 @@ void main() {
         expect(mockSetUseCase.savedSettings[0].lastDisplayedIndex, 1);
       });
 
-      test('삭제 위치가 lastDisplayedIndex와 같으면 1 감소 (wrap-around)해야 한다',
-          () async {
+      test('삭제 위치가 lastDisplayedIndex와 같으면 1 감소 (wrap-around)해야 한다', () async {
         // Arrange - 순차 모드, lastDisplayedIndex=1, 삭제 위치=1
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.sequential,
@@ -475,8 +470,7 @@ void main() {
         expect(mockSetUseCase.savedSettings[0].lastDisplayedIndex, 0);
       });
 
-      test('lastDisplayedIndex=0에서 첫 번째 삭제 시 wrap-around해야 한다',
-          () async {
+      test('lastDisplayedIndex=0에서 첫 번째 삭제 시 wrap-around해야 한다', () async {
         // Arrange - 순차 모드, lastDisplayedIndex=0, 삭제 위치=0
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.sequential,
@@ -506,9 +500,7 @@ void main() {
           rotationMode: MessageRotationMode.sequential,
           lastDisplayedIndex: 0,
         );
-        mockRepository.messages = [
-          _makeMessage('m1', displayOrder: 0),
-        ];
+        mockRepository.messages = [_makeMessage('m1', displayOrder: 0)];
         container = createContainer(notificationSettings: settings);
         await container.read(selfEncouragementProvider.future);
         final notifier = container.read(selfEncouragementProvider.notifier);
@@ -521,8 +513,7 @@ void main() {
         expect(mockSetUseCase.savedSettings, isEmpty);
       });
 
-      test('5개 중 중간(index 2) 삭제 시 lastDisplayedIndex=3이 2로 변경되어야 한다',
-          () async {
+      test('5개 중 중간(index 2) 삭제 시 lastDisplayedIndex=3이 2로 변경되어야 한다', () async {
         // Arrange
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.sequential,
@@ -711,15 +702,13 @@ void main() {
 
         // repository에서 에러 발생하도록 설정
         mockRepository.shouldThrowOnSet = true;
-        mockRepository.failureToThrow =
-            const Failure.cache(message: '메시지 추가 실패');
+        mockRepository.failureToThrow = const Failure.cache(
+          message: '메시지 추가 실패',
+        );
         final notifier = container.read(selfEncouragementProvider.notifier);
 
         // Act & Assert
-        expect(
-          () => notifier.addMessage('새 메시지'),
-          throwsA(isA<Failure>()),
-        );
+        expect(() => notifier.addMessage('새 메시지'), throwsA(isA<Failure>()));
       });
 
       test('deleteMessage 중 repository 에러 시 예외가 전파되어야 한다', () async {
@@ -732,15 +721,13 @@ void main() {
 
         // repository에서 에러 발생하도록 설정
         mockRepository.shouldThrowOnSet = true;
-        mockRepository.failureToThrow =
-            const Failure.cache(message: '메시지 삭제 실패');
+        mockRepository.failureToThrow = const Failure.cache(
+          message: '메시지 삭제 실패',
+        );
         final notifier = container.read(selfEncouragementProvider.notifier);
 
         // Act & Assert
-        expect(
-          () => notifier.deleteMessage('m1'),
-          throwsA(isA<Failure>()),
-        );
+        expect(() => notifier.deleteMessage('m1'), throwsA(isA<Failure>()));
       });
     });
   });

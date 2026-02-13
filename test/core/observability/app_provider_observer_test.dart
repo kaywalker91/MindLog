@@ -10,9 +10,7 @@ void main() {
     });
 
     test('didAddProvider should execute without error', () {
-      final container = ProviderContainer(
-        observers: [AppProviderObserver()],
-      );
+      final container = ProviderContainer(observers: [AppProviderObserver()]);
       addTearDown(container.dispose);
 
       final provider = StateProvider<int>((ref) => 0);
@@ -23,9 +21,7 @@ void main() {
     });
 
     test('didUpdateProvider should execute without error', () {
-      final container = ProviderContainer(
-        observers: [AppProviderObserver()],
-      );
+      final container = ProviderContainer(observers: [AppProviderObserver()]);
       addTearDown(container.dispose);
 
       final provider = StateProvider<int>((ref) => 0);
@@ -36,9 +32,7 @@ void main() {
     });
 
     test('didDisposeProvider should execute without error', () {
-      final container = ProviderContainer(
-        observers: [AppProviderObserver()],
-      );
+      final container = ProviderContainer(observers: [AppProviderObserver()]);
 
       final provider = StateProvider<int>((ref) => 0);
       container.read(provider);
@@ -48,9 +42,7 @@ void main() {
     });
 
     test('providerDidFail should execute without error', () {
-      final container = ProviderContainer(
-        observers: [AppProviderObserver()],
-      );
+      final container = ProviderContainer(observers: [AppProviderObserver()]);
       addTearDown(container.dispose);
 
       final failingProvider = Provider<int>((ref) {
@@ -58,10 +50,7 @@ void main() {
       });
 
       // Reading triggers providerDidFail callback
-      expect(
-        () => container.read(failingProvider),
-        throwsA(isA<StateError>()),
-      );
+      expect(() => container.read(failingProvider), throwsA(isA<StateError>()));
     });
 
     test('assert blocks should call debugPrint in debug mode', () {
@@ -71,9 +60,7 @@ void main() {
         if (message != null) logs.add(message);
       };
 
-      final container = ProviderContainer(
-        observers: [AppProviderObserver()],
-      );
+      final container = ProviderContainer(observers: [AppProviderObserver()]);
 
       final provider = StateProvider<int>((ref) => 0);
       // didAddProvider → debugPrint

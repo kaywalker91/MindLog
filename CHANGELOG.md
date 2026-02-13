@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.43] - 2026-02-13
+
+### Added
+- **Healing Color Schemes 시스템**:
+  - `healing_color_schemes.dart` 신규 추가: `mutedTeal`, `pastelComfort` 2종 힐링 테마
+  - `cheer_me_section_palette.dart` 신규 추가: Cheer Me 추천 영역 전용 팔레트 (13개 색상 역할 정의)
+  - Light/Dark 모드 대응 완료
+  - Material 3 ColorScheme 기반 설계
+- **Cheer Me 프리셋 템플릿**:
+  - 5개 카테고리 추가 (아침 다짐, 자기 위로, 감사 확인, 성장 인정, 과거의 나에게)
+  - 각 카테고리당 4개 프리셋 메시지 (총 20개)
+  - 가로 스크롤 카테고리 칩 UI
+  - 선택 시 자동 입력 필드 채우기
+  - 햅틱 피드백 및 애니메이션 전환
+- **접근성 문서화**:
+  - `CHEER_ME_SECTION_ACCESSIBILITY_CHECKLIST.md` 추가
+  - WCAG 대비 요구사항 (4.5:1) 체크리스트
+  - 뷰포트/텍스트 스케일 호환성 가이드
+- **포트폴리오 문서**:
+  - `PORTFOLIO.md` (한글), `PORTFOLIO_EN.md` (영문) 추가
+  - 프로젝트 개요, 주요 기능, 아키텍처, 개발 하이라이트
+
+### Changed
+- **app_theme.dart**:
+  - `healingColorScheme()` 메서드 추가 (Cheer Me 모달 전용 팔레트 반환)
+  - `defaultHealingPaletteMode` 상수 추가 (`HealingPaletteMode.mutedTeal`)
+- **message_input_dialog.dart** (대규모 리팩토링):
+  - 프리셋 템플릿 UI 추가 (카테고리 칩 + 추천 카드)
+  - Theme 통합: Light 모드에서 healing color scheme 자동 적용
+  - 수정 모드에서는 프리셋 숨김 (입력 필드만 표시)
+  - 스크롤 가능 영역 + 고정 버튼 레이아웃
+
+### Added (Tests)
+- `app_theme_test.dart`: Healing color scheme 메서드 검증 (+24줄)
+- `cheer_me_section_palette_test.dart`: 팔레트 색상 무결성 테스트 (신규)
+- `healing_color_schemes_test.dart`: ColorScheme 완전성 검증 (신규)
+- `message_input_dialog_test.dart`: 프리셋 템플릿 위젯 테스트 (신규)
+
+### Technical Details
+- **Color System Architecture**:
+  - 3-tier palette: Base theme → Healing schemes → Section palette
+  - Context-aware theme switching (modal-scoped)
+  - Material 3 semantic color roles 준수
+- **UX Patterns**:
+  - Chip selection: background + 1dp border + 6px blur shadow (alpha 0.10)
+  - State differentiation: color + weight + shadow
+  - Minimum touch target: 48dp (accessibility compliance)
+
+---
+
 ## [1.4.42] - 2026-02-11
 
 ### Fixed

@@ -206,7 +206,8 @@ void main() {
 
     group('resetForTesting', () {
       test('collectOverride를 null로 리셋해야 한다', () {
-        NotificationDiagnosticService.collectOverride = () async => _createData();
+        NotificationDiagnosticService.collectOverride = () async =>
+            _createData();
         NotificationDiagnosticService.resetForTesting();
 
         // resetForTesting 후 collectOverride는 null이므로

@@ -111,7 +111,9 @@ class ModeTrailing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textColor = enabled ? colorScheme.onSurfaceVariant : colorScheme.outline;
+    final textColor = enabled
+        ? colorScheme.onSurfaceVariant
+        : colorScheme.outline;
 
     return Row(
       mainAxisSize: MainAxisSize.min,

@@ -55,8 +55,9 @@ void main() {
       test('Prefs와 DB 모두 null이면 세션을 초기화하고 false를 반환한다', () async {
         SharedPreferences.setMockInitialValues({});
 
-        final result =
-            await DbRecoveryService.checkAndRecoverIfNeeded(mockDataSource);
+        final result = await DbRecoveryService.checkAndRecoverIfNeeded(
+          mockDataSource,
+        );
 
         expect(result, isFalse);
         // 세션 ID가 Prefs에 저장됨
@@ -90,8 +91,9 @@ void main() {
         });
         // DB에는 메타데이터 없음 (복원된 빈 DB)
 
-        final result =
-            await DbRecoveryService.checkAndRecoverIfNeeded(mockDataSource);
+        final result = await DbRecoveryService.checkAndRecoverIfNeeded(
+          mockDataSource,
+        );
 
         expect(result, isTrue);
       });
@@ -123,8 +125,9 @@ void main() {
         SharedPreferences.setMockInitialValues({});
         mockDataSource.putMetadata('db_session_id', 'old_db_session_id');
 
-        final result =
-            await DbRecoveryService.checkAndRecoverIfNeeded(mockDataSource);
+        final result = await DbRecoveryService.checkAndRecoverIfNeeded(
+          mockDataSource,
+        );
 
         expect(result, isTrue);
       });
@@ -156,8 +159,9 @@ void main() {
         });
         mockDataSource.putMetadata('db_session_id', 'db_session_xyz');
 
-        final result =
-            await DbRecoveryService.checkAndRecoverIfNeeded(mockDataSource);
+        final result = await DbRecoveryService.checkAndRecoverIfNeeded(
+          mockDataSource,
+        );
 
         expect(result, isTrue);
       });
@@ -186,22 +190,19 @@ void main() {
     group('케이스 5: 정상 동작', () {
       test('Prefs와 DB의 세션 ID가 같으면 false를 반환한다', () async {
         const sessionId = 'matching_session_id_12345678';
-        SharedPreferences.setMockInitialValues({
-          'db_session_id': sessionId,
-        });
+        SharedPreferences.setMockInitialValues({'db_session_id': sessionId});
         mockDataSource.putMetadata('db_session_id', sessionId);
 
-        final result =
-            await DbRecoveryService.checkAndRecoverIfNeeded(mockDataSource);
+        final result = await DbRecoveryService.checkAndRecoverIfNeeded(
+          mockDataSource,
+        );
 
         expect(result, isFalse);
       });
 
       test('정상 시 세션 ID를 변경하지 않는다', () async {
         const sessionId = 'matching_session_id_12345678';
-        SharedPreferences.setMockInitialValues({
-          'db_session_id': sessionId,
-        });
+        SharedPreferences.setMockInitialValues({'db_session_id': sessionId});
         mockDataSource.putMetadata('db_session_id', sessionId);
 
         await DbRecoveryService.checkAndRecoverIfNeeded(mockDataSource);
@@ -229,8 +230,9 @@ void main() {
         final firstCallCount = mockDataSource.getMetadataCallCount;
 
         // 두 번째 호출 - _checked가 true이므로 즉시 false
-        final result =
-            await DbRecoveryService.checkAndRecoverIfNeeded(mockDataSource);
+        final result = await DbRecoveryService.checkAndRecoverIfNeeded(
+          mockDataSource,
+        );
 
         expect(result, isFalse);
         // getMetadata 추가 호출 없음
@@ -260,8 +262,9 @@ void main() {
         SharedPreferences.setMockInitialValues({});
         mockDataSource.shouldThrowOnGet = true;
 
-        final result =
-            await DbRecoveryService.checkAndRecoverIfNeeded(mockDataSource);
+        final result = await DbRecoveryService.checkAndRecoverIfNeeded(
+          mockDataSource,
+        );
 
         expect(result, isFalse);
       });
@@ -270,8 +273,9 @@ void main() {
         SharedPreferences.setMockInitialValues({});
         mockDataSource.shouldThrowOnSet = true;
 
-        final result =
-            await DbRecoveryService.checkAndRecoverIfNeeded(mockDataSource);
+        final result = await DbRecoveryService.checkAndRecoverIfNeeded(
+          mockDataSource,
+        );
 
         // 신규 설치 경로 → setMetadata 에러 → catch → false
         expect(result, isFalse);

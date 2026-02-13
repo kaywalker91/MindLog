@@ -266,8 +266,7 @@ void main() {
         return c;
       }
 
-      test('setUserName 후 rescheduleWithMessages가 트리거되어야 한다',
-          () async {
+      test('setUserName 후 rescheduleWithMessages가 트리거되어야 한다', () async {
         final messages = [_makeMessage('m1', content: '{name}님, 힘내세요!')];
         rescheduleContainer = createRescheduleContainer(messages: messages);
 
@@ -276,8 +275,7 @@ void main() {
         await rescheduleContainer.read(selfEncouragementProvider.future);
 
         // Act
-        final notifier =
-            rescheduleContainer.read(userNameProvider.notifier);
+        final notifier = rescheduleContainer.read(userNameProvider.notifier);
         await notifier.setUserName('지수');
 
         // Assert
@@ -290,16 +288,14 @@ void main() {
       });
 
       test('메시지 없을 때 reschedule을 건너뛰어야 한다', () async {
-        rescheduleContainer =
-            createRescheduleContainer(messages: []);
+        rescheduleContainer = createRescheduleContainer(messages: []);
 
         // 초기화
         await rescheduleContainer.read(userNameProvider.future);
         await rescheduleContainer.read(selfEncouragementProvider.future);
 
         // Act
-        final notifier =
-            rescheduleContainer.read(userNameProvider.notifier);
+        final notifier = rescheduleContainer.read(userNameProvider.notifier);
         await notifier.setUserName('지수');
 
         // Assert
@@ -316,8 +312,7 @@ void main() {
         await rescheduleContainer.read(selfEncouragementProvider.future);
 
         // Act
-        final notifier =
-            rescheduleContainer.read(userNameProvider.notifier);
+        final notifier = rescheduleContainer.read(userNameProvider.notifier);
         await notifier.setUserName('지수');
 
         // Assert — 이름은 정상 저장됨
@@ -337,8 +332,7 @@ void main() {
         await rescheduleContainer.read(selfEncouragementProvider.future);
 
         // Act
-        final notifier =
-            rescheduleContainer.read(userNameProvider.notifier);
+        final notifier = rescheduleContainer.read(userNameProvider.notifier);
         await notifier.setUserName(null);
 
         // Assert

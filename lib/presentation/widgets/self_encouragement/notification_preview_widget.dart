@@ -60,10 +60,7 @@ class NotificationPreviewWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Center(
-                  child: Text(
-                    '📔',
-                    style: TextStyle(fontSize: 20),
-                  ),
+                  child: Text('📔', style: TextStyle(fontSize: 20)),
                 ),
               ),
               const SizedBox(width: 12),

@@ -51,10 +51,7 @@ void main() {
 
       // Assert - serverTitle/serverBody 우선 사용
       expect(result.title, '마음케어 알림');
-      expect(
-        result.body,
-        '오늘 하루는 어떠셨나요? 잠시 마음을 돌아보는 시간을 가져보세요.',
-      );
+      expect(result.body, '오늘 하루는 어떠셨나요? 잠시 마음을 돌아보는 시간을 가져보세요.');
     });
 
     test('backward-compatible: notification 필드 fallback이 동작해야 한다', () async {
@@ -69,9 +66,10 @@ void main() {
 
       // Act
       final result = await FCMService.buildPersonalizedMessage(
-        serverTitle: message.data['title'] as String? ??
-            message.notification?.title,
-        serverBody: message.data['body'] as String? ?? message.notification?.body,
+        serverTitle:
+            message.data['title'] as String? ?? message.notification?.title,
+        serverBody:
+            message.data['body'] as String? ?? message.notification?.body,
       );
 
       // Assert - notification 필드로 fallback
@@ -82,21 +80,16 @@ void main() {
     test('data와 notification 모두 있으면 data를 우선해야 한다', () async {
       // Arrange
       const message = RemoteMessage(
-        notification: RemoteNotification(
-          title: 'Old Title',
-          body: 'Old Body',
-        ),
-        data: {
-          'title': 'New Title',
-          'body': 'New Body',
-        },
+        notification: RemoteNotification(title: 'Old Title', body: 'Old Body'),
+        data: {'title': 'New Title', 'body': 'New Body'},
       );
 
       // Act
       final result = await FCMService.buildPersonalizedMessage(
-        serverTitle: message.data['title'] as String? ??
-            message.notification?.title,
-        serverBody: message.data['body'] as String? ?? message.notification?.body,
+        serverTitle:
+            message.data['title'] as String? ?? message.notification?.title,
+        serverBody:
+            message.data['body'] as String? ?? message.notification?.body,
       );
 
       // Assert - data 필드 우선
@@ -106,59 +99,62 @@ void main() {
   });
 
   group('Empty Message 3-Layer Defense', () {
-    test('Layer 1: buildPersonalizedMessage가 빈 서버 메시지를 fallback 해야 한다', () async {
-      // Arrange
-      FCMService.emotionScoreProvider = () async => null;
+    test(
+      'Layer 1: buildPersonalizedMessage가 빈 서버 메시지를 fallback 해야 한다',
+      () async {
+        // Arrange
+        FCMService.emotionScoreProvider = () async => null;
 
-      // Act
-      final result = await FCMService.buildPersonalizedMessage(
-        serverTitle: '',
-        serverBody: '',
-      );
+        // Act
+        final result = await FCMService.buildPersonalizedMessage(
+          serverTitle: '',
+          serverBody: '',
+        );
 
-      // Assert - 빈 문자열이 아닌 실제 메시지
-      expect(result.title, 'MindLog');
-      expect(result.body, isNotEmpty);
-      expect(result.body, isNot(''));
-      // fallback은 랜덤 메시지 중 하나
-      expect(
-        NotificationMessages.mindcareBodies.contains(result.body),
-        true,
-      );
-    });
+        // Assert - 빈 문자열이 아닌 실제 메시지
+        expect(result.title, 'MindLog');
+        expect(result.body, isNotEmpty);
+        expect(result.body, isNot(''));
+        // fallback은 랜덤 메시지 중 하나
+        expect(NotificationMessages.mindcareBodies.contains(result.body), true);
+      },
+    );
 
-    test('Layer 2: buildPersonalizedMessage가 null 서버 메시지를 fallback 해야 한다', () async {
-      // Arrange
-      FCMService.emotionScoreProvider = () async => null;
+    test(
+      'Layer 2: buildPersonalizedMessage가 null 서버 메시지를 fallback 해야 한다',
+      () async {
+        // Arrange
+        FCMService.emotionScoreProvider = () async => null;
 
-      // Act
-      final result = await FCMService.buildPersonalizedMessage(
-        serverTitle: null,
-        serverBody: null,
-      );
+        // Act
+        final result = await FCMService.buildPersonalizedMessage(
+          serverTitle: null,
+          serverBody: null,
+        );
 
-      // Assert
-      expect(result.title, 'MindLog');
-      expect(result.body, isNotEmpty);
-      expect(
-        NotificationMessages.mindcareBodies.contains(result.body),
-        true,
-      );
-    });
+        // Assert
+        expect(result.title, 'MindLog');
+        expect(result.body, isNotEmpty);
+        expect(NotificationMessages.mindcareBodies.contains(result.body), true);
+      },
+    );
 
-    test('Layer 3: NotificationService.showNotification은 소스 레벨에서 빈 메시지를 guard 한다 (문서화 검증)', () {
-      // Assert - 소스 코드에 guard 로직이 있음을 검증
-      // showNotification 메서드는 title.isNotEmpty와 body.isNotEmpty를 체크
-      // 실제 구현 (notification_service.dart:100-104):
-      //   final safeTitle = title.isNotEmpty ? title : 'MindLog';
-      //   final safeBody = body.isNotEmpty
-      //       ? body
-      //       : NotificationMessages.getRandomMindcareBody();
+    test(
+      'Layer 3: NotificationService.showNotification은 소스 레벨에서 빈 메시지를 guard 한다 (문서화 검증)',
+      () {
+        // Assert - 소스 코드에 guard 로직이 있음을 검증
+        // showNotification 메서드는 title.isNotEmpty와 body.isNotEmpty를 체크
+        // 실제 구현 (notification_service.dart:100-104):
+        //   final safeTitle = title.isNotEmpty ? title : 'MindLog';
+        //   final safeBody = body.isNotEmpty
+        //       ? body
+        //       : NotificationMessages.getRandomMindcareBody();
 
-      // 상수 검증: 빈 문자열 방어가 있어야 함
-      expect(NotificationMessages.mindcareBodies, isNotEmpty);
-      expect(NotificationMessages.mindcareBodies.length, greaterThan(0));
-    });
+        // 상수 검증: 빈 문자열 방어가 있어야 함
+        expect(NotificationMessages.mindcareBodies, isNotEmpty);
+        expect(NotificationMessages.mindcareBodies.length, greaterThan(0));
+      },
+    );
   });
 
   group('Fixed Notification ID (2001) Deduplication', () {
@@ -255,10 +251,7 @@ void main() {
   group('Notification Payload Routing', () {
     test('payload는 JSON 문자열로 인코딩되어 전달되어야 한다', () {
       // Arrange
-      final messageData = {
-        'type': 'mindcare',
-        'extra_key': 'extra_value',
-      };
+      final messageData = {'type': 'mindcare', 'extra_key': 'extra_value'};
 
       // Act
       final encodedPayload = jsonEncode(messageData);
@@ -286,11 +279,7 @@ void main() {
 
       // FCM 메시지 수신 시뮬레이션
       const message = RemoteMessage(
-        data: {
-          'title': '마음케어',
-          'body': '오늘 하루는 어떠셨나요?',
-          'type': 'mindcare',
-        },
+        data: {'title': '마음케어', 'body': '오늘 하루는 어떠셨나요?', 'type': 'mindcare'},
       );
 
       // Act - 메시지 처리 플로우
@@ -316,11 +305,7 @@ void main() {
 
       // FCM 메시지 수신 시뮬레이션
       const message = RemoteMessage(
-        data: {
-          'title': '마음케어',
-          'body': '오늘 하루는 어떠셨나요?',
-          'type': 'mindcare',
-        },
+        data: {'title': '마음케어', 'body': '오늘 하루는 어떠셨나요?', 'type': 'mindcare'},
       );
 
       // Act - 메시지 처리 플로우
@@ -346,11 +331,7 @@ void main() {
       // Act - 3개의 연속 메시지 처리
       for (var i = 0; i < 3; i++) {
         final message = RemoteMessage(
-          data: {
-            'title': 'Message $i',
-            'body': 'Body $i',
-            'type': 'mindcare',
-          },
+          data: {'title': 'Message $i', 'body': 'Body $i', 'type': 'mindcare'},
         );
 
         final personalized = await FCMService.buildPersonalizedMessage(
@@ -367,10 +348,7 @@ void main() {
 
       // Assert - 모두 동일 ID 사용 (실제 디바이스에서 덮어쓰기 동작)
       expect(processedMessages.length, 3);
-      expect(
-        processedMessages.every((m) => m['id'] == 2001),
-        true,
-      );
+      expect(processedMessages.every((m) => m['id'] == 2001), true);
     });
 
     test('빈 메시지로 시작해도 3-layer defense로 알림이 준비되어야 한다', () async {
@@ -434,11 +412,7 @@ void main() {
     test('패턴 1: Data-only payload 사용', () {
       // Arrange - 서버에서 보낸 payload 구조
       final payload = {
-        'data': {
-          'title': 'Test',
-          'body': 'Test',
-          'type': 'mindcare',
-        },
+        'data': {'title': 'Test', 'body': 'Test', 'type': 'mindcare'},
         // notification 필드 없음
       };
 
@@ -469,16 +443,20 @@ void main() {
 
       // Act
       final newResult = await FCMService.buildPersonalizedMessage(
-        serverTitle: newServerMessage.data['title'] as String? ??
+        serverTitle:
+            newServerMessage.data['title'] as String? ??
             newServerMessage.notification?.title,
-        serverBody: newServerMessage.data['body'] as String? ??
+        serverBody:
+            newServerMessage.data['body'] as String? ??
             newServerMessage.notification?.body,
       );
 
       final oldResult = await FCMService.buildPersonalizedMessage(
-        serverTitle: oldServerMessage.data['title'] as String? ??
+        serverTitle:
+            oldServerMessage.data['title'] as String? ??
             oldServerMessage.notification?.title,
-        serverBody: oldServerMessage.data['body'] as String? ??
+        serverBody:
+            oldServerMessage.data['body'] as String? ??
             oldServerMessage.notification?.body,
       );
 
@@ -495,10 +473,7 @@ void main() {
         'apns': {
           'payload': {
             'aps': {
-              'alert': {
-                'title': 'iOS Title',
-                'body': 'iOS Body',
-              },
+              'alert': {'title': 'iOS Title', 'body': 'iOS Body'},
             },
           },
         },

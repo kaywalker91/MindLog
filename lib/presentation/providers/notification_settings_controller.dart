@@ -61,8 +61,7 @@ class NotificationSettingsController
 
     // 안전망: 설정은 저장됨, 스케줄링 실패 시 크래시 방지
     try {
-      final messages =
-          ref.read(selfEncouragementProvider).valueOrNull ?? [];
+      final messages = ref.read(selfEncouragementProvider).valueOrNull ?? [];
       final userName = ref.read(userNameProvider).valueOrNull;
       final recentScore = ref.read(todayEmotionProvider).sentimentScore;
       // TODO: Consider wrapping NotificationSettingsService.applySettings in UseCase

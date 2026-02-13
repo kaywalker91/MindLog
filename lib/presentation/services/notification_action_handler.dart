@@ -5,7 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../providers/ui_state_providers.dart';
 import '../router/app_router.dart';
 
-enum _NotificationDestination { diaryList, newDiary, statistics, settings, selfEncouragement }
+enum _NotificationDestination {
+  diaryList,
+  newDiary,
+  statistics,
+  settings,
+  selfEncouragement,
+}
 
 class NotificationActionHandler {
   NotificationActionHandler._();

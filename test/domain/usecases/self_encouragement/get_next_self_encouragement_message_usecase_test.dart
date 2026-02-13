@@ -28,8 +28,10 @@ void main() {
   setUp(() {
     mockRepository = MockSettingsRepositoryWithMessages();
     mockRandom = MockRandom();
-    useCase =
-        GetNextSelfEncouragementMessageUseCase(mockRepository, mockRandom);
+    useCase = GetNextSelfEncouragementMessageUseCase(
+      mockRepository,
+      mockRandom,
+    );
   });
 
   List<SelfEncouragementMessage> createMessages(int count) {

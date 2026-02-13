@@ -119,9 +119,7 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
   ///
   /// 1. 인지 패턴 감지 시 → 다음 날 오전 CBT 알림
   /// 2. 감정 트렌드 분석 → 트렌드 알림
-  Future<void> _triggerPostAnalysisNotifications(
-    AnalysisResult result,
-  ) async {
+  Future<void> _triggerPostAnalysisNotifications(AnalysisResult result) async {
     try {
       // 1. 인지 패턴 CBT 알림 (cognitivePattern이 있을 때만)
       if (result.cognitivePattern != null) {
@@ -148,16 +146,12 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
         }
       } catch (e) {
         if (kDebugMode) {
-          debugPrint(
-            '[DiaryAnalysis] Emotion trend analysis failed: $e',
-          );
+          debugPrint('[DiaryAnalysis] Emotion trend analysis failed: $e');
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        debugPrint(
-          '[DiaryAnalysis] Post-analysis notification failed: $e',
-        );
+        debugPrint('[DiaryAnalysis] Post-analysis notification failed: $e');
       }
     }
   }

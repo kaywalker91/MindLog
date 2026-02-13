@@ -78,14 +78,14 @@ class _DayCellState extends State<DayCell> {
       border: widget.isToday
           ? Border.all(color: AppColors.statsPrimary, width: 2)
           : hasRecord && widget.isCurrentMonth && !widget.isFuture
-              ? Border.all(
-                  color: AppColors.statsAccentMint.withValues(alpha: 0.4),
-                  width: 0.8,
-                )
-              : Border.all(
-                  color: AppColors.gardenSoilBorder.withValues(alpha: opacity),
-                  width: 0.6,
-                ),
+          ? Border.all(
+              color: AppColors.statsAccentMint.withValues(alpha: 0.4),
+              width: 0.8,
+            )
+          : Border.all(
+              color: AppColors.gardenSoilBorder.withValues(alpha: opacity),
+              width: 0.6,
+            ),
       // 기록 있는 셀에 Glow 효과
       boxShadow: hasRecord && widget.isCurrentMonth && !widget.isFuture
           ? [
@@ -96,14 +96,14 @@ class _DayCellState extends State<DayCell> {
               ),
             ]
           : isTodayNoRecord
-              ? [
-                  BoxShadow(
-                    color: AppColors.todayGlow.withValues(alpha: 0.4),
-                    blurRadius: 6,
-                    spreadRadius: 0,
-                  ),
-                ]
-              : null,
+          ? [
+              BoxShadow(
+                color: AppColors.todayGlow.withValues(alpha: 0.4),
+                blurRadius: 6,
+                spreadRadius: 0,
+              ),
+            ]
+          : null,
     );
 
     final Widget content = Container(
@@ -122,8 +122,9 @@ class _DayCellState extends State<DayCell> {
                 style: TextStyle(
                   color: _getDateTextColor().withValues(alpha: textOpacity),
                   fontSize: widget.dateFontSize,
-                  fontWeight:
-                      widget.isToday ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: widget.isToday
+                      ? FontWeight.bold
+                      : FontWeight.normal,
                 ),
               ),
               if (hasRecord && widget.isCurrentMonth && !widget.isFuture) ...[
@@ -162,10 +163,9 @@ class _DayCellState extends State<DayCell> {
               ? null
               : _handleTapUp, // scale 복귀 후 onTap 호출은 _handleTapUp 내부에서 처리하거나, 별도로 Future.delayed 사용 가능하나 여기서는 단순화
           onTapCancel: reduceMotion ? null : _handleTapCancel,
-          onTap:
-              reduceMotion && widget.onTap != null
-                  ? () => widget.onTap!(widget.date)
-                  : null, // reduceMotion일 때만 여기서 호출, 애니메이션시는 onTapUp에서 처리
+          onTap: reduceMotion && widget.onTap != null
+              ? () => widget.onTap!(widget.date)
+              : null, // reduceMotion일 때만 여기서 호출, 애니메이션시는 onTapUp에서 처리
           child: animatedCell,
         ),
       );

@@ -160,11 +160,7 @@ void main() {
           averageScore: 5.0,
           diaryCount: 1,
         ),
-        DailyEmotion(
-          date: now,
-          averageScore: 4.0,
-          diaryCount: 1,
-        ),
+        DailyEmotion(date: now, averageScore: 4.0, diaryCount: 1),
       ];
 
       // Act
@@ -367,11 +363,7 @@ void main() {
           averageScore: 5.0,
           diaryCount: 1,
         ),
-        DailyEmotion(
-          date: now,
-          averageScore: 6.5,
-          diaryCount: 1,
-        ),
+        DailyEmotion(date: now, averageScore: 6.5, diaryCount: 1),
       ];
 
       // Act
@@ -406,11 +398,7 @@ void main() {
           averageScore: 6.0,
           diaryCount: 1,
         ),
-        DailyEmotion(
-          date: now,
-          averageScore: 7.5,
-          diaryCount: 1,
-        ),
+        DailyEmotion(date: now, averageScore: 7.5, diaryCount: 1),
       ];
 
       // Act
@@ -440,11 +428,7 @@ void main() {
           averageScore: 6.0,
           diaryCount: 1,
         ),
-        DailyEmotion(
-          date: now,
-          averageScore: 7.0,
-          diaryCount: 1,
-        ),
+        DailyEmotion(date: now, averageScore: 7.0, diaryCount: 1),
       ];
 
       // Act
@@ -470,11 +454,7 @@ void main() {
           averageScore: 5.0,
           diaryCount: 1,
         ),
-        DailyEmotion(
-          date: now,
-          averageScore: 4.0,
-          diaryCount: 1,
-        ),
+        DailyEmotion(date: now, averageScore: 4.0, diaryCount: 1),
       ];
 
       // Act
@@ -504,11 +484,7 @@ void main() {
           averageScore: 6.0,
           diaryCount: 1,
         ),
-        DailyEmotion(
-          date: now,
-          averageScore: 4.0,
-          diaryCount: 1,
-        ),
+        DailyEmotion(date: now, averageScore: 4.0, diaryCount: 1),
       ];
 
       // Act
@@ -591,11 +567,7 @@ void main() {
           averageScore: 8.0,
           diaryCount: 1,
         ),
-        DailyEmotion(
-          date: now,
-          averageScore: 6.0,
-          diaryCount: 1,
-        ),
+        DailyEmotion(date: now, averageScore: 6.0, diaryCount: 1),
       ];
 
       // Act
@@ -750,11 +722,7 @@ void main() {
           averageScore: 5.0,
           diaryCount: 1,
         ),
-        DailyEmotion(
-          date: now,
-          averageScore: 6.0,
-          diaryCount: 1,
-        ),
+        DailyEmotion(date: now, averageScore: 6.0, diaryCount: 1),
       ];
 
       // Act
@@ -783,11 +751,7 @@ void main() {
           averageScore: 6.2,
           diaryCount: 1,
         ),
-        DailyEmotion(
-          date: now,
-          averageScore: 6.1,
-          diaryCount: 1,
-        ),
+        DailyEmotion(date: now, averageScore: 6.1, diaryCount: 1),
       ];
 
       // Act
@@ -848,11 +812,7 @@ void main() {
 
       // 최신순 (내림차순)
       final entries = [
-        DailyEmotion(
-          date: now,
-          averageScore: 4.0,
-          diaryCount: 1,
-        ),
+        DailyEmotion(date: now, averageScore: 4.0, diaryCount: 1),
         DailyEmotion(
           date: now.subtract(const Duration(days: 1)),
           averageScore: 6.0,
@@ -891,11 +851,7 @@ void main() {
           averageScore: 8.0,
           diaryCount: 1,
         ),
-        DailyEmotion(
-          date: now,
-          averageScore: 4.0,
-          diaryCount: 1,
-        ),
+        DailyEmotion(date: now, averageScore: 4.0, diaryCount: 1),
       ];
 
       // Act
@@ -1014,10 +970,7 @@ void main() {
 
     test('다른 trend를 가진 결과는 다르다', () {
       // Arrange
-      const result1 = EmotionTrendResult(
-        trend: EmotionTrend.gap,
-        metadata: {},
-      );
+      const result1 = EmotionTrendResult(trend: EmotionTrend.gap, metadata: {});
       const result2 = EmotionTrendResult(
         trend: EmotionTrend.steady,
         metadata: {},

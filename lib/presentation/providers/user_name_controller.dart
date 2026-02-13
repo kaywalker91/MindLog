@@ -23,8 +23,7 @@ class UserNameController extends AsyncNotifier<String?> {
 
     // 이름 변경 → 알림 재스케줄링 (개인화 반영)
     try {
-      final messages =
-          ref.read(selfEncouragementProvider).valueOrNull ?? [];
+      final messages = ref.read(selfEncouragementProvider).valueOrNull ?? [];
       if (messages.isNotEmpty) {
         await ref
             .read(notificationSettingsProvider.notifier)

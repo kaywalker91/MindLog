@@ -41,7 +41,8 @@ class NotificationSettingsService {
     String? body,
     String? payload,
     AndroidScheduleMode? scheduleMode,
-  })? scheduleDailyReminderOverride;
+  })?
+  scheduleDailyReminderOverride;
 
   /// NotificationService.cancelDailyReminder() 대체
   @visibleForTesting
@@ -58,7 +59,7 @@ class NotificationSettingsService {
   /// NotificationService.scheduleWeeklyInsight() 대체
   @visibleForTesting
   static Future<bool> Function({required bool enabled})?
-      scheduleWeeklyInsightOverride;
+  scheduleWeeklyInsightOverride;
 
   /// AnalyticsService 호출 기록 (검증용)
   /// WARNING: Setting this to non-null disables production analytics/crashlytics
@@ -82,8 +83,14 @@ class NotificationSettingsService {
   /// 권한 상태 확인 (platform channel 실패 시 안전한 기본값 사용)
   ///
   /// Returns: (notificationsEnabled, canScheduleExact, isIgnoringBattery)
-  static Future<({bool? notificationsEnabled, bool? canScheduleExact, bool isIgnoringBattery})>
-      _checkPermissions() async {
+  static Future<
+    ({
+      bool? notificationsEnabled,
+      bool? canScheduleExact,
+      bool isIgnoringBattery,
+    })
+  >
+  _checkPermissions() async {
     bool? notificationsEnabled;
     bool? canScheduleExact;
     bool isIgnoringBattery = false;
@@ -96,13 +103,10 @@ class NotificationSettingsService {
           : await NotificationService.canScheduleExactAlarms();
       isIgnoringBattery = isIgnoringBatteryOverride != null
           ? await isIgnoringBatteryOverride!()
-          : await NotificationPermissionService
-              .isIgnoringBatteryOptimizations();
+          : await NotificationPermissionService.isIgnoringBatteryOptimizations();
     } catch (e, stackTrace) {
       if (kDebugMode) {
-        debugPrint(
-          '[NotificationSettings] Permission check failed: $e',
-        );
+        debugPrint('[NotificationSettings] Permission check failed: $e');
       }
       if (analyticsLog == null) {
         await CrashlyticsService.recordError(
@@ -199,8 +203,10 @@ class NotificationSettingsService {
       if (selectedMessage != null) {
         // 순차 모드에서 다음 인덱스 계산
         if (settings.rotationMode == MessageRotationMode.sequential) {
-          nextIndex =
-              NotificationSettings.nextIndex(settings.lastDisplayedIndex, messages.length);
+          nextIndex = NotificationSettings.nextIndex(
+            settings.lastDisplayedIndex,
+            messages.length,
+          );
         }
       }
 
@@ -285,7 +291,9 @@ class NotificationSettingsService {
       // 이름 개인화 적용
       final personalizedBody = selectedMessage?.content != null
           ? NotificationMessages.applyNamePersonalization(
-              selectedMessage!.content, userName)
+              selectedMessage!.content,
+              userName,
+            )
           : null;
 
       // 알림 제목 개인화 (Cheer Me 전용 제목 템플릿 사용)
@@ -310,8 +318,7 @@ class NotificationSettingsService {
               scheduleMode: scheduleMode,
             );
 
-      final scheduleModeLabel =
-          canScheduleExact == true ? 'exact' : 'inexact';
+      final scheduleModeLabel = canScheduleExact == true ? 'exact' : 'inexact';
 
       if (success) {
         if (analyticsLog != null) {
@@ -392,10 +399,7 @@ class NotificationSettingsService {
       }
 
       if (analyticsLog != null) {
-        analyticsLog!.add({
-          'event': 'reminder_cancelled',
-          'source': source,
-        });
+        analyticsLog!.add({'event': 'reminder_cancelled', 'source': source});
       } else {
         await AnalyticsService.logReminderCancelled(source: source);
       }
@@ -473,8 +477,10 @@ class NotificationSettingsService {
       case MessageRotationMode.random:
         return messages[Random().nextInt(messages.length)];
       case MessageRotationMode.sequential:
-        final index =
-            NotificationSettings.currentIndex(settings.lastDisplayedIndex, messages.length);
+        final index = NotificationSettings.currentIndex(
+          settings.lastDisplayedIndex,
+          messages.length,
+        );
         return messages[index];
       case MessageRotationMode.emotionAware:
         return _selectEmotionAwareMessage(messages, recentEmotionScore);
@@ -504,8 +510,7 @@ class NotificationSettingsService {
       if (msg.writtenEmotionScore == null) {
         weights.add(1);
       } else {
-        final distance =
-            (msg.writtenEmotionScore! - recentEmotionScore).abs();
+        final distance = (msg.writtenEmotionScore! - recentEmotionScore).abs();
         if (distance <= 1.0) {
           weights.add(3);
         } else if (distance <= 3.0) {

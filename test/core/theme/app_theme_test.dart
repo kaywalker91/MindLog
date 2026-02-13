@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/theme/app_theme.dart';
+import 'package:mindlog/core/theme/healing_color_schemes.dart';
 
 void main() {
   group('AppTheme', () {
@@ -218,6 +219,29 @@ void main() {
           AppTheme.lightTheme.cardTheme.color,
           isNot(equals(AppTheme.darkTheme.cardTheme.color)),
         );
+      });
+    });
+
+    group('healingColorScheme', () {
+      test('기본 모드는 mutedTeal이어야 한다', () {
+        expect(
+          AppTheme.defaultHealingPaletteMode,
+          HealingPaletteMode.mutedTeal,
+        );
+      });
+
+      test('기본 호출 시 mutedTeal 팔레트가 반환되어야 한다', () {
+        final scheme = AppTheme.healingColorScheme();
+
+        expect(scheme, HealingColorSchemes.mutedTeal);
+      });
+
+      test('mode 지정 시 해당 힐링 팔레트가 반환되어야 한다', () {
+        final pastelScheme = AppTheme.healingColorScheme(
+          mode: HealingPaletteMode.pastelComfort,
+        );
+
+        expect(pastelScheme, HealingColorSchemes.pastelComfort);
       });
     });
   });

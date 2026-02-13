@@ -38,7 +38,9 @@ void main() {
           receivedPayload = payload;
           receivedChannel = channel;
         }
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride;
+
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride;
 
         // Act
         await EmotionTrendNotificationService.notifyTrend(result);
@@ -47,11 +49,15 @@ void main() {
         expect(receivedTitle, isNotNull);
         expect(receivedBody, isNotNull);
         expect(
-          EmotionTrendNotificationService.decliningTitles.contains(receivedTitle),
+          EmotionTrendNotificationService.decliningTitles.contains(
+            receivedTitle,
+          ),
           isTrue,
         );
         expect(
-          EmotionTrendNotificationService.decliningBodies.contains(receivedBody),
+          EmotionTrendNotificationService.decliningBodies.contains(
+            receivedBody,
+          ),
           isTrue,
         );
         expect(receivedPayload, contains('declining'));
@@ -78,7 +84,9 @@ void main() {
           receivedTitle = title;
           receivedBody = body;
         }
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride;
+
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride;
 
         // Act
         await EmotionTrendNotificationService.notifyTrend(result);
@@ -87,11 +95,15 @@ void main() {
         expect(receivedTitle, isNotNull);
         expect(receivedBody, isNotNull);
         expect(
-          EmotionTrendNotificationService.recoveringTitles.contains(receivedTitle),
+          EmotionTrendNotificationService.recoveringTitles.contains(
+            receivedTitle,
+          ),
           isTrue,
         );
         expect(
-          EmotionTrendNotificationService.recoveringBodies.contains(receivedBody),
+          EmotionTrendNotificationService.recoveringBodies.contains(
+            receivedBody,
+          ),
           isTrue,
         );
       });
@@ -115,7 +127,9 @@ void main() {
           receivedTitle = title;
           receivedBody = body;
         }
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride;
+
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride;
 
         // Act
         await EmotionTrendNotificationService.notifyTrend(result);
@@ -152,7 +166,9 @@ void main() {
           receivedTitle = title;
           receivedBody = body;
         }
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride;
+
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride;
 
         // Act
         await EmotionTrendNotificationService.notifyTrend(result);
@@ -187,7 +203,9 @@ void main() {
         }) async {
           receivedPayload = payload;
         }
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride;
+
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride;
 
         // Act
         await EmotionTrendNotificationService.notifyTrend(result);
@@ -216,7 +234,9 @@ void main() {
         }) async {
           receivedChannel = channel;
         }
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride;
+
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride;
 
         // Act
         await EmotionTrendNotificationService.notifyTrend(result);
@@ -305,7 +325,9 @@ void main() {
         }) async {
           messages1.add((title: title, body: body));
         }
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride1;
+
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride1;
         await EmotionTrendNotificationService.notifyTrend(result);
 
         // 리셋
@@ -321,7 +343,9 @@ void main() {
         }) async {
           messages2.add((title: title, body: body));
         }
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride2;
+
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride2;
         await EmotionTrendNotificationService.notifyTrend(result);
 
         // Assert
@@ -351,7 +375,9 @@ void main() {
         }) async {
           messages1.add((title: title, body: body));
         }
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride1;
+
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride1;
         await EmotionTrendNotificationService.notifyTrend(result);
 
         // 리셋
@@ -367,7 +393,9 @@ void main() {
         }) async {
           messages2.add((title: title, body: body));
         }
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride2;
+
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride2;
         await EmotionTrendNotificationService.notifyTrend(result);
 
         // Assert (다를 가능성 높음, 같을 수도 있음)
@@ -375,13 +403,15 @@ void main() {
         expect(messages2.length, 1);
         // 메시지는 풀 내에 있어야 함
         expect(
-          EmotionTrendNotificationService.recoveringTitles
-              .contains(messages1.first.title),
+          EmotionTrendNotificationService.recoveringTitles.contains(
+            messages1.first.title,
+          ),
           isTrue,
         );
         expect(
-          EmotionTrendNotificationService.recoveringTitles
-              .contains(messages2.first.title),
+          EmotionTrendNotificationService.recoveringTitles.contains(
+            messages2.first.title,
+          ),
           isTrue,
         );
       });
@@ -396,7 +426,8 @@ void main() {
           String? payload,
           String channel = '',
         }) async {}
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride;
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride;
 
         // Act
         EmotionTrendNotificationService.resetForTesting();
@@ -417,7 +448,10 @@ void main() {
 
         // Assert (새로운 Random 인스턴스, 검증 어려우므로 동작 확인)
         // 리셋 후 notifyTrend 호출 시 예외가 없어야 함
-        expect(() => EmotionTrendNotificationService.resetForTesting(), returnsNormally);
+        expect(
+          () => EmotionTrendNotificationService.resetForTesting(),
+          returnsNormally,
+        );
       });
     });
 
@@ -479,7 +513,8 @@ void main() {
           String? payload,
           String channel = '',
         }) async {}
-        EmotionTrendNotificationService.showNotificationOverride = testShowOverride;
+        EmotionTrendNotificationService.showNotificationOverride =
+            testShowOverride;
 
         // Act & Assert
         for (final trend in trends) {

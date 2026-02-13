@@ -19,7 +19,8 @@ class EmotionTrendNotificationService {
     required String body,
     String? payload,
     String channel,
-  })? showNotificationOverride;
+  })?
+  showNotificationOverride;
 
   /// 테스트용: Random 인스턴스 설정
   static void setRandom(Random random) => _random = random;
@@ -86,9 +87,7 @@ class EmotionTrendNotificationService {
   ];
 
   /// 트렌드에 따른 메시지 반환
-  static ({String title, String body}) _getMessageForTrend(
-    EmotionTrend trend,
-  ) {
+  static ({String title, String body}) _getMessageForTrend(EmotionTrend trend) {
     final List<String> titles;
     final List<String> bodies;
 
@@ -129,14 +128,16 @@ class EmotionTrendNotificationService {
       await showNotificationOverride!(
         title: message.title,
         body: message.body,
-        payload: '{"type":"mindcare","subtype":"emotion_trend","trend":"${result.trend.name}"}',
+        payload:
+            '{"type":"mindcare","subtype":"emotion_trend","trend":"${result.trend.name}"}',
         channel: NotificationService.channelMindcare,
       );
     } else {
       await NotificationService.showNotification(
         title: message.title,
         body: message.body,
-        payload: '{"type":"mindcare","subtype":"emotion_trend","trend":"${result.trend.name}"}',
+        payload:
+            '{"type":"mindcare","subtype":"emotion_trend","trend":"${result.trend.name}"}',
         channel: NotificationService.channelMindcare,
       );
     }

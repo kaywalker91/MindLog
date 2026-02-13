@@ -77,19 +77,19 @@ class PreferencesLocalDataSource {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_reminderEnabledKey, settings.isReminderEnabled);
     await prefs.setInt(_reminderHourKey, settings.reminderHour.clamp(0, 23));
-    await prefs.setInt(_reminderMinuteKey, settings.reminderMinute.clamp(0, 59));
+    await prefs.setInt(
+      _reminderMinuteKey,
+      settings.reminderMinute.clamp(0, 59),
+    );
     await prefs.setBool(
       _mindcareTopicEnabledKey,
       settings.isMindcareTopicEnabled,
     );
-    await prefs.setString(
-      _rotationModeKey,
-      switch (settings.rotationMode) {
-        MessageRotationMode.sequential => 'sequential',
-        MessageRotationMode.emotionAware => 'emotionAware',
-        MessageRotationMode.random => 'random',
-      },
-    );
+    await prefs.setString(_rotationModeKey, switch (settings.rotationMode) {
+      MessageRotationMode.sequential => 'sequential',
+      MessageRotationMode.emotionAware => 'emotionAware',
+      MessageRotationMode.random => 'random',
+    });
     await prefs.setInt(_lastDisplayedIndexKey, settings.lastDisplayedIndex);
     await prefs.setBool(
       _weeklyInsightEnabledKey,
@@ -186,8 +186,7 @@ class PreferencesLocalDataSource {
       final List<dynamic> jsonList = json.decode(jsonString) as List<dynamic>;
       return jsonList
           .map(
-            (e) =>
-                SelfEncouragementMessage.fromJson(e as Map<String, dynamic>),
+            (e) => SelfEncouragementMessage.fromJson(e as Map<String, dynamic>),
           )
           .toList();
     } catch (e, stack) {
@@ -244,9 +243,7 @@ class PreferencesLocalDataSource {
   }
 
   /// 개인 응원 메시지 순서 변경
-  Future<void> reorderSelfEncouragementMessages(
-    List<String> orderedIds,
-  ) async {
+  Future<void> reorderSelfEncouragementMessages(List<String> orderedIds) async {
     final messages = await getSelfEncouragementMessages();
     final reordered = <SelfEncouragementMessage>[];
 

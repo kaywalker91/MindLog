@@ -83,9 +83,7 @@ void main() {
       await tester.pumpWidget(
         _buildTestWidget(
           message: message,
-          overrides: [
-            settingsRepositoryProvider.overrideWithValue(mockRepo),
-          ],
+          overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
         ),
       );
       await _pumpAnimations(tester);
@@ -103,9 +101,7 @@ void main() {
       await tester.pumpWidget(
         _buildTestWidget(
           message: message,
-          overrides: [
-            settingsRepositoryProvider.overrideWithValue(mockRepo),
-          ],
+          overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
         ),
       );
       await _pumpAnimations(tester);
@@ -123,9 +119,7 @@ void main() {
       await tester.pumpWidget(
         _buildTestWidget(
           message: message,
-          overrides: [
-            settingsRepositoryProvider.overrideWithValue(mockRepo),
-          ],
+          overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
         ),
       );
       await _pumpAnimations(tester);
@@ -143,9 +137,7 @@ void main() {
       await tester.pumpWidget(
         _buildTestWidget(
           message: message,
-          overrides: [
-            settingsRepositoryProvider.overrideWithValue(mockRepo),
-          ],
+          overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
         ),
       );
       await _pumpAnimations(tester);
@@ -164,9 +156,7 @@ void main() {
       await tester.pumpWidget(
         _buildTestWidget(
           message: message,
-          overrides: [
-            settingsRepositoryProvider.overrideWithValue(mockRepo),
-          ],
+          overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
         ),
       );
       await _pumpAnimations(tester);
@@ -185,9 +175,7 @@ void main() {
       await tester.pumpWidget(
         _buildTestWidget(
           message: message,
-          overrides: [
-            settingsRepositoryProvider.overrideWithValue(mockRepo),
-          ],
+          overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
         ),
       );
       await _pumpAnimations(tester);
@@ -205,9 +193,7 @@ void main() {
       await tester.pumpWidget(
         _buildTestWidget(
           message: message,
-          overrides: [
-            settingsRepositoryProvider.overrideWithValue(mockRepo),
-          ],
+          overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
           onEdit: () => editCalled = true,
         ),
       );

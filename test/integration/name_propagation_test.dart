@@ -88,15 +88,14 @@ void main() {
     test('이름 설정 → repository + provider + 알림 재스케줄 모두 반영', () async {
       // Arrange
       final messages = [_makeMessage('1', content: '{name}님, 화이팅!')];
-      final fakeEncouragementController =
-          _FakeSelfEncouragementController(messages);
+      final fakeEncouragementController = _FakeSelfEncouragementController(
+        messages,
+      );
 
       final container = ProviderContainer(
         overrides: [
           settingsRepositoryProvider.overrideWithValue(mockRepo),
-          notificationSettingsProvider.overrideWith(
-            () => trackingController,
-          ),
+          notificationSettingsProvider.overrideWith(() => trackingController),
           selfEncouragementProvider.overrideWith(
             () => fakeEncouragementController,
           ),
@@ -118,8 +117,10 @@ void main() {
 
       // Assert 3: 알림 재스케줄 호출 확인
       expect(trackingController.rescheduleCalls, hasLength(1));
-      expect(trackingController.rescheduleCalls.first.first.content,
-          '{name}님, 화이팅!');
+      expect(
+        trackingController.rescheduleCalls.first.first.content,
+        '{name}님, 화이팅!',
+      );
     });
 
     test('이름 삭제(null) → 모든 터치포인트에서 null 전파', () async {
@@ -127,15 +128,14 @@ void main() {
       await mockRepo.setUserName('민수');
 
       final messages = [_makeMessage('1')];
-      final fakeEncouragementController =
-          _FakeSelfEncouragementController(messages);
+      final fakeEncouragementController = _FakeSelfEncouragementController(
+        messages,
+      );
 
       final container = ProviderContainer(
         overrides: [
           settingsRepositoryProvider.overrideWithValue(mockRepo),
-          notificationSettingsProvider.overrideWith(
-            () => trackingController,
-          ),
+          notificationSettingsProvider.overrideWith(() => trackingController),
           selfEncouragementProvider.overrideWith(
             () => fakeEncouragementController,
           ),
@@ -178,9 +178,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           settingsRepositoryProvider.overrideWithValue(mockRepo),
-          notificationSettingsProvider.overrideWith(
-            () => trackingController,
-          ),
+          notificationSettingsProvider.overrideWith(() => trackingController),
           selfEncouragementProvider.overrideWith(
             () => _FakeSelfEncouragementController([]),
           ),
@@ -203,28 +201,19 @@ void main() {
     test('applyNamePersonalization 순수 함수 동작 확인', () {
       // 이름 있을 때
       expect(
-        NotificationMessages.applyNamePersonalization(
-          '{name}님, 화이팅!',
-          '지수',
-        ),
+        NotificationMessages.applyNamePersonalization('{name}님, 화이팅!', '지수'),
         '지수님, 화이팅!',
       );
 
       // 이름 없을 때
       expect(
-        NotificationMessages.applyNamePersonalization(
-          '{name}님, 화이팅!',
-          null,
-        ),
+        NotificationMessages.applyNamePersonalization('{name}님, 화이팅!', null),
         '화이팅!',
       );
 
       // {name} 없는 메시지
       expect(
-        NotificationMessages.applyNamePersonalization(
-          '오늘도 좋은 하루!',
-          '민수',
-        ),
+        NotificationMessages.applyNamePersonalization('오늘도 좋은 하루!', '민수'),
         '오늘도 좋은 하루!',
       );
     });

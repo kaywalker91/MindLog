@@ -242,10 +242,7 @@ void main() {
 
     test('showNotification에 빈 title 전달 시 MindLog 기본값을 사용한다', () async {
       // When
-      await NotificationService.showNotification(
-        title: '',
-        body: '본문 있음',
-      );
+      await NotificationService.showNotification(title: '', body: '본문 있음');
 
       // Then
       final call = mockPlatform.calls.firstWhere(
@@ -259,10 +256,7 @@ void main() {
 
     test('showNotification에 빈 body 전달 시 랜덤 마음케어 메시지를 사용한다', () async {
       // When
-      await NotificationService.showNotification(
-        title: '제목 있음',
-        body: '',
-      );
+      await NotificationService.showNotification(title: '제목 있음', body: '');
 
       // Then
       final call = mockPlatform.calls.firstWhere(
@@ -277,10 +271,7 @@ void main() {
 
     test('showNotification에 빈 title과 body 전달 시 둘 다 기본값을 사용한다', () async {
       // When
-      await NotificationService.showNotification(
-        title: '',
-        body: '',
-      );
+      await NotificationService.showNotification(title: '', body: '');
 
       // Then
       final call = mockPlatform.calls.firstWhere(

@@ -104,7 +104,9 @@ void main() {
 
           // Provider 상태를 먼저 읽어서 초기화
           final initialStats = await container.read(statisticsProvider.future);
-          final initialList = await container.read(diaryListControllerProvider.future);
+          final initialList = await container.read(
+            diaryListControllerProvider.future,
+          );
 
           // Act
           await notifier.analyzeDiary('테스트 내용');
@@ -112,66 +114,82 @@ void main() {
           // Assert - provider를 다시 읽어서 rebuild가 trigger 되었는지 확인
           // invalidate가 호출되면, provider를 다시 읽을 때 새로 빌드됨
           final newStats = await container.read(statisticsProvider.future);
-          final newList = await container.read(diaryListControllerProvider.future);
+          final newList = await container.read(
+            diaryListControllerProvider.future,
+          );
 
           // 새로 빌드된 객체는 다른 인스턴스여야 함 (invalidate 되었다는 증거)
-          expect(identical(initialStats, newStats), isFalse,
-              reason: 'statisticsProvider가 무효화되어 새로 빌드되어야 합니다');
-          expect(identical(initialList, newList), isFalse,
-              reason: 'diaryListControllerProvider가 무효화되어 새로 빌드되어야 합니다');
-        },
-      );
-
-      test(
-        'safetyBlocked 상태에서도 두 provider를 무효화해야 한다',
-        () async {
-          // Arrange
-          final notifier = container.read(
-            diaryAnalysisControllerProvider.notifier,
+          expect(
+            identical(initialStats, newStats),
+            isFalse,
+            reason: 'statisticsProvider가 무효화되어 새로 빌드되어야 합니다',
           );
-          mockUseCase.mockDiary = DiaryFixtures.safetyBlocked();
-
-          final initialStats = await container.read(statisticsProvider.future);
-          final initialList = await container.read(diaryListControllerProvider.future);
-
-          // Act
-          await notifier.analyzeDiary('위험 내용');
-
-          // Assert
-          final newStats = await container.read(statisticsProvider.future);
-          final newList = await container.read(diaryListControllerProvider.future);
-
-          expect(identical(initialStats, newStats), isFalse);
-          expect(identical(initialList, newList), isFalse);
-        },
-      );
-
-      test(
-        'pending 상태(분석 실패)에서는 provider를 무효화하지 않아야 한다',
-        () async {
-          // Arrange
-          final notifier = container.read(
-            diaryAnalysisControllerProvider.notifier,
+          expect(
+            identical(initialList, newList),
+            isFalse,
+            reason: 'diaryListControllerProvider가 무효화되어 새로 빌드되어야 합니다',
           );
-          mockUseCase.mockDiary = DiaryFixtures.pending();
-
-          final initialStats = await container.read(statisticsProvider.future);
-          final initialList = await container.read(diaryListControllerProvider.future);
-
-          // Act
-          await notifier.analyzeDiary('테스트');
-
-          // Assert - pending(에러 상태)이므로 무효화하지 않음
-          // 같은 인스턴스여야 함 (invalidate 되지 않았다는 증거)
-          final newStats = await container.read(statisticsProvider.future);
-          final newList = await container.read(diaryListControllerProvider.future);
-
-          expect(identical(initialStats, newStats), isTrue,
-              reason: 'pending 상태에서는 statisticsProvider를 무효화하지 않아야 합니다');
-          expect(identical(initialList, newList), isTrue,
-              reason: 'pending 상태에서는 diaryListControllerProvider를 무효화하지 않아야 합니다');
         },
       );
+
+      test('safetyBlocked 상태에서도 두 provider를 무효화해야 한다', () async {
+        // Arrange
+        final notifier = container.read(
+          diaryAnalysisControllerProvider.notifier,
+        );
+        mockUseCase.mockDiary = DiaryFixtures.safetyBlocked();
+
+        final initialStats = await container.read(statisticsProvider.future);
+        final initialList = await container.read(
+          diaryListControllerProvider.future,
+        );
+
+        // Act
+        await notifier.analyzeDiary('위험 내용');
+
+        // Assert
+        final newStats = await container.read(statisticsProvider.future);
+        final newList = await container.read(
+          diaryListControllerProvider.future,
+        );
+
+        expect(identical(initialStats, newStats), isFalse);
+        expect(identical(initialList, newList), isFalse);
+      });
+
+      test('pending 상태(분석 실패)에서는 provider를 무효화하지 않아야 한다', () async {
+        // Arrange
+        final notifier = container.read(
+          diaryAnalysisControllerProvider.notifier,
+        );
+        mockUseCase.mockDiary = DiaryFixtures.pending();
+
+        final initialStats = await container.read(statisticsProvider.future);
+        final initialList = await container.read(
+          diaryListControllerProvider.future,
+        );
+
+        // Act
+        await notifier.analyzeDiary('테스트');
+
+        // Assert - pending(에러 상태)이므로 무효화하지 않음
+        // 같은 인스턴스여야 함 (invalidate 되지 않았다는 증거)
+        final newStats = await container.read(statisticsProvider.future);
+        final newList = await container.read(
+          diaryListControllerProvider.future,
+        );
+
+        expect(
+          identical(initialStats, newStats),
+          isTrue,
+          reason: 'pending 상태에서는 statisticsProvider를 무효화하지 않아야 합니다',
+        );
+        expect(
+          identical(initialList, newList),
+          isTrue,
+          reason: 'pending 상태에서는 diaryListControllerProvider를 무효화하지 않아야 합니다',
+        );
+      });
     });
 
     group('analyzeDiary', () {

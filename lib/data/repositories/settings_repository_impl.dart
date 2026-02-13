@@ -153,9 +153,7 @@ class SettingsRepositoryImpl
   }
 
   @override
-  Future<void> reorderSelfEncouragementMessages(
-    List<String> orderedIds,
-  ) async {
+  Future<void> reorderSelfEncouragementMessages(List<String> orderedIds) async {
     return guardFailure(
       '응원 메시지 순서 변경 실패',
       () => _localDataSource.reorderSelfEncouragementMessages(orderedIds),
