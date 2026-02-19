@@ -1,3 +1,6 @@
+---
+paths: [".claude/skills/**", ".claude/rules/**"]
+---
 # Skill Workflows
 
 스킬 조합 워크플로우 참조. 특정 작업에 맞는 스킬 체인을 확인하세요.

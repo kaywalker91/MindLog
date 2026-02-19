@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/statistics_theme_tokens.dart';
 import '../../../domain/entities/statistics.dart';
 import '../../providers/providers.dart';
 import '../emotion_calendar.dart';
@@ -18,6 +18,9 @@ class StatisticsHeatmapCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final statsTokens = StatisticsThemeTokens.of(context);
+    final isDark = colorScheme.brightness == Brightness.dark;
     final streak = _calculateStreak(statistics.activityMap);
     final recordedDays = statistics.activityMap.length;
     final totalDays = _getPeriodDayCount(statistics, selectedPeriod);
@@ -29,12 +32,12 @@ class StatisticsHeatmapCard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.statsCardBackground,
+        color: statsTokens.cardBackground,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.statsCardBorder),
+        border: Border.all(color: statsTokens.cardBorder),
         boxShadow: [
           BoxShadow(
-            color: AppColors.statsPrimary.withValues(alpha: 0.08),
+            color: statsTokens.cardShadow.withValues(alpha: isDark ? 0.2 : 0.1),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -43,10 +46,10 @@ class StatisticsHeatmapCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '마음 달력',
             style: TextStyle(
-              color: AppColors.statsTextPrimary,
+              color: statsTokens.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -57,9 +60,9 @@ class StatisticsHeatmapCard extends ConsumerWidget {
                 ? '✨ ${_getPeriodLabel(selectedPeriod)} 동안 $recordedDays일 기록했어요 · '
                       '${statistics.totalDiaries}편의 일기'
                 : '아직 기록이 없어요. 오늘의 마음을 남겨볼까요?',
-            style: const TextStyle(
-              color: AppColors.statsTextSecondary,
-              fontSize: 12,
+            style: TextStyle(
+              color: statsTokens.textSecondary,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -72,28 +75,31 @@ class StatisticsHeatmapCard extends ConsumerWidget {
                 _ProudBadge(
                   label: '기록 $recordedDays일',
                   emoji: '🗓️',
-                  backgroundColor: AppColors.statsPrimary.withValues(
-                    alpha: 0.15,
-                  ),
-                  textColor: AppColors.statsPrimaryDark,
+                  backgroundColor: statsTokens.primarySoft,
+                  textColor: statsTokens.primaryStrong,
+                  borderColor: statsTokens.cardBorder,
                 ),
                 if (totalDays > 0)
                   _ProudBadge(
                     label: '기록률 $completionRate%',
                     emoji: '✨',
-                    backgroundColor: AppColors.statsAccentMint.withValues(
-                      alpha: 0.2,
+                    backgroundColor: statsTokens.mintAccent.withValues(
+                      alpha: 0.16,
                     ),
-                    textColor: AppColors.statsPrimaryDark,
+                    textColor: statsTokens.textPrimary,
+                    borderColor: statsTokens.mintAccent.withValues(alpha: 0.45),
                   ),
                 if (streak > 0)
                   _ProudBadge(
                     label: '$streak일 연속',
                     emoji: '🔥',
-                    backgroundColor: AppColors.statsAccentCoral.withValues(
-                      alpha: 0.15,
+                    backgroundColor: statsTokens.coralAccent.withValues(
+                      alpha: 0.16,
                     ),
-                    textColor: AppColors.statsAccentCoral,
+                    textColor: statsTokens.textPrimary,
+                    borderColor: statsTokens.coralAccent.withValues(
+                      alpha: 0.55,
+                    ),
                   ),
               ],
             ),
@@ -164,6 +170,12 @@ class _PeriodChips extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    final animationDuration = reduceMotion
+        ? Duration.zero
+        : Duration(milliseconds: statsTokens.microMotionMs);
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: StatisticsPeriod.values.map((period) {
@@ -176,24 +188,26 @@ class _PeriodChips extends ConsumerWidget {
                   period;
             },
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: animationDuration,
               constraints: const BoxConstraints(minHeight: 38),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.statsPrimary
-                    : AppColors.statsPrimary.withValues(alpha: 0.08),
+                    ? statsTokens.chipSelectedBackground
+                    : statsTokens.chipUnselectedBackground,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected
-                      ? AppColors.statsPrimaryDark
-                      : AppColors.statsCardBorder,
+                      ? statsTokens.chipSelectedBackground
+                      : statsTokens.cardBorder,
                 ),
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: AppColors.statsPrimary.withValues(alpha: 0.25),
-                          blurRadius: 8,
+                          color: statsTokens.primaryStrong.withValues(
+                            alpha: 0.24,
+                          ),
+                          blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
                       ]
@@ -203,10 +217,10 @@ class _PeriodChips extends ConsumerWidget {
                 period.displayName,
                 style: TextStyle(
                   color: isSelected
-                      ? Theme.of(context).colorScheme.onPrimary
-                      : AppColors.statsTextSecondary,
+                      ? statsTokens.chipSelectedForeground
+                      : statsTokens.chipUnselectedForeground,
                   fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ),
@@ -222,12 +236,14 @@ class _ProudBadge extends StatelessWidget {
     required this.label,
     required this.backgroundColor,
     required this.textColor,
+    required this.borderColor,
     this.emoji,
   });
 
   final String label;
   final Color backgroundColor;
   final Color textColor;
+  final Color borderColor;
   final String? emoji;
 
   @override
@@ -237,6 +253,7 @@ class _ProudBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

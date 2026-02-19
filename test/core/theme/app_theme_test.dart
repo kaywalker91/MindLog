@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/theme/app_theme.dart';
 import 'package:mindlog/core/theme/healing_color_schemes.dart';
+import 'package:mindlog/core/theme/statistics_theme_tokens.dart';
 
 void main() {
   group('AppTheme', () {
@@ -11,7 +12,7 @@ void main() {
       });
 
       test('primaryDark가 올바르게 정의되어야 한다', () {
-        expect(AppTheme.primaryDark, const Color(0xFF3A7BC8));
+        expect(AppTheme.primaryDark, const Color(0xFF5BA4C9));
       });
 
       test('accentColor가 올바르게 정의되어야 한다', () {
@@ -126,6 +127,12 @@ void main() {
         expect(textTheme.bodySmall?.color, AppTheme.secondaryTextColor);
         expect(textTheme.bodySmall?.fontSize, 12);
       });
+
+      test('통계 토큰 extension이 포함되어야 한다', () {
+        final extension = lightTheme.extension<StatisticsThemeTokens>();
+        expect(extension, isNotNull);
+        expect(extension, StatisticsThemeTokens.light);
+      });
     });
 
     group('darkTheme', () {
@@ -188,6 +195,12 @@ void main() {
         // elevation 확인
         final elevation = style.elevation?.resolve({});
         expect(elevation, 2);
+      });
+
+      test('다크 테마에도 통계 토큰 extension이 포함되어야 한다', () {
+        final extension = darkTheme.extension<StatisticsThemeTokens>();
+        expect(extension, isNotNull);
+        expect(extension, StatisticsThemeTokens.dark);
       });
     });
 

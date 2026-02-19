@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/statistics_theme_tokens.dart';
 
 /// 키워드 요약 칩 위젯
 class SummaryChips extends StatelessWidget {
@@ -14,6 +14,8 @@ class SummaryChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+
     return Wrap(
       spacing: 6,
       runSpacing: 6,
@@ -21,12 +23,14 @@ class SummaryChips extends StatelessWidget {
         _SummaryChip(
           icon: Icons.auto_awesome,
           label: '키워드 등장 $totalCount회',
-          color: AppColors.statsPrimaryDark,
+          backgroundColor: statsTokens.primarySoft,
+          foregroundColor: statsTokens.primaryStrong,
         ),
         _SummaryChip(
           icon: Icons.category_outlined,
           label: '키워드 종류 $uniqueCount개',
-          color: AppColors.statsAccentMint,
+          backgroundColor: statsTokens.mintAccent.withValues(alpha: 0.2),
+          foregroundColor: statsTokens.textPrimary,
         ),
       ],
     );
@@ -36,12 +40,14 @@ class SummaryChips extends StatelessWidget {
 class _SummaryChip extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
+  final Color backgroundColor;
+  final Color foregroundColor;
 
   const _SummaryChip({
     required this.icon,
     required this.label,
-    required this.color,
+    required this.backgroundColor,
+    required this.foregroundColor,
   });
 
   @override
@@ -49,19 +55,19 @@ class _SummaryChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: foregroundColor.withValues(alpha: 0.22)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
+          Icon(icon, size: 14, color: foregroundColor),
           const SizedBox(width: 4),
           Text(
             label,
-            style: const TextStyle(
-              color: AppColors.statsTextSecondary,
+            style: TextStyle(
+              color: foregroundColor,
               fontSize: 11,
               fontWeight: FontWeight.w600,
             ),

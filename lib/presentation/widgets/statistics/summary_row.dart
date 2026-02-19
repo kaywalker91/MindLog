@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/statistics_theme_tokens.dart';
 import '../../../domain/entities/statistics.dart';
 
 /// 통계 화면 상단의 요약 + 스트릭 Row
@@ -46,6 +46,10 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final statsTokens = StatisticsThemeTokens.of(context);
+    final isDark = colorScheme.brightness == Brightness.dark;
+
     if (!statistics.hasData) {
       return const _EmptyCard(
         icon: Icons.analytics_outlined,
@@ -60,13 +64,13 @@ class _SummaryCard extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 100),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.statsCardBackground,
+        color: statsTokens.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.statsCardBorder),
+        border: Border.all(color: statsTokens.cardBorder),
         boxShadow: [
           BoxShadow(
-            color: AppColors.statsPrimary.withValues(alpha: 0.08),
-            blurRadius: 8,
+            color: statsTokens.cardShadow.withValues(alpha: isDark ? 0.2 : 0.1),
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -79,17 +83,18 @@ class _SummaryCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             '평균 ${statistics.overallAverageScore.toStringAsFixed(1)}점',
-            style: const TextStyle(
-              color: AppColors.statsPrimaryDark,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+            style: TextStyle(
+              color: statsTokens.primaryStrong,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
             ),
           ),
           Text(
             '${statistics.totalDiaries}개의 일기',
-            style: const TextStyle(
-              color: AppColors.statsTextSecondary,
+            style: TextStyle(
+              color: statsTokens.textSecondary,
               fontSize: 11,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -113,15 +118,16 @@ class _StreakCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+    final streakColor = statsTokens.coralAccent;
+
     return Container(
       constraints: const BoxConstraints(minHeight: 100),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.statsPrimary.withValues(alpha: 0.1),
+        color: statsTokens.cardSoftBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.statsPrimary.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: statsTokens.cardBorder),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -131,15 +137,19 @@ class _StreakCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             '$streak일',
-            style: const TextStyle(
-              color: AppColors.statsAccentCoral,
+            style: TextStyle(
+              color: streakColor,
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
-          const Text(
+          Text(
             '연속 작성!',
-            style: TextStyle(color: AppColors.statsTextSecondary, fontSize: 11),
+            style: TextStyle(
+              color: statsTokens.textSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -160,32 +170,35 @@ class _EmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+
     return Container(
       constraints: const BoxConstraints(minHeight: 100),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.statsCardBackground,
+        color: statsTokens.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.statsCardBorder),
+        border: Border.all(color: statsTokens.cardBorder),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 28, color: AppColors.statsTextTertiary),
+          Icon(icon, size: 28, color: statsTokens.textSecondary),
           const SizedBox(height: 4),
           Text(
             title,
-            style: const TextStyle(
-              color: AppColors.statsTextSecondary,
+            style: TextStyle(
+              color: statsTokens.textPrimary,
               fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
             ),
           ),
           Text(
             subtitle,
-            style: const TextStyle(
-              color: AppColors.statsTextTertiary,
+            style: TextStyle(
+              color: statsTokens.textSecondary,
               fontSize: 11,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

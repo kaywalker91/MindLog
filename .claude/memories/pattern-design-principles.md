@@ -360,8 +360,8 @@ _dismissedTimestampKey  // Multiple entities use same key
 
 ## Memory Retention
 
-- **Suppress-pattern skill**: Ready to use (`docs/skills/suppress-pattern.md`)
-- **Periodic-timer skill**: Ready to use (`docs/skills/periodic-timer.md`)
+- **Suppress-pattern skill**: Ready to use (`.claude/skills/suppress-pattern.md`)
+- **Periodic-timer skill**: Ready to use (`.claude/skills/periodic-timer.md`)
 - **Skill catalog**: Updated with 2 new entries
 - **Next patterns**: Check for auth flows, caching strategies, validation chains
 

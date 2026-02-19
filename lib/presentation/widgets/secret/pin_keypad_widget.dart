@@ -65,55 +65,90 @@ class _PinKeypadWidgetState extends State<PinKeypadWidget> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompact = screenWidth < 360;
+    final horizontalPadding = isCompact ? 16.0 : 20.0;
+    final topSpacing = isCompact ? 20.0 : 28.0;
+    final subtitleGap = isCompact ? 6.0 : 8.0;
+    final dotGap = isCompact ? 26.0 : 34.0;
+    final keypadGap = isCompact ? 30.0 : 44.0;
+    final bottomSpacing = isCompact ? 16.0 : 20.0;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(height: 32),
-        Text(
-          widget.title,
-          style: AppTextStyles.subtitle.copyWith(
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurface,
-            fontSize: 18,
-          ),
+    return Container(
+      key: const Key('secret_pin_content_card'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Color.alphaBlend(
+          AppColors.statsPrimary.withValues(alpha: 0.06),
+          colorScheme.surface,
         ),
-        if (widget.subtitle != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            widget.subtitle!,
-            style: AppTextStyles.hint.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.statsCardBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.statsPrimary.withValues(alpha: 0.12),
+            blurRadius: 22,
+            offset: const Offset(0, 10),
           ),
         ],
-        const SizedBox(height: 36),
-        _buildDotIndicator(colorScheme),
-        const SizedBox(height: 48),
-        _buildKeypad(colorScheme),
-        if (widget.onForgotPin != null) ...[
-          const SizedBox(height: 28),
-          TextButton(
-            onPressed: widget.onForgotPin,
-            child: Text(
-              '비밀번호를 잊으셨나요?',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                decoration: TextDecoration.underline,
-                decorationColor: colorScheme.onSurfaceVariant,
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          topSpacing,
+          horizontalPadding,
+          bottomSpacing,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.title,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.subtitle.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
+                fontSize: 18,
               ),
             ),
-          ),
-        ],
-        const SizedBox(height: 24),
-      ],
+            if (widget.subtitle != null) ...[
+              SizedBox(height: subtitleGap),
+              Text(
+                widget.subtitle!,
+                style: AppTextStyles.hint.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            SizedBox(height: dotGap),
+            _buildDotIndicator(),
+            SizedBox(height: keypadGap),
+            _buildKeypad(colorScheme, isCompact: isCompact),
+            if (widget.onForgotPin != null) ...[
+              SizedBox(height: isCompact ? 24 : 28),
+              TextButton(
+                onPressed: widget.onForgotPin,
+                child: Text(
+                  '비밀번호를 잊으셨나요?',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.statsPrimaryDark,
+                    decoration: TextDecoration.underline,
+                    decorationColor: AppColors.statsPrimaryDark,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
   /// 에러 시 sin 파형 shake 애니메이션
-  Widget _buildDotIndicator(ColorScheme colorScheme) {
+  Widget _buildDotIndicator() {
     final dots = Row(
+      key: const Key('secret_pin_dot_row'),
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(_pinLength, (index) {
         final filled = index < _pin.length;
@@ -124,9 +159,11 @@ class _PinKeypadWidgetState extends State<PinKeypadWidget> {
           height: 14,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: filled ? AppColors.primary : Colors.transparent,
+            color: filled ? AppColors.statsPrimaryDark : Colors.transparent,
             border: Border.all(
-              color: filled ? AppColors.primary : colorScheme.outline,
+              color: filled
+                  ? AppColors.statsPrimaryDark
+                  : AppColors.statsCardBorder,
               width: 1.5,
             ),
           ),
@@ -148,7 +185,7 @@ class _PinKeypadWidgetState extends State<PinKeypadWidget> {
         );
   }
 
-  Widget _buildKeypad(ColorScheme colorScheme) {
+  Widget _buildKeypad(ColorScheme colorScheme, {required bool isCompact}) {
     const rows = [
       ['1', '2', '3'],
       ['4', '5', '6'],
@@ -156,39 +193,84 @@ class _PinKeypadWidgetState extends State<PinKeypadWidget> {
       ['', '0', 'del'],
     ];
 
-    return Column(
-      children: rows.map((row) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: row.map((key) {
-            if (key.isEmpty) return const SizedBox(width: 88, height: 72);
-            if (key == 'del') return _buildDeleteKey(colorScheme);
-            return _buildNumKey(key, colorScheme);
-          }).toList(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final baseKeyWidth = isCompact ? 80.0 : 88.0;
+        final baseKeyHeight = isCompact ? 64.0 : 72.0;
+        final maxWidthPerKey = constraints.maxWidth / 3;
+        final keyWidth = math.min(baseKeyWidth, maxWidthPerKey);
+        final scale = (keyWidth / baseKeyWidth).clamp(0.7, 1.0);
+        final keyHeight = (baseKeyHeight * scale).clamp(52.0, baseKeyHeight);
+        final rowGap = ((isCompact ? 10.0 : 14.0) * scale).clamp(8.0, 14.0);
+
+        return Column(
+          key: const Key('secret_pin_keypad'),
+          children: [
+            for (var i = 0; i < rows.length; i++) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: rows[i].map((key) {
+                  if (key.isEmpty) {
+                    return SizedBox(width: keyWidth, height: keyHeight);
+                  }
+                  if (key == 'del') {
+                    return _buildDeleteKey(
+                      colorScheme,
+                      keyWidth: keyWidth,
+                      keyHeight: keyHeight,
+                    );
+                  }
+                  return _buildNumKey(
+                    key,
+                    colorScheme,
+                    keyWidth: keyWidth,
+                    keyHeight: keyHeight,
+                  );
+                }).toList(),
+              ),
+              if (i < rows.length - 1) SizedBox(height: rowGap),
+            ],
+          ],
         );
-      }).toList(),
+      },
     );
   }
 
-  Widget _buildNumKey(String digit, ColorScheme colorScheme) {
+  Widget _buildNumKey(
+    String digit,
+    ColorScheme colorScheme, {
+    required double keyWidth,
+    required double keyHeight,
+  }) {
+    final borderRadius = BorderRadius.circular(keyHeight / 2);
+
     return SizedBox(
-      width: 88,
-      height: 72,
+      width: keyWidth,
+      height: keyHeight,
       child: Material(
-        color: Colors.transparent,
+        color: Color.alphaBlend(
+          AppColors.statsPrimary.withValues(alpha: 0.10),
+          colorScheme.surface,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: borderRadius,
+          side: const BorderSide(color: AppColors.statsCardBorder),
+        ),
         child: InkWell(
           onTap: () {
             HapticFeedback.lightImpact();
             _onKeyTap(digit);
           },
-          borderRadius: BorderRadius.circular(44),
+          borderRadius: borderRadius,
+          splashColor: AppColors.statsPrimary.withValues(alpha: 0.24),
+          highlightColor: AppColors.statsPrimary.withValues(alpha: 0.15),
           child: Center(
             child: Text(
               digit,
               style: AppTextStyles.title.copyWith(
-                fontSize: 26,
-                fontWeight: FontWeight.w400,
-                color: colorScheme.onSurface,
+                fontSize: (keyHeight * 0.38).clamp(20.0, 26.0),
+                fontWeight: FontWeight.w500,
+                color: AppColors.statsTextPrimary,
               ),
             ),
           ),
@@ -197,23 +279,38 @@ class _PinKeypadWidgetState extends State<PinKeypadWidget> {
     );
   }
 
-  Widget _buildDeleteKey(ColorScheme colorScheme) {
+  Widget _buildDeleteKey(
+    ColorScheme colorScheme, {
+    required double keyWidth,
+    required double keyHeight,
+  }) {
+    final borderRadius = BorderRadius.circular(keyHeight / 2);
+
     return SizedBox(
-      width: 88,
-      height: 72,
+      width: keyWidth,
+      height: keyHeight,
       child: Material(
-        color: Colors.transparent,
+        color: Color.alphaBlend(
+          AppColors.statsPrimary.withValues(alpha: 0.10),
+          colorScheme.surface,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: borderRadius,
+          side: const BorderSide(color: AppColors.statsCardBorder),
+        ),
         child: InkWell(
           onTap: () {
             HapticFeedback.lightImpact();
             _onBackspace();
           },
-          borderRadius: BorderRadius.circular(44),
+          borderRadius: borderRadius,
+          splashColor: AppColors.statsPrimary.withValues(alpha: 0.24),
+          highlightColor: AppColors.statsPrimary.withValues(alpha: 0.15),
           child: Center(
             child: Icon(
               Icons.backspace_outlined,
-              color: colorScheme.onSurfaceVariant,
-              size: 24,
+              color: AppColors.statsPrimaryDark,
+              size: (keyHeight * 0.34).clamp(20.0, 24.0),
             ),
           ),
         ),

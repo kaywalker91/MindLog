@@ -5,8 +5,14 @@ import 'package:flutter/services.dart';
 class TappableCard extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
-  const TappableCard({super.key, required this.child, required this.onTap});
+  const TappableCard({
+    super.key,
+    required this.child,
+    required this.onTap,
+    this.onLongPress,
+  });
 
   @override
   State<TappableCard> createState() => _TappableCardState();
@@ -27,6 +33,12 @@ class _TappableCardState extends State<TappableCard> {
         widget.onTap();
       },
       onTapCancel: () => setState(() => _isPressed = false),
+      onLongPress: widget.onLongPress != null
+          ? () {
+              HapticFeedback.mediumImpact();
+              widget.onLongPress!();
+            }
+          : null,
       child: AnimatedScale(
         scale: _isPressed ? 0.97 : 1.0,
         duration: const Duration(milliseconds: 100),

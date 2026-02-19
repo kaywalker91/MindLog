@@ -82,7 +82,7 @@ class NotificationPreviewWidget extends StatelessWidget {
                         Text(
                           '지금',
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.outline,
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],

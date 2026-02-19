@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'healing_color_schemes.dart';
+import 'statistics_theme_tokens.dart';
 
 /// 앱 전체 테마 유틸리티
 class AppTheme {
@@ -9,7 +10,7 @@ class AppTheme {
 
   // 기본 하늘색 테마 색상 (AppColors.statsPrimary와 동일)
   static const Color primaryColor = Color(0xFF7EC8E3);
-  static const Color primaryDark = Color(0xFF3A7BC8);
+  static const Color primaryDark = Color(0xFF5BA4C9);
   static const Color accentColor = Color(0xFFFF9800);
   static const Color backgroundColor = Color(0xFFFFFFFF); // Colors.white 대체
   static const Color surfaceColor = Color(0xFFFFFFFF); // 명시적 surface 색상
@@ -92,6 +93,7 @@ class AppTheme {
         bodyMedium: TextStyle(color: textColor, fontSize: 14),
         bodySmall: TextStyle(color: secondaryTextColor, fontSize: 12),
       ),
+      extensions: const <ThemeExtension<dynamic>>[StatisticsThemeTokens.light],
     );
   }
 
@@ -133,6 +135,7 @@ class AppTheme {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
+      extensions: const <ThemeExtension<dynamic>>[StatisticsThemeTokens.dark],
     );
   }
 }

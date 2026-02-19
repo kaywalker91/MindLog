@@ -59,7 +59,7 @@ class ActionItemsSection extends StatelessWidget {
           ...actions.asMap().entries.map((entry) {
             final index = entry.key;
             final action = entry.value;
-            return _buildSteppedActionItem(action, index);
+            return _buildSteppedActionItem(context, action, index);
           }),
         ],
       ),
@@ -156,7 +156,13 @@ class ActionItemsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildSteppedActionItem(String action, int index) {
+  Widget _buildSteppedActionItem(
+    BuildContext context,
+    String action,
+    int index,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     // 이모지가 있다면 제거하고 남은 텍스트만 추출
     final chars = action.characters;
     final hasEmoji =
@@ -203,7 +209,7 @@ class ActionItemsSection extends StatelessWidget {
                 Text(
                   textContent,
                   style: AppTextStyles.body.copyWith(
-                    color: AppColors.textPrimary,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ],

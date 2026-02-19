@@ -40,10 +40,10 @@ void main() {
       expect(AppRouter.router, isA<GoRouter>());
     });
 
-    test('should have 10 routes defined', () {
-      // 최상위 라우트 개수 확인 (selfEncouragement 추가로 10개)
+    test('should have 13 routes defined', () {
+      // 최상위 라우트 개수 확인 (비밀일기 3개 추가로 13개)
       final routes = AppRouter.router.configuration.routes;
-      expect(routes.length, 10);
+      expect(routes.length, 13);
     });
 
     test('routes should contain GoRoute instances', () {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/statistics_theme_tokens.dart';
 
 /// 개별 날짜 셀 위젯 (마이크로 인터랙션 지원)
 /// 성능 최적화를 위해 const 생성자와 == 연산자 오버라이드 구현
@@ -55,13 +56,18 @@ class _DayCellState extends State<DayCell> {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
     final hasRecord = widget.score != null;
     final emoji = _getEmojiForScore(widget.score);
-    final bgColor = _getBackgroundColor(widget.score);
+    final bgColor = _getBackgroundColor(widget.score, statsTokens);
 
     // 다른 월 또는 미래 날짜는 흐리게
-    final opacity = widget.isCurrentMonth && !widget.isFuture ? 1.0 : 0.35;
-    final textOpacity = widget.isCurrentMonth && !widget.isFuture ? 1.0 : 0.5;
+    final opacity = widget.isCurrentMonth && !widget.isFuture
+        ? 1.0
+        : statsTokens.calendarInactiveOpacity;
+    final textOpacity = widget.isCurrentMonth && !widget.isFuture
+        ? 1.0
+        : statsTokens.calendarInactiveTextOpacity;
 
     // 접근성: 애니메이션 비활성화 설정 체크
     final reduceMotion = MediaQuery.of(context).disableAnimations;
@@ -72,34 +78,31 @@ class _DayCellState extends State<DayCell> {
 
     final decoration = BoxDecoration(
       color: isTodayNoRecord
-          ? AppColors.todayGlow.withValues(alpha: 0.3)
+          ? statsTokens.calendarTodayBackground
           : bgColor.withValues(alpha: opacity),
       borderRadius: BorderRadius.circular(8),
       border: widget.isToday
-          ? Border.all(color: AppColors.statsPrimary, width: 2)
+          ? Border.all(color: statsTokens.calendarTodayBorder, width: 1.8)
           : hasRecord && widget.isCurrentMonth && !widget.isFuture
-          ? Border.all(
-              color: AppColors.statsAccentMint.withValues(alpha: 0.4),
-              width: 0.8,
-            )
+          ? Border.all(color: statsTokens.calendarRecordBorder, width: 0.8)
           : Border.all(
-              color: AppColors.gardenSoilBorder.withValues(alpha: opacity),
+              color: statsTokens.calendarEmptyBorder.withValues(alpha: opacity),
               width: 0.6,
             ),
       // 기록 있는 셀에 Glow 효과
       boxShadow: hasRecord && widget.isCurrentMonth && !widget.isFuture
           ? [
               BoxShadow(
-                color: AppColors.gardenGlow.withValues(alpha: 0.3),
-                blurRadius: 8,
-                spreadRadius: 1,
+                color: statsTokens.calendarRecordGlow.withValues(alpha: 0.22),
+                blurRadius: 6,
+                spreadRadius: 0,
               ),
             ]
           : isTodayNoRecord
           ? [
               BoxShadow(
-                color: AppColors.todayGlow.withValues(alpha: 0.4),
-                blurRadius: 6,
+                color: statsTokens.calendarTodayBorder.withValues(alpha: 0.25),
+                blurRadius: 5,
                 spreadRadius: 0,
               ),
             ]
@@ -120,7 +123,9 @@ class _DayCellState extends State<DayCell> {
               Text(
                 '${widget.date.day}',
                 style: TextStyle(
-                  color: _getDateTextColor().withValues(alpha: textOpacity),
+                  color: _getDateTextColor(
+                    statsTokens,
+                  ).withValues(alpha: textOpacity),
                   fontSize: widget.dateFontSize,
                   fontWeight: widget.isToday
                       ? FontWeight.bold
@@ -145,7 +150,7 @@ class _DayCellState extends State<DayCell> {
           ? content
           : AnimatedScale(
               scale: _isPressed ? 0.95 : 1.0,
-              duration: const Duration(milliseconds: 100),
+              duration: Duration(milliseconds: statsTokens.microMotionMs),
               curve: Curves.easeInOut,
               child: content,
             );
@@ -153,10 +158,13 @@ class _DayCellState extends State<DayCell> {
       return Tooltip(
         message: _getTooltipMessage(),
         decoration: BoxDecoration(
-          color: AppColors.statsTextPrimary,
+          color: statsTokens.chartTooltipBackground,
           borderRadius: BorderRadius.circular(8),
         ),
-        textStyle: const TextStyle(color: Colors.white, fontSize: 12),
+        textStyle: TextStyle(
+          color: statsTokens.chartTooltipForeground,
+          fontSize: 12,
+        ),
         child: GestureDetector(
           onTapDown: reduceMotion ? null : _handleTapDown,
           onTapUp: reduceMotion
@@ -174,16 +182,16 @@ class _DayCellState extends State<DayCell> {
     return content;
   }
 
-  Color _getDateTextColor() {
+  Color _getDateTextColor(StatisticsThemeTokens statsTokens) {
     final weekday = widget.date.weekday;
     if (weekday == 6) {
       // 토요일
-      return AppColors.statsPrimary;
+      return statsTokens.primaryStrong;
     } else if (weekday == 7) {
       // 일요일
-      return AppColors.statsAccentCoral;
+      return statsTokens.coralAccent;
     }
-    return AppColors.statsTextPrimary;
+    return statsTokens.textPrimary;
   }
 
   /// 감정 점수 → 이모지 매핑
@@ -197,8 +205,8 @@ class _DayCellState extends State<DayCell> {
   }
 
   /// 감정 점수 → 배경색 매핑 (따뜻한 톤)
-  Color _getBackgroundColor(double? score) {
-    if (score == null) return AppColors.gardenSoil;
+  Color _getBackgroundColor(double? score, StatisticsThemeTokens statsTokens) {
+    if (score == null) return statsTokens.calendarEmptyCell;
     // 따뜻한 정원 색상 팔레트 사용
     if (score <= 2) return AppColors.gardenWarm1;
     if (score <= 4) return AppColors.gardenWarm2;

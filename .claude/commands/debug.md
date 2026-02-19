@@ -21,6 +21,6 @@ description: 병렬 에이전트 기반 체계적 디버깅
 2. 각 후보의 증거와 검증 방법
 
 ### Phase 3: 가설 검증 + 수정
-docs/skills/systematic-debugging.md의 Stage 3-4를 따라 실행.
+.claude/skills/systematic-debugging.md의 Stage 3-4를 따라 실행.
 
 IMPORTANT: 코드 수정 전 반드시 원인 분석 결과를 먼저 보고할 것.

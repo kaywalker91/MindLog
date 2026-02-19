@@ -55,9 +55,9 @@ class AppColors {
   static const Color statsCardBorder = Color(0xFFE8F4FA); // Mist
 
   // Statistics Text Colors
-  static const Color statsTextPrimary = Color(0xFF2C3E50); // 제목, 주요 텍스트
-  static const Color statsTextSecondary = Color(0xFF7F8C9A); // 부제목, 설명
-  static const Color statsTextTertiary = Color(0xFFA8B5C4); // 힌트, 비활성
+  static const Color statsTextPrimary = Color(0xFF1F2A37); // 제목, 주요 텍스트
+  static const Color statsTextSecondary = Color(0xFF4B5F72); // 부제목, 설명
+  static const Color statsTextTertiary = Color(0xFF617488); // 힌트, 비활성
 
   // Statistics Heatmap Colors (하늘색 5단계)
   static const Color heatmapLevel0 = Color(0xFFF0F4F8); // 데이터 없음

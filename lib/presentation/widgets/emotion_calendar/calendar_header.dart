@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/statistics_theme_tokens.dart';
 
 /// 캘린더 헤더 위젯 (월 네비게이션)
 class CalendarHeader extends StatelessWidget {
@@ -20,21 +20,23 @@ class CalendarHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           onPressed: onPrevMonth,
           icon: const Icon(Icons.chevron_left),
-          color: AppColors.statsTextSecondary,
+          color: statsTokens.textSecondary,
           iconSize: 24,
           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
           padding: EdgeInsets.zero,
         ),
         Text(
           '${focusedMonth.year}년 ${focusedMonth.month}월',
-          style: const TextStyle(
-            color: AppColors.statsTextPrimary,
+          style: TextStyle(
+            color: statsTokens.textPrimary,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -46,22 +48,19 @@ class CalendarHeader extends StatelessWidget {
               TextButton(
                 onPressed: onGoToToday,
                 style: TextButton.styleFrom(
+                  foregroundColor: statsTokens.primaryStrong,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   minimumSize: const Size(0, 36),
                 ),
                 child: const Text(
                   '오늘',
-                  style: TextStyle(
-                    color: AppColors.statsPrimary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
             IconButton(
               onPressed: onNextMonth,
               icon: const Icon(Icons.chevron_right),
-              color: AppColors.statsTextSecondary,
+              color: statsTokens.textSecondary,
               iconSize: 24,
               constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
               padding: EdgeInsets.zero,
@@ -79,6 +78,7 @@ class WeekdayHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
     const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
     return Row(
       children: weekdays.asMap().entries.map((entry) {
@@ -89,15 +89,15 @@ class WeekdayHeader extends StatelessWidget {
 
         if (index == 5) {
           // 토요일
-          textColor = AppColors.statsPrimary;
+          textColor = statsTokens.primaryStrong;
           fontWeight = FontWeight.w600;
         } else if (index == 6) {
           // 일요일
-          textColor = AppColors.statsAccentCoral;
+          textColor = statsTokens.coralAccent;
           fontWeight = FontWeight.w600;
         } else {
-          textColor = AppColors.statsTextTertiary;
-          fontWeight = FontWeight.normal;
+          textColor = statsTokens.textTertiary;
+          fontWeight = FontWeight.w500;
         }
 
         return Expanded(

@@ -91,7 +91,7 @@ docs/troubleshooting/README.md     ← 이 파일: 사람이 읽는 목차
 2. `docs/troubleshooting/{id}.md` 상세 문서 생성
 3. 이 README의 Known Issues 테이블 + Root Cause 섹션에 항목 추가
 
-스키마 상세: `docs/skills/troubleshoot-save.md` 참조
+스키마 상세: `.claude/skills/troubleshoot-save.md` 참조
 
 ---
 

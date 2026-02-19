@@ -87,6 +87,8 @@ class WhatsNewDialog extends StatelessWidget {
   }
 
   Widget _buildHeader(ThemeData theme) {
+    final headerFg = theme.colorScheme.onPrimary;
+
     // 축하 분위기의 그래디언트 (파랑→보라)
     const gradient = LinearGradient(
       colors: [AppColors.statsPrimary, AppColors.statsSecondary],
@@ -103,14 +105,10 @@ class WhatsNewDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: headerFg.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.celebration_rounded,
-              color: Colors.white,
-              size: 22,
-            ),
+            child: Icon(Icons.celebration_rounded, color: headerFg, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -120,7 +118,7 @@ class WhatsNewDialog extends StatelessWidget {
                 Text(
                   '새 버전이 설치되었어요',
                   style: theme.textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
+                    color: headerFg,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -128,7 +126,7 @@ class WhatsNewDialog extends StatelessWidget {
                 Text(
                   '마인드로그가 더 좋아졌어요!',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: headerFg.withValues(alpha: 0.9),
                   ),
                 ),
               ],
@@ -237,7 +235,7 @@ class WhatsNewDialog extends StatelessWidget {
           onPressed: onDismiss,
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.statsPrimary,
-            foregroundColor: Colors.white,
+            foregroundColor: colorScheme.onPrimary,
             padding: const EdgeInsets.symmetric(vertical: 12),
           ),
           child: const Text('확인'),

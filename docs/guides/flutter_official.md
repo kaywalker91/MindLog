@@ -7,7 +7,7 @@ MindLog 프로젝트에서 Flutter/Riverpod 공식 문서를 효율적으로 활
 ```
 [1] .claude/memories/  -> 프로젝트 특화 학습 (MindLog 버그/패턴)
 [2] .claude/rules/     -> 아키텍처 제약 (레이어 규칙)
-[3] docs/skills/       -> 자동화 도구 (/c7-flutter)
+[3] .claude/skills/       -> 자동화 도구 (/c7-flutter)
 [4] Context7 MCP       -> 공식 문서 (동적 조회)
 ```
 
@@ -71,9 +71,9 @@ MindLog 프로젝트에서 Flutter/Riverpod 공식 문서를 효율적으로 활
 
 ## Related Files
 
-- **Skill**: `docs/skills/c7-flutter.md`
+- **Skill**: `.claude/skills/c7-flutter.md`
 - **Memories Index**: `.claude/memories/TIL-INDEX.md`
-- **Flutter Advanced Skill**: `docs/skills/flutter-advanced.md`
+- **Flutter Advanced Skill**: `.claude/skills/flutter-advanced.md`
 
 ## Why This Approach?
 

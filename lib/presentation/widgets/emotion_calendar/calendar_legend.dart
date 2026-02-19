@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/statistics_theme_tokens.dart';
 
 /// 캘린더 범례 위젯
 class CalendarLegend extends StatelessWidget {
@@ -7,22 +7,24 @@ class CalendarLegend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        const Text(
+        Text(
           '마음의 정원',
-          style: TextStyle(color: AppColors.statsTextTertiary, fontSize: 10),
+          style: TextStyle(color: statsTokens.textTertiary, fontSize: 10),
         ),
         const SizedBox(width: 8),
         _buildLegendItem('🌱'),
-        _buildLegendArrow(),
+        _buildLegendArrow(statsTokens.textTertiary),
         _buildLegendItem('🌿'),
-        _buildLegendArrow(),
+        _buildLegendArrow(statsTokens.textTertiary),
         _buildLegendItem('🌷'),
-        _buildLegendArrow(),
+        _buildLegendArrow(statsTokens.textTertiary),
         _buildLegendItem('🌸'),
-        _buildLegendArrow(),
+        _buildLegendArrow(statsTokens.textTertiary),
         _buildLegendItem('🌻'),
       ],
     );
@@ -32,13 +34,10 @@ class CalendarLegend extends StatelessWidget {
     return Text(emoji, style: const TextStyle(fontSize: 11));
   }
 
-  Widget _buildLegendArrow() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 2),
-      child: Text(
-        '→',
-        style: TextStyle(fontSize: 8, color: AppColors.statsTextTertiary),
-      ),
+  Widget _buildLegendArrow(Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Text('→', style: TextStyle(fontSize: 8, color: color)),
     );
   }
 }

@@ -11,6 +11,8 @@ class CharacterBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -60,7 +62,7 @@ class CharacterBanner extends StatelessWidget {
                 Text(
                   character.displayName,
                   style: AppTextStyles.subtitle.copyWith(
-                    color: AppColors.statsTextPrimary,
+                    color: colorScheme.onSurface,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -68,7 +70,7 @@ class CharacterBanner extends StatelessWidget {
                 Text(
                   character.description,
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.statsTextSecondary,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],

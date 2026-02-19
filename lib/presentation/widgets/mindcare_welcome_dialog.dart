@@ -22,6 +22,11 @@ class MindcareWelcomeDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final mindcareOnAccent =
+        ThemeData.estimateBrightnessForColor(AppColors.mindcareAccent) ==
+            Brightness.dark
+        ? Colors.white
+        : Colors.black;
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -161,6 +166,7 @@ class MindcareWelcomeDialog extends StatelessWidget {
                         onPressed: () => context.pop(),
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.mindcareAccent,
+                          foregroundColor: mindcareOnAccent,
                           minimumSize: const Size.fromHeight(52),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),

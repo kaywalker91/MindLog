@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/services/notification_permission_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/theme/statistics_theme_tokens.dart';
 import '../providers/app_info_provider.dart';
 import '../providers/app_upgrade_check_provider.dart';
 import '../providers/ui_state_providers.dart';
@@ -223,11 +224,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     required bool isCompact,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = colorScheme.brightness == Brightness.dark;
-    final unselectedColor = colorScheme.onSurface.withValues(alpha: 0.65);
-    final navGradientColors = isDark
-        ? [colorScheme.surfaceContainerHighest, colorScheme.surfaceContainerLow]
-        : [colorScheme.surface, AppColors.statsBackground];
+    final statsTokens = StatisticsThemeTokens.of(context);
+    final unselectedColor = statsTokens.navUnselected;
+    final navGradientColors = [
+      statsTokens.navGradientTop,
+      statsTokens.navGradientBottom,
+    ];
 
     return Container(
       decoration: BoxDecoration(
@@ -237,17 +239,15 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           end: Alignment.bottomCenter,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppColors.statsPrimary.withValues(alpha: 0.12),
-        ),
+        border: Border.all(color: statsTokens.navBorder),
         boxShadow: [
           BoxShadow(
-            color: AppColors.statsPrimary.withValues(alpha: 0.25),
-            blurRadius: 20,
+            color: statsTokens.navShadow.withValues(alpha: 0.24),
+            blurRadius: 18,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.04),
+            color: colorScheme.shadow.withValues(alpha: 0.08),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -260,9 +260,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             labelTextStyle: WidgetStateProperty.resolveWith((states) {
               final isSelected = states.contains(WidgetState.selected);
               return AppTextStyles.label.copyWith(
-                color: isSelected
-                    ? AppColors.statsPrimaryDark
-                    : unselectedColor,
+                color: isSelected ? statsTokens.navSelected : unselectedColor,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 letterSpacing: 0.2,
               );
@@ -270,9 +268,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             iconTheme: WidgetStateProperty.resolveWith((states) {
               final isSelected = states.contains(WidgetState.selected);
               return IconThemeData(
-                color: isSelected
-                    ? AppColors.statsPrimaryDark
-                    : unselectedColor,
+                color: isSelected ? statsTokens.navSelected : unselectedColor,
                 size: isSelected ? 26 : 24,
               );
             }),
@@ -281,11 +277,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             height: isCompact ? 58 : 64,
             selectedIndex: selectedIndex,
             onDestinationSelected: onSelected,
-            backgroundColor: colorScheme.surface.withValues(alpha: 0),
+            backgroundColor: Colors.transparent,
             elevation: 0,
-            shadowColor: colorScheme.surface.withValues(alpha: 0),
-            surfaceTintColor: colorScheme.surface.withValues(alpha: 0),
-            indicatorColor: AppColors.statsPrimary.withValues(alpha: 0.18),
+            shadowColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            indicatorColor: statsTokens.navIndicator,
             indicatorShape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),

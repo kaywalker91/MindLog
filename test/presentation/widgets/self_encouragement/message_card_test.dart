@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mindlog/core/theme/app_colors.dart';
+import 'package:mindlog/core/theme/app_theme.dart';
 import 'package:mindlog/domain/entities/self_encouragement_message.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
 import 'package:mindlog/presentation/widgets/self_encouragement/message_card.dart';
@@ -13,11 +15,12 @@ SelfEncouragementMessage _makeMessage({
   String id = '1',
   String content = '오늘도 화이팅!',
   int displayOrder = 0,
+  DateTime? createdAt,
 }) {
   return SelfEncouragementMessage(
     id: id,
     content: content,
-    createdAt: DateTime(2026, 1, 1),
+    createdAt: createdAt ?? DateTime(2026, 1, 1),
     displayOrder: displayOrder,
   );
 }
@@ -26,12 +29,16 @@ SelfEncouragementMessage _makeMessage({
 Widget _buildTestWidget({
   required SelfEncouragementMessage message,
   List<Override> overrides = const [],
+  ThemeMode themeMode = ThemeMode.light,
   VoidCallback? onEdit,
   VoidCallback? onDelete,
 }) {
   return ProviderScope(
     overrides: overrides,
     child: MaterialApp(
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeMode,
       home: Scaffold(
         body: ReorderableListView(
           onReorder: (oldIndex, newIndex) {},
@@ -56,6 +63,21 @@ Future<void> _pumpAnimations(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 500));
   await tester.pump(const Duration(milliseconds: 500));
   await tester.pump(const Duration(milliseconds: 500));
+}
+
+BoxDecoration _cardDecoration(WidgetTester tester) {
+  final cardContainerFinder = find.byWidgetPredicate((widget) {
+    if (widget is! Container || widget.decoration is! BoxDecoration) {
+      return false;
+    }
+
+    final decoration = widget.decoration! as BoxDecoration;
+    return decoration.gradient is LinearGradient && decoration.border != null;
+  });
+
+  expect(cardContainerFinder, findsWidgets);
+  final cardContainer = tester.widget<Container>(cardContainerFinder.first);
+  return cardContainer.decoration! as BoxDecoration;
 }
 
 void main() {
@@ -206,6 +228,87 @@ void main() {
 
       // Assert
       expect(editCalled, isTrue);
+    });
+  });
+
+  group('MessageCard 테마 색상', () {
+    testWidgets('다크모드에서 카드와 텍스트가 colorScheme 시맨틱 색상을 사용해야 한다', (tester) async {
+      final message = _makeMessage(
+        content: '다크모드 테스트 메시지',
+        createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+      );
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          message: message,
+          overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
+          themeMode: ThemeMode.dark,
+        ),
+      );
+      await _pumpAnimations(tester);
+
+      final context = tester.element(find.byType(MessageCard));
+      final colorScheme = Theme.of(context).colorScheme;
+
+      final cardDecoration = _cardDecoration(tester);
+      final gradient = cardDecoration.gradient! as LinearGradient;
+      final border = cardDecoration.border! as Border;
+      expect(gradient.colors, [
+        colorScheme.surfaceContainerHigh,
+        colorScheme.surfaceContainerLow,
+      ]);
+      expect(
+        border.top.color,
+        colorScheme.outlineVariant.withValues(alpha: 0.7),
+      );
+
+      final contentText = tester.widget<Text>(find.text('다크모드 테스트 메시지'));
+      expect(contentText.style?.color, colorScheme.onSurface);
+
+      final dateText = tester.widget<Text>(find.text('오늘 작성'));
+      expect(dateText.style?.color, colorScheme.onSurfaceVariant);
+
+      final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
+      final editBackground = dismissible.background as Container;
+      final deleteBackground = dismissible.secondaryBackground as Container;
+      final editDecoration = editBackground.decoration! as BoxDecoration;
+      final deleteDecoration = deleteBackground.decoration! as BoxDecoration;
+      final editRow = editBackground.child! as Row;
+      final deleteRow = deleteBackground.child! as Row;
+      final editIcon = editRow.children[0] as Icon;
+      final editLabel = editRow.children[2] as Text;
+      final deleteLabel = deleteRow.children[0] as Text;
+      final deleteIcon = deleteRow.children[2] as Icon;
+
+      expect(editDecoration.color, colorScheme.primaryContainer);
+      expect(deleteDecoration.color, colorScheme.errorContainer);
+      expect(editIcon.color, colorScheme.onPrimaryContainer);
+      expect(editLabel.style?.color, colorScheme.onPrimaryContainer);
+      expect(deleteIcon.color, colorScheme.onErrorContainer);
+      expect(deleteLabel.style?.color, colorScheme.onErrorContainer);
+    });
+
+    testWidgets('라이트모드에서는 기존 warm 카드 톤을 유지해야 한다', (tester) async {
+      final message = _makeMessage(content: '라이트모드 테스트 메시지');
+
+      await tester.pumpWidget(
+        _buildTestWidget(
+          message: message,
+          overrides: [settingsRepositoryProvider.overrideWithValue(mockRepo)],
+          themeMode: ThemeMode.light,
+        ),
+      );
+      await _pumpAnimations(tester);
+
+      final cardDecoration = _cardDecoration(tester);
+      final gradient = cardDecoration.gradient! as LinearGradient;
+      final border = cardDecoration.border! as Border;
+
+      expect(gradient.colors, [
+        AppColors.gardenWarm1,
+        AppColors.gardenWarm2.withValues(alpha: 0.7),
+      ]);
+      expect(border.top.color, AppColors.gardenWarm3.withValues(alpha: 0.5));
     });
   });
 }

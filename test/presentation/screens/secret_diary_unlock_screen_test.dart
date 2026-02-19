@@ -43,6 +43,54 @@ void main() {
   });
 
   group('SecretDiaryUnlockScreen', () {
+    testWidgets('320~360/412+/대형 뷰포트에서 overflow 없이 렌더링', (tester) async {
+      const sizes = [
+        Size(320, 640),
+        Size(360, 780),
+        Size(412, 915),
+        Size(800, 2000),
+      ];
+
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      for (final size in sizes) {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(_buildHarness());
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byKey(const Key('secret_pin_content_card')),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull, reason: 'size: $size');
+      }
+    });
+
+    testWidgets('대형 화면에서 PIN 카드가 본문 중앙에 가깝게 배치되어야 한다', (tester) async {
+      tester.view.physicalSize = const Size(800, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(_buildHarness());
+      await tester.pumpAndSettle();
+
+      final bodyRect = tester.getRect(find.byType(SingleChildScrollView).first);
+      final cardRect = tester.getRect(
+        find.byKey(const Key('secret_pin_content_card')),
+      );
+      final deltaY = (cardRect.center.dy - bodyRect.center.dy).abs();
+
+      expect(deltaY, lessThanOrEqualTo(120));
+    });
+
     testWidgets('초기 렌더링: PIN 입력 화면 표시', (tester) async {
       tester.view.physicalSize = const Size(800, 2000);
       addTearDown(() => tester.view.resetPhysicalSize());

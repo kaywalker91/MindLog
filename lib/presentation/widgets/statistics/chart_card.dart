@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/statistics_theme_tokens.dart';
 import '../../../domain/entities/statistics.dart';
 import '../emotion_line_chart.dart';
 
@@ -16,20 +16,22 @@ class StatisticsChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.statsCardBackground,
+        color: statsTokens.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.statsCardBorder),
+        border: Border.all(color: statsTokens.cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '감정 추이',
             style: TextStyle(
-              color: AppColors.statsTextPrimary,
+              color: statsTokens.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -37,9 +39,10 @@ class StatisticsChartCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             selectedPeriod.displayName,
-            style: const TextStyle(
-              color: AppColors.statsTextTertiary,
-              fontSize: 12,
+            style: TextStyle(
+              color: statsTokens.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 16),

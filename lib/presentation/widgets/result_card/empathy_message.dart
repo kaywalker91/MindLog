@@ -34,7 +34,7 @@ class _EmpathyMessageState extends State<EmpathyMessage> {
     final textStyle = AppTextStyles.body.copyWith(
       height: 1.7,
       fontSize: 15,
-      color: AppColors.textPrimary,
+      color: theme.colorScheme.onSurface,
     );
 
     return Stack(

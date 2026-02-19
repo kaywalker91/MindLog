@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/statistics_theme_tokens.dart';
 
 /// 키워드 랭킹 행 위젯
 class KeywordRankRow extends StatelessWidget {
@@ -30,12 +30,15 @@ class KeywordRankRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+    final accent = statsTokens.primaryStrong;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.statsCardBackground,
+        color: statsTokens.cardSoftBackground,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.statsCardBorder),
+        border: Border.all(color: statsTokens.cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,8 +50,8 @@ class KeywordRankRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   keyword,
-                  style: const TextStyle(
-                    color: AppColors.statsTextPrimary,
+                  style: TextStyle(
+                    color: statsTokens.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -58,8 +61,8 @@ class KeywordRankRow extends StatelessWidget {
               ),
               Text(
                 '$frequency회',
-                style: const TextStyle(
-                  color: AppColors.statsTextSecondary,
+                style: TextStyle(
+                  color: statsTokens.textSecondary,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -73,7 +76,7 @@ class KeywordRankRow extends StatelessWidget {
               children: [
                 Container(
                   height: 6,
-                  color: AppColors.statsPrimary.withValues(alpha: 0.12),
+                  color: statsTokens.cardBorder.withValues(alpha: 0.8),
                 ),
                 FractionallySizedBox(
                   alignment: Alignment.centerLeft,
@@ -82,10 +85,7 @@ class KeywordRankRow extends StatelessWidget {
                     height: 6,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [
-                          AppColors.statsPrimary.withValues(alpha: 0.6),
-                          AppColors.statsPrimaryDark,
-                        ],
+                        colors: [accent.withValues(alpha: 0.65), accent],
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       ),
@@ -98,9 +98,10 @@ class KeywordRankRow extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '키워드 등장 비율 $_percent%',
-            style: const TextStyle(
-              color: AppColors.statsTextTertiary,
+            style: TextStyle(
+              color: statsTokens.textSecondary,
               fontSize: 11,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -116,18 +117,20 @@ class _RankBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+
     return Container(
       width: 26,
       height: 26,
       decoration: BoxDecoration(
-        color: AppColors.statsPrimary.withValues(alpha: 0.12),
+        color: statsTokens.primarySoft,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Center(
         child: Text(
           '#$rank',
-          style: const TextStyle(
-            color: AppColors.statsPrimaryDark,
+          style: TextStyle(
+            color: statsTokens.primaryStrong,
             fontSize: 11,
             fontWeight: FontWeight.w700,
           ),

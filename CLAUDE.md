@@ -30,7 +30,7 @@ Architecture: Clean Architecture (domain/data/presentation) + Riverpod state man
 ## Rules & Skills
 
 - **Rules**: `.claude/rules/` — architecture, build, workflow, layer-specific constraints
-- **Skills**: `docs/skills/` — on-demand skill files (read when command is invoked)
+- **Skills**: `.claude/skills/` — on-demand skill files (read when command is invoked)
 - **Skill index**: `.claude/rules/skill-catalog.md`
 
 ## Debugging Rules
@@ -48,7 +48,7 @@ Architecture: Clean Architecture (domain/data/presentation) + Riverpod state man
 - UseCase: try { repo } on Failure { rethrow } catch { UnknownFailure }
 
 ## Agent Teams (Experimental)
-- 활성화: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (settings.json)
+- 활성화: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (`~/.claude/settings.json` 글로벌 설정)
 - 가이드: `.claude/rules/parallel-agents.md`
 - 팀원 간 직접 통신, 공유 태스크 리스트, delegate 모드 지원
 - 주의: 세션 복원 불가, 팀당 1세션, 중첩 팀 불가

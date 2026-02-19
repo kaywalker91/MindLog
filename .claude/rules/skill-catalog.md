@@ -1,114 +1,57 @@
-# Skill Catalog
+# Skills
 
-Skills are in `docs/skills/`. Read the relevant file on-demand when a command is invoked.
+Skills in `.claude/skills/`. Read skill file on invocation. Workflows: `skill-workflows.md`.
 
-## Commands
-
-| Command | Skill File | Purpose |
-|---------|-----------|---------|
-| `/scaffold [name]` | `feature-scaffold.md` | Clean Architecture scaffolding |
-| `/test-unit-gen [file]` | `test-unit-gen.md` | Unit test generation (TDD 강화) |
-| `/debug [action]` | `systematic-debugging.md` | 4단계 체계적 디버깅 + 병렬 에이전트 커맨드 |
-| `/groq [action]` | `groq-expert.md` | AI prompt optimization |
-| `/db [action]` | `database-expert.md` | SQLite schema management |
-| `/resilience [action]` | `resilience-expert.md` | Error handling patterns |
-| `/version-bump [type]` | `version-bump.md` | Version update (patch/minor/major) |
-| `/changelog` | `changelog-update.md` | CHANGELOG.md update |
-| `/lint-fix` | `lint-fix.md` | Auto-fix lint violations |
-| `/coverage` | `test-coverage-report.md` | Test coverage report |
-| `/review [file]` | `code-reviewer.md` | Code review |
-| `/widget-test [file]` | `widget-test-gen.md` | Widget test generation |
-| `/suppress-pattern [entity] [duration]` | `suppress-pattern.md` | Time-based suppression (24h, 7d, etc) |
-| `/periodic-timer [name] [interval]` | `periodic-timer.md` | Periodic background task with cleanup |
-
-## Troubleshooting & Knowledge Base Commands
-
-| Command | Skill File | Purpose |
-|---------|-----------|---------|
-| `/troubleshoot-save [id]` | `troubleshoot-save.md` | 해결된 이슈 → 구조화 트러블슈팅 메모리 저장 (JSON + MD) |
-
-## Mental Health & Safety Commands (NEW)
-
-| Command | Skill File | Purpose |
-|---------|-----------|---------|
-| `/crisis-check [action]` | `crisis-detection.md` | 위기 감지 및 안전 개입 프로토콜 (P0 Critical) |
-| `/emotion-analyze [action]` | `emotion-analyze.md` | 감정 분석 심화 및 Mental Health 패턴 |
-
-## Notification & Settings UI Commands
-
-| Command | Skill File | Purpose |
-|---------|-----------|---------|
-| `/notification-enum-gen [feature]` | `notification-enum-gen.md` | 메시지 풀 enum 카테고리 구조화 |
-| `/settings-card-gen [type] [categories]` | `settings-card-gen.md` | Accent 설정 카드 + 카테고리 칩 UI 생성 |
-
-## Flutter Advanced Commands (NEW)
-
-| Command | Skill File | Purpose |
-|---------|-----------|---------|
-| `/flutter-advanced [action]` | `flutter-advanced.md` | Riverpod 심화 패턴 및 성능 최적화 |
-| `/perf [action]` | `performance-expert.md` | 성능 분석/최적화 + 자동 감사 (http-timeout, image-cache) |
-| `/ui-dark-mode [action]` | `ui-dark-mode.md` | Dark Theme 최적화 및 디자인 시스템 |
-| `/c7-flutter [topic]` | `c7-flutter.md` | Context7 Flutter/Riverpod 공식 문서 조회 |
-
-## AI & Optimization Commands (NEW)
-
-| Command | Skill File | Purpose |
-|---------|-----------|---------|
-| `/prompt-opt [action]` | `prompt-optimization.md` | LLM 프롬프트 체계적 최적화 |
-| `/db-migrate-validate [action]` | `db-migration-validator.md` | SQLite 마이그레이션 검증 자동화 |
-
-## Quality & Refactoring Commands
-
-| Command | Skill File | Purpose |
-|---------|-----------|---------|
-| `/arch-check` | `arch-check.md` | Clean Architecture 의존성 위반 검사 |
-| `/widget-decompose [file]` | `widget-decompose.md` | 대형 위젯 분해 자동화 |
-| `/responsive-overflow-fix [file]` | `responsive-overflow-fix.md` | Column 오버플로우 → 반응형 UI 변환 |
-| `/barrel-export-gen [dir]` | `barrel-export-gen.md` | 배럴 export 파일 자동 생성 |
-| `/color-migrate [file]` | `color-migrate.md` | 하드코딩 색상 → theme-aware 마이그레이션 |
-| `/provider-centralize` | `provider-centralize.md` | Provider 중복/분산 분석 및 중앙화 |
-| `/provider-invalidate-chain [trigger]` | `provider-invalidate-chain.md` | Provider 무효화 체인 분석 및 코드 생성 |
-| `/provider-invalidate-chain --validate` | `provider-invalidate-chain.md` | 기존 무효화 체인 검증 |
-| `/provider-ref-fix [path]` | `provider-ref-fix.md` | Provider 정의 내 ref.read() → ref.watch() 자동 변환 |
-| `/defensive-recovery-gen [trigger]` | `defensive-recovery-gen.md` | DB 복원 방어적 코드 패턴 생성 |
-| `/provider-invalidation-audit` | `provider-invalidation-audit.md` | Provider 무효화 누락 정적 분석 |
-| `/refactor-plan [scope]` | `refactor-plan.md` | 리팩토링 계획서 생성 |
-| `/session-wrap` | `session-wrap.md` | 세션 마무리 자동화 |
-| `/til-save [topic]` | `til-save.md` | TIL 문서 메모리 저장 |
-
-## Testing & Recovery Commands
-
-| Command | Skill File | Purpose |
-|---------|-----------|---------|
-| `/test-quality-review [path]` | `test-quality-review.md` | 테스트 품질 3명 병렬 리뷰 (커버리지/품질/시나리오) |
-| `/riverpod-widget-test-gen [file]` | `riverpod-widget-test-gen.md` | Riverpod 위젯 테스트 자동 생성 |
-| `/db-state-recovery [action]` | `db-state-recovery.md` | DB 복원 시나리오 테스트 자동화 |
-
-## CI/CD Commands
-
-| Command | Skill File | Purpose |
-|---------|-----------|---------|
-| `/cd-diagnose [run_id]` | `cd-diagnose.md` | CD 워크플로우 실패 근본 원인 분석 |
-| `/fastlane-audit` | `fastlane-audit.md` | Fastlane 설정 사전 검증 |
-
-## OpenSpec & SSOT Commands (NEW)
-
-| Command | Skill File | Purpose |
-|---------|-----------|---------|
-| `/openspec-design [feature]` | `openspec-design.md` | OpenSpec 표준 설계서 자동 생성 (Phase 3) |
-| `/openspec-review [spec-path]` | `openspec-review.md` | 스펙 검증 3명 병렬 리뷰 + 자가 교정 (Phase 4) |
-
-## Swarm Orchestration Commands
-
-| Command | Skill File | Purpose |
-|---------|-----------|---------|
-| `/swarm-review [path]` | `swarm-review.md` | 보안·성능·아키텍처 3명 병렬 리뷰 |
-| `/feature-pipeline [name]` | `feature-pipeline.md` | Research→Plan→Scaffold→Test→Review 5단계 파이프라인 |
-| `/feature-pipeline-v2 [name]` | `feature-pipeline-v2.md` | Issue→Spec→Implement→PR 9단계 SSOT 파이프라인 (NEW) |
-| `/swarm-refactor [scope] [strategy]` | `swarm-refactor.md` | 대규모 리팩토링 병렬 에이전트 분담 |
-| `/parallel-dev [task]` | `parallel-dev.md` | 일상 작업 병렬화 (탐색+구현+검증) |
-| `/explore-creative [goal]` | `explore-creative.md` | 모호한 목표로 창의적 해결책 탐색 |
-
-## Workflows
-
-스킬 조합 워크플로우는 `skill-workflows.md` 참조.
+| Command | File |
+|---------|------|
+| `/scaffold [name]` | feature-scaffold.md |
+| `/test-unit-gen [file]` | test-unit-gen.md |
+| `/debug [action]` | systematic-debugging.md |
+| `/groq [action]` | groq-expert.md |
+| `/db [action]` | database-expert.md |
+| `/resilience [action]` | resilience-expert.md |
+| `/version-bump [type]` | version-bump.md |
+| `/changelog` | changelog-update.md |
+| `/lint-fix` | lint-fix.md |
+| `/coverage` | test-coverage-report.md |
+| `/review [file]` | code-reviewer.md |
+| `/widget-test [file]` | widget-test-gen.md |
+| `/suppress-pattern [entity] [duration]` | suppress-pattern.md |
+| `/periodic-timer [name] [interval]` | periodic-timer.md |
+| `/troubleshoot-save [id]` | troubleshoot-save.md |
+| `/crisis-check [action]` | crisis-detection.md |
+| `/emotion-analyze [action]` | emotion-analyze.md |
+| `/notification-enum-gen [feature]` | notification-enum-gen.md |
+| `/settings-card-gen [type]` | settings-card-gen.md |
+| `/flutter-advanced [action]` | flutter-advanced.md |
+| `/perf [action]` | performance-expert.md |
+| `/ui-dark-mode [action]` | ui-dark-mode.md |
+| `/c7-flutter [topic]` | c7-flutter.md |
+| `/prompt-opt [action]` | prompt-optimization.md |
+| `/db-migrate-validate [action]` | db-migration-validator.md |
+| `/arch-check` | arch-check.md |
+| `/widget-decompose [file]` | widget-decompose.md |
+| `/responsive-overflow-fix [file]` | responsive-overflow-fix.md |
+| `/barrel-export-gen [dir]` | barrel-export-gen.md |
+| `/color-migrate [file]` | color-migrate.md |
+| `/provider-centralize` | provider-centralize.md |
+| `/provider-invalidate-chain [trigger]` | provider-invalidate-chain.md |
+| `/provider-ref-fix [path]` | provider-ref-fix.md |
+| `/defensive-recovery-gen [trigger]` | defensive-recovery-gen.md |
+| `/provider-invalidation-audit` | provider-invalidation-audit.md |
+| `/refactor-plan [scope]` | refactor-plan.md |
+| `/session-wrap` | session-wrap.md |
+| `/til-save [topic]` | til-save.md |
+| `/test-quality-review [path]` | test-quality-review.md |
+| `/riverpod-widget-test-gen [file]` | riverpod-widget-test-gen.md |
+| `/db-state-recovery [action]` | db-state-recovery.md |
+| `/cd-diagnose [run_id]` | cd-diagnose.md |
+| `/fastlane-audit` | fastlane-audit.md |
+| `/openspec-design [feature]` | openspec-design.md |
+| `/openspec-review [spec-path]` | openspec-review.md |
+| `/swarm-review [path]` | swarm-review.md |
+| `/feature-pipeline [name]` | feature-pipeline.md |
+| `/feature-pipeline-v2 [name]` | feature-pipeline-v2.md |
+| `/swarm-refactor [scope] [strategy]` | swarm-refactor.md |
+| `/parallel-dev [task]` | parallel-dev.md |
+| `/explore-creative [goal]` | explore-creative.md |

@@ -2,6 +2,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mindlog/core/theme/app_theme.dart';
+import 'package:mindlog/core/theme/statistics_theme_tokens.dart';
 import 'package:mindlog/domain/entities/statistics.dart';
 import 'package:mindlog/presentation/widgets/emotion_line_chart.dart';
 import 'package:mindlog/presentation/widgets/keyword_tags/keyword_tags.dart';
@@ -18,7 +20,7 @@ void main() {
   group('Statistics dark mode sections', () {
     testWidgets('감정 추이 카드가 시맨틱 색상을 사용해야 한다', (tester) async {
       final statistics = StatisticsFixtures.weekly();
-      final colorScheme = await _pumpWithTheme(
+      final theme = await _pumpWithTheme(
         tester,
         StatisticsChartCard(
           statistics: statistics,
@@ -35,18 +37,18 @@ void main() {
       final cardDecoration = cardContainer.decoration! as BoxDecoration;
       final cardBorder = cardDecoration.border! as Border;
 
-      expect(cardDecoration.color, colorScheme.surfaceContainerLow);
-      expect(cardBorder.top.color, colorScheme.outlineVariant);
+      expect(cardDecoration.color, theme.tokens.cardBackground);
+      expect(cardBorder.top.color, theme.tokens.cardBorder);
 
       final title = tester.widget<Text>(find.text('감정 추이'));
       final subtitle = tester.widget<Text>(find.text('최근 7일'));
 
-      expect(title.style?.color, colorScheme.onSurface);
-      expect(subtitle.style?.color, colorScheme.onSurfaceVariant);
+      expect(title.style?.color, theme.tokens.textPrimary);
+      expect(subtitle.style?.color, theme.tokens.textSecondary);
     });
 
     testWidgets('감정 추이 라인차트가 다크모드 시맨틱 색상을 사용해야 한다', (tester) async {
-      final colorScheme = await _pumpWithTheme(
+      final theme = await _pumpWithTheme(
         tester,
         EmotionLineChart(
           dailyEmotions: [
@@ -78,15 +80,15 @@ void main() {
       final lineBarSpot = LineBarSpot(line, 0, line.spots.first);
       final tooltipItem = tooltipItems([lineBarSpot]).first;
 
-      expect(line.color, colorScheme.primary);
-      expect(dotPainter.color, colorScheme.primary);
-      expect(dotPainter.strokeColor, colorScheme.surface);
-      expect(tooltipColor(lineBarSpot), colorScheme.inverseSurface);
-      expect(tooltipItem?.textStyle.color, colorScheme.onInverseSurface);
+      expect(line.color, theme.tokens.primaryStrong);
+      expect(dotPainter.color, theme.tokens.primaryStrong);
+      expect(dotPainter.strokeColor, theme.tokens.cardBackground);
+      expect(tooltipColor(lineBarSpot), theme.tokens.chartTooltipBackground);
+      expect(tooltipItem?.textStyle.color, theme.tokens.chartTooltipForeground);
     });
 
     testWidgets('감정 추이 빈 상태는 onSurfaceVariant 계열로 표시되어야 한다', (tester) async {
-      final colorScheme = await _pumpWithTheme(
+      final theme = await _pumpWithTheme(
         tester,
         const EmotionLineChart(
           dailyEmotions: [],
@@ -101,12 +103,9 @@ void main() {
         find.text('일기를 작성하면 감정 추이를 볼 수 있어요'),
       );
 
-      expect(icon.color, colorScheme.onSurfaceVariant);
-      expect(emptyTitle.style?.color, colorScheme.onSurfaceVariant);
-      expect(
-        emptyBody.style?.color,
-        colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
-      );
+      expect(icon.color, theme.tokens.textSecondary);
+      expect(emptyTitle.style?.color, theme.tokens.textPrimary);
+      expect(emptyBody.style?.color, theme.tokens.textSecondary);
     });
 
     testWidgets('자주 느낀 감정 카드가 시맨틱 색상을 사용해야 한다', (tester) async {
@@ -117,7 +116,7 @@ void main() {
         totalDiaries: 1,
         overallAverageScore: 6,
       );
-      final colorScheme = await _pumpWithTheme(
+      final theme = await _pumpWithTheme(
         tester,
         const StatisticsKeywordCard(
           statistics: statistics,
@@ -137,18 +136,18 @@ void main() {
       final cardDecoration = cardContainer.decoration! as BoxDecoration;
       final cardBorder = cardDecoration.border! as Border;
 
-      expect(cardDecoration.color, colorScheme.surfaceContainerLow);
-      expect(cardBorder.top.color, colorScheme.outlineVariant);
+      expect(cardDecoration.color, theme.tokens.cardBackground);
+      expect(cardBorder.top.color, theme.tokens.cardBorder);
 
       final title = tester.widget<Text>(find.text('자주 느낀 감정'));
       final subtitle = tester.widget<Text>(find.text('최근 7일 감정 패턴 요약'));
 
-      expect(title.style?.color, colorScheme.onSurface);
-      expect(subtitle.style?.color, colorScheme.onSurfaceVariant);
+      expect(title.style?.color, theme.tokens.textPrimary);
+      expect(subtitle.style?.color, theme.tokens.textSecondary);
     });
 
     testWidgets('키워드 섹션이 다크모드에서 시맨틱 텍스트/배지 색상을 사용해야 한다', (tester) async {
-      final colorScheme = await _pumpWithTheme(
+      final theme = await _pumpWithTheme(
         tester,
         const KeywordTags(keywordFrequency: {'자제': 2, '생활습관': 1, '건강': 1}),
         brightness: Brightness.dark,
@@ -159,14 +158,14 @@ void main() {
       final rankBadge = tester.widget<Text>(find.text('#2'));
       final rankKeyword = tester.widget<Text>(find.text('생활습관'));
 
-      expect(sectionTitle.style?.color, colorScheme.onSurfaceVariant);
-      expect(topPercent.style?.color, colorScheme.onPrimary);
-      expect(rankBadge.style?.color, colorScheme.onPrimaryContainer);
-      expect(rankKeyword.style?.color, colorScheme.onSurface);
+      expect(sectionTitle.style?.color, theme.tokens.textSecondary);
+      expect(topPercent.style?.color, theme.tokens.chipSelectedForeground);
+      expect(rankBadge.style?.color, theme.tokens.primaryStrong);
+      expect(rankKeyword.style?.color, theme.tokens.textPrimary);
     });
 
     testWidgets('라이트모드에서도 배지 포인트 색상이 primary를 유지해야 한다', (tester) async {
-      final colorScheme = await _pumpWithTheme(
+      final theme = await _pumpWithTheme(
         tester,
         const KeywordTags(keywordFrequency: {'자제': 2, '생활습관': 1, '건강': 1}),
         brightness: Brightness.light,
@@ -179,8 +178,8 @@ void main() {
       final percentDecoration = percentContainer.decoration! as BoxDecoration;
       final percentWidget = tester.widget<Text>(percentText);
 
-      expect(percentDecoration.color, colorScheme.primary);
-      expect(percentWidget.style?.color, colorScheme.onPrimary);
+      expect(percentDecoration.color, theme.tokens.primaryStrong);
+      expect(percentWidget.style?.color, theme.tokens.chipSelectedForeground);
     });
 
     testWidgets('긴 키워드가 있어도 overflow 예외 없이 렌더링되어야 한다', (tester) async {
@@ -200,25 +199,25 @@ void main() {
   });
 }
 
-Future<ColorScheme> _pumpWithTheme(
+Future<_ThemeSnapshot> _pumpWithTheme(
   WidgetTester tester,
   Widget child, {
   required Brightness brightness,
 }) async {
   late ColorScheme capturedColorScheme;
+  late StatisticsThemeTokens capturedTokens;
+
+  final theme = brightness == Brightness.dark
+      ? AppTheme.darkTheme
+      : AppTheme.lightTheme;
 
   await tester.pumpWidget(
     MaterialApp(
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF7EC8E3),
-          brightness: brightness,
-        ),
-      ),
+      theme: theme,
       home: Builder(
         builder: (context) {
           capturedColorScheme = Theme.of(context).colorScheme;
+          capturedTokens = StatisticsThemeTokens.of(context);
           return Scaffold(body: child);
         },
       ),
@@ -226,5 +225,12 @@ Future<ColorScheme> _pumpWithTheme(
   );
   await tester.pumpAndSettle();
 
-  return capturedColorScheme;
+  return _ThemeSnapshot(capturedColorScheme, capturedTokens);
+}
+
+class _ThemeSnapshot {
+  _ThemeSnapshot(this.colorScheme, this.tokens);
+
+  final ColorScheme colorScheme;
+  final StatisticsThemeTokens tokens;
 }

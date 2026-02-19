@@ -112,12 +112,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             color: AppColors.statsAccentMint.withValues(alpha: 0.25),
           ),
           SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                     // 로고 애니메이션
                     const SplashAnimationWidget(),
                     const SizedBox(height: 28),
@@ -165,7 +171,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     // 로딩 버튼
                     const SizedBox(height: 22),
                     _buildStartButton(),
-                  ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

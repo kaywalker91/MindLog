@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/responsive_utils.dart';
 import '../providers/providers.dart';
 import '../router/app_router.dart';
 import '../widgets/secret/pin_keypad_widget.dart';
@@ -114,7 +115,7 @@ class _SecretDiaryUnlockScreenState
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: colorScheme.surfaceContainerLowest,
       appBar: AppBar(
         backgroundColor: colorScheme.surface,
         elevation: 0,
@@ -130,15 +131,54 @@ class _SecretDiaryUnlockScreenState
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: PinKeypadWidget(
-                onPinCompleted: _onPinCompleted,
-                title: 'PIN을 입력해주세요',
-                errorCount: _errorCount,
-                onForgotPin: _showForgotPin ? _onForgotPin : null,
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.statsPrimary),
+            )
+          : _buildCenteredBody(),
+    );
+  }
+
+  Widget _buildCenteredBody() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final horizontalPadding = screenWidth < 360 ? 16.0 : 20.0;
+        final minHeight = (constraints.maxHeight - 24)
+            .clamp(0.0, double.infinity)
+            .toDouble();
+
+        return Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFF8FBFF), Color(0xFFF2F8FD)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              12,
+              horizontalPadding,
+              ResponsiveUtils.bottomSafeAreaPadding(context, extra: 12),
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: minHeight),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: PinKeypadWidget(
+                    onPinCompleted: _onPinCompleted,
+                    title: 'PIN을 입력해주세요',
+                    errorCount: _errorCount,
+                    onForgotPin: _showForgotPin ? _onForgotPin : null,
+                  ),
+                ),
               ),
             ),
+          ),
+        );
+      },
     );
   }
 }

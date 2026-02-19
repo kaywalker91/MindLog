@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/statistics_theme_tokens.dart';
 import '../../domain/entities/statistics.dart';
 
 /// 감정 점수 라인 차트 위젯 (하늘색 단일 색조)
@@ -21,6 +21,11 @@ class EmotionLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+    final chartAccent = statsTokens.primaryStrong;
+    final axisColor = statsTokens.textSecondary;
+    final gridColor = statsTokens.chartGrid;
+
     if (dailyEmotions.isEmpty) {
       return _buildEmptyState(context);
     }
@@ -39,10 +44,7 @@ class EmotionLineChart extends StatelessWidget {
               drawVerticalLine: false,
               horizontalInterval: 2,
               getDrawingHorizontalLine: (value) {
-                return const FlLine(
-                  color: AppColors.statsCardBorder,
-                  strokeWidth: 1,
-                );
+                return FlLine(color: gridColor, strokeWidth: 1);
               },
             ),
             titlesData: FlTitlesData(
@@ -66,10 +68,7 @@ class EmotionLineChart extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
                           _shortDateFormatter.format(date),
-                          style: const TextStyle(
-                            color: AppColors.statsTextTertiary,
-                            fontSize: 10,
-                          ),
+                          style: TextStyle(color: axisColor, fontSize: 10),
                         ),
                       );
                     }
@@ -88,9 +87,10 @@ class EmotionLineChart extends StatelessWidget {
                     }
                     return Text(
                       value.toInt().toString(),
-                      style: const TextStyle(
-                        color: AppColors.statsTextTertiary,
+                      style: TextStyle(
+                        color: axisColor,
                         fontSize: 10,
+                        fontWeight: FontWeight.w500,
                       ),
                     );
                   },
@@ -109,7 +109,7 @@ class EmotionLineChart extends StatelessWidget {
                 }).toList(),
                 isCurved: true,
                 curveSmoothness: 0.3,
-                color: AppColors.statsPrimary,
+                color: chartAccent,
                 barWidth: 3,
                 isStrokeCapRound: true,
                 dotData: FlDotData(
@@ -117,9 +117,9 @@ class EmotionLineChart extends StatelessWidget {
                   getDotPainter: (spot, percent, bar, index) {
                     return FlDotCirclePainter(
                       radius: 4,
-                      color: AppColors.statsPrimaryDark,
+                      color: chartAccent,
                       strokeWidth: 2,
-                      strokeColor: Colors.white,
+                      strokeColor: statsTokens.cardBackground,
                     );
                   },
                 ),
@@ -127,8 +127,8 @@ class EmotionLineChart extends StatelessWidget {
                   show: true,
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.statsPrimary.withValues(alpha: 0.3),
-                      AppColors.statsPrimary.withValues(alpha: 0.0),
+                      chartAccent.withValues(alpha: 0.3),
+                      chartAccent.withValues(alpha: 0.0),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -139,7 +139,8 @@ class EmotionLineChart extends StatelessWidget {
             lineTouchData: LineTouchData(
               enabled: true,
               touchTooltipData: LineTouchTooltipData(
-                getTooltipColor: (touchedSpot) => AppColors.statsTextPrimary,
+                getTooltipColor: (touchedSpot) =>
+                    statsTokens.chartTooltipBackground,
                 tooltipRoundedRadius: 8,
                 getTooltipItems: (touchedSpots) {
                   return touchedSpots.map((spot) {
@@ -149,8 +150,8 @@ class EmotionLineChart extends StatelessWidget {
                       return LineTooltipItem(
                         '${_tooltipDateFormatter.format(emotion.date)}\n'
                         '평균 ${emotion.averageScore.toStringAsFixed(1)}점',
-                        const TextStyle(
-                          color: Colors.white,
+                        TextStyle(
+                          color: statsTokens.chartTooltipForeground,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -168,34 +169,34 @@ class EmotionLineChart extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    return const SizedBox(
+    final statsTokens = StatisticsThemeTokens.of(context);
+
+    return SizedBox(
       height: 200,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.show_chart,
-              size: 48,
-              color: AppColors.statsTextTertiary,
-            ),
-            SizedBox(height: 12),
+            Icon(Icons.show_chart, size: 48, color: statsTokens.textSecondary),
+            const SizedBox(height: 12),
             Text(
               '아직 분석된 일기가 없어요',
               style: TextStyle(
-                color: AppColors.statsTextSecondary,
+                color: statsTokens.textPrimary,
                 fontSize: 14,
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               '일기를 작성하면 감정 추이를 볼 수 있어요',
               style: TextStyle(
-                color: AppColors.statsTextTertiary,
+                color: statsTokens.textSecondary,
                 fontSize: 12,
+                fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
               maxLines: 2,

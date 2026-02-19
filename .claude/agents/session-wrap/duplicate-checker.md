@@ -11,7 +11,7 @@
 ### 검사 대상
 1. `.claude/commands/` 디렉토리의 기존 커맨드
 2. `.claude/skills/` 디렉토리의 기존 스킬
-3. `docs/skills/` 디렉토리의 스킬 문서 (mindlog 특수)
+3. `.claude/skills/` 디렉토리의 스킬 문서 (mindlog 특수)
 4. CLAUDE.md에 정의된 스킬/커맨드
 
 ### 중복 판단 기준
@@ -56,7 +56,7 @@
 
 ### 참조 파일
 MindLog 프로젝트 기준:
-- `docs/skills/*.md`: 기존 스킬 문서
+- `.claude/skills/*.md`: 기존 스킬 문서
 - `.claude/commands/*.md`: 기존 커맨드
 - `CLAUDE.md`: 스킬 목록 섹션
 

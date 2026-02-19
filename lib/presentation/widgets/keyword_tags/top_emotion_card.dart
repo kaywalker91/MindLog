@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/statistics_theme_tokens.dart';
 
 /// 대표 감정 카드 위젯
 class TopEmotionCard extends StatelessWidget {
@@ -21,12 +21,14 @@ class TopEmotionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.statsPrimary.withValues(alpha: 0.08),
+        color: statsTokens.cardSoftBackground,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.statsCardBorder),
+        border: Border.all(color: statsTokens.cardBorder),
       ),
       child: Row(
         children: [
@@ -34,12 +36,12 @@ class TopEmotionCard extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.statsPrimary.withValues(alpha: 0.2),
+              color: statsTokens.primarySoft,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.star_rounded,
-              color: AppColors.statsPrimaryDark,
+              color: statsTokens.primaryStrong,
               size: 24,
             ),
           ),
@@ -48,10 +50,10 @@ class TopEmotionCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   '대표 감정',
                   style: TextStyle(
-                    color: AppColors.statsTextTertiary,
+                    color: statsTokens.textSecondary,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -59,8 +61,8 @@ class TopEmotionCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   keyword,
-                  style: const TextStyle(
-                    color: AppColors.statsTextPrimary,
+                  style: TextStyle(
+                    color: statsTokens.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
@@ -70,9 +72,10 @@ class TopEmotionCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   '키워드 등장 $frequency회',
-                  style: const TextStyle(
-                    color: AppColors.statsTextSecondary,
+                  style: TextStyle(
+                    color: statsTokens.textSecondary,
                     fontSize: 12,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -81,15 +84,15 @@ class TopEmotionCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.statsPrimaryDark,
+              color: statsTokens.primaryStrong,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
               '$_percent%',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: statsTokens.chipSelectedForeground,
                 fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),

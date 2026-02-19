@@ -122,7 +122,7 @@ class SentimentDashboard extends StatelessWidget {
           Text(
             '오늘의 마음 온도: ${score * 10}°C',
             style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 24),

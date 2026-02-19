@@ -14,6 +14,7 @@ class EmotionLinkedPromptCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final prompt = _getPrompt();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: () => context.push('/settings/self-encouragement'),
@@ -42,19 +43,19 @@ class EmotionLinkedPromptCard extends StatelessWidget {
                 children: [
                   Text(
                     prompt.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: colorScheme.onSurface,
                       height: 1.4,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     prompt.subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: colorScheme.onSurfaceVariant,
                       height: 1.3,
                     ),
                   ),

@@ -52,12 +52,20 @@ class _MessageCardState extends ConsumerState<MessageCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final userName = ref.watch(userNameProvider).valueOrNull;
     final personalizedContent = NotificationMessages.applyNamePersonalization(
       widget.message.content,
       userName,
     );
     final emoji = _extractEmoji(personalizedContent);
+    final cardGradientColors = isDark
+        ? [colorScheme.surfaceContainerHigh, colorScheme.surfaceContainerLow]
+        : [AppColors.gardenWarm1, AppColors.gardenWarm2.withValues(alpha: 0.7)];
+    final cardBorderColor = isDark
+        ? colorScheme.outlineVariant.withValues(alpha: 0.7)
+        : AppColors.gardenWarm3.withValues(alpha: 0.5);
+    final metaTextColor = colorScheme.onSurfaceVariant;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -68,14 +76,16 @@ class _MessageCardState extends ConsumerState<MessageCard> {
                 // 왼쪽 스와이프 배경 (삭제)
                 background: _buildSwipeBackground(
                   alignment: Alignment.centerLeft,
-                  color: colorScheme.primary,
+                  backgroundColor: colorScheme.primaryContainer,
+                  foregroundColor: colorScheme.onPrimaryContainer,
                   icon: Icons.edit_outlined,
                   label: '수정',
                 ),
                 // 오른쪽 스와이프 배경 (삭제)
                 secondaryBackground: _buildSwipeBackground(
                   alignment: Alignment.centerRight,
-                  color: AppColors.error,
+                  backgroundColor: colorScheme.errorContainer,
+                  foregroundColor: colorScheme.onErrorContainer,
                   icon: Icons.delete_outlined,
                   label: '삭제',
                 ),
@@ -131,19 +141,12 @@ class _MessageCardState extends ConsumerState<MessageCard> {
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [
-                                AppColors.gardenWarm1,
-                                AppColors.gardenWarm2.withValues(alpha: 0.7),
-                              ],
+                              colors: cardGradientColors,
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: AppColors.gardenWarm3.withValues(
-                                alpha: 0.5,
-                              ),
-                            ),
+                            border: Border.all(color: cardBorderColor),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
@@ -161,7 +164,7 @@ class _MessageCardState extends ConsumerState<MessageCard> {
                                     ),
                                     child: Icon(
                                       Icons.drag_handle,
-                                      color: colorScheme.outline,
+                                      color: metaTextColor,
                                       size: 20,
                                     ),
                                   ),
@@ -205,7 +208,7 @@ class _MessageCardState extends ConsumerState<MessageCard> {
                                         style: theme.textTheme.bodyLarge
                                             ?.copyWith(
                                               fontWeight: FontWeight.w500,
-                                              color: AppColors.textPrimary,
+                                              color: colorScheme.onSurface,
                                             ),
                                         maxLines: 3,
                                         overflow: TextOverflow.ellipsis,
@@ -216,7 +219,7 @@ class _MessageCardState extends ConsumerState<MessageCard> {
                                           Icon(
                                             Icons.schedule_outlined,
                                             size: 14,
-                                            color: colorScheme.outline,
+                                            color: metaTextColor,
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
@@ -225,7 +228,7 @@ class _MessageCardState extends ConsumerState<MessageCard> {
                                             ),
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
-                                                  color: colorScheme.outline,
+                                                  color: metaTextColor,
                                                 ),
                                           ),
                                         ],
@@ -237,9 +240,7 @@ class _MessageCardState extends ConsumerState<MessageCard> {
                                 // 더보기 힌트
                                 Icon(
                                   Icons.chevron_right,
-                                  color: colorScheme.outline.withValues(
-                                    alpha: 0.5,
-                                  ),
+                                  color: metaTextColor.withValues(alpha: 0.5),
                                   size: 20,
                                 ),
                               ],
@@ -267,7 +268,8 @@ class _MessageCardState extends ConsumerState<MessageCard> {
 
   Widget _buildSwipeBackground({
     required Alignment alignment,
-    required Color color,
+    required Color backgroundColor,
+    required Color foregroundColor,
     required IconData icon,
     required String label,
   }) {
@@ -276,7 +278,7 @@ class _MessageCardState extends ConsumerState<MessageCard> {
       padding: const EdgeInsets.symmetric(horizontal: 24),
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -285,17 +287,23 @@ class _MessageCardState extends ConsumerState<MessageCard> {
             ? [
                 Text(
                   label,
-                  style: TextStyle(color: color, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: foregroundColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(width: 8),
-                Icon(icon, color: color),
+                Icon(icon, color: foregroundColor),
               ]
             : [
-                Icon(icon, color: color),
+                Icon(icon, color: foregroundColor),
                 const SizedBox(width: 8),
                 Text(
                   label,
-                  style: TextStyle(color: color, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: foregroundColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
       ),
@@ -305,21 +313,24 @@ class _MessageCardState extends ConsumerState<MessageCard> {
   Future<bool> _confirmDelete(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('메시지 삭제'),
-        content: const Text('이 응원 메시지를 삭제하시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('삭제'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        return AlertDialog(
+          title: const Text('메시지 삭제'),
+          content: const Text('이 응원 메시지를 삭제하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('취소'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+              child: const Text('삭제'),
+            ),
+          ],
+        );
+      },
     );
     return confirmed == true;
   }

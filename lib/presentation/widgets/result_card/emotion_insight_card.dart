@@ -15,6 +15,8 @@ class EmotionInsightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (result.emotionCategory == null && result.emotionTrigger == null) {
       return const SizedBox.shrink();
     }
@@ -47,13 +49,13 @@ class EmotionInsightCard extends StatelessWidget {
                       Text(
                         '감정 분류',
                         style: AppTextStyles.label.copyWith(
-                          color: AppColors.statsTextSecondary,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                       Text(
                         '${result.emotionCategory!.primary} → ${result.emotionCategory!.secondary}',
                         style: AppTextStyles.subtitle.copyWith(
-                          color: AppColors.statsTextPrimary,
+                          color: colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -82,14 +84,14 @@ class EmotionInsightCard extends StatelessWidget {
                       Text(
                         '감정 원인 · ${result.emotionTrigger!.category}',
                         style: AppTextStyles.label.copyWith(
-                          color: AppColors.statsTextSecondary,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         result.emotionTrigger!.description,
                         style: AppTextStyles.body.copyWith(
-                          color: AppColors.statsTextPrimary,
+                          color: colorScheme.onSurface,
                           height: 1.5,
                         ),
                       ),

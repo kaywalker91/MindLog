@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/statistics_theme_tokens.dart';
 import 'keyword_rank_row.dart';
 import 'summary_chips.dart';
 import 'top_emotion_card.dart';
@@ -18,6 +18,12 @@ class KeywordTags extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statsTokens = StatisticsThemeTokens.of(context);
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
+    final animationDuration = Duration(
+      milliseconds: reduceMotion ? 0 : statsTokens.microMotionMs,
+    );
+
     if (keywordFrequency.isEmpty) {
       return const _EmptyState();
     }
@@ -49,15 +55,18 @@ class KeywordTags extends StatelessWidget {
               totalCount: totalCount,
             )
             .animate()
-            .fadeIn(duration: 250.ms)
-            .scale(begin: const Offset(0.98, 0.98), duration: 250.ms),
+            .fadeIn(duration: animationDuration)
+            .scale(
+              begin: const Offset(0.985, 0.985),
+              duration: animationDuration,
+            ),
         if (remainingKeywords.isNotEmpty) ...[
           const SizedBox(height: 14),
-          const Text(
+          Text(
             '다음으로 많이 느낀 감정',
             style: TextStyle(
-              color: AppColors.statsTextSecondary,
-              fontSize: 12,
+              color: statsTokens.textSecondary,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -82,7 +91,7 @@ class KeywordTags extends StatelessWidget {
                         .animate(
                           delay: Duration(milliseconds: 80 * (index + 1)),
                         )
-                        .fadeIn(duration: 250.ms)
+                        .fadeIn(duration: animationDuration)
                         .slideY(begin: 0.1, end: 0),
               );
             }).toList(),
@@ -98,26 +107,30 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final statsTokens = StatisticsThemeTokens.of(context);
+
+    return Center(
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.symmetric(vertical: 24),
         child: Column(
           children: [
-            Icon(Icons.tag, size: 40, color: AppColors.statsTextTertiary),
-            SizedBox(height: 12),
+            Icon(Icons.tag, size: 40, color: statsTokens.textSecondary),
+            const SizedBox(height: 12),
             Text(
               '감정 패턴이 아직 없어요',
               style: TextStyle(
-                color: AppColors.statsTextSecondary,
+                color: statsTokens.textPrimary,
                 fontSize: 14,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               '분석된 일기가 쌓이면 대표 감정과 비율을 알려드려요',
               style: TextStyle(
-                color: AppColors.statsTextTertiary,
+                color: statsTokens.textSecondary,
                 fontSize: 12,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],

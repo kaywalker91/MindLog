@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/responsive_utils.dart';
 import '../providers/providers.dart';
 import '../widgets/secret/pin_keypad_widget.dart';
 
@@ -89,7 +90,7 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: colorScheme.surfaceContainerLowest,
       appBar: AppBar(
         backgroundColor: colorScheme.surface,
         elevation: 0,
@@ -105,17 +106,71 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _buildBody(colorScheme),
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.statsPrimary),
+            )
+          : _buildCenteredBody(colorScheme),
+    );
+  }
+
+  Widget _buildCenteredBody(ColorScheme colorScheme) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final horizontalPadding = screenWidth < 360 ? 16.0 : 20.0;
+        final minHeight = (constraints.maxHeight - 24)
+            .clamp(0.0, double.infinity)
+            .toDouble();
+
+        return Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFF8FBFF), Color(0xFFF2F8FD)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              horizontalPadding,
+              12,
+              horizontalPadding,
+              ResponsiveUtils.bottomSafeAreaPadding(context, extra: 12),
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: minHeight),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: _buildBody(colorScheme),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildBody(ColorScheme colorScheme) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // 진행 단계 표시
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.statsCardBorder),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.statsPrimary.withValues(alpha: 0.10),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
           child: Row(
             children: [
               _buildStepDot(0, colorScheme),
@@ -123,7 +178,7 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
                 child: Container(
                   height: 2,
                   color: _step >= 1
-                      ? AppColors.primary
+                      ? AppColors.statsPrimary
                       : colorScheme.outlineVariant,
                 ),
               ),
@@ -131,16 +186,13 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
             ],
           ),
         ),
-        Expanded(
-          child: SingleChildScrollView(
-            child: PinKeypadWidget(
-              key: ValueKey(_step),
-              onPinCompleted: _onPinCompleted,
-              title: _step == 0 ? '새 PIN을 입력해주세요' : 'PIN을 한 번 더 입력해주세요',
-              subtitle: _step == 0 ? '4자리 숫자로 비밀일기를 보호합니다' : '입력한 PIN을 확인합니다',
-              errorCount: _errorCount,
-            ),
-          ),
+        const SizedBox(height: 16),
+        PinKeypadWidget(
+          key: ValueKey(_step),
+          onPinCompleted: _onPinCompleted,
+          title: _step == 0 ? '새 PIN을 입력해주세요' : 'PIN을 한 번 더 입력해주세요',
+          subtitle: _step == 0 ? '4자리 숫자로 비밀일기를 보호합니다' : '입력한 PIN을 확인합니다',
+          errorCount: _errorCount,
         ),
       ],
     );
@@ -153,13 +205,17 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
       height: 24,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isActive ? AppColors.primary : colorScheme.outlineVariant,
+        color: isActive
+            ? AppColors.statsPrimaryDark
+            : colorScheme.outlineVariant,
       ),
       child: Center(
         child: Text(
           '${step + 1}',
           style: TextStyle(
-            color: isActive ? Colors.white : colorScheme.onSurfaceVariant,
+            color: isActive
+                ? colorScheme.onPrimary
+                : colorScheme.onSurfaceVariant,
             fontSize: 12,
             fontWeight: FontWeight.w600,
           ),

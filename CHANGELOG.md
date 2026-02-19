@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.45] - 2026-02-19
+
+### Added
+- **StatisticsThemeTokens** (`lib/core/theme/statistics_theme_tokens.dart`): 통계 탭 전용 디자인 토큰 시스템 신규 추가
+  - `ThemeExtension<StatisticsThemeTokens>` 기반으로 Light/Dark 모드 완전 분리
+  - 40여 개 명명된 토큰: 카드·페이지 배경, 텍스트 계층(Primary/Secondary/Tertiary), AppBar 그라데이션, 내비게이션 바, 감정 달력, 차트 툴팁 등 전 영역 커버
+  - `StatisticsThemeTokens.of(context)` 헬퍼로 어느 위젯에서나 O(1) 조회
+- **`MindlogAppBarVariant` enum**: `defaultStyle` / `statistics` 두 변형 추가
+  - `statistics` 변형: 라이트/다크 모드에 따라 그라데이션 색상·버블 투명도·타이틀 색상 자동 전환
+- **통계 스크린 다크모드 전면 지원**: 통계 화면 전체가 SystemUI 다크모드와 완벽히 연동
+
+### Changed
+- **`AppTheme`** (`lib/core/theme/app_theme.dart`):
+  - `extensions` 필드에 `StatisticsThemeTokens.light` / `.dark` 주입 — ThemeExtension 패턴 도입
+  - `primaryDark` 색상 `#3A7BC8 → #5BA4C9` 미세 조정 (채도·밝기 보정)
+- **`AppColors`** (`lib/core/theme/app_colors.dart`):
+  - `statsTextPrimary` `#2C3E50 → #1F2A37` (명도 대비 강화)
+  - `statsTextSecondary` `#7F8C9A → #4B5F72` (가독성 향상)
+  - `statsTextTertiary` `#A8B5C4 → #617488` (힌트 텍스트 최소 대비 충족)
+- **`StatisticsScreen`**: `AppColors` 직접 참조 → `StatisticsThemeTokens` 전환, `MindlogAppBarVariant.statistics` 적용
+- **`MainScreen` NavigationBar**: `AppColors` 하드코딩 → `StatisticsThemeTokens` (navGradientTop/Bottom, navBorder, navShadow, navSelected/Unselected, navIndicator)
+- **통계 위젯 일괄 토큰화** — 아래 위젯 모두 `AppColors` → `StatisticsThemeTokens` 마이그레이션 완료:
+  - `StatisticsHeatmapCard` — isDark 분기·카드 그림자 토큰화
+  - `_SummaryCard` / `_StreakCard` — 카드 배경·텍스트·스트릭 컬러 전환
+  - `ChartCard`, `KeywordCard` — 카드 스타일 토큰화
+- **`PinKeypadWidget`** (비밀일기): 반응형 레이아웃 개선
+  - `isCompact` 분기 (screenWidth < 360px): padding·spacing·dot 간격 동적 조정
+  - 카드 컨테이너 추가 (`BoxDecoration` 그림자+테두리) — 시각적 강조
+- **비밀일기 화면 UI 개선** (`SecretDiaryUnlockScreen`, `SecretPinSetupScreen`): 패딩·폰트 사이즈 미세 조정
+
+### Refactored
+- **Skills 문서 구조 개편**: `docs/skills/` (70여 개 MD) → `.claude/skills/` 이동, 경로 단순화
+  - `CLAUDE.md`, `.claude/rules/skill-catalog.md`, `skill-workflows.md`, `parallel-agents.md`, `workflow.md` 경로 참조 업데이트
+  - 중복 규칙 통합 및 token 최적화 (~20% 절감)
+
+### Tests
+- `test/core/theme/statistics_theme_tokens_test.dart` 신규 추가 — ThemeExtension 등록·of() 조회·Light/Dark 값 검증
+- `test/presentation/screens/secret_pin_setup_screen_test.dart` 신규 추가 — 2단계 PIN 입력 플로우 위젯 테스트
+- `test/presentation/widgets/statistics/statistics_visual_states_test.dart` 신규 추가 — 통계 카드 다크모드 시각 상태 테스트
+- `statistics_dark_mode_sections_test.dart` 확장 — 토큰 기반 색상 검증
+
+---
+
 ## [1.4.44] - 2026-02-19
 
 ### Added
