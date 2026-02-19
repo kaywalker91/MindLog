@@ -5,6 +5,7 @@ import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/entities/self_encouragement_message.dart';
 import 'package:mindlog/domain/entities/statistics.dart';
 import 'package:mindlog/domain/repositories/diary_repository.dart';
+import 'package:mindlog/domain/repositories/secret_pin_repository.dart';
 import 'package:mindlog/domain/repositories/settings_repository.dart';
 import 'package:mindlog/domain/repositories/statistics_repository.dart';
 
@@ -19,6 +20,7 @@ class MockDiaryRepository implements DiaryRepository {
   bool shouldThrowOnUpdate = false;
   bool shouldThrowOnDelete = false;
   bool shouldThrowOnGet = false;
+  bool shouldThrowGenericError = false;
 
   Failure? failureToThrow;
   String? errorMessage;
@@ -33,6 +35,8 @@ class MockDiaryRepository implements DiaryRepository {
   final List<Diary> updatedDiaries = [];
   final List<String> deletedDiaryIds = [];
   final List<String> analyzedDiaryIds = [];
+  final List<String> setSecretCalls = [];
+  final Map<String, bool> setSecretValues = {};
 
   /// 상태 초기화
   void reset() {
@@ -41,6 +45,7 @@ class MockDiaryRepository implements DiaryRepository {
     shouldThrowOnUpdate = false;
     shouldThrowOnDelete = false;
     shouldThrowOnGet = false;
+    shouldThrowGenericError = false;
     failureToThrow = null;
     errorMessage = null;
     mockDiary = null;
@@ -50,6 +55,8 @@ class MockDiaryRepository implements DiaryRepository {
     updatedDiaries.clear();
     deletedDiaryIds.clear();
     analyzedDiaryIds.clear();
+    setSecretCalls.clear();
+    setSecretValues.clear();
   }
 
   @override
@@ -164,6 +171,30 @@ class MockDiaryRepository implements DiaryRepository {
           Failure.cache(message: errorMessage ?? '전체 삭제 실패');
     }
     diaries.clear();
+  }
+
+  @override
+  Future<void> setDiarySecret(String diaryId, bool isSecret) async {
+    if (shouldThrowGenericError) throw Exception('Generic error');
+    if (shouldThrowOnUpdate) {
+      throw failureToThrow ??
+          Failure.cache(message: errorMessage ?? '비밀 설정 실패');
+    }
+    setSecretCalls.add(diaryId);
+    setSecretValues[diaryId] = isSecret;
+    final index = diaries.indexWhere((d) => d.id == diaryId);
+    if (index != -1) {
+      diaries[index] = diaries[index].copyWith(isSecret: isSecret);
+    }
+  }
+
+  @override
+  Future<List<Diary>> getSecretDiaries() async {
+    if (shouldThrowOnGet) {
+      throw failureToThrow ??
+          Failure.cache(message: errorMessage ?? '비밀일기 목록 조회 실패');
+    }
+    return diaries.where((d) => d.isSecret).toList();
   }
 }
 
@@ -413,6 +444,65 @@ class MockSettingsRepositoryWithMessages extends MockSettingsRepository {
       reordered.add(message);
     }
     messages = reordered;
+  }
+}
+
+/// Mock SecretPinRepository
+class MockSecretPinRepository implements SecretPinRepository {
+  // 상태 제어 변수
+  bool shouldThrow = false;
+  Failure? failureToThrow;
+
+  // Mock 데이터
+  String? correctPin; // null = PIN 미설정
+
+  // 호출 추적
+  bool deletePinCalled = false;
+  int setPinCallCount = 0;
+  int verifyCallCount = 0;
+
+  void reset() {
+    shouldThrow = false;
+    failureToThrow = null;
+    correctPin = null;
+    deletePinCalled = false;
+    setPinCallCount = 0;
+    verifyCallCount = 0;
+  }
+
+  @override
+  Future<bool> hasPin() async {
+    if (shouldThrow) {
+      throw failureToThrow ?? const CacheFailure(message: '확인 실패');
+    }
+    return correctPin != null;
+  }
+
+  @override
+  Future<void> setPin(String rawPin) async {
+    if (shouldThrow) {
+      throw failureToThrow ?? const CacheFailure(message: '설정 실패');
+    }
+    setPinCallCount++;
+    correctPin = rawPin;
+  }
+
+  @override
+  Future<bool> verifyPin(String rawPin) async {
+    if (shouldThrow) {
+      throw failureToThrow ?? const CacheFailure(message: '검증 실패');
+    }
+    verifyCallCount++;
+    return correctPin == rawPin;
+  }
+
+  @override
+  Future<void> deletePin() async {
+    if (shouldThrow) {
+      throw failureToThrow ?? const CacheFailure(message: '삭제 실패');
+    }
+    deletePinCalled = true;
+    correctPin = null;
   }
 }
 

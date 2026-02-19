@@ -9,6 +9,9 @@ import 'package:mindlog/presentation/screens/diary_screen.dart';
 import 'package:mindlog/presentation/screens/main_screen.dart';
 import 'package:mindlog/presentation/screens/onboarding_screen.dart';
 import 'package:mindlog/presentation/screens/privacy_policy_screen.dart';
+import 'package:mindlog/presentation/screens/secret_diary_list_screen.dart';
+import 'package:mindlog/presentation/screens/secret_diary_unlock_screen.dart';
+import 'package:mindlog/presentation/screens/secret_pin_setup_screen.dart';
 import 'package:mindlog/presentation/screens/self_encouragement_screen.dart';
 import 'package:mindlog/presentation/screens/settings_screen.dart';
 import 'package:mindlog/presentation/screens/splash_screen.dart';
@@ -30,6 +33,11 @@ class AppRoutes {
   static const String selfEncouragement = '/settings/self-encouragement';
   static const String privacyPolicy = '/privacy-policy';
   static const String changelog = '/changelog';
+
+  // 비밀일기
+  static const String secretDiaryUnlock = '/secret-diary';
+  static const String secretDiaryList = '/secret-diary/list';
+  static const String secretPinSetup = '/settings/secret-pin';
 }
 
 /// AppRouter 설정
@@ -119,6 +127,27 @@ class AppRouter {
         path: AppRoutes.privacyPolicy,
         name: 'privacyPolicy',
         builder: (context, state) => const PrivacyPolicyScreen(),
+      ),
+
+      // 비밀일기 잠금 해제
+      GoRoute(
+        path: AppRoutes.secretDiaryUnlock,
+        name: 'secretDiaryUnlock',
+        builder: (context, state) => const SecretDiaryUnlockScreen(),
+      ),
+
+      // 비밀일기 목록
+      GoRoute(
+        path: AppRoutes.secretDiaryList,
+        name: 'secretDiaryList',
+        builder: (context, state) => const SecretDiaryListScreen(),
+      ),
+
+      // 비밀일기 PIN 설정
+      GoRoute(
+        path: AppRoutes.secretPinSetup,
+        name: 'secretPinSetup',
+        builder: (context, state) => const SecretPinSetupScreen(),
       ),
 
       // 변경사항
@@ -222,4 +251,10 @@ extension AppRouterExtension on BuildContext {
 
   /// 개인 응원 메시지 관리 화면으로 이동
   void pushSelfEncouragement() => push(AppRoutes.selfEncouragement);
+
+  /// 비밀일기 잠금 해제 화면으로 이동
+  void pushSecretDiaryUnlock() => push(AppRoutes.secretDiaryUnlock);
+
+  /// 비밀일기 PIN 설정 화면으로 이동
+  void pushSecretPinSetup() => push(AppRoutes.secretPinSetup);
 }

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../domain/entities/diary.dart';
 import '../../extensions/diary_display_extension.dart';
-import '../../providers/diary_list_controller.dart';
+import '../../providers/providers.dart';
 import '../../router/app_router.dart';
 import '../common/tappable_card.dart';
 import '../diary_image_indicator.dart';
@@ -20,17 +21,27 @@ class DiaryItemCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final cardShadowAlpha = isDark ? 0.12 : 0.05;
 
     return TappableCard(
       onTap: () => context.goDiaryDetail(diary),
+      onLongPress: () => _showLongPressMenu(context, ref),
       child: Container(
         decoration: BoxDecoration(
-          color: colorScheme.surface,
+          color: isDark ? colorScheme.surfaceContainerLow : colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
+          border: isDark
+              ? Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.60),
+                  width: 1,
+                )
+              : const Border.fromBorderSide(BorderSide.none),
           boxShadow: [
             BoxShadow(
-              color: colorScheme.shadow.withValues(alpha: 0.05),
+              color: colorScheme.shadow.withValues(alpha: cardShadowAlpha),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -46,11 +57,14 @@ class DiaryItemCard extends ConsumerWidget {
                   const SizedBox(width: 16),
                   _buildContent(context),
                   const SizedBox(width: 32),
-                  const Icon(Icons.chevron_right, color: AppColors.textHint),
+                  Icon(
+                    Icons.chevron_right,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.78),
+                  ),
                 ],
               ),
             ),
-            Positioned(top: 4, right: 4, child: _buildPinButton(ref)),
+            Positioned(top: 4, right: 4, child: _buildPinButton(context, ref)),
           ],
         ),
       ),
@@ -72,6 +86,7 @@ class DiaryItemCard extends ConsumerWidget {
   }
 
   Widget _buildContent(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +96,7 @@ class DiaryItemCard extends ConsumerWidget {
               Text(
                 _dateFormatter.format(diary.createdAt),
                 style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -96,41 +111,55 @@ class DiaryItemCard extends ConsumerWidget {
             diary.content,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.body,
+            style: AppTextStyles.body.copyWith(color: colorScheme.onSurface),
           ),
           if (diary.analysisResult?.keywords.isNotEmpty ?? false) ...[
             const SizedBox(height: 8),
-            _buildKeywordChips(),
+            _buildKeywordChips(context),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildKeywordChips() {
+  Widget _buildKeywordChips(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final chipBackground = isDark
+        ? colorScheme.surfaceContainerHighest
+        : AppColors.textHint.withValues(alpha: 0.1);
+
     return Wrap(
       spacing: 4,
       children: diary.analysisResult!.keywords.take(2).map((k) {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: AppColors.textHint.withValues(alpha: 0.1),
+            color: chipBackground,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(
             '#$k',
-            style: AppTextStyles.bodySmall.copyWith(fontSize: 10),
+            style: AppTextStyles.bodySmall.copyWith(
+              fontSize: 10,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         );
       }).toList(),
     );
   }
 
-  Widget _buildPinButton(WidgetRef ref) {
+  Widget _buildPinButton(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return IconButton(
       icon: Icon(
         diary.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
-        color: diary.isPinned ? AppColors.statsPrimary : AppColors.textHint,
+        color: diary.isPinned
+            ? colorScheme.primary
+            : colorScheme.onSurfaceVariant.withValues(alpha: 0.82),
         size: 20,
       ),
       onPressed: () {
@@ -139,5 +168,101 @@ class DiaryItemCard extends ConsumerWidget {
             .togglePin(diary.id, !diary.isPinned);
       },
     );
+  }
+
+  /// 롱프레스 바텀시트 메뉴
+  void _showLongPressMenu(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 드래그 핸들
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Theme.of(ctx).colorScheme.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // 고정/고정해제 (비밀일기에서는 숨김)
+            if (!diary.isSecret)
+              ListTile(
+                leading: Icon(
+                  diary.isPinned ? Icons.push_pin : Icons.push_pin_outlined,
+                ),
+                title: Text(diary.isPinned ? '고정 해제' : '상단 고정'),
+                onTap: () {
+                  ctx.pop();
+                  ref
+                      .read(diaryListControllerProvider.notifier)
+                      .togglePin(diary.id, !diary.isPinned);
+                },
+              ),
+            // 비밀 설정 / 해제
+            if (!diary.isSecret)
+              ListTile(
+                leading: const Icon(Icons.lock_outline),
+                title: const Text('비밀일기로 설정'),
+                onTap: () {
+                  ctx.pop();
+                  _setSecret(context, ref, isSecret: true);
+                },
+              )
+            else
+              ListTile(
+                leading: const Icon(Icons.lock_open_outlined),
+                title: const Text('비밀 해제'),
+                onTap: () {
+                  ctx.pop();
+                  _setSecret(context, ref, isSecret: false);
+                },
+              ),
+            // 삭제 (비밀일기는 별도 처리 없이 동일 패턴)
+            ListTile(
+              leading: const Icon(Icons.delete_outline, color: AppColors.error),
+              title: const Text('삭제', style: TextStyle(color: AppColors.error)),
+              onTap: () {
+                ctx.pop();
+                ref
+                    .read(diaryListControllerProvider.notifier)
+                    .softDelete(diary);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _setSecret(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool isSecret,
+  }) async {
+    try {
+      final useCase = ref.read(setDiarySecretUseCaseProvider);
+      await useCase.execute(diary.id, isSecret: isSecret);
+      // 낙관적 업데이트: 일반 목록에서 즉시 제거
+      ref.read(diaryListControllerProvider.notifier).removeFromList(diary.id);
+      ref.invalidate(secretDiaryListProvider);
+      // 비밀 해제 시: 일반 목록 갱신 (해제된 일기가 일반 목록에 다시 나타나도록)
+      if (!isSecret) {
+        ref.invalidate(diaryListControllerProvider);
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text('변경 중 오류가 발생했습니다.')));
+      }
+    }
   }
 }

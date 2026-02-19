@@ -84,6 +84,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
 
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final headerFg = colorScheme.onPrimary;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -101,14 +103,10 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: headerFg.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.shield_outlined,
-              color: Colors.white,
-              size: 22,
-            ),
+            child: Icon(Icons.shield_outlined, color: headerFg, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -118,7 +116,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                 Text(
                   'MindLog 개인정보 처리방침',
                   style: theme.textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
+                    color: headerFg,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -129,13 +127,13 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
+                    color: headerFg.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '시행일: 2025년 12월 18일',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: Colors.white,
+                      color: headerFg,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

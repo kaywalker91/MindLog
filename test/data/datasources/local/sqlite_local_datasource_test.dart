@@ -27,7 +27,8 @@ void main() {
             status TEXT NOT NULL,
             analysis_result TEXT,
             is_pinned INTEGER DEFAULT 0,
-            image_paths TEXT
+            image_paths TEXT,
+            is_secret INTEGER DEFAULT 0
           )
         ''');
         await db.execute('''

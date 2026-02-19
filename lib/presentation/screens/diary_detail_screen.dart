@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
@@ -54,7 +53,7 @@ class DiaryDetailScreen extends ConsumerWidget {
               Text(
                 _dateFormatter.format(diary.createdAt),
                 style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
+                  color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -76,7 +75,10 @@ class DiaryDetailScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   diary.content,
-                  style: AppTextStyles.body.copyWith(height: 1.6),
+                  style: AppTextStyles.body.copyWith(
+                    height: 1.6,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
               ),
 
@@ -95,9 +97,11 @@ class DiaryDetailScreen extends ConsumerWidget {
                   diary.analysisResult != null) ...[
                 const Divider(),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'AI 마음 분석 리포트',
-                  style: AppTextStyles.headline,
+                  style: AppTextStyles.headline.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),

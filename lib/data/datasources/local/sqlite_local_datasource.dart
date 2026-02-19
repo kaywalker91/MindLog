@@ -8,7 +8,7 @@ import '../../../core/errors/exceptions.dart';
 
 /// SQLite 로컬 데이터 소스
 class SqliteLocalDataSource {
-  static const int _currentVersion = 6;
+  static const int _currentVersion = 7;
   static Database? _database;
 
   /// 테스트용 Database 주입 (인메모리 DB 테스트용)
@@ -74,7 +74,8 @@ class SqliteLocalDataSource {
         status TEXT NOT NULL,
         analysis_result TEXT,
         is_pinned INTEGER DEFAULT 0,
-        image_paths TEXT
+        image_paths TEXT,
+        is_secret INTEGER DEFAULT 0
       )
     ''');
 
@@ -151,6 +152,16 @@ class SqliteLocalDataSource {
     if (oldVersion < 6) {
       await db.execute('ALTER TABLE diaries ADD COLUMN image_paths TEXT');
     }
+
+    // 버전 6 → 7: is_secret 컬럼 추가 (비밀일기 기능)
+    if (oldVersion < 7) {
+      await db.execute(
+        'ALTER TABLE diaries ADD COLUMN is_secret INTEGER DEFAULT 0',
+      );
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_diaries_is_secret ON diaries(is_secret)',
+      );
+    }
   }
 
   /// 메타데이터 저장
@@ -194,6 +205,7 @@ class SqliteLocalDataSource {
         'image_paths': diary.imagePaths != null
             ? jsonEncode(diary.imagePaths)
             : null,
+        'is_secret': diary.isSecret ? 1 : 0,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     });
   }
@@ -214,11 +226,12 @@ class SqliteLocalDataSource {
     });
   }
 
-  /// 모든 일기 조회
+  /// 모든 일기 조회 (비밀일기 제외)
   Future<List<Diary>> getAllDiaries() async {
     return _runDb('일기 목록 조회 실패', (db) async {
       final maps = await db.query(
         'diaries',
+        where: 'is_secret = 0',
         orderBy: 'is_pinned DESC, created_at DESC',
       );
 
@@ -226,7 +239,7 @@ class SqliteLocalDataSource {
     });
   }
 
-  /// 오늘 작성된 일기 조회
+  /// 오늘 작성된 일기 조회 (비밀일기 제외)
   Future<List<Diary>> getTodayDiaries() async {
     return _runDb('오늘 일기 조회 실패', (db) async {
       final now = DateTime.now();
@@ -234,12 +247,37 @@ class SqliteLocalDataSource {
 
       final maps = await db.query(
         'diaries',
-        where: 'created_at >= ?',
+        where: 'created_at >= ? AND is_secret = 0',
         whereArgs: [todayStart.toIso8601String()],
         orderBy: 'is_pinned DESC, created_at DESC',
       );
 
       return maps.map(_mapToDiary).toList();
+    });
+  }
+
+  /// 비밀일기 목록 조회 (고정 우선, 최신순)
+  Future<List<Diary>> getSecretDiaries() async {
+    return _runDb('비밀일기 목록 조회 실패', (db) async {
+      final maps = await db.query(
+        'diaries',
+        where: 'is_secret = 1',
+        orderBy: 'is_pinned DESC, created_at DESC',
+      );
+
+      return maps.map(_mapToDiary).toList();
+    });
+  }
+
+  /// 일기 비밀 여부 업데이트
+  Future<void> updateDiarySecret(String diaryId, bool isSecret) async {
+    return _runDb('일기 비밀 상태 업데이트 실패', (db) async {
+      await db.update(
+        'diaries',
+        {'is_secret': isSecret ? 1 : 0},
+        where: 'id = ?',
+        whereArgs: [diaryId],
+      );
     });
   }
 
@@ -321,7 +359,8 @@ class SqliteLocalDataSource {
     DateTime? endDate,
   }) async {
     return _runDb('날짜 범위 일기 조회 실패', (db) async {
-      String whereClause = "(status = 'analyzed' OR status = 'safetyBlocked')";
+      String whereClause =
+          "(status = 'analyzed' OR status = 'safetyBlocked') AND is_secret = 0";
       final List<String> whereArgs = [];
 
       if (startDate != null) {
@@ -411,6 +450,7 @@ class SqliteLocalDataSource {
       analysisResult: analysisResult,
       isPinned: (map['is_pinned'] as int?) == 1,
       imagePaths: imagePaths,
+      isSecret: (map['is_secret'] as int?) == 1,
     );
   }
 }

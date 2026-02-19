@@ -18,3 +18,5 @@ export 'firebase_providers.dart';
 export 'today_emotion_provider.dart';
 export 'in_app_update_provider.dart';
 export 'update_check_timer_provider.dart';
+export 'secret_auth_provider.dart';
+export 'secret_diary_providers.dart';

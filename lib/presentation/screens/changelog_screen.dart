@@ -301,6 +301,8 @@ class _VersionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final headerFg = colorScheme.onPrimary;
     final currentLabel = _currentLabel();
 
     return Container(
@@ -319,14 +321,10 @@ class _VersionHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: headerFg.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.new_releases,
-              color: Colors.white,
-              size: 22,
-            ),
+            child: Icon(Icons.new_releases, color: headerFg, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -336,7 +334,7 @@ class _VersionHeader extends StatelessWidget {
                 Text(
                   '최신 변경사항',
                   style: theme.textTheme.titleSmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: headerFg.withValues(alpha: 0.9),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -349,11 +347,12 @@ class _VersionHeader extends StatelessWidget {
                     Text(
                       'v$latestVersion',
                       style: theme.textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
+                        color: headerFg,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    if (currentLabel.isNotEmpty) _buildChip(currentLabel),
+                    if (currentLabel.isNotEmpty)
+                      _buildChip(currentLabel, headerFg),
                   ],
                 ),
               ],
@@ -375,19 +374,19 @@ class _VersionHeader extends StatelessWidget {
     return '현재 v$currentVersion';
   }
 
-  Widget _buildChip(String text) {
+  Widget _buildChip(String text, Color textColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.18),
+        color: textColor.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Colors.white,
+          color: textColor,
         ),
       ),
     );

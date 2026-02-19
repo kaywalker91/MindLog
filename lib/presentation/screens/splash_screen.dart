@@ -177,9 +177,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   Widget _buildStartButton() {
     const borderRadius = BorderRadius.all(Radius.circular(28));
+    final colorScheme = Theme.of(context).colorScheme;
+    final transparentSurface = colorScheme.surface.withValues(alpha: 0);
 
     return Material(
-          color: Colors.transparent,
+          color: transparentSurface,
           elevation: 0,
           borderRadius: borderRadius,
           child: InkWell(
@@ -189,8 +191,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               }
             },
             borderRadius: borderRadius,
-            splashColor: Colors.white.withValues(alpha: 0.2),
-            highlightColor: Colors.white.withValues(alpha: 0.1),
+            splashColor: colorScheme.onPrimary.withValues(alpha: 0.2),
+            highlightColor: colorScheme.onPrimary.withValues(alpha: 0.1),
             child: Ink(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               decoration: BoxDecoration(
@@ -209,12 +211,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 children: [
                   Text(
                     '시작하기',
-                    style: AppTextStyles.button.copyWith(color: Colors.white),
+                    style: AppTextStyles.button.copyWith(
+                      color: colorScheme.onPrimary,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  const Icon(
+                  Icon(
                     Icons.arrow_forward_rounded,
-                    color: Colors.white,
+                    color: colorScheme.onPrimary,
                     size: 18,
                   ),
                 ],

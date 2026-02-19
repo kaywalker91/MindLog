@@ -27,6 +27,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     ref.listen<StatisticsPeriod>(selectedStatisticsPeriodProvider, (
       previous,
       next,
@@ -40,7 +41,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     final selectedPeriod = ref.watch(selectedStatisticsPeriodProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.statsBackground,
+      backgroundColor: colorScheme.surfaceContainerLowest,
       appBar: const MindlogAppBar(
         title: Text('감정 통계'),
         leading: SizedBox.shrink(),
@@ -99,6 +100,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
   }
 
   Widget _buildErrorState(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -141,7 +144,7 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
               label: const Text('다시 시도해볼게요'),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.statsPrimary,
-                foregroundColor: Colors.white,
+                foregroundColor: colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 12,

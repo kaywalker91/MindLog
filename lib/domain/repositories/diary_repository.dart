@@ -45,4 +45,10 @@ abstract class DiaryRepository {
 
   /// 모든 일기 삭제
   Future<void> deleteAllDiaries();
+
+  /// 일기 비밀 여부 설정/해제
+  Future<void> setDiarySecret(String diaryId, bool isSecret);
+
+  /// 비밀일기 목록 조회 (최신순, 고정 우선)
+  Future<List<Diary>> getSecretDiaries();
 }

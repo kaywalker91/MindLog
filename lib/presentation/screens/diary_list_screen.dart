@@ -8,7 +8,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/animation_settings.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
-import '../providers/diary_list_controller.dart';
+import '../providers/providers.dart';
 import '../router/app_router.dart';
 import '../widgets/diary_list/diary_item_card.dart';
 import '../widgets/diary_list/write_fab.dart';
@@ -48,6 +48,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
         centerTitle: false,
         leading: SizedBox.shrink(),
         leadingWidth: 16,
+        actions: [_SecretDiaryEntryButton()],
       ),
       body: diaryListState.when(
         data: (diaries) => _buildList(diaries),
@@ -59,6 +60,8 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
   }
 
   Widget _buildErrorState(WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -88,7 +91,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
             Text(
               '일기를 불러오는 중 문제가 발생했어요',
               style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 20),
@@ -100,7 +103,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
               label: const Text('다시 시도해볼게요'),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 12,
@@ -117,6 +120,8 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
   }
 
   Widget _buildList(List<Diary> diaries) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (diaries.isEmpty) {
       return Center(
         child: Column(
@@ -131,7 +136,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
             Text(
               '작성된 일기가 없습니다.\n오늘의 마음을 기록해보세요!',
               style: AppTextStyles.body.copyWith(
-                color: AppColors.textSecondary,
+                color: colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
@@ -188,6 +193,8 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
   }
 
   Widget _buildSwipeableDiaryItem(Diary diary) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Dismissible(
       key: ValueKey('dismissible_${diary.id}'),
       direction: DismissDirection.endToStart,
@@ -198,7 +205,7 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
           color: AppColors.error.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const Icon(Icons.delete, color: Colors.white, size: 28),
+        child: Icon(Icons.delete, color: colorScheme.onError, size: 28),
       ),
       onDismissed: (_) {
         final controller = ref.read(diaryListControllerProvider.notifier);
@@ -218,6 +225,38 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
           );
       },
       child: DiaryItemCard(diary: diary),
+    );
+  }
+}
+
+/// AppBar 비밀일기 진입 버튼
+///
+/// - PIN 미설정: 잠금 아이콘 → PIN 설정 화면
+/// - PIN 설정됨: 잠금 아이콘 → 잠금 해제 화면
+class _SecretDiaryEntryButton extends ConsumerWidget {
+  const _SecretDiaryEntryButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasPinAsync = ref.watch(hasPinProvider);
+
+    return hasPinAsync.when(
+      data: (hasPin) => IconButton(
+        icon: Icon(
+          hasPin ? Icons.lock_outline : Icons.lock_open_outlined,
+          color: Theme.of(context).colorScheme.onPrimary,
+        ),
+        tooltip: hasPin ? '비밀일기' : '비밀일기 설정',
+        onPressed: () {
+          if (hasPin) {
+            context.pushSecretDiaryUnlock();
+          } else {
+            context.pushSecretPinSetup();
+          }
+        },
+      ),
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }

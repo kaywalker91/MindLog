@@ -106,6 +106,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+
         return AlertDialog(
           title: const Text('알림 권한 허용'),
           content: const Text('일기 작성 리마인더와 마음 케어 알림을 받으려면 알림 권한이 필요해요.'),
@@ -118,7 +120,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               onPressed: () => context.pop(true),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.statsPrimary,
-                foregroundColor: Colors.white,
+                foregroundColor: colorScheme.onPrimary,
               ),
               child: const Text('알림 받기'),
             ),
@@ -221,12 +223,16 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     required bool isCompact,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
     final unselectedColor = colorScheme.onSurface.withValues(alpha: 0.65);
+    final navGradientColors = isDark
+        ? [colorScheme.surfaceContainerHighest, colorScheme.surfaceContainerLow]
+        : [colorScheme.surface, AppColors.statsBackground];
 
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [colorScheme.surface, AppColors.statsBackground],
+          colors: navGradientColors,
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -275,10 +281,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             height: isCompact ? 58 : 64,
             selectedIndex: selectedIndex,
             onDestinationSelected: onSelected,
-            backgroundColor: Colors.transparent,
+            backgroundColor: colorScheme.surface.withValues(alpha: 0),
             elevation: 0,
-            shadowColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
+            shadowColor: colorScheme.surface.withValues(alpha: 0),
+            surfaceTintColor: colorScheme.surface.withValues(alpha: 0),
             indicatorColor: AppColors.statsPrimary.withValues(alpha: 0.18),
             indicatorShape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),

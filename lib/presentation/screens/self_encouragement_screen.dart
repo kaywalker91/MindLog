@@ -63,6 +63,8 @@ class SelfEncouragementScreen extends ConsumerWidget {
                 messages.length < SelfEncouragementMessage.maxMessageCount
             ? FloatingActionButton.extended(
                 onPressed: () => _showAddDialog(context, ref),
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
                 icon: const Icon(Icons.add),
                 label: Text('메시지 추가 (${messages.length}/10)'),
               )
@@ -147,6 +149,7 @@ class _MessageListState extends ConsumerState<_MessageList> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     if (widget.messages.isEmpty) {
       return const EmptyMessageView();
@@ -178,12 +181,16 @@ class _MessageListState extends ConsumerState<_MessageList> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.swipe, size: 14, color: theme.colorScheme.outline),
+                  Icon(
+                    Icons.swipe,
+                    size: 14,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     '좌우로 스와이프하여 수정/삭제',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.outline,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],

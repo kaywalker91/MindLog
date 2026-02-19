@@ -42,6 +42,10 @@ class Diary {
   /// 첨부 이미지 경로 목록 (nullable - 하위 호환성 유지)
   final List<String>? imagePaths;
 
+  /// 비밀일기 여부 (기본값 false - 하위 호환성 유지)
+  @JsonKey(defaultValue: false)
+  final bool isSecret;
+
   const Diary({
     required this.id,
     required this.content,
@@ -50,6 +54,7 @@ class Diary {
     this.analysisResult,
     this.isPinned = false,
     this.imagePaths,
+    this.isSecret = false,
   });
 
   /// 이미지가 첨부되어 있는지 여부
@@ -72,6 +77,7 @@ class Diary {
     bool? isPinned,
     List<String>? imagePaths,
     bool clearImagePaths = false,
+    bool? isSecret,
   }) {
     return Diary(
       id: id ?? this.id,
@@ -83,6 +89,7 @@ class Diary {
           : (analysisResult ?? this.analysisResult),
       isPinned: isPinned ?? this.isPinned,
       imagePaths: clearImagePaths ? null : (imagePaths ?? this.imagePaths),
+      isSecret: isSecret ?? this.isSecret,
     );
   }
 

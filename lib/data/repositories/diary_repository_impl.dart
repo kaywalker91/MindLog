@@ -172,6 +172,19 @@ class DiaryRepositoryImpl
     return guardFailure('모든 일기 삭제 실패', _localDataSource.deleteAllDiaries);
   }
 
+  @override
+  Future<void> setDiarySecret(String diaryId, bool isSecret) async {
+    return guardFailure(
+      '일기 비밀 상태 업데이트 실패',
+      () => _localDataSource.updateDiarySecret(diaryId, isSecret),
+    );
+  }
+
+  @override
+  Future<List<Diary>> getSecretDiaries() async {
+    return guardFailure('비밀일기 목록 조회 실패', _localDataSource.getSecretDiaries);
+  }
+
   String _generateId() => const Uuid().v4();
 
   Future<void> _updateDiaryStatusOnFailure(

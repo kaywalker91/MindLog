@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.44] - 2026-02-19
+
+### Added
+- **비밀일기 기능**:
+  - 4자리 PIN 설정/인증 (SHA-256 해시 + salt, flutter_secure_storage 저장)
+  - 비밀일기 목록 화면 (SecretDiaryListScreen) — 인증 해제 시 자동 잠금
+  - PIN 잠금 해제 화면 (SecretDiaryUnlockScreen) — 3회 실패 시 초기화 링크
+  - PIN 설정 화면 (SecretPinSetupScreen) — 2단계 확인 플로우
+  - PIN 키패드 위젯 (PinKeypadWidget) — 오류 시 sin 파형 shake 애니메이션
+  - 일기 목록에서 롱프레스 → "비밀일기로 설정" / "비밀 해제" 메뉴
+  - AppBar `_SecretDiaryEntryButton` — PIN 설정 여부 감시 (hasPinProvider)
+
+### Changed
+- **DB 마이그레이션 v7**: `diary` 테이블에 `is_secret` 컬럼 추가
+- **통계 제외**: 비밀일기는 통계/히트맵에서 완전 제외
+- **비밀 해제 버그 수정**: 비밀 해제 후 일반 목록에 즉시 반영 (`ref.invalidate(diaryListControllerProvider)`)
+
+---
+
 ## [1.4.43] - 2026-02-13
 
 ### Added

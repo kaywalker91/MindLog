@@ -171,7 +171,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       onPressed: _goToNextPage,
                       style: FilledButton.styleFrom(
                         backgroundColor: AppColors.statsPrimary,
-                        foregroundColor: Colors.white,
+                        foregroundColor: colorScheme.onPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -180,7 +180,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       child: Text(
                         _currentPage < _pages.length - 1 ? '다음' : '시작하기',
                         style: AppTextStyles.button.copyWith(
-                          color: Colors.white,
+                          color: colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

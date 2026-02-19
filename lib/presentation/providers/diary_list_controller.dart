@@ -133,6 +133,14 @@ class DiaryListController extends AsyncNotifier<List<Diary>> {
     }
   }
 
+  /// 비밀일기 설정/해제 시 낙관적 목록 업데이트 (비밀로 설정된 일기 즉시 제거)
+  void removeFromList(String diaryId) {
+    final currentList = state.value;
+    if (currentList == null) return;
+    final updatedList = currentList.where((d) => d.id != diaryId).toList();
+    state = AsyncValue.data(updatedList);
+  }
+
   /// 즉시 삭제 — 확인 다이얼로그 후 호출 (Undo 없음)
   Future<void> deleteImmediately(String diaryId) async {
     final currentList = state.value;

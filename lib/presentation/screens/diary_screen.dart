@@ -208,7 +208,7 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
           children: [
             // 분석 결과 또는 입력 폼 표시
             switch (analysisState) {
-              DiaryAnalysisInitial() => _buildInputForm(),
+              DiaryAnalysisInitial() => _buildInputForm(context),
               DiaryAnalysisLoading() => _buildLoadingState(),
               DiaryAnalysisSuccess(diary: final diary) => ResultCard(
                 diary: diary,
@@ -279,22 +279,27 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
     );
   }
 
-  Widget _buildInputForm() {
+  Widget _buildInputForm(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // 인트로 텍스트
-          const Text(
+          Text(
             '오늘 하루는 어떠셨나요?',
-            style: AppTextStyles.headline,
+            style: AppTextStyles.headline.copyWith(
+              color: colorScheme.onSurface,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             '마음 속 이야기를 자유롭게 적어보세요.',
-            style: AppTextStyles.bodySmall,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
