@@ -81,6 +81,11 @@
                     <h3>반응형 UI</h3>
                     <p>320dp~600dp+ 다양한 화면 크기에 최적화된 반응형 디자인으로 모든 기기에서 편안하게 사용할 수 있습니다.</p>
                 </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>비밀일기</h3>
+                    <p>4자리 PIN + SHA-256 암호화로 민감한 일기를 안전하게 보호합니다. 인증된 세션에서만 접근 가능하며 통계에서 완전히 제외됩니다.</p>
+                </div>
             </div>
         </div>
     </section>
@@ -88,27 +93,27 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.41에서는 앱 성능과 개발 효율성을 대폭 개선했습니다. HTTP timeout 추가로 네트워크 무한 대기를 방지하고, 이미지 메모리 최적화로 배터리 효율을 높였으며, DevTools 관측성 강화로 개발자가 앱 상태를 실시간으로 추적할 수 있습니다. 사용자 경험 측면에서는 알림 진단 UI를 더욱 세밀하게 개선하고, 주간 인사이트 기능 안내를 추가했습니다.</p>
+            <p class="section-subtitle">v1.4.45까지의 개선 사항을 소개합니다. 비밀일기 보안 기능, 다크모드 완전 지원, Healing Color Themes, 버그 수정 등 대규모 업데이트가 이루어졌습니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
-                    <span class="update-tag">Performance</span>
-                    <h3>네트워크 안정성 및 이미지 최적화</h3>
-                    <p>Groq API 호출에 30초 timeout을 추가하여 네트워크 무한 대기 문제를 근본적으로 해결했습니다. 이미지 표시 시 cacheWidth를 적용(표시크기×3, DPR 대응)하여 메모리 사용량을 줄이고 배터리 효율을 높였습니다. 고해상도 이미지가 자동으로 다운샘플링되어 디바이스 성능이 향상됩니다.</p>
+                    <span class="update-tag">Security</span>
+                    <h3>비밀일기 기능 (v1.4.44)</h3>
+                    <p>4자리 PIN + SHA-256 암호화로 민감한 일기를 보호합니다. flutter_secure_storage에 해시 저장, in-memory 세션 인증 방식으로 앱 재시작 시 자동 잠금됩니다. 인증 실패 3회 시 초기화 옵션을 제공하며, 비밀 일기는 감정 통계에서 완전히 제외됩니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">DevTools</span>
-                    <h3>관측성 강화 — ProviderObserver</h3>
-                    <p>Riverpod Provider 상태 전이를 실시간으로 추적하는 AppProviderObserver를 추가했습니다. 디버그 모드에서만 동작하며 assert() 기반으로 구현되어 프로덕션 빌드에는 완전히 제거됩니다(zero overhead). Provider 생성/업데이트/폐기/실패 이벤트를 DevTools 콘솔에서 확인할 수 있어 상태 관리 디버깅이 훨씬 쉬워졌습니다.</p>
+                    <span class="update-tag">UI</span>
+                    <h3>다크모드 통계 화면 완전 지원 (v1.4.45)</h3>
+                    <p>StatisticsThemeTokens 디자인 토큰 시스템을 도입하여 Light/Dark 40여 개 명명 토큰으로 통계 탭 전 영역을 커버합니다. 하드코딩된 색상을 전부 토큰으로 교체하여 테마 전환 시 깨지는 UI를 완전히 해소했습니다.</p>
                 </div>
                 <div class="update-card">
                     <span class="update-tag">UX</span>
-                    <h3>알림 진단 UI 및 주간 인사이트 가이드</h3>
-                    <p>설정 화면에 NotificationDiagnosticWidget을 추가하여 알림 예약 상태, 정확한 알람 권한, 배터리 최적화, 시간대를 실시간으로 확인할 수 있습니다. 권한 문제 발견 시 해결 액션 버튼을 제공하며, 접기/펼치기 토글과 새로고침 기능으로 사용자 편의성을 높였습니다. 주간 인사이트 기능 안내 다이얼로그를 추가하여 매주 일요일 밤 8시 감정 리포트 알림을 쉽게 이해할 수 있습니다.</p>
+                    <h3>Healing Color Themes + Cheer Me 개선 (v1.4.43)</h3>
+                    <p>mutedTeal·pastelComfort 힐링 테마 2종을 추가했습니다. Cheer Me 화면에 프리셋 템플릿 20개(5카테고리)를 제공하여 응원 메시지 입력 편의성을 대폭 향상시켰으며, 바텀시트 UX와 햅틱 피드백도 함께 개선했습니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">Code Quality</span>
-                    <h3>위젯 리팩토링 및 테스트 강화</h3>
-                    <p>emotion_calendar/day_cell.dart에서 AnimationController를 제거하고 StatefulWidget으로 단순화하여 성능을 개선했습니다. IntrinsicHeight accent stripe 패턴을 Border.left로 전환하여 RenderFlex overflow 위험을 제거했습니다. cacheWidth 검증 테스트 4개, ProviderObserver 테스트, 알림 진단 위젯 테스트 등 8개 테스트 파일을 추가하여 앱 안정성을 강화했습니다.</p>
+                    <span class="update-tag">Fix</span>
+                    <h3>Provider 무효화 체인 개선 (v1.4.42)</h3>
+                    <p>일기 생성 후 목록이 즉시 갱신되지 않던 버그를 수정했습니다. statisticsProvider와 diaryListControllerProvider를 함께 invalidate하는 패턴을 확립하여 데이터 일관성을 보장합니다.</p>
                 </div>
             </div>
         </div>
@@ -119,35 +124,35 @@
             <h2 class="section-title">스크린샷</h2>
             <div class="screenshots-grid">
                 <div class="screenshot-item">
-                    <img src="../assets/screenshots/v3/01_splash_onboarding.jpeg" alt="MindLog 온보딩 화면" loading="lazy">
+                    <img src="assets/screenshots/v3/01_splash_onboarding.jpeg" alt="MindLog 온보딩 화면" loading="lazy">
                     <p>온보딩</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="../assets/screenshots/v3/02_diary_list.jpeg" alt="MindLog 일기 목록 화면" loading="lazy">
+                    <img src="assets/screenshots/v3/02_diary_list.jpeg" alt="MindLog 일기 목록 화면" loading="lazy">
                     <p>일기 목록</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="../assets/screenshots/v3/03_diary_write.jpeg" alt="MindLog 일기 작성 화면" loading="lazy">
+                    <img src="assets/screenshots/v3/03_diary_write.jpeg" alt="MindLog 일기 작성 화면" loading="lazy">
                     <p>일기 작성</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="../assets/screenshots/v3/04_stats_calendar.jpeg" alt="MindLog 마음 달력 화면" loading="lazy">
+                    <img src="assets/screenshots/v3/04_stats_calendar.jpeg" alt="MindLog 마음 달력 화면" loading="lazy">
                     <p>마음 달력</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="../assets/screenshots/v3/05_stats_chart.jpeg" alt="MindLog 감정 추이 차트" loading="lazy">
+                    <img src="assets/screenshots/v3/05_stats_chart.jpeg" alt="MindLog 감정 추이 차트" loading="lazy">
                     <p>감정 추이</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="../assets/screenshots/v3/06_stats_keywords.jpeg" alt="MindLog 키워드 분석 화면" loading="lazy">
+                    <img src="assets/screenshots/v3/06_stats_keywords.jpeg" alt="MindLog 키워드 분석 화면" loading="lazy">
                     <p>키워드 분석</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="../assets/screenshots/v3/08_ai_character.jpeg" alt="MindLog AI 캐릭터 선택 화면" loading="lazy">
+                    <img src="assets/screenshots/v3/08_ai_character.jpeg" alt="MindLog AI 캐릭터 선택 화면" loading="lazy">
                     <p>AI 캐릭터</p>
                 </div>
                 <div class="screenshot-item">
-                    <img src="../assets/screenshots/v3/07_settings_top.jpeg" alt="MindLog 설정 화면" loading="lazy">
+                    <img src="assets/screenshots/v3/07_settings_top.jpeg" alt="MindLog 설정 화면" loading="lazy">
                     <p>설정</p>
                 </div>
             </div>
@@ -205,7 +210,7 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 MindLog. Made with Flutter.</p>
+            <p>&copy; 2026 MindLog. Made with Flutter.</p>
             <p>
                 <a href="https://github.com/kaywalker91/MindLog" target="_blank" rel="noopener">GitHub</a>
             </p>
