@@ -55,3 +55,16 @@ Skills in `.claude/skills/`. Read skill file on invocation. Workflows: `skill-wo
 | `/swarm-refactor [scope] [strategy]` | swarm-refactor.md |
 | `/parallel-dev [task]` | parallel-dev.md |
 | `/explore-creative [goal]` | explore-creative.md |
+| `/analytics-event [name]` | analytics-event-add.md |
+| `/api-doc` | api-doc-gen.md |
+| `/architecture-doc` | architecture-doc-gen.md |
+| `/crashlytics-setup` | crashlytics-setup.md |
+| `/fcm-setup` | fcm-setup.md |
+| `/firebase-expert [action]` | firebase-expert.md |
+| `/flutter-security-expert [action]` | flutter-security-expert.md |
+| `/integration-test-gen [file]` | integration-test-gen.md |
+| `/mock [RepoName]` | mock-gen.md |
+| `/pre-commit` | pre-commit-setup.md |
+| `/release-notes` | release-notes.md |
+| `/test-consolidate` | test-agent-consolidate.md |
+| `/usecase [action_entity]` | usecase-gen.md |
