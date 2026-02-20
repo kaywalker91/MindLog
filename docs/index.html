@@ -93,8 +93,13 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.45까지의 개선 사항을 소개합니다. 비밀일기 보안 기능, 다크모드 완전 지원, Healing Color Themes, 버그 수정 등 대규모 업데이트가 이루어졌습니다.</p>
+            <p class="section-subtitle">v1.4.46까지의 개선 사항을 소개합니다. 비밀일기 보안 기능, 다크모드 완전 지원, Healing Color Themes, CI 품질 강화 등 대규모 업데이트가 이루어졌습니다.</p>
             <div class="updates-grid">
+                <div class="update-card">
+                    <span class="update-tag">Quality</span>
+                    <h3>CI 타임존 안정성 강화 (v1.4.46)</h3>
+                    <p>UTC 서버 환경(CI)과 KST 로컬 환경 간 타임존 불일치로 발생하던 테스트 실패를 해소했습니다. <code>tz.TZDateTime.from()</code> 기반 기대값 비교 패턴을 정립하고, <code>test-tz</code> 명령어로 로컬에서도 CI 환경을 사전 시뮬레이션할 수 있게 했습니다. 알림 예약 시각 관련 버그를 조기 발견하는 안전망을 구축했습니다.</p>
+                </div>
                 <div class="update-card">
                     <span class="update-tag">Security</span>
                     <h3>비밀일기 기능 (v1.4.44)</h3>

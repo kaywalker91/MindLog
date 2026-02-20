@@ -217,8 +217,9 @@ void main() {
       test('알림 시간이 24시간 후로 설정되어야 한다', () async {
         // Arrange
         final emergencyTime = DateTime(2026, 2, 6, 10, 0);
-        final expectedScheduledTime = emergencyTime.add(
-          const Duration(hours: 24),
+        final expectedScheduledTime = tz.TZDateTime.from(
+          emergencyTime.add(const Duration(hours: 24)),
+          tz.local,
         );
         SafetyFollowupService.nowOverride = () => emergencyTime;
 

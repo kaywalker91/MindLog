@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.46] - 2026-02-20
+
+### Fixed
+- **timezone 테스트 CI 호환성** (`test/core/services/safety_followup_service_test.dart`):
+  - `safety_followup_service_test.dart` — 기대값 DateTime을 `tz.TZDateTime.from(dt, tz.local)`로 감싸도록 수정
+  - CI 환경(TZ=UTC)에서 Seoul 로컬 타임존 기준 예약 시각이 다르게 계산되던 테스트 실패 해소
+  - 원인: `DateTime(2026, 2, 6, 10, 0).add(Duration(hours: 24))`는 UTC plain DateTime이어서 TZDateTime 비교 시 불일치
+
+### Added
+- **`test-tz` 빌드 명령어** (`scripts/run.sh`):
+  - `TZ=UTC flutter test` 래퍼 — CI(UTC 서버)와 동일한 타임존 환경에서 로컬 테스트 실행
+  - 사용법: `./scripts/run.sh test-tz [test-path]` — `--coverage` 자동 적용
+  - 타임존 민감 테스트(알림 예약 시각, KST 날짜 경계) 사전 검증 용도
+
+### Chore
+- **`.gitignore` 개행 정규화**: 파일 말미 누락된 `\n` 추가 (POSIX 호환)
+
+---
+
 ## [1.4.45] - 2026-02-19
 
 ### Added

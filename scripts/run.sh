@@ -77,6 +77,12 @@ case "$1" in
         flutter test test/widget/ --coverage
         ;;
 
+    test-tz)
+        # CI(UTC) 환경 시뮬레이션: timezone 민감 테스트 검증
+        echo -e "${GREEN}Running tests with UTC timezone (CI simulation)...${NC}"
+        TZ=UTC flutter test "${@:2}" --coverage
+        ;;
+
     test-affected)
         # Run only tests affected by current changes (vs origin/main)
         shift
@@ -274,7 +280,8 @@ case "$1" in
         echo "  test            Run all tests with coverage"
         echo "  test-unit       Run unit tests only"
         echo "  test-widget     Run widget tests only"
-        echo "  test-affected   Run only tests affected by current changes"
+        echo "  test-tz         Run tests with UTC timezone (CI simulation)
+  test-affected   Run only tests affected by current changes"
         echo "                    --list-only   Show affected files without running"
         echo "                    --no-analyze  Skip flutter analyze"
         echo "  test-health     Run test health report (stale tests, coverage gaps)"
