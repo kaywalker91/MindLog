@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// 환경 변수 설정 클래스
 ///
 /// 빌드 타임에 --dart-define으로 주입된 환경 변수를 관리합니다.
@@ -13,10 +11,6 @@ import 'package:flutter/foundation.dart';
 /// # 릴리즈 빌드
 /// flutter build apk --dart-define=GROQ_API_KEY=your_key
 /// ```
-///
-/// 로컬 개발 환경:
-/// lib/core/config/dev_api_keys.dart 파일을 생성하고 API 키를 설정하세요.
-/// dev_api_keys.example.dart를 참고하세요.
 class EnvConfig {
   EnvConfig._();
 
@@ -26,27 +20,8 @@ class EnvConfig {
     defaultValue: '',
   );
 
-  /// 개발용 API 키 (dart-define으로도 주입 가능)
-  static const String _devApiKey = String.fromEnvironment(
-    'DEV_GROQ_API_KEY',
-    defaultValue: '',
-  );
-
   /// Groq API Key 가져오기
-  /// 우선순위: GROQ_API_KEY > DEV_GROQ_API_KEY
-  static String get groqApiKey {
-    // 1. dart-define으로 주입된 값 우선
-    if (_dartDefineApiKey.isNotEmpty) {
-      return _dartDefineApiKey;
-    }
-
-    // 2. 개발용 키 폴백 (debug 모드에서만)
-    if (kDebugMode && _devApiKey.isNotEmpty) {
-      return _devApiKey;
-    }
-
-    return '';
-  }
+  static String get groqApiKey => _dartDefineApiKey;
 
   /// 개발 모드 여부
   static const bool isDevelopment =
@@ -58,12 +33,7 @@ class EnvConfig {
 
   /// API 키 소스 정보 (디버깅용)
   static String get apiKeySource {
-    if (_dartDefineApiKey.isNotEmpty) {
-      return 'dart-define';
-    }
-    if (kDebugMode && _devApiKey.isNotEmpty) {
-      return 'DEV_GROQ_API_KEY (development only)';
-    }
+    if (_dartDefineApiKey.isNotEmpty) return 'dart-define';
     return 'not configured';
   }
 

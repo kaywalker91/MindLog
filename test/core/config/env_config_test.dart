@@ -5,13 +5,13 @@ import 'package:mindlog/core/config/environment_service.dart';
 void main() {
   group('EnvConfig', () {
     test('groqApiKey는 문자열을 반환한다', () {
-      // dart-define 또는 dev_api_keys.dart에서 가져옴
+      // --dart-define=GROQ_API_KEY=xxx 로 주입된 값 반환
       final key = EnvConfig.groqApiKey;
       expect(key, isA<String>());
     });
 
     test('hasValidGroqApiKey는 API 키 존재 여부에 따라 적절한 값을 반환한다', () {
-      // dev_api_keys.dart에 키가 설정되어 있으면 true, 아니면 false
+      // --dart-define으로 GROQ_API_KEY가 주입되어 있으면 true
       final isValid = EnvConfig.hasValidGroqApiKey;
       expect(isValid, equals(EnvConfig.groqApiKey.isNotEmpty));
     });
@@ -34,14 +34,7 @@ void main() {
     test('apiKeySource는 설정 상태를 나타낸다', () {
       final source = EnvConfig.apiKeySource;
       expect(source, isA<String>());
-      expect(
-        source,
-        anyOf([
-          'dart-define',
-          'DEV_GROQ_API_KEY (development only)',
-          'not configured',
-        ]),
-      );
+      expect(source, anyOf(['dart-define', 'not configured']));
     });
   });
 

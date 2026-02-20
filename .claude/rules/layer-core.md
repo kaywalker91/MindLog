@@ -41,5 +41,4 @@ Firebase -> Crashlytics -> Analytics -> NotificationService
 | cheerfulFriend | Cheerful friend (bright tone) |
 
 ## env_config.dart
-- `GROQ_API_KEY` from `--dart-define` (production)
-- `DEV_GROQ_API_KEY` fallback (debug only)
+- `GROQ_API_KEY` from `--dart-define` (production & local dev)

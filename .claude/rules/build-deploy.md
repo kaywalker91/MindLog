@@ -2,12 +2,9 @@
 
 ## Groq API Key Injection
 
-**Priority**: `GROQ_API_KEY` > `DEV_GROQ_API_KEY` (debug only)
-
 | Environment | Variable | Usage |
 |-------------|----------|-------|
-| Production | `GROQ_API_KEY` | `--dart-define=GROQ_API_KEY=xxx` |
-| Development | `DEV_GROQ_API_KEY` | debug mode fallback only |
+| Production / Local | `GROQ_API_KEY` | `--dart-define=GROQ_API_KEY=xxx` |
 
 **Local build:**
 ```bash
