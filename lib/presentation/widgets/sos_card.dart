@@ -11,9 +11,9 @@ import '../../core/theme/app_text_styles.dart';
 /// - 공감 메시지 먼저 표시 후 도움 정보 순차 노출
 /// - 부드러운 amber 톤 배경 (빨간색은 긴급 버튼에만 사용)
 class SosCard extends StatefulWidget {
-  final VoidCallback onClose;
+  final VoidCallback? onClose;
 
-  const SosCard({super.key, required this.onClose});
+  const SosCard({super.key, this.onClose});
 
   @override
   State<SosCard> createState() => _SosCardState();
@@ -273,47 +273,67 @@ class _SosCardState extends State<SosCard> with SingleTickerProviderStateMixin {
         const SizedBox(height: 20),
 
         // 버튼들
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: widget.onClose,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: const BorderSide(color: AppColors.primary),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+        if (widget.onClose != null)
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: widget.onClose,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: const BorderSide(color: AppColors.primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ),
-                child: const Text(
-                  '다른 내용 작성하기',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w500,
+                  child: const Text(
+                    '다른 내용 작성하기',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () => _makePhoneCall(_suicidePreventionCenter),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.error,
-                  foregroundColor: colorScheme.onError,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _makePhoneCall(_suicidePreventionCenter),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: colorScheme.onError,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    '상담 연결하기',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
-                child: const Text(
-                  '상담 연결하기',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          )
+        else
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => _makePhoneCall(_suicidePreventionCenter),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: colorScheme.onError,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
+              child: const Text(
+                '상담 연결하기',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-          ],
-        ),
+          ),
       ],
     );
   }

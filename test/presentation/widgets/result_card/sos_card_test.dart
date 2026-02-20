@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mindlog/presentation/widgets/result_card/sos_card.dart';
+import 'package:mindlog/presentation/widgets/sos_card.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:url_launcher_platform_interface/link.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
@@ -12,7 +12,6 @@ import 'package:url_launcher_platform_interface/url_launcher_platform_interface.
 /// PlatformInterface.verify를 우회합니다.
 class MockUrlLauncherPlatform extends UrlLauncherPlatform
     with MockPlatformInterfaceMixin {
-  bool canLaunchResult = true;
   bool launchResult = true;
   bool shouldThrow = false;
   String? lastLaunchedUrl;
@@ -20,13 +19,6 @@ class MockUrlLauncherPlatform extends UrlLauncherPlatform
 
   @override
   LinkDelegate? get linkDelegate => null;
-
-  @override
-  Future<bool> canLaunch(String url) async {
-    lastLaunchedUrl = url;
-    if (shouldThrow) throw Exception('Mock canLaunch error');
-    return canLaunchResult;
-  }
 
   @override
   Future<bool> launchUrl(String url, LaunchOptions options) async {
@@ -37,7 +29,6 @@ class MockUrlLauncherPlatform extends UrlLauncherPlatform
   }
 
   void reset() {
-    canLaunchResult = true;
     launchResult = true;
     shouldThrow = false;
     lastLaunchedUrl = null;
@@ -58,94 +49,125 @@ void main() {
     UrlLauncherPlatform.instance = mockUrlLauncher;
   });
 
+  /// SosCard가 세로로 길어서 기본 뷰포트(800x600)에 다 안 들어감
+  Future<void> setLargeViewport(WidgetTester tester) async {
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 1.0;
+  }
+
+  /// 애니메이션 완료 (AnimationController 1200ms + flutter_animate delay 600ms)
+  Future<void> pumpPastAnimations(WidgetTester tester) async {
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+  }
+
+  /// SosCard를 onClose 없이 사용 (result_card 컨텍스트)
   Widget buildTestWidget() {
     return const MaterialApp(
-      home: Scaffold(body: SingleChildScrollView(child: SOSCard())),
+      home: Scaffold(body: SingleChildScrollView(child: SosCard())),
     );
   }
 
-  group('SOSCard (result_card)', () {
+  group('SosCard (onClose 없음, result_card 컨텍스트)', () {
     group('렌더링', () {
-      testWidgets('경고 아이콘이 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget());
-        await tester.pump(const Duration(milliseconds: 100));
+      testWidgets('공감 아이콘이 표시되어야 한다', (tester) async {
+        await setLargeViewport(tester);
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-        expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+        await tester.pumpWidget(buildTestWidget());
+        await pumpPastAnimations(tester);
+
+        expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
       });
 
       testWidgets('헤더 텍스트가 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget());
-        await tester.pump(const Duration(milliseconds: 100));
+        await setLargeViewport(tester);
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-        expect(find.text('전문가의 도움이 필요할 수 있어요'), findsOneWidget);
+        await tester.pumpWidget(buildTestWidget());
+        await pumpPastAnimations(tester);
+
+        expect(find.text('많이 힘드셨군요'), findsOneWidget);
       });
 
-      testWidgets('설명 텍스트가 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget());
-        await tester.pump(const Duration(milliseconds: 100));
+      testWidgets('공감 메시지가 표시되어야 한다', (tester) async {
+        await setLargeViewport(tester);
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-        expect(find.textContaining('혼자서 너무 힘들어하지 마세요'), findsOneWidget);
-        expect(find.textContaining('전문가가 기다리고 있습니다'), findsOneWidget);
+        await tester.pumpWidget(buildTestWidget());
+        await pumpPastAnimations(tester);
+
+        expect(find.textContaining('당신은 혼자가 아닙니다'), findsOneWidget);
       });
 
-      testWidgets('자살예방상담전화 버튼이 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget());
-        await tester.pump(const Duration(milliseconds: 100));
+      testWidgets('자살예방 상담전화 카드가 표시되어야 한다', (tester) async {
+        await setLargeViewport(tester);
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-        expect(find.text('24시간 자살예방상담전화 (109)'), findsOneWidget);
+        await tester.pumpWidget(buildTestWidget());
+        await pumpPastAnimations(tester);
+
+        expect(find.text('자살예방 상담전화'), findsOneWidget);
       });
 
-      testWidgets('정신건강상담전화 버튼이 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget());
-        await tester.pump(const Duration(milliseconds: 100));
+      testWidgets('정신건강 상담센터 카드가 표시되어야 한다', (tester) async {
+        await setLargeViewport(tester);
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-        expect(find.text('정신건강상담전화'), findsOneWidget);
+        await tester.pumpWidget(buildTestWidget());
+        await pumpPastAnimations(tester);
+
+        expect(find.text('정신건강 상담센터'), findsOneWidget);
       });
 
-      testWidgets('전화 아이콘이 버튼에 표시되어야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget());
-        await tester.pump(const Duration(milliseconds: 100));
+      testWidgets('onClose 없으면 닫기 버튼이 표시되지 않아야 한다', (tester) async {
+        await setLargeViewport(tester);
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-        expect(find.byIcon(Icons.phone_in_talk), findsOneWidget);
-        expect(find.byIcon(Icons.support_agent), findsOneWidget);
+        await tester.pumpWidget(buildTestWidget());
+        await pumpPastAnimations(tester);
+
+        expect(find.text('다른 내용 작성하기'), findsNothing);
+      });
+
+      testWidgets('상담 연결하기 버튼이 표시되어야 한다', (tester) async {
+        await setLargeViewport(tester);
+        addTearDown(() => tester.view.resetPhysicalSize());
+
+        await tester.pumpWidget(buildTestWidget());
+        await pumpPastAnimations(tester);
+
+        expect(find.text('상담 연결하기'), findsOneWidget);
       });
     });
 
     group('인터랙션', () {
-      testWidgets('자살예방상담전화 버튼 탭 시 109로 전화 연결을 시도해야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget());
-        await tester.pump(const Duration(milliseconds: 100));
+      testWidgets('자살예방 상담전화 카드 탭 시 109로 전화 연결을 시도해야 한다', (tester) async {
+        await setLargeViewport(tester);
+        addTearDown(() => tester.view.resetPhysicalSize());
 
-        await tester.tap(find.text('24시간 자살예방상담전화 (109)'));
+        await tester.pumpWidget(buildTestWidget());
+        await pumpPastAnimations(tester);
+
+        await tester.tap(find.text('자살예방 상담전화'));
         await tester.pump();
 
         expect(mockUrlLauncher.lastLaunchedUrl, 'tel:109');
       });
 
-      testWidgets('정신건강상담전화 버튼 탭 시 1577-0199로 전화 연결을 시도해야 한다', (tester) async {
-        await tester.pumpWidget(buildTestWidget());
-        await tester.pump(const Duration(milliseconds: 100));
-
-        await tester.tap(find.text('정신건강상담전화'));
-        await tester.pump();
-
-        expect(mockUrlLauncher.lastLaunchedUrl, 'tel:1577-0199');
-      });
-
-      testWidgets('canLaunchUrl이 false면 launchUrl이 호출되지 않아야 한다', (
-        tester,
-      ) async {
-        mockUrlLauncher.canLaunchResult = false;
+      testWidgets('상담 연결하기 버튼 탭 시 109로 전화 연결을 시도해야 한다', (tester) async {
+        await setLargeViewport(tester);
+        addTearDown(() => tester.view.resetPhysicalSize());
 
         await tester.pumpWidget(buildTestWidget());
-        await tester.pump(const Duration(milliseconds: 100));
+        await pumpPastAnimations(tester);
 
-        await tester.tap(find.text('24시간 자살예방상담전화 (109)'));
+        await tester.tap(find.text('상담 연결하기'));
         await tester.pump();
 
-        // canLaunch는 호출되지만, launchUrl은 호출되지 않음
-        // SOSCard의 _EmergencyButton이 canLaunchUrl 체크를 함
-        expect(mockUrlLauncher.launchCallCount, 0);
+        expect(mockUrlLauncher.lastLaunchedUrl, 'tel:109');
       });
     });
   });

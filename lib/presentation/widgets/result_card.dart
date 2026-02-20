@@ -7,6 +7,7 @@ import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../domain/entities/diary.dart';
 import 'result_card/result_card.dart';
+import 'sos_card.dart';
 
 /// 감정 분석 결과 카드 위젯
 class ResultCard extends StatefulWidget {
@@ -103,7 +104,7 @@ class _ResultCardState extends State<ResultCard> {
 
     // 응급 상황 처리
     if (analysisResult.isEmergency) {
-      return const SOSCard();
+      return const SosCard();
     }
 
     return Column(
