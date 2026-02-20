@@ -2,8 +2,6 @@
 
 > Made with ❤️ for your mental health
 
-![MindLog App](../assets/screenshots/v3/01_splash_onboarding.jpeg)
-
 ## 📱 Project Overview
 
 **MindLog** is a mental healthcare application that leverages AI technology to analyze users' daily emotions and provide personalized insights. Record your feelings gently every day and manage your mental health with warm AI-powered feedback.
@@ -20,7 +18,6 @@
 ## ✨ Key Features
 
 ### 1️⃣ Emotional Diary Writing
-![Diary Write](../assets/screenshots/v3/03_diary_write.jpeg)
 
 - **Free-form Text Input**: Record today's emotions and thoughts up to 5,000 characters
 - **Photo Attachment**: Visual recording with up to 5 photos
@@ -28,9 +25,6 @@
 - **Auto Hashtag Generation**: AI analyzes diary content to extract key keywords
 
 ### 2️⃣ Emotional Statistics & Insights
-![Statistics Calendar](../assets/screenshots/v3/04_stats_calendar.jpeg)
-![Statistics Chart](../assets/screenshots/v3/05_stats_chart.jpeg)
-![Statistics Keywords](../assets/screenshots/v3/06_stats_keywords.jpeg)
 
 #### 📅 Emotion Calendar
 - View monthly emotion records at a glance
@@ -48,7 +42,6 @@
 - Keyword appearance ratio visualization
 
 ### 3️⃣ Personalized AI Characters
-![AI Character](../assets/screenshots/v3/08_ai_character.jpeg)
 
 Choose from 3 AI characters matching your personality:
 
@@ -57,7 +50,6 @@ Choose from 3 AI characters matching your personality:
 - **Smile** (Cheerful Friend): Bright and pleasant comfort
 
 ### 4️⃣ Smart Notification System
-![Settings](../assets/screenshots/v3/07_settings_top.jpeg)
 
 - **Diary Reminder**: Daily diary writing notification at set time
 - **Mindcare Alert**: AI-recommended warm message push
@@ -313,21 +305,6 @@ GROQ_API_KEY=your_api_key ./scripts/run.sh build-appbundle
 ```
 
 ---
-
-## 📱 Screenshots
-
-<table>
-  <tr>
-    <td><img src="../assets/screenshots/v3/02_diary_list.jpeg" width="200"/><br/>📝 Diary List</td>
-    <td><img src="../assets/screenshots/v3/03_diary_write.jpeg" width="200"/><br/>✍️ Write Diary</td>
-    <td><img src="../assets/screenshots/v3/04_stats_calendar.jpeg" width="200"/><br/>📅 Emotion Calendar</td>
-  </tr>
-  <tr>
-    <td><img src="../assets/screenshots/v3/05_stats_chart.jpeg" width="200"/><br/>📊 Emotion Trend</td>
-    <td><img src="../assets/screenshots/v3/06_stats_keywords.jpeg" width="200"/><br/>🔑 Keyword Analysis</td>
-    <td><img src="../assets/screenshots/v3/07_settings_top.jpeg" width="200"/><br/>⚙️ Settings</td>
-  </tr>
-</table>
 
 ---
 

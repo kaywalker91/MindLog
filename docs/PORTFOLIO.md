@@ -2,8 +2,6 @@
 
 > Made with ❤️ for your mental health
 
-![MindLog App](../assets/screenshots/v3/01_splash_onboarding.jpeg)
-
 ## 📱 프로젝트 개요
 
 **MindLog**는 AI 기술을 활용하여 사용자의 일상 감정을 분석하고, 개인화된 인사이트를 제공하는 멘탈 헬스케어 애플리케이션입니다. 매일의 감정을 부드럽게 기록하고, AI가 제공하는 따뜻한 피드백으로 마음의 건강을 관리할 수 있습니다.
@@ -20,7 +18,6 @@
 ## ✨ 주요 기능
 
 ### 1️⃣ 감정 일기 작성
-![Diary Write](../assets/screenshots/v3/03_diary_write.jpeg)
 
 - **자유로운 텍스트 입력**: 최대 5,000자까지 오늘의 감정과 생각을 기록
 - **사진 첨부**: 최대 5장의 사진으로 시각적 기록 가능
@@ -28,9 +25,6 @@
 - **해시태그 자동 생성**: AI가 일기 내용을 분석하여 핵심 키워드 추출
 
 ### 2️⃣ 감정 통계 & 인사이트
-![Statistics Calendar](../assets/screenshots/v3/04_stats_calendar.jpeg)
-![Statistics Chart](../assets/screenshots/v3/05_stats_chart.jpeg)
-![Statistics Keywords](../assets/screenshots/v3/06_stats_keywords.jpeg)
 
 #### 📅 감정 캘린더
 - 월별 감정 기록을 한눈에 확인
@@ -49,7 +43,6 @@
 - 키워드별 등장 비율 시각화
 
 ### 3️⃣ 개인화된 AI 캐릭터
-![AI Character](../assets/screenshots/v3/08_ai_character.jpeg)
 
 사용자의 성향에 맞는 3가지 AI 캐릭터 중 선택 가능:
 
@@ -58,7 +51,6 @@
 - **웃음이** (유쾌한 친구): 밝고 유쾌한 분위기의 위로
 
 ### 4️⃣ 스마트 알림 시스템
-![Settings](../assets/screenshots/v3/07_settings_top.jpeg)
 
 - **일기 리마인더**: 매일 지정한 시간에 일기 작성 알림
 - **마음 케어 알림**: AI가 추천하는 따뜻한 메시지 푸시
@@ -324,21 +316,6 @@ GROQ_API_KEY=your_api_key ./scripts/run.sh build-appbundle
 ```
 
 ---
-
-## 📱 스크린샷
-
-<table>
-  <tr>
-    <td><img src="../assets/screenshots/v3/02_diary_list.jpeg" width="200"/><br/>📝 일기 목록</td>
-    <td><img src="../assets/screenshots/v3/03_diary_write.jpeg" width="200"/><br/>✍️ 일기 작성</td>
-    <td><img src="../assets/screenshots/v3/04_stats_calendar.jpeg" width="200"/><br/>📅 감정 캘린더</td>
-  </tr>
-  <tr>
-    <td><img src="../assets/screenshots/v3/05_stats_chart.jpeg" width="200"/><br/>📊 감정 추이</td>
-    <td><img src="../assets/screenshots/v3/06_stats_keywords.jpeg" width="200"/><br/>🔑 키워드 분석</td>
-    <td><img src="../assets/screenshots/v3/07_settings_top.jpeg" width="200"/><br/>⚙️ 설정</td>
-  </tr>
-</table>
 
 ---
 
