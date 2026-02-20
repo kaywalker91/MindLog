@@ -301,6 +301,36 @@ class AnalysisResponseParser {
         );
       }).toList();
     }
+
+    // emotion_category.secondary 필터링
+    final emotionCategoryRaw = json['emotion_category'];
+    if (emotionCategoryRaw is Map<String, dynamic>) {
+      if (emotionCategoryRaw['secondary'] is String) {
+        emotionCategoryRaw['secondary'] = KoreanTextFilter.filterMessage(
+          emotionCategoryRaw['secondary'] as String,
+          fallbackText: '복합 감정',
+        );
+      }
+    }
+
+    // emotion_trigger.description 필터링
+    final emotionTriggerRaw = json['emotion_trigger'];
+    if (emotionTriggerRaw is Map<String, dynamic>) {
+      if (emotionTriggerRaw['description'] is String) {
+        emotionTriggerRaw['description'] = KoreanTextFilter.filterMessage(
+          emotionTriggerRaw['description'] as String,
+          fallbackText: '일상적인 감정 변화',
+        );
+      }
+    }
+
+    // cognitive_pattern 필터링
+    if (json['cognitive_pattern'] is String) {
+      json['cognitive_pattern'] = KoreanTextFilter.filterMessage(
+        json['cognitive_pattern'] as String,
+        fallbackText: '',
+      );
+    }
   }
 
   /// 텍스트에서 키워드 추출

@@ -574,5 +574,65 @@ void main() {
         }
       });
     });
+
+    group('한문 혼입 필터링 - 누락 필드', () {
+      test('emotion_category.secondary에 한자가 포함된 경우 fallback으로 대체된다', () {
+        const jsonStr = '''
+        {
+          "keywords": ["불안"],
+          "sentiment_score": 5,
+          "empathy_message": "오늘 하루도 수고하셨어요.",
+          "action_items": ["🚀 심호흡 해보세요"],
+          "emotion_category": {"primary": "공포", "secondary": "焦慮"},
+          "emotion_trigger": {"category": "일/업무", "description": "업무 스트레스"},
+          "energy_level": 5,
+          "is_emergency": false
+        }
+        ''';
+
+        final result = AnalysisResponseParser.parseString(jsonStr);
+        final emotionCategory = result['emotion_category'] as Map<String, dynamic>;
+        // 한자 '焦慮'는 필터링되어 fallback '복합 감정'으로 대체됨
+        expect(emotionCategory['secondary'], '복합 감정');
+      });
+
+      test('emotion_trigger.description에 한자가 포함된 경우 fallback으로 대체된다', () {
+        const jsonStr = '''
+        {
+          "keywords": ["스트레스"],
+          "sentiment_score": 4,
+          "empathy_message": "힘드셨겠어요.",
+          "action_items": ["☀️ 산책해보세요"],
+          "emotion_category": {"primary": "분노", "secondary": "짜증"},
+          "emotion_trigger": {"category": "일/업무", "description": "過重한 업무 负担"},
+          "energy_level": 3,
+          "is_emergency": false
+        }
+        ''';
+
+        final result = AnalysisResponseParser.parseString(jsonStr);
+        final emotionTrigger = result['emotion_trigger'] as Map<String, dynamic>;
+        // 한자가 포함된 description은 fallback '일상적인 감정 변화'로 대체됨
+        expect(emotionTrigger['description'], '일상적인 감정 변화');
+      });
+
+      test('cognitive_pattern에 한자가 포함된 경우 빈 문자열로 대체된다', () {
+        const jsonStr = '''
+        {
+          "keywords": ["걱정"],
+          "sentiment_score": 4,
+          "empathy_message": "걱정이 많으시군요.",
+          "action_items": ["📅 할 일 목록 작성"],
+          "cognitive_pattern": "過度한 일반化",
+          "energy_level": 4,
+          "is_emergency": false
+        }
+        ''';
+
+        final result = AnalysisResponseParser.parseString(jsonStr);
+        // 한자가 포함된 cognitive_pattern은 빈 문자열로 대체됨
+        expect(result['cognitive_pattern'], '');
+      });
+    });
   });
 }
