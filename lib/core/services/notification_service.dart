@@ -324,8 +324,21 @@ class NotificationService {
     }
   }
 
+  /// 예약 알림 취소 (테스트 오버라이드 지원)
+  @visibleForTesting
+  static Future<void> Function(int id)? cancelNotificationOverride;
+
+  /// 테스트 상태 리셋
+  @visibleForTesting
+  static void resetForTesting() {
+    cancelNotificationOverride = null;
+  }
+
   /// 예약 알림 취소
   static Future<void> cancelNotification(int id) async {
+    if (cancelNotificationOverride != null) {
+      return cancelNotificationOverride!(id);
+    }
     await _notifications.cancel(id);
     if (kDebugMode) {
       debugPrint('[Notification] Cancelled notification id=$id');

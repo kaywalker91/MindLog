@@ -16,6 +16,10 @@ import 'package:mindlog/domain/usecases/get_selected_ai_character_usecase.dart';
 import 'package:mindlog/domain/usecases/get_statistics_usecase.dart';
 import 'package:mindlog/domain/usecases/set_notification_settings_usecase.dart';
 import 'package:mindlog/domain/usecases/set_selected_ai_character_usecase.dart';
+import 'package:mindlog/core/services/notification_scheduler_impl.dart';
+import 'package:mindlog/domain/repositories/notification_scheduler.dart';
+import 'package:mindlog/domain/usecases/apply_notification_settings_usecase.dart';
+import 'package:mindlog/domain/usecases/self_encouragement/get_next_self_encouragement_message_usecase.dart';
 import 'package:mindlog/domain/usecases/validate_diary_content_usecase.dart';
 
 /// 인프라 의존성 Provider 모음
@@ -121,6 +125,27 @@ final getNotificationSettingsUseCaseProvider =
 final setNotificationSettingsUseCaseProvider =
     Provider<SetNotificationSettingsUseCase>((ref) {
       return SetNotificationSettingsUseCase(
+        ref.watch(settingsRepositoryProvider),
+      );
+    });
+
+/// NotificationScheduler Provider
+final notificationSchedulerProvider = Provider<NotificationScheduler>((ref) {
+  return const NotificationSchedulerImpl();
+});
+
+/// ApplyNotificationSettingsUseCase Provider
+final applyNotificationSettingsUseCaseProvider =
+    Provider<ApplyNotificationSettingsUseCase>((ref) {
+      return ApplyNotificationSettingsUseCase(
+        ref.watch(notificationSchedulerProvider),
+      );
+    });
+
+/// GetNextSelfEncouragementMessageUseCase Provider
+final getNextSelfEncouragementMessageUseCaseProvider =
+    Provider<GetNextSelfEncouragementMessageUseCase>((ref) {
+      return GetNextSelfEncouragementMessageUseCase(
         ref.watch(settingsRepositoryProvider),
       );
     });

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mindlog/core/services/notification_settings_service.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/entities/self_encouragement_message.dart';
 import 'package:mindlog/presentation/providers/providers.dart';
@@ -64,14 +63,15 @@ class NotificationSettingsController
       final messages = ref.read(selfEncouragementProvider).valueOrNull ?? [];
       final userName = ref.read(userNameProvider).valueOrNull;
       final recentScore = ref.read(todayEmotionProvider).sentimentScore;
-      // TODO: Consider wrapping NotificationSettingsService.applySettings in UseCase
-      final nextIndex = await NotificationSettingsService.applySettings(
-        settings,
-        messages: messages,
-        source: source,
-        userName: userName,
-        recentEmotionScore: recentScore?.toDouble(),
-      );
+      final nextIndex = await ref
+          .read(applyNotificationSettingsUseCaseProvider)
+          .execute(
+            settings,
+            messages: messages,
+            source: source,
+            userName: userName,
+            recentEmotionScore: recentScore?.toDouble(),
+          );
 
       await _updateSequentialIndex(settings, nextIndex);
     } catch (e, stackTrace) {
@@ -106,13 +106,15 @@ class NotificationSettingsController
     try {
       final userName = ref.read(userNameProvider).valueOrNull;
       final recentScore = ref.read(todayEmotionProvider).sentimentScore;
-      final nextIndex = await NotificationSettingsService.applySettings(
-        current,
-        messages: messages,
-        source: 'message_change',
-        userName: userName,
-        recentEmotionScore: recentScore?.toDouble(),
-      );
+      final nextIndex = await ref
+          .read(applyNotificationSettingsUseCaseProvider)
+          .execute(
+            current,
+            messages: messages,
+            source: 'message_change',
+            userName: userName,
+            recentEmotionScore: recentScore?.toDouble(),
+          );
 
       await _updateSequentialIndex(current, nextIndex);
     } catch (e, stackTrace) {

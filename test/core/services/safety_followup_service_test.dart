@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mindlog/core/services/notification_service.dart';
 import 'package:mindlog/core/services/safety_followup_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
@@ -345,6 +346,14 @@ void main() {
     });
 
     group('cancelFollowup', () {
+      setUp(() {
+        NotificationService.cancelNotificationOverride = (_) async {};
+      });
+
+      tearDown(() {
+        NotificationService.resetForTesting();
+      });
+
       test('팔로업 상태를 모두 정리해야 한다', () async {
         // Arrange
         final prefs = await SharedPreferences.getInstance();
@@ -355,12 +364,8 @@ void main() {
         await SafetyFollowupService.cancelFollowup();
 
         // Assert
-        // 주의: cancelFollowup은 NotificationService.cancelNotification 실패 시
-        // prefs 정리도 스킵함 (전체가 try-catch 안에 있음)
-        // 테스트 환경에서는 NotificationService가 초기화되지 않아 실패하므로
-        // 상태가 그대로 남아있는 것이 현재 서비스 동작임
-        expect(prefs.getInt('last_emergency_timestamp'), 123456789);
-        expect(prefs.getBool('safety_followup_sent'), isFalse);
+        expect(prefs.getInt('last_emergency_timestamp'), isNull);
+        expect(prefs.getBool('safety_followup_sent'), isNull);
       });
 
       test('빈 상태에서도 예외 발생 없이 완료되어야 한다', () async {

@@ -18,13 +18,17 @@ class GetNextSelfEncouragementMessageUseCase {
   /// - 메시지가 없으면 null 반환
   /// - random 모드: 랜덤 선택
   /// - sequential 모드: 순차 선택 (마지막 인덱스 다음)
+  /// - emotionAware 모드: 최근 감정 점수와 같은 레벨의 메시지 우선 선택
+  ///
+  /// [currentEmotionScore] emotionAware 모드에서 사용할 최근 감정 점수 (1-10)
   ///
   /// Throws:
   /// - [CacheFailure] 로컬 저장소 읽기 실패
   /// - [UnknownFailure] 예기치 않은 오류
   Future<SelfEncouragementMessage?> execute(
-    NotificationSettings settings,
-  ) async {
+    NotificationSettings settings, {
+    double? currentEmotionScore,
+  }) async {
     try {
       final messages = await _repository.getSelfEncouragementMessages();
 
@@ -47,14 +51,33 @@ class GetNextSelfEncouragementMessageUseCase {
           return messages[nextIndex];
 
         case MessageRotationMode.emotionAware:
-          // TODO: 감정 기반 선택 로직 구현 예정, 현재는 랜덤 폴백
-          return messages[_random.nextInt(messages.length)];
+          if (currentEmotionScore == null) {
+            return messages[_random.nextInt(messages.length)];
+          }
+          final currentLevel = _emotionLevel(currentEmotionScore);
+          final filtered = messages
+              .where(
+                (m) =>
+                    m.writtenEmotionScore != null &&
+                    _emotionLevel(m.writtenEmotionScore!) == currentLevel,
+              )
+              .toList();
+          final pool = filtered.isEmpty ? messages : filtered;
+          return pool[_random.nextInt(pool.length)];
       }
     } on Failure {
       rethrow;
     } catch (e) {
       throw UnknownFailure(message: e.toString());
     }
+  }
+
+  /// 감정 점수(1-10)를 레벨로 변환
+  /// 0: low (≤3), 1: medium (4-6), 2: high (>6)
+  int _emotionLevel(double score) {
+    if (score <= 3) return 0;
+    if (score <= 6) return 1;
+    return 2;
   }
 
   /// 순차 모드에서 다음 인덱스 계산

@@ -46,6 +46,20 @@ void main() {
     );
   }
 
+  SelfEncouragementMessage createMessageWithScore(
+    String id,
+    double score,
+    int order,
+  ) {
+    return SelfEncouragementMessage(
+      id: id,
+      content: '메시지 $id',
+      createdAt: DateTime.now(),
+      displayOrder: order,
+      writtenEmotionScore: score,
+    );
+  }
+
   group('GetNextSelfEncouragementMessageUseCase', () {
     test('should return null when no messages exist', () async {
       // Arrange
@@ -108,6 +122,132 @@ void main() {
 
         // Assert
         expect(result, equals(messages[0]));
+      });
+    });
+
+    group('emotionAware mode', () {
+      test('currentEmotionScore 없으면 랜덤 폴백', () async {
+        // Arrange
+        final messages = createMessages(3);
+        mockRepository.messages = messages;
+        mockRandom.nextValue = 1;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.emotionAware,
+        );
+
+        // Act
+        final result = await useCase.execute(settings);
+
+        // Assert - no score → random fallback → index 1
+        expect(result, equals(messages[1]));
+      });
+
+      test('low 점수(≤3)이면 low 메시지만 선택', () async {
+        // Arrange
+        final lowMsg = createMessageWithScore('low', 2.0, 0);
+        final medMsg = createMessageWithScore('med', 5.0, 1);
+        final highMsg = createMessageWithScore('high', 8.0, 2);
+        mockRepository.messages = [lowMsg, medMsg, highMsg];
+        mockRandom.nextValue = 0;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.emotionAware,
+        );
+
+        // Act
+        final result = await useCase.execute(
+          settings,
+          currentEmotionScore: 2.5,
+        );
+
+        // Assert - filtered to [lowMsg], random index 0
+        expect(result, equals(lowMsg));
+      });
+
+      test('medium 점수(4-6)이면 medium 메시지만 선택', () async {
+        // Arrange
+        final lowMsg = createMessageWithScore('low', 2.0, 0);
+        final medMsg1 = createMessageWithScore('med1', 4.0, 1);
+        final medMsg2 = createMessageWithScore('med2', 6.0, 2);
+        final highMsg = createMessageWithScore('high', 8.0, 3);
+        mockRepository.messages = [lowMsg, medMsg1, medMsg2, highMsg];
+        mockRandom.nextValue = 1;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.emotionAware,
+        );
+
+        // Act
+        final result = await useCase.execute(
+          settings,
+          currentEmotionScore: 5.0,
+        );
+
+        // Assert - filtered to [medMsg1, medMsg2], random index 1 → medMsg2
+        expect(result, equals(medMsg2));
+      });
+
+      test('high 점수(>6)이면 high 메시지만 선택', () async {
+        // Arrange
+        final lowMsg = createMessageWithScore('low', 2.0, 0);
+        final highMsg = createMessageWithScore('high', 8.0, 1);
+        mockRepository.messages = [lowMsg, highMsg];
+        mockRandom.nextValue = 0;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.emotionAware,
+        );
+
+        // Act
+        final result = await useCase.execute(
+          settings,
+          currentEmotionScore: 7.5,
+        );
+
+        // Assert - filtered to [highMsg], random index 0
+        expect(result, equals(highMsg));
+      });
+
+      test('매칭 메시지 없으면 전체 폴백', () async {
+        // Arrange - all messages have low scores, but current is high
+        final msg1 = createMessageWithScore('m1', 2.0, 0);
+        final msg2 = createMessageWithScore('m2', 3.0, 1);
+        mockRepository.messages = [msg1, msg2];
+        mockRandom.nextValue = 1;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.emotionAware,
+        );
+
+        // Act
+        final result = await useCase.execute(
+          settings,
+          currentEmotionScore: 9.0, // high, no matches
+        );
+
+        // Assert - fallback to all messages, random index 1
+        expect(result, equals(msg2));
+      });
+
+      test('writtenEmotionScore 없는 메시지는 필터에서 제외', () async {
+        // Arrange
+        final noScore = SelfEncouragementMessage(
+          id: 'no',
+          content: '점수 없음',
+          createdAt: DateTime.now(),
+          displayOrder: 0,
+        );
+        final lowMsg = createMessageWithScore('low', 2.0, 1);
+        mockRepository.messages = [noScore, lowMsg];
+        mockRandom.nextValue = 0;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.emotionAware,
+        );
+
+        // Act
+        final result = await useCase.execute(
+          settings,
+          currentEmotionScore: 1.0,
+        );
+
+        // Assert - filtered to [lowMsg] only (noScore excluded)
+        expect(result, equals(lowMsg));
       });
     });
 
