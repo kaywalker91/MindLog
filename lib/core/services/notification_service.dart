@@ -11,7 +11,8 @@ class NotificationService {
 
   static final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
-  static const int _dailyReminderId = 1001;
+  static const int dailyReminderId = 1001;
+  static const int _dailyReminderId = dailyReminderId;
   static const int fcmMindcareId = 2001;
 
   // 알림 채널 ID

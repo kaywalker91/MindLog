@@ -253,6 +253,16 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     );
   }
 
+  // notification 필드 있음 → OS가 자동 표시 → 중복 방지
+  if (message.notification != null) {
+    if (kDebugMode) {
+      debugPrint(
+        '[FCM] Background: notification field present, OS displays it. Skipping local notification.',
+      );
+    }
+    return;
+  }
+
   final serverTitle =
       message.data['title'] as String? ?? message.notification?.title;
   final serverBody =
