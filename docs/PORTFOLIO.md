@@ -50,11 +50,29 @@
 - **쿠이** (현실적 코치): 명확하고 실행 중심의 조언
 - **웃음이** (유쾌한 친구): 밝고 유쾌한 분위기의 위로
 
-### 4️⃣ 스마트 알림 시스템
+### 4️⃣ 스마트 알림 시스템 (v1.4.47)
 
-- **일기 리마인더**: 매일 지정한 시간에 일기 작성 알림
-- **마음 케어 알림**: AI가 추천하는 따뜻한 메시지 푸시
+- **일기 리마인더**: 매일 지정한 시간에 일기 작성 알림 (pending 감지로 재부팅 후만 재스케줄)
+- **마음 케어 알림**: AI가 추천하는 따뜻한 메시지 FCM 푸시 (이중 알림 방지)
+- **EmotionAware 메시지 선택**: 최근 감정 점수(low≤3 / medium 4-6 / high>6) 기반 레벨 필터링 → 가장 공감되는 메시지 우선 전달
 - **개인화된 메시지**: 사용자 이름 기반 맞춤형 알림 문구
+- **위기 팔로업**: `SafetyBlockedFailure` 감지 후 24시간 뒤 안부 확인 알림 자동 예약
+
+#### 알림 아키텍처 (Port/Adapter)
+```dart
+// Domain Layer — 인터페이스
+abstract class NotificationScheduler {
+  Future<int?> apply(NotificationSettings settings, {List<SelfEncouragementMessage> messages, ...});
+}
+
+// Core Layer — 어댑터 (NotificationSettingsService 감쌈)
+class NotificationSchedulerImpl implements NotificationScheduler { ... }
+
+// Domain UseCase — 비즈니스 로직
+class ApplyNotificationSettingsUseCase {
+  // NotificationSettingsController → UseCase 경유 → Adapter → Service
+}
+```
 
 ### 5️⃣ 비밀일기 (v1.4.44)
 
@@ -269,10 +287,12 @@ flutter build appbundle --release \
 ## 📈 주요 성과
 
 ### 기술적 성과
-- ✅ **테스트 지속 확장** — 비밀일기·통계 다크모드 테스트 포함 (단위/위젯/통합 전 레이어)
-- ✅ **Clean Architecture** 기반 확장 가능한 구조
+- ✅ **1,623 테스트 통과** — 단위/위젯/통합 전 레이어 (TASK-001~003 완료, 신규 16개)
+- ✅ **Clean Architecture 완성도 강화**: `NotificationScheduler` Port/Adapter 패턴으로 알림 스케줄러 Domain 계층 편입
+- ✅ **EmotionAware AI 메시지 선택**: 감정 레벨 기반 가중 필터링 UseCase 구현 (레벨 버킷 + 랜덤 폴백)
+- ✅ **SDD(Specification-Driven Development)**: `spec.md` (REQ-001~083) + `plan.md` (ADR) + `tasks.md` 3문서 체계 도입
+- ✅ **Static Override 테스트 패턴**: `@visibleForTesting static Function? override` → Firebase 미초기화 환경 위젯 테스트 안정화
 - ✅ **AI 통합**: Groq LLaMA 3.3 70B 모델 활용
-- ✅ **성능 최적화**: HTTP timeout, 이미지 캐싱, Provider 최적화
 - ✅ **ThemeExtension 패턴**: `StatisticsThemeTokens`로 통계 UI 전체를 단일 토큰 시스템으로 관리
 - ✅ **비밀일기 보안**: SHA-256 PIN 해시 + flutter_secure_storage 이중 보호
 

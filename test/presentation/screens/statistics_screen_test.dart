@@ -33,14 +33,13 @@ Widget _buildHarness({
   EmotionStatistics? statsData,
   StatisticsPeriod initialPeriod = StatisticsPeriod.week,
 }) {
-  final future = statsFuture ?? Future.value(statsData ?? StatisticsFixtures.weekly());
+  final future =
+      statsFuture ?? Future.value(statsData ?? StatisticsFixtures.weekly());
 
   return ProviderScope(
     overrides: [
       statisticsProvider.overrideWith((ref) => future),
-      selectedStatisticsPeriodProvider.overrideWith(
-        (ref) => initialPeriod,
-      ),
+      selectedStatisticsPeriodProvider.overrideWith((ref) => initialPeriod),
     ],
     child: MaterialApp(
       theme: AppTheme.lightTheme,
@@ -101,9 +100,8 @@ void main() {
         ProviderScope(
           overrides: [
             statisticsProvider.overrideWith(
-              (ref) async => throw const Failure.network(
-                message: '통계 데이터를 불러오지 못했습니다.',
-              ),
+              (ref) async =>
+                  throw const Failure.network(message: '통계 데이터를 불러오지 못했습니다.'),
             ),
           ],
           child: MaterialApp(
@@ -121,8 +119,7 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('에러 상태에서 재시도 버튼 탭 시 통계 Provider가 새로고침된다',
-        (tester) async {
+    testWidgets('에러 상태에서 재시도 버튼 탭 시 통계 Provider가 새로고침된다', (tester) async {
       _setLargeView(tester);
       addTearDown(() => _resetView(tester));
 
@@ -163,28 +160,30 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('기간 탭 전환: 최근 30일 탭 선택 시 selectedStatisticsPeriodProvider가 갱신된다',
-        (tester) async {
-      _setLargeView(tester);
-      addTearDown(() => _resetView(tester));
+    testWidgets(
+      '기간 탭 전환: 최근 30일 탭 선택 시 selectedStatisticsPeriodProvider가 갱신된다',
+      (tester) async {
+        _setLargeView(tester);
+        addTearDown(() => _resetView(tester));
 
-      await tester.pumpWidget(
-        _buildHarness(statsData: StatisticsFixtures.weekly()),
-      );
-      await tester.pump();
-      await tester.pump();
+        await tester.pumpWidget(
+          _buildHarness(statsData: StatisticsFixtures.weekly()),
+        );
+        await tester.pump();
+        await tester.pump();
 
-      // '최근 30일' 탭 탭 (칩에서 첫 번째 매치)
-      await tester.tap(find.text('최근 30일').first);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500)); // animate 타이머 소진
-      await tester.pump(const Duration(milliseconds: 500));
+        // '최근 30일' 탭 탭 (칩에서 첫 번째 매치)
+        await tester.tap(find.text('최근 30일').first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500)); // animate 타이머 소진
+        await tester.pump(const Duration(milliseconds: 500));
 
-      // StatisticsHeatmapCard의 _PeriodChips가 Provider를 업데이트했는지 확인
-      // — '최근 30일' 텍스트가 화면에 존재 (칩 + 레이블 중복 허용)
-      expect(find.text('최근 30일'), findsWidgets);
-      expect(tester.takeException(), isNull);
-    });
+        // StatisticsHeatmapCard의 _PeriodChips가 Provider를 업데이트했는지 확인
+        // — '최근 30일' 텍스트가 화면에 존재 (칩 + 레이블 중복 허용)
+        expect(find.text('최근 30일'), findsWidgets);
+        expect(tester.takeException(), isNull);
+      },
+    );
 
     testWidgets('빈 통계 데이터 상태: 주요 위젯들이 예외 없이 렌더링된다', (tester) async {
       _setLargeView(tester);

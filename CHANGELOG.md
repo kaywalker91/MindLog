@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.47] - 2026-02-24
+
+### Added
+- **`ApplyNotificationSettingsUseCase`** (`domain/usecases/`): 알림 설정 적용 로직을 Domain UseCase로 분리; `NotificationSettingsController`에서 Service 직접 호출 제거 → 의존성 역전 원칙 완성
+- **`NotificationScheduler` 추상 인터페이스** (`domain/repositories/notification_scheduler.dart`): Port/Adapter 패턴으로 알림 스케줄러를 Domain 계층으로 편입; `NotificationSchedulerImpl`이 어댑터로 `NotificationSettingsService`를 감쌈
+- **EmotionAware 메시지 선택** (`GetNextSelfEncouragementMessageUseCase`): 최근 감정 점수 기반 레벨 필터링 (low≤3, medium 4-6, high>6) + 매칭 메시지 없을 시 전체 풀 랜덤 폴백; `recentEmotionScore` 파라미터 추가
+- **`cancelNotificationOverride` + `resetForTesting()`** (`NotificationService`): 미초기화 환경(테스트)에서 `LateInitializationError` 우회용 `@visibleForTesting static Function? override` 패턴 추가
+- **SDD 문서 트리오** (`docs/spec.md`, `docs/plan.md`, `docs/tasks.md`): REQ-001~083 요구사항 명세, 아키텍처 결정 기록(ADR), REQ 매핑 태스크 백로그 신규 작성; `sdd-workflow.md` 규칙 활성화
+- **알림 중복 방지** (`NotificationService`, `splash_screen.dart`): 앱 시작 시 리마인더(ID 1001)가 이미 pending이면 재스케줄 skip; FCM 백그라운드 핸들러에서 `notification` 필드 있을 시 early-return → OS 표시 1회만 보장
+- **`dailyReminderId` 공개 상수** (`NotificationService`): pending 체크 외부 접근용으로 visibility 확대
+
+### Testing
+- **DiaryScreen 위젯 테스트** (`test/presentation/screens/diary_creation_flow_test.dart`, 9개):
+  - `_FirebaseFreeNotifier`: Firebase 없이 `analyzeDiary` 오버라이드 — 순수 Widget 테스트 가능
+  - `_ControllableMock(Completer)`: Loading 상태 지속 제어 패턴
+  - `devicePixelRatio=1.0 + physicalSize(800×2000)`: 버튼 viewport 확보
+  - flutter_animate `delay:600ms` Timer 정리: `pump(700ms)` 패턴 확립 (memory/timer leak 방지)
+  - `SafetyBlocked` → followup 알림 예약 검증 (`SafetyFollowupService.scheduleOneTimeOverride` static override)
+- **StatisticsScreen 위젯 테스트** (`test/presentation/screens/statistics_screen_test.dart`, 6개):
+  - loading / data / error / retry / period-tab / empty-data 6개 상태 전환 커버
+  - `AnalyticsService._instance()` Firebase 미초기화 방어 (`try-catch`) — 테스트 환경 안정화
+- **NotificationSchedulerImpl 통합 테스트** (`test/core/services/notification_scheduler_impl_test.dart`, 9개):
+  - `apply()` → `applySettings()` 위임 end-to-end 검증
+  - `recentEmotionScore` emotionAware 전파: single-message 선택, no-score fallback, empty-list skip
+  - sequential 모드 wrap-around 및 nextIndex 진행 검증
+- **총 1,623 테스트 통과** (신규 16개: TASK-001/002/003 완료)
+
+### Fixed
+- **FCM 마음케어 이중 알림** (`fcm_service.dart`): background handler에서 OS 직접 표시 + `showNotification()` 중복 호출 방지
+- **앱 재시작 시 리마인더 중복** (`splash_screen.dart`): pending alarm 존재 시 재스케줄 skip; 재부팅 후는 정상 재스케줄
+- **`prefer_const_constructors` lint** (`notification_scheduler_impl_test.dart:90`): `final` → `const`
+- **dart format** 테스트 파일 3개 자동 포맷 적용
+
+---
+
 ## [1.4.46] - 2026-02-20
 
 ### Fixed

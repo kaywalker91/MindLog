@@ -282,7 +282,9 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('SafetyBlocked 발생 시 팔로업 알림이 예약된다 (static override 패턴)', (tester) async {
+    testWidgets('SafetyBlocked 발생 시 팔로업 알림이 예약된다 (static override 패턴)', (
+      tester,
+    ) async {
       // REQ-070: 위기 감지 → 24시간 후 팔로업 알림 예약
       // _FirebaseFreeNotifier는 _scheduleSafetyFollowup()을 건너뛰므로
       // 실제 DiaryAnalysisNotifier를 사용하여 전체 경로 검증
@@ -296,17 +298,18 @@ void main() {
 
       // scheduleOneTimeOverride: NotificationService 미초기화 LateInitializationError 방지
       bool followupScheduled = false;
-      SafetyFollowupService.scheduleOneTimeOverride = ({
-        required int id,
-        required String title,
-        required String body,
-        required dynamic scheduledDate,
-        String? payload,
-        String channel = '',
-      }) async {
-        followupScheduled = true;
-        return true;
-      };
+      SafetyFollowupService.scheduleOneTimeOverride =
+          ({
+            required int id,
+            required String title,
+            required String body,
+            required dynamic scheduledDate,
+            String? payload,
+            String channel = '',
+          }) async {
+            followupScheduled = true;
+            return true;
+          };
       addTearDown(() => SafetyFollowupService.resetForTesting());
 
       final mock = MockAnalyzeDiaryUseCase()
@@ -319,7 +322,9 @@ void main() {
           overrides: [
             analyzeDiaryUseCaseProvider.overrideWithValue(mock),
             diaryRepositoryProvider.overrideWithValue(MockDiaryRepository()),
-            statisticsProvider.overrideWith((ref) => StatisticsFixtures.weekly()),
+            statisticsProvider.overrideWith(
+              (ref) => StatisticsFixtures.weekly(),
+            ),
           ],
           child: MaterialApp(
             theme: AppTheme.lightTheme,
@@ -338,7 +343,8 @@ void main() {
 
       await tester.tap(find.byType(ElevatedButton));
       await tester.pump(); // Loading
-      await tester.pump(); // SafetyBlocked + unawaited(_scheduleSafetyFollowup()) 시작
+      await tester
+          .pump(); // SafetyBlocked + unawaited(_scheduleSafetyFollowup()) 시작
       await tester.pump(const Duration(milliseconds: 300)); // async 팔로업 완료 대기
 
       expect(

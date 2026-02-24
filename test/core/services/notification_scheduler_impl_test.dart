@@ -16,11 +16,7 @@ void main() {
   const scheduler = NotificationSchedulerImpl();
 
   // 테스트 픽스처 팩토리
-  SelfEncouragementMessage makeMsg(
-    String id,
-    String content, {
-    double? score,
-  }) {
+  SelfEncouragementMessage makeMsg(String id, String content, {double? score}) {
     return SelfEncouragementMessage(
       id: id,
       content: content,
@@ -56,22 +52,23 @@ void main() {
     NotificationSettingsService.resetForTesting();
     scheduleCalls = [];
 
-    NotificationSettingsService.areNotificationsEnabledOverride =
-        () async => true;
-    NotificationSettingsService.canScheduleExactAlarmsOverride =
-        () async => true;
+    NotificationSettingsService.areNotificationsEnabledOverride = () async =>
+        true;
+    NotificationSettingsService.canScheduleExactAlarmsOverride = () async =>
+        true;
     NotificationSettingsService.isIgnoringBatteryOverride = () async => true;
-    NotificationSettingsService.scheduleDailyReminderOverride = ({
-      required int hour,
-      required int minute,
-      required String title,
-      String? body,
-      String? payload,
-      AndroidScheduleMode? scheduleMode,
-    }) async {
-      scheduleCalls.add({'hour': hour, 'minute': minute, 'body': body});
-      return true;
-    };
+    NotificationSettingsService.scheduleDailyReminderOverride =
+        ({
+          required int hour,
+          required int minute,
+          required String title,
+          String? body,
+          String? payload,
+          AndroidScheduleMode? scheduleMode,
+        }) async {
+          scheduleCalls.add({'hour': hour, 'minute': minute, 'body': body});
+          return true;
+        };
     NotificationSettingsService.cancelDailyReminderOverride = () async {};
     NotificationSettingsService.subscribeToTopicOverride = (_) async {};
     NotificationSettingsService.unsubscribeFromTopicOverride = (_) async {};
@@ -87,7 +84,7 @@ void main() {
   group('NotificationSchedulerImpl (통합)', () {
     group('기본 위임 동작', () {
       test('apply()는 올바른 시간 파라미터로 스케줄링을 호출한다', () async {
-        final settings = NotificationSettings(
+        const settings = NotificationSettings(
           isReminderEnabled: true,
           reminderHour: 8,
           reminderMinute: 30,
@@ -107,8 +104,8 @@ void main() {
 
       test('isReminderEnabled=false이면 스케줄링을 취소하고 body를 전달하지 않는다', () async {
         bool cancelCalled = false;
-        NotificationSettingsService.cancelDailyReminderOverride =
-            () async => cancelCalled = true;
+        NotificationSettingsService.cancelDailyReminderOverride = () async =>
+            cancelCalled = true;
 
         final settings = makeSettings(isEnabled: false);
         final messages = [makeMsg('m1', '취소용 메시지')];
@@ -139,71 +136,59 @@ void main() {
     });
 
     group('emotionAware 모드: recentEmotionScore 전파', () {
-      test(
-        'recentEmotionScore=null이면 메시지를 스케줄링한다 (랜덤 폴백)',
-        () async {
-          final settings = makeSettings();
-          final messages = [makeMsg('m1', '감정 없음 메시지')];
+      test('recentEmotionScore=null이면 메시지를 스케줄링한다 (랜덤 폴백)', () async {
+        final settings = makeSettings();
+        final messages = [makeMsg('m1', '감정 없음 메시지')];
 
-          await scheduler.apply(settings, messages: messages);
+        await scheduler.apply(settings, messages: messages);
 
-          // score 없어도 단일 메시지는 항상 스케줄링됨
-          expect(scheduleCalls, hasLength(1));
-          expect(scheduleCalls[0]['body'], '감정 없음 메시지');
-        },
-      );
+        // score 없어도 단일 메시지는 항상 스케줄링됨
+        expect(scheduleCalls, hasLength(1));
+        expect(scheduleCalls[0]['body'], '감정 없음 메시지');
+      });
 
-      test(
-        'recentEmotionScore와 거리≤1인 메시지(1개)가 항상 선택된다',
-        () async {
-          // 단일 메시지: writtenEmotionScore=5.0, recentEmotionScore=5.0 → distance=0 → weight=3
-          // Random().nextInt(3) 결과와 무관하게 pick - 3 < 0 → 항상 첫 번째 메시지 선택
-          final settings = makeSettings();
-          final messages = [makeMsg('close', '감정 일치 메시지', score: 5.0)];
+      test('recentEmotionScore와 거리≤1인 메시지(1개)가 항상 선택된다', () async {
+        // 단일 메시지: writtenEmotionScore=5.0, recentEmotionScore=5.0 → distance=0 → weight=3
+        // Random().nextInt(3) 결과와 무관하게 pick - 3 < 0 → 항상 첫 번째 메시지 선택
+        final settings = makeSettings();
+        final messages = [makeMsg('close', '감정 일치 메시지', score: 5.0)];
 
-          await scheduler.apply(
-            settings,
-            messages: messages,
-            recentEmotionScore: 5.0,
-          );
+        await scheduler.apply(
+          settings,
+          messages: messages,
+          recentEmotionScore: 5.0,
+        );
 
-          expect(scheduleCalls, hasLength(1));
-          expect(scheduleCalls[0]['body'], '감정 일치 메시지');
-        },
-      );
+        expect(scheduleCalls, hasLength(1));
+        expect(scheduleCalls[0]['body'], '감정 일치 메시지');
+      });
 
-      test(
-        'writtenEmotionScore 없는 메시지(1개)도 스케줄링된다 (weight=1 폴백)',
-        () async {
-          // score 없는 메시지는 weight=1로 처리; 단일 메시지라면 항상 선택
-          final settings = makeSettings();
-          final messages = [makeMsg('noscore', '점수 없는 메시지')];
+      test('writtenEmotionScore 없는 메시지(1개)도 스케줄링된다 (weight=1 폴백)', () async {
+        // score 없는 메시지는 weight=1로 처리; 단일 메시지라면 항상 선택
+        final settings = makeSettings();
+        final messages = [makeMsg('noscore', '점수 없는 메시지')];
 
-          await scheduler.apply(
-            settings,
-            messages: messages,
-            recentEmotionScore: 7.0,
-          );
+        await scheduler.apply(
+          settings,
+          messages: messages,
+          recentEmotionScore: 7.0,
+        );
 
-          expect(scheduleCalls, hasLength(1));
-          expect(scheduleCalls[0]['body'], '점수 없는 메시지');
-        },
-      );
+        expect(scheduleCalls, hasLength(1));
+        expect(scheduleCalls[0]['body'], '점수 없는 메시지');
+      });
 
-      test(
-        'messages가 비어 있으면 스케줄링이 호출되지 않는다',
-        () async {
-          final settings = makeSettings();
+      test('messages가 비어 있으면 스케줄링이 호출되지 않는다', () async {
+        final settings = makeSettings();
 
-          await scheduler.apply(
-            settings,
-            messages: const [],
-            recentEmotionScore: 5.0,
-          );
+        await scheduler.apply(
+          settings,
+          messages: const [],
+          recentEmotionScore: 5.0,
+        );
 
-          expect(scheduleCalls, isEmpty);
-        },
-      );
+        expect(scheduleCalls, isEmpty);
+      });
     });
 
     group('sequential 모드: 인덱스 진행', () {
