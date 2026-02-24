@@ -76,9 +76,7 @@ Future<void> _rescheduleNotificationsIfNeeded() async {
     );
     if (hasReminder) {
       if (kDebugMode) {
-        debugPrint(
-          '[Main] Reminder already pending, skipping reschedule',
-        );
+        debugPrint('[Main] Reminder already pending, skipping reschedule');
       }
       return;
     }

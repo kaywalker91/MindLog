@@ -591,7 +591,8 @@ void main() {
         ''';
 
         final result = AnalysisResponseParser.parseString(jsonStr);
-        final emotionCategory = result['emotion_category'] as Map<String, dynamic>;
+        final emotionCategory =
+            result['emotion_category'] as Map<String, dynamic>;
         // 한자 '焦慮'는 필터링되어 fallback '복합 감정'으로 대체됨
         expect(emotionCategory['secondary'], '복합 감정');
       });
@@ -611,7 +612,8 @@ void main() {
         ''';
 
         final result = AnalysisResponseParser.parseString(jsonStr);
-        final emotionTrigger = result['emotion_trigger'] as Map<String, dynamic>;
+        final emotionTrigger =
+            result['emotion_trigger'] as Map<String, dynamic>;
         // 한자가 포함된 description은 fallback '일상적인 감정 변화'로 대체됨
         expect(emotionTrigger['description'], '일상적인 감정 변화');
       });
