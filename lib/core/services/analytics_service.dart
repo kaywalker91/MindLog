@@ -22,7 +22,11 @@ class AnalyticsService {
   static FirebaseAnalyticsObserver? get observer => _observer;
 
   static FirebaseAnalytics? _instance() {
-    _analytics ??= FirebaseAnalytics.instance;
+    try {
+      _analytics ??= FirebaseAnalytics.instance;
+    } catch (_) {
+      // Firebase 미초기화 (테스트 환경 등) — analytics 비활성화
+    }
     return _analytics;
   }
 

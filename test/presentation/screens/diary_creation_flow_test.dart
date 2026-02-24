@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/di/infra_providers.dart';
 import 'package:mindlog/core/errors/failures.dart';
+import 'package:mindlog/core/services/safety_followup_service.dart';
 import 'package:mindlog/core/theme/app_theme.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 import 'package:mindlog/domain/usecases/analyze_diary_usecase.dart';
@@ -16,6 +17,8 @@ import 'package:mindlog/presentation/widgets/image_picker_section.dart';
 import 'package:mindlog/presentation/widgets/loading_indicator.dart';
 import 'package:mindlog/presentation/widgets/result_card.dart';
 import 'package:mindlog/presentation/widgets/sos_card.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
 
 import '../../fixtures/diary_fixtures.dart';
 import '../../fixtures/statistics_fixtures.dart';
@@ -276,6 +279,73 @@ void main() {
       await tester.pump();
 
       expect(find.byType(ImagePickerSection), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('SafetyBlocked 발생 시 팔로업 알림이 예약된다 (static override 패턴)', (tester) async {
+      // REQ-070: 위기 감지 → 24시간 후 팔로업 알림 예약
+      // _FirebaseFreeNotifier는 _scheduleSafetyFollowup()을 건너뛰므로
+      // 실제 DiaryAnalysisNotifier를 사용하여 전체 경로 검증
+      _setLargeView(tester);
+      addTearDown(() => _resetView(tester));
+
+      // SharedPreferences mock (SafetyFollowupService.scheduleFollowup 내부 사용)
+      SharedPreferences.setMockInitialValues({});
+      // timezone 초기화 (TZDateTime.from 변환 필요)
+      tz_data.initializeTimeZones();
+
+      // scheduleOneTimeOverride: NotificationService 미초기화 LateInitializationError 방지
+      bool followupScheduled = false;
+      SafetyFollowupService.scheduleOneTimeOverride = ({
+        required int id,
+        required String title,
+        required String body,
+        required dynamic scheduledDate,
+        String? payload,
+        String channel = '',
+      }) async {
+        followupScheduled = true;
+        return true;
+      };
+      addTearDown(() => SafetyFollowupService.resetForTesting());
+
+      final mock = MockAnalyzeDiaryUseCase()
+        ..shouldThrow = true
+        ..failureToThrow = const SafetyBlockedFailure();
+
+      // 실제 DiaryAnalysisNotifier 사용 (analyzeDiaryUseCaseProvider만 오버라이드)
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            analyzeDiaryUseCaseProvider.overrideWithValue(mock),
+            diaryRepositoryProvider.overrideWithValue(MockDiaryRepository()),
+            statisticsProvider.overrideWith((ref) => StatisticsFixtures.weekly()),
+          ],
+          child: MaterialApp(
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            home: const DiaryScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.enterText(
+        find.byType(TextFormField),
+        '너무 힘들어서 모든 것을 포기하고 싶다는 생각이 든다.',
+      );
+      await tester.pump();
+
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump(); // Loading
+      await tester.pump(); // SafetyBlocked + unawaited(_scheduleSafetyFollowup()) 시작
+      await tester.pump(const Duration(milliseconds: 300)); // async 팔로업 완료 대기
+
+      expect(
+        followupScheduled,
+        isTrue,
+        reason: 'SafetyBlocked 감지 시 팔로업 알림이 예약되어야 한다',
+      );
       expect(tester.takeException(), isNull);
     });
 

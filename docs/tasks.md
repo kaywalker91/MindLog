@@ -16,26 +16,26 @@ _현재 없음_
 
 ## 백로그 (Pending)
 
-### 버그 수정
-
-- [ ] **TASK-001** (REQ-070): `cancelFollowup` 테스트 `LateInitializationError` 수정
-  - 파일: `test/presentation/screens/diary_creation_flow_test.dart`
-  - 원인: Static service 모킹 패턴 미적용 (`@visibleForTesting static Function? override`)
-  - 참조: `docs/plan.md` 섹션 7 "Static Service 모킹" 패턴
-
-### 품질 개선
-
-- [ ] **TASK-002** (REQ-020~023): StatisticsScreen 위젯 테스트 추가
-  - 현재 커버리지: 추정 < 70%
-  - 목표: 주요 차트 렌더링 + 기간 선택 인터랙션 테스트
-
-- [ ] **TASK-003** (REQ-064): EmotionAware UseCase 통합 테스트
-  - 현재: 단위 테스트 완료 (`get_next_self_encouragement_message_usecase_test.dart`)
-  - 추가: 알림 스케줄러와 연계된 end-to-end 테스트
+_현재 없음_
 
 ---
 
 ## 완료 (Completed)
+
+- [x] **TASK-003** (REQ-064): EmotionAware UseCase 통합 테스트
+  - 완료: v1.4.46 (2026-02-24)
+  - 파일: `test/core/services/notification_scheduler_impl_test.dart` (9 tests)
+  - 검증: `NotificationSchedulerImpl.apply()` → `applySettings()` 위임, recentEmotionScore 전파, 감정 근접 선택, sequential wrap-around
+
+- [x] **TASK-002** (REQ-020~023): StatisticsScreen 위젯 테스트 추가
+  - 완료: v1.4.46 (2026-02-24)
+  - 파일: `test/presentation/screens/statistics_screen_test.dart` (6 tests)
+  - 검증: 로딩/데이터/에러/재시도/기간탭/빈데이터 상태
+
+- [x] **TASK-001** (REQ-070): `cancelFollowup` 테스트 `LateInitializationError` 수정
+  - 완료: v1.4.46 (2026-02-24)
+  - 파일: `test/presentation/screens/diary_creation_flow_test.dart` (9 tests)
+  - 방법: static override 패턴으로 `SafetyFollowupService.scheduleOneTimeOverride` 모킹
 
 - [x] **TASK-P01** (REQ-064): `GetNextSelfEncouragementMessageUseCase` EmotionAware 구현
   - 완료: v1.4.46 (2026-02-24)
