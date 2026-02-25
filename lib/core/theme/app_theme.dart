@@ -24,6 +24,8 @@ class AppTheme {
   static const Color darkSurface = Color(0xFF1E1E1E);
   static const Color darkCard = Color(0xFF2C2C2C);
   static const Color onDarkSurface = Color(0xFFFFFFFF);
+  static const Color darkTextColor = Color(0xFFE8E8F0);
+  static const Color darkSecondaryTextColor = Color(0xFFAAAAAA);
 
   // Cheer Me 모달 기본 팔레트 (1차 범위: 모달 한정)
   static const HealingPaletteMode defaultHealingPaletteMode =
@@ -134,6 +136,25 @@ class AppTheme {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
+      ),
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(
+          color: darkTextColor,
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+        ),
+        headlineMedium: TextStyle(
+          color: darkTextColor,
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+        ),
+        titleMedium: TextStyle(
+          color: darkTextColor,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+        bodyMedium: TextStyle(color: darkTextColor, fontSize: 14),
+        bodySmall: TextStyle(color: darkSecondaryTextColor, fontSize: 12),
       ),
       extensions: const <ThemeExtension<dynamic>>[StatisticsThemeTokens.dark],
     );
