@@ -56,7 +56,8 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
           onRefresh: () async {
             ref.invalidate(statisticsProvider);
           },
-          color: statsTokens.primaryStrong,
+          color: Theme.of(context).colorScheme.primary,
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.only(

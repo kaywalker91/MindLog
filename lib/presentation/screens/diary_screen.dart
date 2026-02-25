@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -154,6 +155,7 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
       }
 
       if (previous is DiaryAnalysisLoading && next is DiaryAnalysisSuccess) {
+        HapticFeedback.lightImpact();
         _showNetworkFeedback(
           statusType: NetworkStatusType.retrySuccess,
           message: '성공적으로 분석이 완료되었습니다!',
@@ -315,6 +317,24 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
             ),
             validator: Validators.validateDiaryContent,
             onChanged: (_) => setState(() {}),
+            buildCounter: (context, {required currentLength, required isFocused, maxLength}) {
+              final len = currentLength;
+              final Color color;
+              if (len >= AppConstants.diaryMaxLength) {
+                color = AppColors.error;
+              } else if (len >= 4500) {
+                color = AppColors.warning;
+              } else {
+                color = Theme.of(context).colorScheme.onSurfaceVariant;
+              }
+              final String formatted = len >= 1000
+                  ? '${len ~/ 1000},${(len % 1000).toString().padLeft(3, '0')}'
+                  : '$len';
+              return Text(
+                '$formatted/5,000',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
+              );
+            },
           ),
           const SizedBox(height: 16),
 
