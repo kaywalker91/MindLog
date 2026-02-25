@@ -51,13 +51,13 @@ class _DiagnosticVisualTokens {
 
     return _DiagnosticVisualTokens(
       headerForeground: colorScheme.onSurfaceVariant,
-      tileBackground: colorScheme.surfaceContainerHighest.withAlpha(
-        isDark ? 170 : 108,
+      tileBackground: colorScheme.surfaceContainerHighest.withValues(
+        alpha: isDark ? 0.67 : 0.42,
       ),
       tileTitleForeground: colorScheme.onSurface,
-      neutralIconForeground: colorScheme.onSurfaceVariant.withAlpha(220),
-      neutralIconBackground: colorScheme.surfaceContainer.withAlpha(
-        isDark ? 220 : 255,
+      neutralIconForeground: colorScheme.onSurfaceVariant.withValues(alpha: 0.86),
+      neutralIconBackground: colorScheme.surfaceContainer.withValues(
+        alpha: isDark ? 0.86 : 1.0,
       ),
       summaryPositiveBackground: isDark
           ? const Color(0xFF22362A)
@@ -83,15 +83,15 @@ class _DiagnosticVisualTokens {
       chipWarningForeground: isDark
           ? const Color(0xFFFFCC80)
           : const Color(0xFF8A4E00),
-      chipNeutralBackground: colorScheme.surfaceContainerHigh.withAlpha(
-        isDark ? 210 : 255,
+      chipNeutralBackground: colorScheme.surfaceContainerHigh.withValues(
+        alpha: isDark ? 0.82 : 1.0,
       ),
-      chipNeutralForeground: colorScheme.onSurfaceVariant.withAlpha(230),
-      actionBackground: colorScheme.surfaceContainerHigh.withAlpha(
-        isDark ? 180 : 150,
+      chipNeutralForeground: colorScheme.onSurfaceVariant.withValues(alpha: 0.90),
+      actionBackground: colorScheme.surfaceContainerHigh.withValues(
+        alpha: isDark ? 0.71 : 0.59,
       ),
       actionForeground: colorScheme.onSurfaceVariant,
-      actionBorder: colorScheme.outline.withAlpha(isDark ? 140 : 120),
+      actionBorder: colorScheme.outline.withValues(alpha: isDark ? 0.55 : 0.47),
     );
   }
 

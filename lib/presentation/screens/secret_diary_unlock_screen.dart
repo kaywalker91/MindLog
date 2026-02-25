@@ -147,14 +147,17 @@ class _SecretDiaryUnlockScreenState
             .clamp(0.0, double.infinity)
             .toDouble();
 
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFFF8FBFF), Color(0xFFF2F8FD)],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
+          decoration: isDark
+              ? null
+              : const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFF8FBFF), Color(0xFFF2F8FD)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
           child: SingleChildScrollView(
             padding: EdgeInsets.fromLTRB(
               horizontalPadding,
