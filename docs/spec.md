@@ -241,6 +241,49 @@ AI 응답 JSON:
 
 ---
 
+## REQ-090 ~ REQ-099: UI/UX 품질 향상
+
+> **추가일**: 2026-02-24 | **우선순위**: High
+> 기능 요구사항이 아닌 품질/경험 요구사항. 기존 REQ와 독립적으로 적용.
+
+### REQ-090: 다크 테마 완성도
+- `darkTheme`에 `textTheme` 완전 정의 (현재 누락 → Material3 기본값 폴백 버그)
+- `AppTextStyles`의 하드코딩된 `AppColors.textPrimary` → `Theme.of(context).colorScheme` 기반으로 교체
+- 다크 모드에서 텍스트 contrast ratio WCAG AA 기준 충족 (≥4.5:1 normal, ≥3:1 large)
+
+### REQ-091: 컬러 시스템 일관성
+- 현재 4개 분리된 컬러 팔레트 (AppColors, StatisticsThemeTokens, HealingColorSchemes, CheerMeSectionPalette) 관계 문서화
+- `StatisticsThemeTokens`의 `ThemeExtension` 패턴을 참조 모델로 확정
+- 하드코딩된 `Colors.white/black/grey` → theme-aware 값으로 마이그레이션
+- 마이그레이션 기준: `.claude/rules/patterns-theme-colors.md` 준수
+
+### REQ-092: 반응형 레이아웃 안정성
+- 모든 화면에서 텍스트 오버플로우 방지 (overflow: ellipsis 또는 flexible 적용)
+- 다이얼로그: 소형 화면(360dp 미만) 대응 (maxWidth/Height 제한)
+- Accent Stripe: `Container(Border)` 패턴 사용 (IntrinsicHeight 금지 — RenderFlex overflow 원인)
+
+### REQ-093: 접근성 기준
+- 핵심 인터랙션 위젯에 `Semantics` 레이블 추가 (FAB, icon 버튼, 감정 점수 표시)
+- 최소 터치 타겟: 48×48dp (Material 가이드라인)
+- 화면 리더 지원: `excludeFromSemantics` 장식용 요소에 적용
+
+### REQ-094: 마이크로인터랙션 일관성
+- 애니메이션 타이밍 상수화: `AppDurations` 클래스 도입 (fast: 150ms, normal: 250ms, slow: 400ms)
+- 햅틱 피드백: 주요 액션 (저장, 삭제, PIN 입력) 에 일관된 햅틱 적용
+- 로딩 상태: 스켈레톤 UI 또는 shimmer 효과 (현재 `CircularProgressIndicator` 단순 사용)
+
+### REQ-095: DiaryListScreen UX
+- 빈 상태(empty state) UI: 일기 0개일 때 안내 메시지 + 일러스트 (현재 없음)
+- 일기 카드: 감정 점수 컬러 배지 시각적 강화
+- Pull-to-refresh 인디케이터 색상 테마 일관성
+
+### REQ-096: DiaryScreen (작성) UX
+- 글자 수 카운터 표시 (현재 최대 5,000자이나 카운터 없음)
+- 키보드 열릴 때 제출 버튼 가시성 보장 (Padding + MediaQuery.viewInsets)
+- 분석 진행 중 로딩 상태 메시지 단계 표시 ("저장 중..." → "분석 중...")
+
+---
+
 ## 화면 목록 (14 Screens)
 
 | Screen | Route | 연관 REQ |

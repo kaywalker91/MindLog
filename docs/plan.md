@@ -221,7 +221,66 @@ execute(settings, currentEmotionScore):
 
 ---
 
-## 9. 향후 기술 결정 필요 사항
+## 9. UI/UX 향상 전략 (2026-02-24 추가)
+
+> **참조 REQ**: REQ-090 ~ REQ-096
+> **원칙**: 한 번에 1개 화면씩 점진적 개선 / 테스트 커버리지 유지 / Clean Architecture 미침범
+
+### 핵심 문제 진단
+
+| 문제 | 심각도 | 영향 범위 |
+|------|--------|---------|
+| `AppTextStyles` 하드코딩 색상 → 다크 모드 텍스트 불가시 | 🔴 Critical | 전체 화면 |
+| `darkTheme`에 `textTheme` 미정의 → Material3 기본값 폴백 | 🔴 Critical | 전체 화면 |
+| 4개 분리된 컬러 시스템 (AppColors, Stats, Healing, CheerMe) | 🟡 High | 유지보수성 |
+| 하드코딩 `Colors.white/black/grey` 잔존 | 🟡 High | 다크 모드 |
+| DiaryListScreen 빈 상태(empty state) 없음 | 🟡 High | 첫 사용자 UX |
+| 글자 수 카운터 없음 (DiaryScreen) | 🟢 Medium | 작성 UX |
+| 로딩 상태 단순 CircularProgressIndicator | 🟢 Medium | 분석 대기 UX |
+
+### 개선 전략 (4단계 Phase)
+
+#### Phase 1: 테마 시스템 수복 (Foundation) — TASK-UI-001 ~ 003
+**목표**: 다크 모드 렌더링 버그 수정. 모든 후속 개선의 기반.
+
+- `darkTheme`에 완전한 `textTheme` 정의 추가
+- `AppTextStyles`를 `static TextStyle Function(BuildContext)` 팩토리 패턴으로 교체 OR
+  `ThemeData.textTheme`을 통해 접근하도록 가이드라인 업데이트
+- 참조 패턴: `StatisticsThemeTokens`의 `ThemeExtension` 방식 (이미 올바름)
+
+**결정**: `AppTextStyles`는 const 유지, `darkTheme`에 동등한 `textTheme` 정의.
+색상은 `colorScheme.onSurface` / `colorScheme.onSurfaceVariant`로 오버라이드.
+
+#### Phase 2: 하드코딩 색상 마이그레이션 (Consistency) — TASK-UI-004 ~ 005
+**목표**: `Colors.white/black/grey` → theme-aware 값으로 전환.
+
+- Grep으로 잔존 하드코딩 색상 목록 생성
+- `.claude/rules/patterns-theme-colors.md` 매핑 테이블 기준 일괄 변환
+- 우선순위: 다이얼로그 → 카드 → 배경 순
+
+#### Phase 3: 핵심 화면 UX 개선 (Impact) — TASK-UI-006 ~ 009
+**목표**: 사용자가 체감하는 주요 개선.
+
+1. **DiaryListScreen**: 빈 상태 UI 구현 (Semantics 포함)
+2. **DiaryScreen**: 글자 수 카운터 + 키보드 인셋 처리 개선
+3. **DiaryScreen**: 분석 진행 단계 메시지 ("저장 중..." → "AI 분석 중..." → "완료")
+4. **공통**: 접근성 Semantics 레이블 핵심 위젯에 추가
+
+#### Phase 4: 마이크로인터랙션 (Polish) — TASK-UI-010 ~ 012
+**목표**: 앱의 완성도/고급감 향상.
+
+- `AppDurations` 상수 클래스 도입 (fast/normal/slow)
+- 햅틱 피드백 일관화 (저장, 삭제, PIN 입력)
+- Pull-to-refresh 색상 테마 일관성
+
+### 테스트 전략
+- Phase 1~2: `flutter analyze` + 다크 모드 스크린샷 비교 (Golden test)
+- Phase 3: 위젯 테스트 — empty state, 글자수 카운터, 로딩 단계
+- Phase 4: 단위 테스트 없음 (시각/햅틱은 통합 확인)
+
+---
+
+## 10. 향후 기술 결정 필요 사항
 
 | 결정 사항 | 현재 상태 | 검토 시점 |
 |----------|----------|---------|
