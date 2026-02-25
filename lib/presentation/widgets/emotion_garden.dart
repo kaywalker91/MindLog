@@ -30,14 +30,19 @@ class EmotionGarden extends StatelessWidget {
     final normalizedActivityMap = _normalizeActivityMap();
 
     // RepaintBoundary: 168개 셀(24주×7일) 그리드의 불필요한 repaint 방지
-    return RepaintBoundary(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildGarden(context, startDate, now, normalizedActivityMap),
-          const SizedBox(height: 12),
-          _buildLegend(context),
-        ],
+    return Semantics(
+      label: '마음의 정원, 최근 $weeksToShow주 감정 기록 캘린더',
+      child: ExcludeSemantics(
+        child: RepaintBoundary(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildGarden(context, startDate, now, normalizedActivityMap),
+              const SizedBox(height: 12),
+              _buildLegend(context),
+            ],
+          ),
+        ),
       ),
     );
   }

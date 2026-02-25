@@ -244,33 +244,37 @@ class _PinKeypadWidgetState extends State<PinKeypadWidget> {
   }) {
     final borderRadius = BorderRadius.circular(keyHeight / 2);
 
-    return SizedBox(
-      width: keyWidth,
-      height: keyHeight,
-      child: Material(
-        color: Color.alphaBlend(
-          AppColors.statsPrimary.withValues(alpha: 0.10),
-          colorScheme.surface,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: borderRadius,
-          side: const BorderSide(color: AppColors.statsCardBorder),
-        ),
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            _onKeyTap(digit);
-          },
-          borderRadius: borderRadius,
-          splashColor: AppColors.statsPrimary.withValues(alpha: 0.24),
-          highlightColor: AppColors.statsPrimary.withValues(alpha: 0.15),
-          child: Center(
-            child: Text(
-              digit,
-              style: AppTextStyles.title.copyWith(
-                fontSize: (keyHeight * 0.38).clamp(20.0, 26.0),
-                fontWeight: FontWeight.w500,
-                color: AppColors.statsTextPrimary,
+    return Semantics(
+      label: digit,
+      button: true,
+      child: SizedBox(
+        width: keyWidth,
+        height: keyHeight,
+        child: Material(
+          color: Color.alphaBlend(
+            AppColors.statsPrimary.withValues(alpha: 0.10),
+            colorScheme.surface,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: borderRadius,
+            side: const BorderSide(color: AppColors.statsCardBorder),
+          ),
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              _onKeyTap(digit);
+            },
+            borderRadius: borderRadius,
+            splashColor: AppColors.statsPrimary.withValues(alpha: 0.24),
+            highlightColor: AppColors.statsPrimary.withValues(alpha: 0.15),
+            child: Center(
+              child: Text(
+                digit,
+                style: AppTextStyles.title.copyWith(
+                  fontSize: (keyHeight * 0.38).clamp(20.0, 26.0),
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.statsTextPrimary,
+                ),
               ),
             ),
           ),
@@ -286,31 +290,35 @@ class _PinKeypadWidgetState extends State<PinKeypadWidget> {
   }) {
     final borderRadius = BorderRadius.circular(keyHeight / 2);
 
-    return SizedBox(
-      width: keyWidth,
-      height: keyHeight,
-      child: Material(
-        color: Color.alphaBlend(
-          AppColors.statsPrimary.withValues(alpha: 0.10),
-          colorScheme.surface,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: borderRadius,
-          side: const BorderSide(color: AppColors.statsCardBorder),
-        ),
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            _onBackspace();
-          },
-          borderRadius: borderRadius,
-          splashColor: AppColors.statsPrimary.withValues(alpha: 0.24),
-          highlightColor: AppColors.statsPrimary.withValues(alpha: 0.15),
-          child: Center(
-            child: Icon(
-              Icons.backspace_outlined,
-              color: AppColors.statsPrimaryDark,
-              size: (keyHeight * 0.34).clamp(20.0, 24.0),
+    return Semantics(
+      label: '지우기',
+      button: true,
+      child: SizedBox(
+        width: keyWidth,
+        height: keyHeight,
+        child: Material(
+          color: Color.alphaBlend(
+            AppColors.statsPrimary.withValues(alpha: 0.10),
+            colorScheme.surface,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: borderRadius,
+            side: const BorderSide(color: AppColors.statsCardBorder),
+          ),
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              _onBackspace();
+            },
+            borderRadius: borderRadius,
+            splashColor: AppColors.statsPrimary.withValues(alpha: 0.24),
+            highlightColor: AppColors.statsPrimary.withValues(alpha: 0.15),
+            child: Center(
+              child: Icon(
+                Icons.backspace_outlined,
+                color: AppColors.statsPrimaryDark,
+                size: (keyHeight * 0.34).clamp(20.0, 24.0),
+              ),
             ),
           ),
         ),

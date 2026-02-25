@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/cheer_me_section_palette.dart';
@@ -52,7 +53,9 @@ class MessageInputDialog extends StatefulWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
+                  color: Theme.of(context).colorScheme.shadow.withValues(
+                    alpha: 0.15,
+                  ),
                   blurRadius: 20,
                   offset: const Offset(0, -4),
                 ),
@@ -380,7 +383,7 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     style: OutlinedButton.styleFrom(
                       backgroundColor: colorScheme.surface,
                       foregroundColor: colorScheme.primary,
@@ -398,7 +401,7 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
                   child: FilledButton(
                     onPressed: _controller.text.trim().isEmpty
                         ? null
-                        : () => Navigator.pop(context, _controller.text.trim()),
+                        : () => context.pop(_controller.text.trim()),
                     style: FilledButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,

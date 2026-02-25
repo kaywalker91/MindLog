@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_durations.dart';
 import 'package:intl/intl.dart';
 import 'emotion_calendar/emotion_calendar.dart';
 
@@ -103,14 +104,14 @@ class _EmotionCalendarState extends State<EmotionCalendar> {
 
   void _prevMonth() {
     _pageController.previousPage(
-      duration: const Duration(milliseconds: 300),
+      duration: AppDurations.normal,
       curve: Curves.easeInOut,
     );
   }
 
   void _nextMonth() {
     _pageController.nextPage(
-      duration: const Duration(milliseconds: 300),
+      duration: AppDurations.normal,
       curve: Curves.easeInOut,
     );
   }
@@ -125,7 +126,7 @@ class _EmotionCalendarState extends State<EmotionCalendar> {
 
     _pageController.animateToPage(
       targetPage,
-      duration: const Duration(milliseconds: 300),
+      duration: AppDurations.normal,
       curve: Curves.easeInOut,
     );
   }

@@ -24,7 +24,7 @@ class _WriteFabState extends State<WriteFab> {
       message: '오늘 기록하기',
       child: Semantics(
         button: true,
-        label: '오늘 기록하기',
+        label: '새 일기 작성',
         child: GestureDetector(
           onTapDown: (_) {
             HapticFeedback.mediumImpact();

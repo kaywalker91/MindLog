@@ -66,6 +66,8 @@ class UpdateUpToDateDialog extends StatelessWidget {
   }
 
   Widget _buildHeader(ThemeData theme) {
+    final onGradient = theme.colorScheme.onPrimary;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: const BoxDecoration(
@@ -81,12 +83,12 @@ class UpdateUpToDateDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: onGradient.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.check_circle_rounded,
-              color: Colors.white,
+              color: onGradient,
               size: 22,
             ),
           ),
@@ -98,7 +100,7 @@ class UpdateUpToDateDialog extends StatelessWidget {
                 Text(
                   '업데이트 확인',
                   style: theme.textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
+                    color: onGradient,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -106,7 +108,7 @@ class UpdateUpToDateDialog extends StatelessWidget {
                 Text(
                   '최신 기능을 이용 중이에요.',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                    color: onGradient.withValues(alpha: 0.9),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,

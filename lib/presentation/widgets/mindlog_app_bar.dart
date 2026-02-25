@@ -36,7 +36,7 @@ class MindlogAppBar extends StatelessWidget implements PreferredSizeWidget {
     final titleColor = isStatistics
         ? (colorScheme.brightness == Brightness.dark
               ? statsTokens.textPrimary
-              : Colors.white)
+              : colorScheme.onPrimary)
         : colorScheme.onPrimary;
     final gradientColors = isStatistics
         ? [statsTokens.appBarGradientStart, statsTokens.appBarGradientEnd]

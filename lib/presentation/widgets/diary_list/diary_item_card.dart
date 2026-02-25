@@ -26,46 +26,56 @@ class DiaryItemCard extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final cardShadowAlpha = isDark ? 0.12 : 0.05;
 
-    return TappableCard(
-      onTap: () => context.goDiaryDetail(diary),
-      onLongPress: () => _showLongPressMenu(context, ref),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? colorScheme.surfaceContainerLow : colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: isDark
-              ? Border.all(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.60),
-                  width: 1,
-                )
-              : const Border.fromBorderSide(BorderSide.none),
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withValues(alpha: cardShadowAlpha),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  _buildEmotionIcon(),
-                  const SizedBox(width: 16),
-                  _buildContent(context),
-                  const SizedBox(width: 32),
-                  Icon(
-                    Icons.chevron_right,
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.78),
-                  ),
-                ],
+    final dateStr = _dateFormatter.format(diary.createdAt);
+    final score = diary.analysisResult?.sentimentScore;
+    final semanticsLabel = score != null
+        ? '$dateStr 일기, 감정 점수 ${score.round()}점'
+        : '$dateStr 일기';
+
+    return Semantics(
+      label: semanticsLabel,
+      button: true,
+      child: TappableCard(
+        onTap: () => context.goDiaryDetail(diary),
+        onLongPress: () => _showLongPressMenu(context, ref),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? colorScheme.surfaceContainerLow : colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: isDark
+                ? Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.60),
+                    width: 1,
+                  )
+                : const Border.fromBorderSide(BorderSide.none),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: cardShadowAlpha),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-            ),
-            Positioned(top: 4, right: 4, child: _buildPinButton(context, ref)),
-          ],
+            ],
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    _buildEmotionIcon(),
+                    const SizedBox(width: 16),
+                    _buildContent(context),
+                    const SizedBox(width: 32),
+                    Icon(
+                      Icons.chevron_right,
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.78),
+                    ),
+                  ],
+                ),
+              ),
+              Positioned(top: 4, right: 4, child: _buildPinButton(context, ref)),
+            ],
+          ),
         ),
       ),
     );

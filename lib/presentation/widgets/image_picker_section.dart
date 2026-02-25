@@ -220,13 +220,13 @@ class _ImagePreviewTile extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
+                      color: colorScheme.shadow.withValues(alpha: 0.2),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: const Icon(Icons.close, size: 14, color: Colors.white),
+                child: Icon(Icons.close, size: 14, color: colorScheme.onError),
               ),
             ),
           ),
@@ -304,7 +304,7 @@ class _AddImageButton extends StatelessWidget {
                 ),
                 title: const Text('갤러리에서 선택'),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.of(context).pop();
                   onGalleryTap();
                 },
               ),
@@ -315,7 +315,7 @@ class _AddImageButton extends StatelessWidget {
                 ),
                 title: const Text('카메라로 촬영'),
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.of(context).pop();
                   onCameraTap();
                 },
               ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_durations.dart';
 import '../../../core/theme/app_text_styles.dart';
 
 /// 공감 메시지 위젯 (인용구 스타일)
@@ -40,7 +41,7 @@ class _EmpathyMessageState extends State<EmpathyMessage> {
     return Stack(
       children: [
         AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+          duration: AppDurations.normal,
           curve: Curves.easeInOut,
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(24, 36, 24, 20),
@@ -88,7 +89,7 @@ class _EmpathyMessageState extends State<EmpathyMessage> {
                     crossFadeState: showExpandedText
                         ? CrossFadeState.showSecond
                         : CrossFadeState.showFirst,
-                    duration: const Duration(milliseconds: 300),
+                    duration: AppDurations.normal,
                     sizeCurve: Curves.easeInOut,
                   ),
                   if (showToggle) ...[
@@ -116,7 +117,7 @@ class _EmpathyMessageState extends State<EmpathyMessage> {
                                 const SizedBox(width: 4),
                                 AnimatedRotation(
                                   turns: showExpandedText ? 0.5 : 0,
-                                  duration: const Duration(milliseconds: 300),
+                                  duration: AppDurations.normal,
                                   child: const Icon(
                                     Icons.keyboard_arrow_down_rounded,
                                     size: 18,
