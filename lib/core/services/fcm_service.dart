@@ -186,6 +186,7 @@ class FCMService {
       }
       final emotionMessage = NotificationMessages.getMindcareMessageByEmotion(
         avgScore,
+        TimeSlot.evening, // 서버는 21:00 KST 고정 발송 (비즈니스 규칙)
       );
       title = emotionMessage.title;
       body = emotionMessage.body;
@@ -253,11 +254,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     );
   }
 
-  // notification 필드 있음 → OS가 자동 표시 → 중복 방지
+  // notification 필드 있음 → data-only payload 기대값 위반 → 안전 가드
   if (message.notification != null) {
     if (kDebugMode) {
       debugPrint(
-        '[FCM] Background: notification field present, OS displays it. Skipping local notification.',
+        '[FCM] Background: UNEXPECTED notification field — data-only payload expected. '
+        'Skipping local notification to prevent OS duplicate display.',
       );
     }
     return;

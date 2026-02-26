@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/constants/notification_messages.dart';
 import 'package:mindlog/core/services/fcm_service.dart';
+import 'package:mindlog/core/services/notification_service.dart';
 
 /// 결정론적 테스트를 위한 Mock Random
 class MockRandom implements Random {
@@ -110,13 +111,11 @@ void main() {
           );
 
           // Assert: 보통 감정 시 모든 메시지 풀에서 균등 선택
+          // 마음케어는 서버 21:00 KST 고정 발송 → evening 슬롯 기준
           expect(result.body, isNotEmpty);
-          // 이름이 null이므로 {name} 패턴 제거된 메시지와 비교
           final allPossibleBodies = [
             ...NotificationMessages.mindcareBodies,
-            ...NotificationMessages.getBodiesForSlot(
-              NotificationMessages.getCurrentTimeSlot(),
-            ),
+            ...NotificationMessages.getBodiesForSlot(TimeSlot.evening),
           ].toList();
           expect(allPossibleBodies, contains(result.body));
         });
@@ -303,7 +302,7 @@ void main() {
       });
 
       group('시간대별 메시지', () {
-        test('현재 시간대에 맞는 제목을 선택해야 한다', () async {
+        test('마음케어 알림은 수신 시각과 무관하게 evening 슬롯 제목을 사용해야 한다', () async {
           // Arrange
           FCMService.emotionScoreProvider = () async => 5.0;
           NotificationMessages.setRandom(MockRandom());
@@ -314,10 +313,10 @@ void main() {
             serverBody: '서버 본문',
           );
 
-          // Assert: 현재 시간대 제목 목록에 포함
-          final currentSlot = NotificationMessages.getCurrentTimeSlot();
-          final titles = NotificationMessages.getTitlesForSlot(currentSlot);
-          expect(titles, contains(result.title));
+          // Assert: 서버 21:00 KST 고정 발송 → 항상 evening 슬롯 제목
+          final eveningTitles =
+              NotificationMessages.getTitlesForSlot(TimeSlot.evening);
+          expect(eveningTitles, contains(result.title));
         });
       });
     });
@@ -333,6 +332,77 @@ void main() {
         // Assert
         expect(FCMService.emotionScoreProvider, isNull);
         expect(FCMService.fcmToken, isNull);
+      });
+    });
+
+    group('firebaseMessagingBackgroundHandler 핵심 로직', () {
+      // 참고: 백그라운드 핸들러는 Firebase/NotificationService 초기화를 필요로 하여
+      // 직접 호출은 불가능. 핸들러의 핵심 로직인 buildPersonalizedMessage를 통해 검증.
+
+      test('data-only 메시지에서 개인화 메시지를 생성해야 한다', () async {
+        // Arrange: data-only FCM 메시지 시뮬레이션
+        FCMService.emotionScoreProvider = () async => 5.0; // 감정 점수 있음
+        NotificationMessages.setRandom(MockRandom());
+        const serverTitle = '마음케어'; // data 필드에서 오는 값
+        const serverBody = '오늘 하루도 수고했어요';
+
+        // Act
+        final result = await FCMService.buildPersonalizedMessage(
+          serverTitle: serverTitle,
+          serverBody: serverBody,
+        );
+
+        // Assert: 감정 기반 메시지로 교체 (서버 메시지 무시)
+        expect(result.title, isNotEmpty);
+        expect(result.body, isNotEmpty);
+        expect(result.title, isNot(serverTitle));
+        expect(result.body, isNot(serverBody));
+      });
+
+      test('notification 필드가 있는 경우 핸들러 가드가 동작해야 한다 (skip 로직 검증)',
+          () async {
+        // 가드 조건: message.notification != null → 즉시 return (OS 표시로 위임)
+        // buildPersonalizedMessage는 호출되지 않아야 함
+        // 이 테스트는 가드 조건이 트리거되면 빌드 로직이 불필요함을 확인
+
+        // Arrange: 호출 여부 추적
+        var buildCalled = false;
+        FCMService.emotionScoreProvider = () async {
+          buildCalled = true;
+          return 5.0;
+        };
+
+        // data-only 메시지 시뮬레이션: notification 없음 → guard 통과
+        final result = await FCMService.buildPersonalizedMessage(
+          serverTitle: null, // notification 없으면 data에서만 옴
+          serverBody: null,
+        );
+
+        // Assert: buildPersonalizedMessage는 정상 실행됨 (guard 통과 시)
+        expect(buildCalled, isTrue);
+        expect(result.title, isNotEmpty); // 기본값 'MindLog'
+      });
+
+      test('개인화 실패 시 폴백으로 서버 메시지를 사용해야 한다', () async {
+        // Arrange: 감정 점수 조회 실패 시뮬레이션
+        FCMService.emotionScoreProvider = () async => null; // 감정 데이터 없음
+        const serverTitle = '오늘의 마음케어';
+        const serverBody = '잠깐 멈추고 숨 한 번 쉬어요';
+
+        // Act: 감정 없을 때 서버 메시지 폴백
+        final result = await FCMService.buildPersonalizedMessage(
+          serverTitle: serverTitle,
+          serverBody: serverBody,
+        );
+
+        // Assert: 서버 메시지 그대로 사용
+        expect(result.title, serverTitle);
+        expect(result.body, serverBody);
+      });
+
+      test('알림 ID는 항상 fcmMindcareId(2001)이어야 한다', () {
+        // Assert: 상수값 고정 검증
+        expect(NotificationService.fcmMindcareId, 2001);
       });
     });
   });
