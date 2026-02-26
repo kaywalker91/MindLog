@@ -37,18 +37,12 @@ export async function sendToMindcareTopic(
     },
     apns: {
       headers: {
-        "apns-priority": "10",
-        "apns-push-type": "alert",
+        "apns-priority": "5",           // background priority
+        "apns-push-type": "background", // data-only: Flutter handler displays
       },
       payload: {
         aps: {
-          alert: {
-            title: payload.title,
-            body: payload.body,
-          },
-          sound: "default",
-          badge: 1,
-          contentAvailable: true,
+          contentAvailable: true, // 백그라운드 핸들러만 깨움, OS 자동 표시 없음
         },
       },
     },
@@ -101,18 +95,12 @@ export async function sendToTopic(
     },
     apns: {
       headers: {
-        "apns-priority": "10",
-        "apns-push-type": "alert",
+        "apns-priority": "5",           // background priority
+        "apns-push-type": "background", // data-only: Flutter handler displays
       },
       payload: {
         aps: {
-          alert: {
-            title: payload.title,
-            body: payload.body,
-          },
-          sound: "default",
-          badge: 1,
-          contentAvailable: true,
+          contentAvailable: true, // 백그라운드 핸들러만 깨움, OS 자동 표시 없음
         },
       },
     },

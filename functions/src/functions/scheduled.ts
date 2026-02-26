@@ -15,8 +15,9 @@ import * as logger from "firebase-functions/logger";
 import { SCHEDULE, TIMEZONE, RETRY } from "../config/constants";
 import { sendToMindcareTopic } from "../services/fcm.service";
 import {
-  checkIfSentToday,
-  markAsSent,
+  acquireSendLock,
+  completeSendLock,
+  releaseSendLockOnFailure,
   getTodayKey,
   getEveningMessage,
 } from "../services/firestore.service";
@@ -42,10 +43,10 @@ export const scheduledEveningNotification = onSchedule(
     const timeSlot = "evening";
     logger.info("[Scheduled] Starting evening mindcare notification", { today, timeSlot });
 
-    // Step 1: 중복 발송 방지 (Idempotency)
-    const alreadySent = await checkIfSentToday(timeSlot);
-    if (alreadySent) {
-      logger.info("[Scheduled] Already sent evening notification, skipping", { today });
+    // Step 1: 원자적 잠금 획득 (중복 발송 방지)
+    const lockAcquired = await acquireSendLock(timeSlot);
+    if (!lockAcquired) {
+      logger.info("[Scheduled] Already sent/locked, skipping", { today });
       return;
     }
 
@@ -65,13 +66,14 @@ export const scheduledEveningNotification = onSchedule(
 
     // Step 4: 결과 처리
     if (result.success && result.messageId) {
-      await markAsSent(result.messageId, message, timeSlot);
+      await completeSendLock(result.messageId, message, timeSlot);
       logger.info("[Scheduled] Successfully sent evening notification", {
         today,
         messageId: result.messageId,
         title: message.title,
       });
     } else {
+      await releaseSendLockOnFailure(timeSlot); // 잠금 해제 → 재시도 허용
       logger.error("[Scheduled] Failed to send evening notification", {
         today,
         error: result.error,

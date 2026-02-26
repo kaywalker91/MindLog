@@ -60,7 +60,7 @@ export async function checkIfSentToday(
     return doc.exists;
   } catch (error) {
     logger.warn("[Firestore] Failed to check sent log", { error, logKey });
-    return false; // 확인 실패 시 발송 시도
+    throw error; // fail-safe: Firestore 읽기 실패 시 발송하지 않음
   }
 }
 
@@ -95,6 +95,99 @@ export async function markAsSent(
   } catch (error) {
     logger.error("[Firestore] Failed to mark as sent", { error, logKey });
     throw error;
+  }
+}
+
+/**
+ * 발송 잠금 획득 (원자적 create — 이미 존재하면 false 반환)
+ *
+ * @param timeSlot - 시간대 ("evening" | "manual")
+ * @returns true면 잠금 획득 성공 (발송 진행), false면 이미 발송됨 (skip)
+ */
+export async function acquireSendLock(
+  timeSlot: "evening" | "manual" = "evening"
+): Promise<boolean> {
+  const logKey = getSentLogKey(timeSlot);
+  try {
+    await db.collection(COLLECTIONS.SENT_LOG).doc(logKey).create({
+      status: "sending",
+      lockedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    logger.info("[Firestore] Send lock acquired", { logKey });
+    return true;
+  } catch (error: unknown) {
+    // Firestore ALREADY_EXISTS: gRPC code 6
+    const code = (error as { code?: number }).code;
+    const details = (error as { details?: string }).details ?? "";
+    if (code === 6 || details.includes("ALREADY_EXISTS")) {
+      // 이미 발송됨 또는 발송 중 → 상태 확인
+      try {
+        const doc = await db.collection(COLLECTIONS.SENT_LOG).doc(logKey).get();
+        const status = doc.data()?.status as string | undefined;
+        if (status === "failed") {
+          // 실패한 잠금 → 해제 후 재시도
+          await db.collection(COLLECTIONS.SENT_LOG).doc(logKey).delete();
+          logger.info("[Firestore] Released failed lock, retrying", { logKey });
+          return acquireSendLock(timeSlot);
+        }
+        // "sending" or "sent" → skip
+        logger.info("[Firestore] Already sent/locked, skipping", { logKey, status });
+        return false;
+      } catch (innerError) {
+        logger.warn("[Firestore] Could not read lock status, skipping", { innerError, logKey });
+        return false; // 보수적: 잠금 상태 불명 → skip
+      }
+    }
+    // 다른 Firestore 오류 → fail-safe: 상위로 전파
+    throw error;
+  }
+}
+
+/**
+ * 발송 잠금 완료 상태로 업데이트
+ *
+ * @param messageId - FCM 메시지 ID
+ * @param content - 발송된 메시지 내용
+ * @param timeSlot - 시간대
+ */
+export async function completeSendLock(
+  messageId: string,
+  content: { title: string; body: string },
+  timeSlot: "evening" | "manual" = "evening"
+): Promise<void> {
+  const logKey = getSentLogKey(timeSlot);
+  try {
+    await db.collection(COLLECTIONS.SENT_LOG).doc(logKey).update({
+      status: "sent",
+      messageId,
+      title: content.title,
+      body: content.body,
+      sentAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    await updateStats(getTodayKey());
+    logger.info("[Firestore] Send lock completed", { logKey, messageId });
+  } catch (error) {
+    // completeSendLock 실패 → 잠금은 "sending" 상태 유지 → 재시도 시 skip
+    logger.error("[Firestore] Failed to complete send lock (FCM already sent)", { error, logKey });
+    // throw하지 않음: FCM은 이미 발송됨
+  }
+}
+
+/**
+ * 발송 실패 시 잠금 해제 (재시도 허용)
+ *
+ * @param timeSlot - 시간대
+ */
+export async function releaseSendLockOnFailure(
+  timeSlot: "evening" | "manual" = "evening"
+): Promise<void> {
+  const logKey = getSentLogKey(timeSlot);
+  try {
+    await db.collection(COLLECTIONS.SENT_LOG).doc(logKey).update({ status: "failed" });
+    logger.info("[Firestore] Send lock released (failed)", { logKey });
+  } catch (e) {
+    logger.warn("[Firestore] Could not release send lock", { e, logKey });
+    // 무시: 다음 재시도에서 acquireSendLock이 failed 상태 정리
   }
 }
 
