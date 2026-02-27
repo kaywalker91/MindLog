@@ -215,7 +215,7 @@ void main() {
         );
         final expectedNeutralChipForeground = Theme.of(
           context,
-        ).colorScheme.onSurfaceVariant.withAlpha(230);
+        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.90);
         final timezoneText = tester.widget<Text>(find.text('Asia/Seoul'));
         expect(timezoneText.style?.color, expectedNeutralChipForeground);
       });
@@ -237,7 +237,7 @@ void main() {
         );
         final expectedNeutralIconColor = Theme.of(
           context,
-        ).colorScheme.onSurfaceVariant.withAlpha(220);
+        ).colorScheme.onSurfaceVariant.withValues(alpha: 0.86);
         expect(
           iconColorOf(tester, Icons.notifications_active_outlined),
           expectedNeutralIconColor,
