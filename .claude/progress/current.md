@@ -2,19 +2,24 @@
 
 ## 완료된 항목
 
-### CI/CD timezone 테스트 실패 수정 ✅ (2026-02-20)
-- `safety_followup_service_test.dart:220` — `expectedScheduledTime`을 `tz.TZDateTime.from(..., tz.local)`으로 수정
-- CI(UTC)에서 plain DateTime hour vs Seoul TZDateTime hour 불일치 해소
-- `TZ=UTC flutter test` 22/22 통과 확인
+### SDD 문서 통합 ✅ (2026-02-27)
+- MEMORY.md 슬림화: 95라인 → 82라인 (plan.md 중복 섹션 삭제, Memory Index 추가)
+- tasks.md: TASK-SD-001~006 (비밀일기) + TASK-A11Y-001~009 (접근성) 소급 등록
+- plan.md: Section 11 비밀일기 아키텍처 결정 추가
+- current.md: 2026-02-27 기준 동기화
 
-### Flutter DevTools 연동 코드 전체 삭제 ✅ (2026-02-20)
-- `tools/`, `scripts/perf.sh`, `.mcp.json` 전체 삭제
+### UI 개선 일괄 완료 ✅ (2026-02-24)
+- TASK-UI-001~012 전체 완료 (v1.4.47)
+- 다크 모드 textTheme, 하드코딩 색상 마이그레이션, 빈 상태 UI, 글자 수 카운터, 접근성 Semantics, 애니메이션 상수, 햅틱, pull-to-refresh
 
-## 후속 이슈 (GitHub Issue 등록 권장)
-- `cancelFollowup` 테스트: `NotificationService` 미초기화로 `LateInitializationError` 발생
-  - `cancelNotificationOverride` static override 패턴으로 해결 가능
-  - 우선순위: 낮음 (현재 22/22 통과, 기능 영향 없음)
+### 테스트 및 버그 수정 ✅ (2026-02-24)
+- TASK-001~003, TASK-P01~P04 완료 (v1.4.46)
+- EmotionAware UseCase, 중복 알림 방지, NotificationScheduler 리팩토링
 
-## 다음 작업 없음
+## 다음 작업 후보
 
-## 마지막 업데이트: 2026-02-20
+- **Accessibility Sprint 1** (TASK-A11Y-001~005, REQ-093) — 2~3시간 예상
+- **Accessibility Sprint 2** (TASK-A11Y-006~009, REQ-093) — 1일 예상
+- Sprint 상세: `memory/a11y-backlog.md`
+
+## 마지막 업데이트: 2026-02-27

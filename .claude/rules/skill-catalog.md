@@ -66,5 +66,10 @@ Skills in `.claude/skills/`. Read skill file on invocation. Workflows: `skill-wo
 | `/mock [RepoName]` | mock-gen.md |
 | `/pre-commit` | pre-commit-setup.md |
 | `/release-notes` | release-notes.md |
+| `/release-unified [type]` | release-unified.md |
 | `/test-consolidate` | test-agent-consolidate.md |
 | `/usecase [action_entity]` | usecase-gen.md |
+| `/notification-audit [path]` | notification-audit.md |
+| `/l10n-manager [action]` | l10n-manager.md |
+| `/a11y-audit [path]` | a11y-audit.md |
+| `/new-skill <name>` | new-skill.md |
