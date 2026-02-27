@@ -2,7 +2,7 @@
 
 **생성일**: 2026-01-21
 **주제**: Groq Vision API 통합 학습 자료
-**총 4개 문서 / ~12,000 단어**
+**총 5개 문서 / ~13,500 단어**
 
 ---
 
@@ -15,7 +15,9 @@ docs/til/
 ├── IMPLEMENTATION_CHECKLIST.md         [구현 체크리스트 & 회고]
 ├── TECHNICAL_REFERENCE.md              [기술 레퍼런스]
 ├── ANDROID_PHOTO_PICKER_POLICY_TIL.md  [Google Play 정책 대응]
-└── CLEAN_ARCHITECTURE_VIOLATION_FIX_TIL.md [아키텍처 위반 수정]
+├── CLEAN_ARCHITECTURE_VIOLATION_FIX_TIL.md [아키텍처 위반 수정]
+├── FCM_IDEMPOTENCY_LOCK.md             [FCM 중복 발송 방지 Pre-lock 패턴]
+└── FIREBASE_CLI_EXTENSIONS_BUG.md      [Firebase CLI Extensions API 403 버그 패치]
 ```
 
 ---
@@ -270,6 +272,88 @@ DB 마이그레이션: 4장 (10분)
 
 ---
 
+## 7️⃣ FIREBASE_CLI_EXTENSIONS_BUG.md
+
+**길이**: ~600 단어
+**난이도**: 중급~고급
+**소요 시간**: 10분
+
+### 주요 내용
+
+**문제** (150 단어)
+- Firebase CLI 14.x (v13 포함): `--only functions`임에도 Extensions API 항상 호출
+- IAM 권한과 독립적인 서비스 레벨 제한으로 403 반환
+- `--except extensions`, `firebase.json` 설정 모두 우회 불가
+
+**시도한 방법들** (100 단어)
+- `--only functions`, `--except extensions`, `"extensions": {}` 모두 실패
+
+**작동하는 해결책** (200 단어)
+- `planner.js`의 `haveDynamic()` + `have()` 함수를 `return []`로 패치
+- 패치 위치: `/opt/homebrew/lib/node_modules/firebase-tools/lib/deploy/extensions/planner.js`
+- brew upgrade 시 원복 주의
+
+**재적용 체크리스트** (100 단어)
+- 업그레이드 후 재패치 절차 5단계
+
+**핵심 교훈** (50 단어)
+- IAM testIamPermissions 통과 != 실제 API 접근 가능
+- CLI --only 플래그가 내부 모든 호출을 차단하지 않음
+
+### 대상 독자
+- Firebase Functions 배포 시 403 에러를 마주친 개발자
+- `firebase-tools` CLI 내부 동작을 이해하려는 개발자
+
+### 빠른 네비게이션
+```
+문제 파악: 문제 섹션 (3분)
+해결 적용: 패치 내용 섹션 (5분)
+재적용: 체크리스트 섹션 (2분)
+```
+
+---
+
+## 6️⃣ FCM_IDEMPOTENCY_LOCK.md
+
+**길이**: ~1,500 단어
+**난이도**: 중급~고급
+**소요 시간**: 15-20분
+
+### 주요 내용
+
+**1장. 문제** (300 단어)
+- Firebase Functions retry + Firestore 부분 실패 → FCM 3회 중복 발송
+- check-send-mark 패턴의 구조적 한계
+
+**2장. 핵심 학습** (700 단어)
+- Firestore `create()` 원자적 잠금 (vs `set()`)
+- fail-open vs fail-safe 전략 비교
+- iOS APNS alert vs background payload 차이
+- lock-send-complete/release 패턴
+
+**3장. 코드 패턴** (300 단어)
+- Pre-lock 패턴 TypeScript 구현
+- iOS data-only payload 구조
+
+**4장. 교훈** (200 단어)
+- 분산 시스템 멱등성 설계 원칙
+- 알림 시스템의 fail-safe 원칙
+
+### 대상 독자
+- Firebase Functions + FCM 알림을 구현하는 개발자
+- 분산 시스템 멱등성 패턴을 학습하려는 개발자
+- iOS APNS payload 구조를 이해하려는 Flutter 개발자
+
+### 빠른 네비게이션
+```
+문제만 이해: 문제 섹션 (3분)
+핵심 패턴: 핵심 학습 1, 4 (10분)
+iOS 이해: 핵심 학습 3 (5분)
+코드 적용: 코드 패턴 섹션 (5분)
+```
+
+---
+
 ## 🎯 사용 시나리오별 가이드
 
 ### 시나리오 1: "Vision API가 뭔가요?"
@@ -327,18 +411,34 @@ DB 마이그레이션: 4장 (10분)
 **소요시간**: 10분
 **내용**: DIP 위반 문제점, Repository 확장 패턴, DI 변경 방법
 
+### 시나리오 12: "FCM 알림이 여러 번 발송돼요"
+**추천**: FCM_IDEMPOTENCY_LOCK.md
+**소요시간**: 15분
+**내용**: Firestore pre-lock 패턴, retry + 부분 실패 원인 분석
+
+### 시나리오 13: "iOS에서 data-only 푸시는 어떻게 보내나요?"
+**추천**: FCM_IDEMPOTENCY_LOCK.md 핵심 학습 3 + 코드 패턴
+**소요시간**: 10분
+**내용**: APNS alert vs background, content-available 설정
+
+### 시나리오 14: "firebase deploy --only functions가 403으로 실패해요"
+**추천**: FIREBASE_CLI_EXTENSIONS_BUG.md
+**소요시간**: 10분
+**내용**: Extensions planner.js 패치, IAM vs 서비스 레벨 제한 차이, 재적용 체크리스트
+
 ---
 
 ## 📊 문서 통계
 
 | 항목 | 값 |
 |------|-----|
-| 총 단어 수 | ~13,300 |
-| 총 섹션 | 35+ |
-| 코드 예제 | 55+ |
+| 총 단어 수 | ~15,400 |
+| 총 섹션 | 45+ |
+| 코드 예제 | 62+ |
 | 다이어그램 | 8+ |
-| 표 | 17+ |
+| 표 | 22+ |
 | 생성 시간 | 2026-01-21 |
+| 최종 업데이트 | 2026-02-27 |
 
 ---
 
@@ -372,6 +472,8 @@ DB 마이그레이션: 4장 (10분)
 | 1.0 | 2026-01-21 | 초기 생성 (3개 문서) |
 | 1.1 | 2026-01-21 | Android Photo Picker 정책 TIL 추가 (4개 문서) |
 | 1.2 | 2026-01-26 | Clean Architecture 위반 수정 TIL 추가 (5개 문서) |
+| 1.3 | 2026-02-27 | FCM 멱등성 Pre-lock 패턴 TIL 추가 (6개 문서) |
+| 1.4 | 2026-02-27 | Firebase CLI Extensions API 403 버그 패치 TIL 추가 (7개 문서) |
 
 ---
 
