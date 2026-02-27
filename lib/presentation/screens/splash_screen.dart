@@ -117,47 +117,50 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     constraints: BoxConstraints(minHeight: constraints.maxHeight),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // 로고 애니메이션 (breathing pulse, 회전 없음)
-                          const SplashAnimationWidget(),
-                          const SizedBox(height: 28),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // 로고 애니메이션 (breathing pulse, 회전 없음)
+                            const SplashAnimationWidget(),
+                            const SizedBox(height: 28),
 
-                          // 앱 이름
-                          Text(
-                                AppConstants.appName,
-                                style: Theme.of(context).textTheme.headlineLarge
-                                    ?.copyWith(
-                                      color: colorScheme.onSurface,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.2,
-                                    ),
-                                textAlign: TextAlign.center,
-                              )
-                              .animate(controller: _animationController)
-                              .fadeIn(delay: const Duration(milliseconds: 150))
-                              .slideY(begin: 0.2, end: 0),
+                            // 앱 이름
+                            Text(
+                                  AppConstants.appName,
+                                  style: Theme.of(context).textTheme.headlineLarge
+                                      ?.copyWith(
+                                        color: colorScheme.onSurface,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.2,
+                                      ),
+                                  textAlign: TextAlign.center,
+                                )
+                                .animate(controller: _animationController)
+                                .fadeIn(delay: const Duration(milliseconds: 150))
+                                .slideY(begin: 0.2, end: 0),
 
-                          // 부제목
-                          const SizedBox(height: 6),
-                          Text(
-                                '오늘의 마음을 부드럽게 기록해요',
-                                style: Theme.of(context).textTheme.bodyLarge
-                                    ?.copyWith(
-                                      color: AppColors.textSecondary,
-                                    ),
-                                textAlign: TextAlign.center,
-                              )
-                              .animate(controller: _animationController)
-                              .fadeIn(delay: const Duration(milliseconds: 250))
-                              .slideY(begin: 0.2, end: 0),
+                            // 부제목
+                            const SizedBox(height: 6),
+                            Text(
+                                  '오늘의 마음을 부드럽게 기록해요',
+                                  style: Theme.of(context).textTheme.bodyLarge
+                                      ?.copyWith(
+                                        color: AppColors.textSecondary,
+                                      ),
+                                  textAlign: TextAlign.center,
+                                )
+                                .animate(controller: _animationController)
+                                .fadeIn(delay: const Duration(milliseconds: 250))
+                                .slideY(begin: 0.2, end: 0),
 
-                          // 점 3개 wave 로딩 인디케이터
-                          const SizedBox(height: 24),
-                          _buildSplashDots(),
-                        ],
+                            // 점 3개 wave 로딩 인디케이터
+                            const SizedBox(height: 24),
+                            _buildSplashDots(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
