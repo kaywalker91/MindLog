@@ -44,11 +44,12 @@ class ErrorBoundary {
     required Widget Function() appBuilder,
     Future<void> Function()? onEnsureInitialized,
     void Function(Object error, StackTrace stack)? onError,
+    void Function()? bindingInitializer,
   }) {
     runZonedGuarded(
       () async {
-        // ✅ Zone 내부 진입 후 바인딩 초기화
-        WidgetsFlutterBinding.ensureInitialized();
+        // ✅ Zone 내부 진입 후 바인딩 초기화 (커스텀 binding 지원)
+        (bindingInitializer ?? WidgetsFlutterBinding.ensureInitialized)();
 
         // 추가 초기화 로직 실행
         if (onEnsureInitialized != null) {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -222,7 +223,11 @@ Future<void> _initializeApp() async {
 
 void main() {
   // 에러 바운더리로 앱 실행
+  // MarionetteBinding.ensureInitialized()는 runZonedGuarded 내부(bindingInitializer)에서
+  // 호출해야 zone mismatch를 방지할 수 있음
   ErrorBoundary.runAppWithErrorHandling(
+    bindingInitializer:
+        !kReleaseMode ? MarionetteBinding.ensureInitialized : null,
     onEnsureInitialized: () async {
       await Future.any([
         _initializeApp(),
