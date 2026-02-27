@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.49] - 2026-02-27
+
+### Added
+- **디자인 토큰 시스템 확립** (`lib/core/theme/app_colors.dart`): Primary 팔레트를 스카이 블루(#87CEEB)로 정의; 텍스트용 `primaryDark`(#4A90B8, WCAG AA 충족), theme 경유 `primaryColor`(#7EC8E3) 삼각형 토큰 체계 수립 — 분산된 하드코딩 색상을 단일 소스로 통합
+- **스플래시 화면 리디자인** (`lib/presentation/screens/splash_screen.dart`): `_entranceController`(800ms one-shot, easeOutBack) + `_loopController`(2500ms repeat/reverse) 이중 컨트롤러 아키텍처 도입; `Listenable.merge()` 기반 `AnimatedBuilder` 연결로 상태 관리 단순화; 디자인 토큰 마이그레이션 완료
+- **접근성 Sprint 1+2 완료** (`lib/presentation/`): 14개 화면 전체 `AccessibilityWrapper(screenTitle:)` 추가; `fullscreen_image_viewer`, `mindcare_welcome_dialog`, `activity_heatmap` 등 theme-aware 색상 매핑(`Colors.black87→scrim.withValues()`, `Colors.white→onSurface`) 완료
+
+### Fixed
+- **Stack 내부 Column 좌측 쏠림** (`lib/presentation/screens/splash_screen.dart`): `Stack` 내부에서 `loose constraints`가 전파되어 `Column`이 자식 너비로 수축하는 현상 수정; `SizedBox(width: double.infinity)` 추가로 부모 너비 명시적 상속 적용
+- **Zone mismatch 오류** (`lib/main.dart`): `runZonedGuarded` + `runApp` 병용 시 `WidgetsFlutterBinding` 등 binding 초기화가 outer zone에서 실행되어 발생하는 불일치 수정; `bindingInitializer`를 `runZonedGuarded` 콜백 내부로 이동
+
+### Testing
+- **스카이 블루 팔레트 테스트 기대값 갱신** (`test/core/theme/app_colors_test.dart`): Primary 토큰 변경에 따라 테스트 expected 값 일괄 업데이트; 색상 시스템 회귀 방지
+- **`withAlpha` → `withValues` 기대값 갱신** (`test/`): Flutter 3.x deprecation에 따른 diagnostic 위젯 테스트 기대값 업데이트
+
+### Chore
+- **세션 자동화 파이프라인 강화** (`.claude/`): session-wrap v2 (MEMORY.md / progress / TIL INDEX 자동화), task-done 스킬, model-strategy 규칙, MCP 설정, 메모리 파이프라인 P1+P2 개선
+
+---
+
 ## [1.4.48] - 2026-02-27
 
 ### Added

@@ -1,37 +1,33 @@
 {
-  "latestVersion": "1.4.48",
+  "latestVersion": "1.4.49",
   "minimumVersion": "1.4.0",
   "releaseNotes": {
     "ko": {
-      "title": "v1.4.48 업데이트 안내",
+      "title": "v1.4.49 업데이트 안내",
       "features": [
-        "일기를 처음 작성할 때 친절한 빈 상태 안내 화면이 표시돼요.",
-        "AI 분석 중 단계별 진행 상황을 확인할 수 있어요."
+        "스플래시 화면 애니메이션이 새롭게 디자인됐어요! 더 부드럽고 세련된 인트로를 경험해보세요.",
+        "접근성이 향상됐어요. 화면 읽기 기능을 사용하시는 분들도 더 편리하게 이용할 수 있어요."
       ],
       "improvements": [
-        "일기 입력 화면에 실시간 글자수 카운터가 추가됐어요.",
-        "다크모드에서 일부 배경이 하얗게 보이던 문제를 수정했어요.",
-        "앱 전체 색상이 테마에 맞게 통일되어 더 자연스러워졌어요."
+        "앱 전체 색상이 아름다운 스카이 블루 테마로 통일됐어요. 더 일관된 디자인을 경험해보세요."
       ],
       "bugFixes": [
-        "FCM 마음케어 알림이 간헐적으로 두 번 울리던 문제를 완전히 해결했어요.",
-        "라이트 테마에서만 표시되던 그라디언트 배경이 다크모드에서도 자연스럽게 보여요."
+        "일부 화면이 왼쪽으로 치우쳐 보이던 레이아웃 문제를 수정했어요.",
+        "앱 시작 시 간헐적으로 발생하던 오류를 수정했어요."
       ]
     },
     "en": {
-      "title": "v1.4.48 Update",
+      "title": "v1.4.49 Update",
       "features": [
-        "A helpful empty state screen now appears when you first start writing diaries.",
-        "See step-by-step progress during AI analysis."
+        "The splash screen has been redesigned with a smoother, more elegant animation.",
+        "Improved accessibility — screen reader users will find the app more comfortable to use."
       ],
       "improvements": [
-        "Real-time character counter added to the diary writing screen.",
-        "Fixed white backgrounds appearing in dark mode.",
-        "App-wide color consistency improved with proper theme tokens."
+        "App-wide colors unified to a beautiful sky blue theme for a more consistent look."
       ],
       "bugFixes": [
-        "Fixed FCM mindcare notifications occasionally being sent twice.",
-        "Light-only gradient backgrounds now display correctly in dark mode too."
+        "Fixed a layout issue where some screens appeared left-aligned.",
+        "Fixed an occasional crash on app startup."
       ]
     }
   },

@@ -93,32 +93,32 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.48까지의 개선 사항을 소개합니다. FCM 멱등성 Pre-lock 패턴, 화면 UX 완성도 개선, 다크모드 완전 지원, 비밀일기 보안 기능, CI 품질 강화 등 대규모 업데이트가 이루어졌습니다.</p>
+            <p class="section-subtitle">v1.4.49까지의 개선 사항을 소개합니다. 디자인 토큰 시스템 확립, 스플래시 애니메이션 리디자인, 접근성 Sprint 완료, FCM 멱등성 Pre-lock 패턴, 비밀일기 보안 기능 등 대규모 업데이트가 이루어졌습니다.</p>
             <div class="updates-grid">
+                <div class="update-card">
+                    <span class="update-tag">Design System</span>
+                    <h3>디자인 토큰 시스템 & 스카이 블루 팔레트 (v1.4.49)</h3>
+                    <p>Primary 색상을 스카이 블루(#87CEEB)로 확립하고 <code>AppColors.primary</code>(아이콘/강조) / <code>AppColors.primaryDark</code>(텍스트, WCAG AA 4.5:1) / <code>AppTheme.primaryColor</code>(theme 경유) 삼각형 토큰 체계를 설계했습니다. 텍스트에 primary 직접 사용 시 대비율 1.7:1 미달 문제를 구조적으로 방지합니다. <code>// design-ok</code> 이스케이프 패턴으로 BlendMode 등 불가피한 예외만 명시적으로 허용합니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Animation</span>
+                    <h3>스플래시 이중 컨트롤러 아키텍처 (v1.4.49)</h3>
+                    <p><code>_entranceController</code>(800ms one-shot, easeOutBack) + <code>_loopController</code>(2500ms repeat/reverse) 이중 컨트롤러로 일회성 진입과 반복 루프를 분리했습니다. <code>Listenable.merge([c1, c2])</code> 기반 <code>AnimatedBuilder</code>로 두 컨트롤러를 단일 리빌드 트리로 통합하여 <code>addStatusListener</code> cascade 패턴을 구현했습니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Accessibility</span>
+                    <h3>접근성 Sprint 1+2 완료 — 14개 화면 (v1.4.49)</h3>
+                    <p>전체 14개 화면에 <code>AccessibilityWrapper(screenTitle:)</code>를 적용하고 theme-aware 색상 매핑을 완성했습니다(<code>Colors.black87→scrim.withValues()</code>, <code>Colors.white→onSurface</code>, <code>Colors.grey[900]→surfaceContainerLowest</code>). <code>diary_item_card</code>에 <code>AppAccessibility.diaryItemLabel()</code>을 도입해 date/sentimentScore/contentPreview/keywords를 시맨틱으로 노출합니다.</p>
+                </div>
                 <div class="update-card">
                     <span class="update-tag">Reliability</span>
                     <h3>FCM 멱등성 Pre-lock 패턴 (v1.4.48)</h3>
                     <p>Firebase Functions retry + Firestore 부분 실패로 인한 3회 중복 발송 문제를 Firestore <code>create()</code> 원자적 잠금으로 해결했습니다. 기존 check-send-mark 패턴의 race condition을 분석하고 <code>acquireSendLock</code> / <code>completeSendLock</code> / <code>releaseSendLockOnFailure</code> 3-함수 패턴으로 교체했습니다. fail-open → fail-safe 전환으로 장애 시 안전성을 우선했습니다.</p>
                 </div>
                 <div class="update-card">
-                    <span class="update-tag">UX</span>
-                    <h3>화면 UX 완성도 — Empty State · 글자수 · 분석 단계 (v1.4.48)</h3>
-                    <p>일기 미작성 시 빈 상태 안내 위젯, 실시간 글자수 카운터, 분석 중 단계별 진행 표시를 추가했습니다(TASK-UI-006~009). AppDurations 토큰으로 애니메이션 지속 시간을 중앙화하고, 하드코딩된 색상 전체를 AppColors 토큰으로 교체(TASK-UI-004~005)하여 다크/라이트 양 모드 자동 대응을 완성했습니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">Quality</span>
-                    <h3>CI 타임존 안정성 강화 (v1.4.46)</h3>
-                    <p>UTC 서버 환경(CI)과 KST 로컬 환경 간 타임존 불일치로 발생하던 테스트 실패를 해소했습니다. <code>tz.TZDateTime.from()</code> 기반 기대값 비교 패턴을 정립하고, <code>test-tz</code> 명령어로 로컬에서도 CI 환경을 사전 시뮬레이션할 수 있게 했습니다. 알림 예약 시각 관련 버그를 조기 발견하는 안전망을 구축했습니다.</p>
-                </div>
-                <div class="update-card">
                     <span class="update-tag">Security</span>
                     <h3>비밀일기 기능 (v1.4.44)</h3>
                     <p>4자리 PIN + SHA-256 암호화로 민감한 일기를 보호합니다. flutter_secure_storage에 해시 저장, in-memory 세션 인증 방식으로 앱 재시작 시 자동 잠금됩니다. 인증 실패 3회 시 초기화 옵션을 제공하며, 비밀 일기는 감정 통계에서 완전히 제외됩니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">UI</span>
-                    <h3>다크모드 통계 화면 완전 지원 (v1.4.45)</h3>
-                    <p>StatisticsThemeTokens 디자인 토큰 시스템을 도입하여 Light/Dark 40여 개 명명 토큰으로 통계 탭 전 영역을 커버합니다. 하드코딩된 색상을 전부 토큰으로 교체하여 테마 전환 시 깨지는 UI를 완전히 해소했습니다.</p>
                 </div>
             </div>
         </div>

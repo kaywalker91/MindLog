@@ -75,3 +75,9 @@
 **근본 원인**: 서브에이전트 기본 권한에서 `.claude/` 경로 내 신규 파일 생성은 허용 안 됨 (보안 정책)
 **해결책**: 서브에이전트는 기존 파일 편집(Edit)만 위임. 신규 파일(Write)은 메인 에이전트가 직접 생성
 **예방 규칙**: Task 위임 시 "신규 파일 생성"은 메인 에이전트 몫. 서브에이전트 프롬프트에서 `.claude/` 내 Write 작업 제거.
+
+## 2026-02-27 - Flutter loose constraint 전파: Stack → Column 수평 정렬 버그
+**무엇이 잘못됐나**: Stack 내 Column(mainAxisSize.min)이 좌측 정렬처럼 보임 — crossAxisAlignment: center 명시에도 불구
+**근본 원인**: Stack이 non-positioned 자식에게 loose 제약(0~maxWidth) 전달. SingleChildScrollView가 이를 그대로 하위에 전달(copyWith(maxHeight: ∞)). Column이 loose width 받으면 가장 넓은 자식 너비로 수축 → Padding 좌측 끝에 붙음.
+**해결책**: Column 위에 `SizedBox(width: double.infinity)` 래퍼 추가. Loose 제약 안에서 double.infinity는 max값(screenWidth-48)으로 클램핑되어 Column에 tight 제약 전달.
+**예방 규칙**: Stack 내 SingleChildScrollView + Column(mainAxisSize.min) 패턴 사용 시 Column을 반드시 SizedBox(width: double.infinity)로 감싸야 정상 중앙 정렬. Responsive layout pattern 참조.
