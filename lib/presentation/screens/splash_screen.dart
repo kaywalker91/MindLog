@@ -6,12 +6,9 @@ import '../../core/accessibility/app_accessibility.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_text_styles.dart';
-import '../../core/theme/splash_theme.dart';
 import '../../data/datasources/local/preferences_local_datasource.dart';
 import '../router/app_router.dart';
 import '../widgets/splash_animation_widget.dart';
-import '../widgets/loading_indicator.dart';
 
 /// 앱 전체 시작 화면
 class SplashScreen extends ConsumerStatefulWidget {
@@ -47,7 +44,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   void _startAnimations() {
-    // 등장 인사 애니메이션
     _animationController.forward();
   }
 
@@ -80,12 +76,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final splashTheme = SplashTheme.createSplashTheme();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return AccessibilityWrapper(
       screenTitle: 'MindLog',
       child: Scaffold(
-        backgroundColor: splashTheme.colorScheme.surface,
+        backgroundColor: colorScheme.surface,
         body: Stack(
           children: [
             Positioned.fill(
@@ -93,8 +89,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.statsBackground,
-                      AppColors.statsSecondary.withValues(alpha: 0.35),
+                      AppColors.background,
+                      AppColors.primaryLight.withValues(alpha: 0.4),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -106,13 +102,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               top: -80,
               right: -40,
               size: 200,
-              color: AppColors.statsPrimary.withValues(alpha: 0.2),
+              color: AppColors.primary.withValues(alpha: 0.18),
             ),
             _buildAccentCircle(
               bottom: -120,
               left: -60,
               size: 240,
-              color: AppColors.statsAccentMint.withValues(alpha: 0.25),
+              color: AppColors.primaryLight.withValues(alpha: 0.3),
             ),
             SafeArea(
               child: LayoutBuilder(
@@ -125,16 +121,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // 로고 애니메이션
+                          // 로고 애니메이션 (breathing pulse, 회전 없음)
                           const SplashAnimationWidget(),
                           const SizedBox(height: 28),
 
-                          // 앱 이름 표시
+                          // 앱 이름
                           Text(
                                 AppConstants.appName,
                                 style: Theme.of(context).textTheme.headlineLarge
                                     ?.copyWith(
-                                      color: splashTheme.colorScheme.onSurface,
+                                      color: colorScheme.onSurface,
                                       fontWeight: FontWeight.w700,
                                       letterSpacing: 0.2,
                                     ),
@@ -144,13 +140,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                               .fadeIn(delay: const Duration(milliseconds: 150))
                               .slideY(begin: 0.2, end: 0),
 
-                          // 부제목 텍스트
+                          // 부제목
                           const SizedBox(height: 6),
                           Text(
                                 '오늘의 마음을 부드럽게 기록해요',
                                 style: Theme.of(context).textTheme.bodyLarge
                                     ?.copyWith(
-                                      color: AppColors.statsTextSecondary,
+                                      color: AppColors.textSecondary,
                                     ),
                                 textAlign: TextAlign.center,
                               )
@@ -158,22 +154,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                               .fadeIn(delay: const Duration(milliseconds: 250))
                               .slideY(begin: 0.2, end: 0),
 
-                          const SizedBox(height: 20),
-
-                          // 애니메이션 로딩
-                          const LoadingIndicator(
-                                message: '마음 기록을 준비 중이에요',
-                                subMessage: '따뜻한 마음 케어를 준비하고 있어요',
-                                accentColor: AppColors.statsPrimaryDark,
-                                cardColor: AppColors.statsCardBackground,
-                                subTextColor: AppColors.statsTextTertiary,
-                              )
-                              .animate(controller: _animationController)
-                              .fadeIn(delay: const Duration(milliseconds: 400)),
-
-                          // 로딩 버튼
-                          const SizedBox(height: 22),
-                          _buildStartButton(),
+                          // 점 3개 wave 로딩 인디케이터
+                          const SizedBox(height: 24),
+                          _buildSplashDots(),
                         ],
                       ),
                     ),
@@ -187,60 +170,33 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
   }
 
-  Widget _buildStartButton() {
-    const borderRadius = BorderRadius.all(Radius.circular(28));
-    final colorScheme = Theme.of(context).colorScheme;
-    final transparentSurface = colorScheme.surface.withValues(alpha: 0);
-
-    return Material(
-          color: transparentSurface,
-          elevation: 0,
-          borderRadius: borderRadius,
-          child: InkWell(
-            onTap: () {
-              if (mounted) {
-                _navigateToNextScreen();
-              }
-            },
-            borderRadius: borderRadius,
-            splashColor: colorScheme.onPrimary.withValues(alpha: 0.2),
-            highlightColor: colorScheme.onPrimary.withValues(alpha: 0.1),
-            child: Ink(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.statsPrimary, AppColors.statsSecondary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+  Widget _buildSplashDots() {
+    return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(3, (i) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary,
                 ),
-                borderRadius: borderRadius,
-                border: Border.all(
-                  color: AppColors.statsPrimaryDark.withValues(alpha: 0.2),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    '시작하기',
-                    style: AppTextStyles.button.copyWith(
-                      color: colorScheme.onPrimary,
-                    ),
+              )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .moveY(
+                    begin: 0,
+                    end: -6,
+                    delay: Duration(milliseconds: i * 150),
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
                   ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.arrow_forward_rounded,
-                    color: colorScheme.onPrimary,
-                    size: 18,
-                  ),
-                ],
-              ),
-            ),
-          ),
+            );
+          }),
         )
         .animate(controller: _animationController)
-        .fadeIn(delay: const Duration(milliseconds: 550))
-        .slideY(begin: 0.2, end: 0);
+        .fadeIn(delay: const Duration(milliseconds: 400));
   }
 
   Widget _buildAccentCircle({
