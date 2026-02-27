@@ -146,6 +146,29 @@ tail -20 tasks/lessons.md
 **예방 규칙**: [다음 번에 어떻게 피할지]
 ```
 
+### Step 5.5: MEMORY.md 업데이트 후보 추출 [G-2]
+
+Step 5에서 `tasks/lessons.md`에 추가된 신규 항목을 스캔하여 `MEMORY.md`에 반영한다.
+
+```bash
+# MEMORY.md 현재 줄 수 확인 (200줄 제한)
+wc -l ~/.claude/projects/-Users-kaywalker-AndroidStudioProjects-mindlog/memory/MEMORY.md
+```
+
+**처리 절차**:
+1. `tasks/lessons.md` 최신 항목 (오늘 날짜 기준) 추출
+2. `MEMORY.md` 기존 내용과 대조 → 중복 여부 판단
+3. 신규 패턴이면: 해당 섹션에 1줄 요약 추가 (Write/Edit 도구로 직접 반영 또는 제안)
+4. MEMORY.md가 180줄 이상이면: 아카이빙 후보 자동 식별 (가장 오래된 비필수 항목 목록 출력)
+
+**보고 형식**:
+```
+### 🧠 MEMORY.md 동기화
+✅ 신규 패턴 반영: [패턴명] → Testing Patterns 섹션 추가
+⚠️ 200줄 임박 (현재 N줄): 아카이빙 후보 → [항목 목록]
+🔵 변경 없음: 기존 메모리와 동일
+```
+
 ### Step 6: Tasks.md 동기화 점검
 
 최근 커밋에서 TASK-XXX 패턴을 추출해 `docs/tasks.md` 상태와 대조한다.
@@ -173,10 +196,60 @@ git log --oneline -20 | grep -oE 'TASK-[A-Z]+-[0-9]+'
 🔵 변경 없음: 나머지 태스크
 ```
 
+### Step 6.5: progress/current.md 동기화 [G-3]
+
+세션 종료 상태를 `.claude/progress/current.md`에 자동 반영한다.
+
+**업데이트 내용**:
+```markdown
+## 현재 작업
+없음 (세션 종료)
+
+## 완료된 항목
+[Step 3 보고서의 완료된 작업 목록 추가]
+
+## 다음 단계
+[followup-suggester 결과에서 Top 3 추출]
+
+## 주의사항
+[Step 5에서 발견된 신규 안티패턴/주의사항]
+
+## 마지막 업데이트
+[오늘 날짜] / 세션 [git log 최신 커밋 해시 7자]
+```
+
+**보고 형식**:
+```
+### 📍 progress/current.md 동기화
+✅ 업데이트 완료: 다음 단계 3개 기록
+📅 마지막 업데이트: YYYY-MM-DD / 세션 abc1234
+```
+
 ### Step 7: 다음 액션 제안
 - 푸시 필요 시: "git push를 실행할까요?"
 - 미완료 작업 시: GitHub Issue 생성 제안
 - 문서화 필요 시: TIL 파일 생성 제안
+
+### Step 7.5: TIL INDEX 동기화 [G-4]
+
+Step 3에서 TIL 후보가 확인된 경우에만 실행한다.
+
+**조건부 실행**:
+- TIL 파일이 실제로 생성된 경우: `docs/til/INDEX.md` 신규 항목 추가
+- TIL 후보만 제안된 경우: `/til-index-sync --fix` 실행 제안 (선택적)
+- TIL 변경 없는 경우: 이 스텝 skip
+
+**처리 절차**:
+1. `docs/til/` 디렉토리에서 INDEX.md에 없는 신규 파일 감지
+2. 누락 항목이 있으면 INDEX.md 업데이트 (15-시나리오 테이블에 행 추가)
+3. `--dry-run` 모드: 변경 예정 항목만 출력
+
+**보고 형식**:
+```
+### 📚 TIL INDEX 동기화
+✅ INDEX.md 업데이트: [파일명] → 시나리오 추가
+🔵 변경 없음: TIL 신규 파일 없음 (skip)
+```
 
 ## 출력 형식
 
@@ -287,4 +360,4 @@ AI 응답:
 | Category | workflow |
 | Dependencies | - |
 | Created | 2026-01-26 |
-| Updated | 2026-01-26 |
+| Updated | 2026-02-27 |
