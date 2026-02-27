@@ -2,7 +2,7 @@
 
 **생성일**: 2026-01-21
 **주제**: Groq Vision API 통합 학습 자료
-**총 10개 문서 / ~17,000 단어**
+**총 13개 문서 / ~19,500 단어**
 
 ---
 
@@ -20,7 +20,10 @@ docs/til/
 ├── FIREBASE_CLI_EXTENSIONS_BUG.md      [Firebase CLI Extensions API 403 버그 패치]
 ├── FLUTTER_TESTING_STATIC_OVERRIDE_PATTERN_TIL.md [플랫폼 서비스 정적 오버라이드 패턴]
 ├── TROUBLESHOOTING_SYSTEM_CLASSIFICATION_TIL.md [3-System 지식 분류 프레임워크]
-└── COLOR_SYSTEM.md                              [MindLog 컬러 시스템 4-팔레트 레퍼런스]
+├── COLOR_SYSTEM.md                              [MindLog 컬러 시스템 4-팔레트 레퍼런스]
+├── A11Y_THEME_AWARE_COLOR_MIGRATION_PATTERN_TIL.md [접근성 theme-aware 색상 마이그레이션]
+├── MEMORY_ARCHIVING_LIFECYCLE_TIL.md [메모리 7레이어 아카이빙 수명주기]
+└── SESSION_WRAP_PROCESS_AUDIT_TIL.md [멀티 문서 동기화 갭 분석 방법론]
 ```
 
 ---
@@ -465,6 +468,48 @@ iOS 이해: 핵심 학습 3 (5분)
 
 ---
 
+## 1️⃣1️⃣ A11Y_THEME_AWARE_COLOR_MIGRATION_PATTERN_TIL.md
+
+**주제**: Flutter 접근성 색상 마이그레이션 패턴 (Colors.* → colorScheme 의미론적 매핑)
+**분량**: ~1,000 단어 | **난이도**: 초급~중급 | **소요**: 15분
+
+| 항목 | 내용 |
+|------|------|
+| 핵심 매핑 | Colors.black87 → scrim, Colors.white → onSurface, Colors.grey[900] → surfaceContainerLowest |
+| AccessibilityWrapper | return AccessibilityWrapper(screenTitle: '화면명', child: Scaffold(...)) |
+| 적용 범위 | 14개 화면 Sprint 1+2 완료 |
+| 참조 파일 | lib/core/theme/app_colors.dart, lib/core/accessibility/app_accessibility.dart |
+
+---
+
+## 1️⃣2️⃣ MEMORY_ARCHIVING_LIFECYCLE_TIL.md
+
+**주제**: Claude 세션 메모리 7레이어 구조 + 아카이빙 정책 설계 패턴
+**분량**: ~700 단어 | **난이도**: 초급 | **소요**: 10분
+
+| 항목 | 내용 |
+|------|------|
+| 7레이어 | CLAUDE.md → rules/ → MEMORY.md → memory/ → lessons.md → tasks.md → progress/ |
+| 아카이빙 기준 | SUPERSEDED+3세션, 90일, 200줄 한도 |
+| 자동화 | session-wrap Step 5.5 통합 |
+| 참조 파일 | memory/archiving-policy.md, .claude/skills/session-wrap.md |
+
+---
+
+## 1️⃣3️⃣ SESSION_WRAP_PROCESS_AUDIT_TIL.md
+
+**주제**: 멀티 문서 동기화 파이프라인 갭 분석 방법론 (session-wrap G-1~G-7)
+**분량**: ~800 단어 | **난이도**: 중급 | **소요**: 15분
+
+| 항목 | 내용 |
+|------|------|
+| 갭 프레임워크 | 심각도 x 구현비용 x ROI 3차원 평가 |
+| G-1~G-7 | commands 불일치(P0), MEMORY.md 전파(P1), progress 동기화(P1), TIL INDEX(P2) |
+| Last-Mile 패턴 | 자동화 파이프라인에서 인덱스 파일 갱신 누락 안티패턴 |
+| 참조 파일 | .claude/skills/session-wrap.md, memory/archiving-policy.md |
+
+---
+
 ## 🎯 사용 시나리오별 가이드
 
 ### 시나리오 1: "Vision API가 뭔가요?"
@@ -552,6 +597,21 @@ iOS 이해: 핵심 학습 3 (5분)
 **소요시간**: 5분
 **내용**: AppColors vs ThemeExtension vs HealingColorSchemes 선택 기준, 다크 모드 대응 현황
 
+### 시나리오 18: "화면에 하드코딩 색상(Colors.*)이 있는데 다크 모드에서 깨져요"
+**추천**: A11Y_THEME_AWARE_COLOR_MIGRATION_PATTERN_TIL.md
+**소요시간**: 15분
+**내용**: Colors.* → colorScheme 매핑 테이블, AccessibilityWrapper 패턴, Colors.white 맥락별 교체
+
+### 시나리오 19: "메모리 파일이 너무 많아졌어요, 어떻게 관리하나요?"
+**추천**: MEMORY_ARCHIVING_LIFECYCLE_TIL.md
+**소요시간**: 10분
+**내용**: 7레이어 메모리 구조, 아카이빙 3원칙, MEMORY.md 200줄 한도 관리, session-wrap 자동화
+
+### 시나리오 20: "session-wrap이 제대로 동작하는지 확인하고 싶어요"
+**추천**: SESSION_WRAP_PROCESS_AUDIT_TIL.md
+**소요시간**: 15분
+**내용**: G-1~G-7 갭 분석 결과, Last-Mile 파일 누락 안티패턴, 갭 발견 방법론
+
 ---
 
 ## 📊 문서 통계
@@ -564,7 +624,7 @@ iOS 이해: 핵심 학습 3 (5분)
 | 다이어그램 | 8+ |
 | 표 | 22+ |
 | 생성 시간 | 2026-01-21 |
-| 최종 업데이트 | 2026-02-27 (v1.7) |
+| 최종 업데이트 | 2026-02-27 (v1.8) |
 
 ---
 
@@ -603,6 +663,7 @@ iOS 이해: 핵심 학습 3 (5분)
 | 1.5 | 2026-02-27 | Flutter 플랫폼 서비스 정적 오버라이드 패턴 TIL 추가 (8개 문서) |
 | 1.6 | 2026-02-27 | 트러블슈팅 시스템 분류 프레임워크 TIL 추가 (9개 문서) |
 | 1.7 | 2026-02-27 | COLOR_SYSTEM.md 색인 추가, FLUTTER_TESTING·TROUBLESHOOTING 누락 섹션 보완 (10개 문서) |
+| 1.8 | 2026-02-27 | TIL 3개 추가 (A11Y/MEMORY/SESSION_WRAP, 총 13개 문서, 20 시나리오) |
 
 ---
 

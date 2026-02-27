@@ -72,7 +72,8 @@ Architecture: Clean Architecture (domain/data/presentation) + Riverpod state man
 ### P4 Knowledge Capture (제안)
 - 버그 해결 완료 → `/troubleshoot-save`
 - 버그 해결 + 새 학습 포인트 → `/til-save [topic]` 추가 제안
-- context 70% → `/session-wrap`
+- TIL 파일 생성 후 → `/til-index-sync --fix` (INDEX.md 동기화)
+- context 70% → `/session-wrap` (v2: Step 5.5 MEMORY.md / Step 6.5 progress / Step 7.5 TIL INDEX 포함)
 - 태스크 구현 완료 직후 → `/task-done [TASK-ID] [summary]` (docs/tasks.md 자동 업데이트)
 
 ### P5 Workflow Optimization (참고 제안)
@@ -82,3 +83,4 @@ Architecture: Clean Architecture (domain/data/presentation) + Riverpod state man
 - Notification: 앱 시작 시 selfEncouragementProvider + userNameProvider 미전달 → 리마인더 취소 (v1.4.36 수정완료)
 - 이름 개인화: `{name}` 패턴 제거 시 조사(님,의,은,을,이) + 후행 공백도 함께 제거 필요
 - flutter_animate 위젯 테스트: pumpAndSettle() 절대 금지 → pump(500ms) x 4회
+- A11y: Sprint 1+2 완료 (14개 화면 AccessibilityWrapper + theme-aware 색상) → Sprint 3 백로그: `memory/a11y-backlog.md`

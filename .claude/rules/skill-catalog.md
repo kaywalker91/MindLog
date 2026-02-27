@@ -41,6 +41,8 @@ Skills in `.claude/skills/`. Read skill file on invocation. Workflows: `skill-wo
 | `/provider-invalidation-audit` | provider-invalidation-audit.md |
 | `/refactor-plan [scope]` | refactor-plan.md |
 | `/session-wrap` | session-wrap.md |
+| `/memory-sync` | memory-sync.md |
+| `/memory-index-audit` | memory-index-audit.md |
 | `/til-save [topic]` | til-save.md |
 | `/task-done [TASK-ID] [summary]` | task-done.md |
 | `/til-index-sync [--fix]` | til-index-sync.md |
