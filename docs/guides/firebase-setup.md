@@ -672,9 +672,49 @@ static void _logError(Object error, StackTrace stack) {
 > * `flutterfire configure` 명령어를 사용하면 설정 실수를 줄일 수 있습니다.
 > * 개발 중에는 Crashlytics 리포트가 너무 많이 쌓이지 않도록 디버그 모드 분기 처리를 확인하세요.
 > * Android 13+ 부터는 알림 권한 요청이 필수입니다.
-> 
-> 
+
+---
+
+## ⚡ FCM 안정성 패턴 (현재 적용)
+
+> **최신 업데이트**: 2026-02-27 — 프로덕션 운영 중 학습된 패턴. 상세: [`docs/til/FCM_IDEMPOTENCY_LOCK.md`](../til/FCM_IDEMPOTENCY_LOCK.md)
+
+### FCM 멱등성 락 (중복 발송 방지)
+
+서버 스케줄러가 동시에 여러 번 트리거되면 동일 메시지가 중복 발송될 수 있음.
+**Firestore pre-lock 패턴**으로 방지:
 
 ```
-
+1. 발송 전 Firestore에 고유 lockKey 문서 생성 (messageId + date)
+2. 이미 존재하면 → 중복 감지, 발송 스킵
+3. 발송 성공 후 → lock 문서에 sentAt 타임스탬프 기록
+4. TTL: 24시간 후 자동 삭제
 ```
+
+### Background Handler 가드 (data-only FCM)
+
+```dart
+// ✅ 올바른 패턴: notification != null이면 로컬 알림 skip
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  if (message.notification != null) return; // data-only만 처리
+  await NotificationService.initialize();
+  // ... 로컬 알림 표시
+}
+```
+
+> ⚠️ `message.notification != null` 가드 미적용 시 → data-only 발송이 로컬 알림과 FCM 알림 이중 표시됨
+
+### FCM 알림 body 빈 문자열 방지
+
+```dart
+// ❌ 금지: body 빈 문자열 → 플랫폼이 silent drop
+body: message.notification?.body ?? ''
+
+// ✅ 올바른 패턴
+body: message.notification?.body?.isNotEmpty == true
+    ? message.notification!.body!
+    : NotificationMessages.getRandomMindcareBody()
+```
+
+자세한 트러블슈팅: [`docs/troubleshooting/fcm-notification-empty-body.md`](../troubleshooting/fcm-notification-empty-body.md)

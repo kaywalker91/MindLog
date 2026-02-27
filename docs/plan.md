@@ -225,18 +225,22 @@ execute(settings, currentEmotionScore):
 
 > **참조 REQ**: REQ-090 ~ REQ-096
 > **원칙**: 한 번에 1개 화면씩 점진적 개선 / 테스트 커버리지 유지 / Clean Architecture 미침범
+>
+> **디자인 토큰 시스템**: 2026-02-27 확립 → [`docs/design-guidelines.md`](../design-guidelines.md) 참조
+> Primary 삼각형: `AppColors.primary`(#87CEEB 아이콘/강조선) / `AppColors.primaryDark`(#4A90B8 텍스트) / `AppTheme.primaryColor`(#7EC8E3 theme 경유)
+> 텍스트에 `AppColors.primary` 직접 사용 금지 (#87CEEB on white = 1.7:1, WCAG AA 미달)
 
 ### 핵심 문제 진단
 
-| 문제 | 심각도 | 영향 범위 |
-|------|--------|---------|
-| `AppTextStyles` 하드코딩 색상 → 다크 모드 텍스트 불가시 | 🔴 Critical | 전체 화면 |
-| `darkTheme`에 `textTheme` 미정의 → Material3 기본값 폴백 | 🔴 Critical | 전체 화면 |
-| 4개 분리된 컬러 시스템 (AppColors, Stats, Healing, CheerMe) | 🟡 High | 유지보수성 |
-| 하드코딩 `Colors.white/black/grey` 잔존 | 🟡 High | 다크 모드 |
-| DiaryListScreen 빈 상태(empty state) 없음 | 🟡 High | 첫 사용자 UX |
-| 글자 수 카운터 없음 (DiaryScreen) | 🟢 Medium | 작성 UX |
-| 로딩 상태 단순 CircularProgressIndicator | 🟢 Medium | 분석 대기 UX |
+| 문제 | 심각도 | 영향 범위 | 상태 |
+|------|--------|---------|------|
+| `AppTextStyles` 하드코딩 색상 → 다크 모드 텍스트 불가시 | 🔴 Critical | 전체 화면 | Phase 1 진행 |
+| `darkTheme`에 `textTheme` 미정의 → Material3 기본값 폴백 | 🔴 Critical | 전체 화면 | Phase 1 진행 |
+| 4개 분리된 컬러 시스템 (AppColors, Stats, Healing, CheerMe) | 🟡 High | 유지보수성 | ✅ 토큰 시스템 확립 (2026-02-27) |
+| 하드코딩 `Colors.white/black/grey` 잔존 | 🟡 High | 다크 모드 | Phase 2 / `/color-migrate` |
+| DiaryListScreen 빈 상태(empty state) 없음 | 🟡 High | 첫 사용자 UX | 백로그 |
+| 글자 수 카운터 없음 (DiaryScreen) | 🟢 Medium | 작성 UX | 백로그 |
+| 로딩 상태 단순 CircularProgressIndicator | 🟢 Medium | 분석 대기 UX | 백로그 |
 
 ### 개선 전략 (4단계 Phase)
 

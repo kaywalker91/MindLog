@@ -49,11 +49,36 @@ Choose from 3 AI characters matching your personality:
 - **Koi** (Realistic Coach): Clear and action-oriented advice
 - **Smile** (Cheerful Friend): Bright and pleasant comfort
 
-### 4️⃣ Smart Notification System
+### 4️⃣ Smart Notification System (v1.4.47)
 
-- **Diary Reminder**: Daily diary writing notification at set time
-- **Mindcare Alert**: AI-recommended warm message push
+- **Diary Reminder**: Daily diary writing notification at set time (re-schedules only after reboot via pending detection)
+- **Mindcare Alert**: AI-recommended warm message FCM push (duplicate notification prevention)
+- **EmotionAware Message Selection**: Level-based filtering from recent emotion scores (low≤3 / medium 4–6 / high>6) → delivers most empathetic message first
 - **Personalized Messages**: Customized notification phrases based on user name
+- **Crisis Followup**: Auto-schedules a check-in notification 24 hours after `SafetyBlockedFailure` detection
+
+#### Notification Architecture (Port/Adapter)
+```dart
+// Domain Layer — Interface
+abstract class NotificationScheduler {
+  Future<int?> apply(NotificationSettings settings, {List<SelfEncouragementMessage> messages, ...});
+}
+
+// Core Layer — Adapter (wraps NotificationSettingsService)
+class NotificationSchedulerImpl implements NotificationScheduler { ... }
+
+// Domain UseCase — Business Logic
+class ApplyNotificationSettingsUseCase {
+  // NotificationSettingsController → UseCase → Adapter → Service
+}
+```
+
+### 5️⃣ Secret Diary (v1.4.44)
+
+- **4-digit PIN protection**: SHA-256(PIN + salt) hash stored in `flutter_secure_storage`
+- **In-memory session auth**: Auto-locks when app moves to background
+- **Fully excluded from statistics**: Secret entries excluded from heatmap, charts, and keyword stats
+- **Long-press context menu**: Convert existing diary entries to secret / restore support
 
 ---
 
@@ -261,15 +286,20 @@ flutter build appbundle --release \
 ## 📈 Key Achievements
 
 ### Technical Achievements
-- ✅ **1,384 tests** all passing (unit/widget/integration)
-- ✅ **Clean Architecture** based scalable structure
+- ✅ **1,623 tests passing** — unit/widget/integration across all layers
+- ✅ **Clean Architecture reinforced**: `NotificationScheduler` Port/Adapter pattern brings notification scheduler into Domain layer
+- ✅ **EmotionAware AI message selection**: Emotion-level weighted filtering UseCase (level buckets + random fallback)
+- ✅ **SDD (Specification-Driven Development)**: `spec.md` (REQ-001~083) + `plan.md` (ADR) + `tasks.md` 3-document system
+- ✅ **Static Override test pattern**: `@visibleForTesting static Function? override` → stable widget tests without Firebase initialization
 - ✅ **AI Integration**: Utilizing Groq LLaMA 3.3 70B model
-- ✅ **Performance Optimization**: HTTP timeout, image caching, Provider optimization
+- ✅ **ThemeExtension pattern**: `StatisticsThemeTokens` manages entire statistics UI with a single token system
+- ✅ **Secret Diary security**: SHA-256 PIN hash + flutter_secure_storage dual protection
 
 ### User Experience
-- 🎨 **Material 3 Design System** applied
-- 🌙 **Dark Mode** fully supported
-- 📱 **Responsive Layout** (supports various screen sizes)
+- 🎨 **Material 3 Design System** applied — 40+ design tokens for statistics tab
+- 🌙 **Dark Mode** fully supported — automatic color switching via ThemeExtension
+- 📱 **Responsive Layout** (including small devices ≤360px)
+- 🔐 **Secret Diary**: PIN protection + auto-lock on background
 - ♿ **Accessibility** considered (Semantics widgets, screen reader support)
 
 ### Code Quality

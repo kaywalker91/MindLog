@@ -10,6 +10,8 @@
 | [Skills Index](./skills/README.md) | Claude Code 자동화 스킬 전체 목록 |
 | [Guides](./guides/README.md) | 설정, 배포, Firebase 가이드 |
 | [Troubleshooting](./troubleshooting/README.md) | 알려진 이슈 및 해결책 |
+| [TIL Index](./til/INDEX.md) | 17개 시나리오 기반 Today I Learned 인덱스 |
+| [OpenSpec Templates](./templates/openspec/README.md) | SDD 워크플로우 문서 템플릿 |
 
 ## Directory Structure
 
@@ -17,11 +19,12 @@
 docs/
 ├── skills/           # Claude Code 자동화 스킬 정의
 ├── guides/           # 설정, 배포, Firebase 가이드
-├── troubleshooting/  # 알려진 이슈 및 해결책
+├── troubleshooting/  # 알려진 이슈 및 해결책 (2-layer: JSON 인덱스 + MD 상세)
+├── til/              # Today I Learned (17개 시나리오 인덱스)
+├── templates/        # SDD 워크플로우 문서 템플릿 (openspec/)
+├── tasks/            # 완료 태스크 이력 (history.md)
 ├── ui/               # UI/UX 디자인 가이드라인
-├── assets/           # 이미지, 스타일 등 정적 리소스
-├── legal/            # 개인정보처리방침 등 법적 문서
-└── archive/          # 구버전 파일 보관
+└── legal/            # 개인정보처리방침 등 법적 문서
 ```
 
 ## For Developers

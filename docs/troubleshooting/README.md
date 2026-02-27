@@ -96,6 +96,23 @@ docs/troubleshooting/README.md     ← 이 파일: 사람이 읽는 목차
 
 ---
 
+## See Also: TIL 시나리오 라우팅
+
+증상 기반 빠른 검색이 필요하다면 → **[TIL INDEX](../til/INDEX.md)**
+
+| 시나리오 | 참조 TIL |
+|---------|---------|
+| FCM 중복 발송 / 멱등성 | [FCM_IDEMPOTENCY_LOCK.md](../til/FCM_IDEMPOTENCY_LOCK.md) |
+| Firebase CLI 403 오류 | [FIREBASE_CLI_EXTENSIONS_BUG.md](../til/FIREBASE_CLI_EXTENSIONS_BUG.md) |
+| 이미지/사진 picker 정책 | [ANDROID_PHOTO_PICKER_POLICY_TIL.md](../til/ANDROID_PHOTO_PICKER_POLICY_TIL.md) |
+| 색상 시스템 / 토큰 | [COLOR_SYSTEM.md](../til/COLOR_SYSTEM.md) |
+| 테스트 정적 오버라이드 | [FLUTTER_TESTING_STATIC_OVERRIDE_PATTERN_TIL.md](../til/FLUTTER_TESTING_STATIC_OVERRIDE_PATTERN_TIL.md) |
+| A11y 색상 마이그레이션 | [A11Y_THEME_AWARE_COLOR_MIGRATION_PATTERN_TIL.md](../til/A11Y_THEME_AWARE_COLOR_MIGRATION_PATTERN_TIL.md) |
+
+전체 17개 시나리오 → `docs/til/INDEX.md`
+
+---
+
 ## Related
 
 - [Skills Index](../skills/README.md) — 자동화 스킬
