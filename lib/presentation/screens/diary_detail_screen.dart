@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
@@ -27,109 +28,112 @@ class DiaryDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: MindlogAppBar(
-        title: const Text('일기 상세'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.delete_outline, color: colorScheme.onPrimary),
-            tooltip: '일기 삭제',
-            onPressed: () => DeleteDiaryDialog.show(
-              context,
-              diary: diary,
-              popAfterDelete: true,
+    return AccessibilityWrapper(
+      screenTitle: '일기 상세',
+      child: Scaffold(
+        appBar: MindlogAppBar(
+          title: const Text('일기 상세'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.delete_outline, color: colorScheme.onPrimary),
+              tooltip: '일기 삭제',
+              onPressed: () => DeleteDiaryDialog.show(
+                context,
+                diary: diary,
+                popAfterDelete: true,
+              ),
             ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        bottom: false, // 하단은 수동으로 처리
-        child: SingleChildScrollView(
-          padding: ResponsiveUtils.scrollPadding(context),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 날짜 표시
-              Text(
-                _dateFormatter.format(diary.createdAt),
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-
-              // 원본 일기 내용
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.shadow.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Text(
-                  diary.content,
-                  style: AppTextStyles.body.copyWith(
-                    height: 1.6,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ),
-
-              // 첨부 이미지 (있을 경우에만)
-              if (diary.hasImages) ...[
-                const SizedBox(height: 24),
-                DiaryImageGallery(
-                  imagePaths: diary.imagePaths!,
-                  galleryId: 'detail_${diary.id}',
-                ),
-              ],
-              const SizedBox(height: 32),
-
-              // 분석 결과 (있을 경우에만)
-              if (diary.status == DiaryStatus.analyzed &&
-                  diary.analysisResult != null) ...[
-                const Divider(),
-                const SizedBox(height: 16),
+          ],
+        ),
+        body: SafeArea(
+          bottom: false, // 하단은 수동으로 처리
+          child: SingleChildScrollView(
+            padding: ResponsiveUtils.scrollPadding(context),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 날짜 표시
                 Text(
-                  'AI 마음 분석 리포트',
-                  style: AppTextStyles.headline.copyWith(
-                    color: colorScheme.onSurface,
+                  _dateFormatter.format(diary.createdAt),
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
-                // 기존 ResultCard 재사용
-                // onNewDiary 콜백은 상세 화면에서는 필요 없으므로 빈 함수 전달하거나 숨김 처리 필요
-                // 하지만 ResultCard 구조상 필수이므로, 상세 화면에서는 '목록으로' 등의 동작으로 대체 가능
-                // 여기서는 단순히 pop
-                ResultCard(diary: diary, onNewDiary: () => context.pop()),
-              ] else if (diary.status == DiaryStatus.pending) ...[
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Text('아직 분석되지 않은 일기입니다.'),
+                const SizedBox(height: 24),
+
+                // 원본 일기 내용
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.shadow.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    diary.content,
+                    style: AppTextStyles.body.copyWith(
+                      height: 1.6,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
                 ),
-              ] else if (diary.status == DiaryStatus.safetyBlocked) ...[
-                const Divider(),
-                const SizedBox(height: 16),
-                SosCard(onClose: () => context.pop()),
-              ] else if (diary.status == DiaryStatus.failed) ...[
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Text('분석에 실패한 일기입니다.\n네트워크 상태를 확인해주세요.'),
+
+                // 첨부 이미지 (있을 경우에만)
+                if (diary.hasImages) ...[
+                  const SizedBox(height: 24),
+                  DiaryImageGallery(
+                    imagePaths: diary.imagePaths!,
+                    galleryId: 'detail_${diary.id}',
                   ),
-                ),
+                ],
+                const SizedBox(height: 32),
+
+                // 분석 결과 (있을 경우에만)
+                if (diary.status == DiaryStatus.analyzed &&
+                    diary.analysisResult != null) ...[
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'AI 마음 분석 리포트',
+                    style: AppTextStyles.headline.copyWith(
+                      color: colorScheme.onSurface,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  // 기존 ResultCard 재사용
+                  // onNewDiary 콜백은 상세 화면에서는 필요 없으므로 빈 함수 전달하거나 숨김 처리 필요
+                  // 하지만 ResultCard 구조상 필수이므로, 상세 화면에서는 '목록으로' 등의 동작으로 대체 가능
+                  // 여기서는 단순히 pop
+                  ResultCard(diary: diary, onNewDiary: () => context.pop()),
+                ] else if (diary.status == DiaryStatus.pending) ...[
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text('아직 분석되지 않은 일기입니다.'),
+                    ),
+                  ),
+                ] else if (diary.status == DiaryStatus.safetyBlocked) ...[
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  SosCard(onClose: () => context.pop()),
+                ] else if (diary.status == DiaryStatus.failed) ...[
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Text('분석에 실패한 일기입니다.\n네트워크 상태를 확인해주세요.'),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

@@ -170,6 +170,7 @@ class _ImageTileState extends State<_ImageTile> {
               cacheWidth: tilePixelSize,
               cacheHeight: tilePixelSize,
               fit: BoxFit.cover,
+              semanticLabel: '일기 첨부 이미지',
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   color: colorScheme.surfaceContainerHighest,

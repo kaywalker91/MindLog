@@ -28,6 +28,7 @@ class CalendarHeader extends StatelessWidget {
         IconButton(
           onPressed: onPrevMonth,
           icon: const Icon(Icons.chevron_left),
+          tooltip: '이전 달',
           color: statsTokens.textSecondary,
           iconSize: 24,
           constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -60,6 +61,7 @@ class CalendarHeader extends StatelessWidget {
             IconButton(
               onPressed: onNextMonth,
               icon: const Icon(Icons.chevron_right),
+              tooltip: '다음 달',
               color: statsTokens.textSecondary,
               iconSize: 24,
               constraints: const BoxConstraints(minWidth: 40, minHeight: 40),

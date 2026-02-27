@@ -45,3 +45,15 @@
 **근본 원인**: 프로젝트에 `tasks/` 디렉토리가 있고 TIL과 무관한 파일들이 있어 혼동 발생
 **해결책**: 실제 TIL 경로는 `docs/til/` (INDEX.md + 9개 파일). `docs/til/INDEX.md` MEMORY.md에 참조 추가
 **예방 규칙**: TIL 검색 시 `docs/til/INDEX.md` 먼저 확인. `tasks/` 폴더는 TODO/lessons 전용.
+
+## 2026-02-27 - A11y 색상 마이그레이션: theme-aware 매핑 패턴 확립
+**무엇이 잘못됐나**: N/A (신규 패턴 정립)
+**근본 원인**: Colors.black/white/grey 하드코딩 → dark mode에서 대비 불일치
+**해결책**: 의미론적 colorScheme 토큰으로 대체 (scrim/shadow/onSurface/onSurfaceVariant/surfaceContainerLowest)
+**예방 규칙**: 오버레이 배경→scrim, 반투명 어두운 bg→shadow, 텍스트on어두운배경→onSurface, 보조텍스트→onSurfaceVariant, 오류컨테이너bg→surfaceContainerLowest. `Color.lerp(..., Colors.white)` → colorScheme.surface 사용.
+
+## 2026-02-27 - AccessibilityWrapper 병렬 서브에이전트 처리 주의사항
+**무엇이 잘못됐나**: 서브에이전트가 14개 화면 처리 중 일부(secret_diary_unlock, secret_pin_setup)를 먼저 완료했는데, 내가 grep 할 때 아직 파일이 쓰이지 않은 시점이라 0건으로 오독
+**근본 원인**: 비동기 서브에이전트 완료 전 grep 실행 → 결과 불일치
+**해결책**: 서브에이전트 완료 알림(task-notification) 받은 후 검증 실행
+**예방 규칙**: 백그라운드 에이전트 결과는 notification 확인 후 검증. 중간 점검은 "아직 진행 중" 전제 하에 해석.

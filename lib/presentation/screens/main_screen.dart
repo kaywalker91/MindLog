@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/services/notification_permission_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -165,31 +166,34 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           unawaited(SystemNavigator.pop());
         }
       },
-      child: Scaffold(
-        body: IndexedStack(
-          index: selectedIndex,
-          children: const [
-            DiaryListScreen(),
-            StatisticsScreen(),
-            SettingsScreen(),
-          ],
-        ),
-        bottomNavigationBar: SafeArea(
-          top: false,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              isCompact ? 12 : 16,
-              0,
-              isCompact ? 12 : 16,
-              isCompact ? 8 : 12,
-            ),
-            child: _buildNavigationBar(
-              context,
-              selectedIndex: selectedIndex,
-              onSelected: (index) {
-                ref.read(selectedTabIndexProvider.notifier).state = index;
-              },
-              isCompact: isCompact,
+      child: AccessibilityWrapper(
+        screenTitle: '메인',
+        child: Scaffold(
+          body: IndexedStack(
+            index: selectedIndex,
+            children: const [
+              DiaryListScreen(),
+              StatisticsScreen(),
+              SettingsScreen(),
+            ],
+          ),
+          bottomNavigationBar: SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                isCompact ? 12 : 16,
+                0,
+                isCompact ? 12 : 16,
+                isCompact ? 8 : 12,
+              ),
+              child: _buildNavigationBar(
+                context,
+                selectedIndex: selectedIndex,
+                onSelected: (index) {
+                  ref.read(selectedTabIndexProvider.notifier).state = index;
+                },
+                isCompact: isCompact,
+              ),
             ),
           ),
         ),

@@ -211,7 +211,7 @@ class ActivityHeatmap extends StatelessWidget {
     final score = normalizedActivityMap[normalizedDate];
 
     final color = AppColors.getHeatmapColor(score);
-    final highlight = Color.lerp(color, Colors.white, 0.35) ?? color;
+    final highlight = Color.lerp(color, Theme.of(context).colorScheme.surface, 0.35) ?? color;
     final hasRecord = score != null;
 
     return Tooltip(

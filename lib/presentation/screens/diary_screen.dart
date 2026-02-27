@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../router/app_router.dart';
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
@@ -171,28 +172,31 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
       }
     });
 
-    return Scaffold(
-      appBar: const MindlogAppBar(title: Text(AppStrings.diaryScreenTitle)),
-      body: Stack(
-        children: [
-          if (isLoading)
-            _buildLoadingBody(context)
-          else
-            _buildContentBody(context, analysisState),
+    return AccessibilityWrapper(
+      screenTitle: '오늘의 마음',
+      child: Scaffold(
+        appBar: const MindlogAppBar(title: Text(AppStrings.diaryScreenTitle)),
+        body: Stack(
+          children: [
+            if (isLoading)
+              _buildLoadingBody(context)
+            else
+              _buildContentBody(context, analysisState),
 
-          // 네트워크 상태 오버레이
-          NetworkStatusOverlay(
-            isVisible: _showNetworkOverlay,
-            statusMessage: _networkOverlayMessage,
-            statusType: _networkStatusType,
-            onRetry: _networkStatusType == NetworkStatusType.loading
-                ? null
-                : _onRetry,
-            onDismiss: _networkStatusType == NetworkStatusType.loading
-                ? null
-                : _onDismissNetworkFeedback,
-          ),
-        ],
+            // 네트워크 상태 오버레이
+            NetworkStatusOverlay(
+              isVisible: _showNetworkOverlay,
+              statusMessage: _networkOverlayMessage,
+              statusType: _networkStatusType,
+              onRetry: _networkStatusType == NetworkStatusType.loading
+                  ? null
+                  : _onRetry,
+              onDismiss: _networkStatusType == NetworkStatusType.loading
+                  ? null
+                  : _onDismissNetworkFeedback,
+            ),
+          ],
+        ),
       ),
     );
   }

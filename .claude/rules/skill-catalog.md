@@ -42,6 +42,7 @@ Skills in `.claude/skills/`. Read skill file on invocation. Workflows: `skill-wo
 | `/refactor-plan [scope]` | refactor-plan.md |
 | `/session-wrap` | session-wrap.md |
 | `/til-save [topic]` | til-save.md |
+| `/task-done [TASK-ID] [summary]` | task-done.md |
 | `/til-index-sync [--fix]` | til-index-sync.md |
 | `/test-quality-review [path]` | test-quality-review.md |
 | `/riverpod-widget-test-gen [file]` | riverpod-widget-test-gen.md |

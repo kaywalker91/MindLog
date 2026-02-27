@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
@@ -81,104 +82,107 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     final splashTheme = SplashTheme.createSplashTheme();
 
-    return Scaffold(
-      backgroundColor: splashTheme.colorScheme.surface,
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.statsBackground,
-                    AppColors.statsSecondary.withValues(alpha: 0.35),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+    return AccessibilityWrapper(
+      screenTitle: 'MindLog',
+      child: Scaffold(
+        backgroundColor: splashTheme.colorScheme.surface,
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.statsBackground,
+                      AppColors.statsSecondary.withValues(alpha: 0.35),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                 ),
               ),
             ),
-          ),
-          _buildAccentCircle(
-            top: -80,
-            right: -40,
-            size: 200,
-            color: AppColors.statsPrimary.withValues(alpha: 0.2),
-          ),
-          _buildAccentCircle(
-            bottom: -120,
-            left: -60,
-            size: 240,
-            color: AppColors.statsAccentMint.withValues(alpha: 0.25),
-          ),
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // 로고 애니메이션
-                        const SplashAnimationWidget(),
-                        const SizedBox(height: 28),
+            _buildAccentCircle(
+              top: -80,
+              right: -40,
+              size: 200,
+              color: AppColors.statsPrimary.withValues(alpha: 0.2),
+            ),
+            _buildAccentCircle(
+              bottom: -120,
+              left: -60,
+              size: 240,
+              color: AppColors.statsAccentMint.withValues(alpha: 0.25),
+            ),
+            SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 로고 애니메이션
+                          const SplashAnimationWidget(),
+                          const SizedBox(height: 28),
 
-                        // 앱 이름 표시
-                        Text(
-                              AppConstants.appName,
-                              style: Theme.of(context).textTheme.headlineLarge
-                                  ?.copyWith(
-                                    color: splashTheme.colorScheme.onSurface,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.2,
-                                  ),
-                              textAlign: TextAlign.center,
-                            )
-                            .animate(controller: _animationController)
-                            .fadeIn(delay: const Duration(milliseconds: 150))
-                            .slideY(begin: 0.2, end: 0),
+                          // 앱 이름 표시
+                          Text(
+                                AppConstants.appName,
+                                style: Theme.of(context).textTheme.headlineLarge
+                                    ?.copyWith(
+                                      color: splashTheme.colorScheme.onSurface,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.2,
+                                    ),
+                                textAlign: TextAlign.center,
+                              )
+                              .animate(controller: _animationController)
+                              .fadeIn(delay: const Duration(milliseconds: 150))
+                              .slideY(begin: 0.2, end: 0),
 
-                        // 부제목 텍스트
-                        const SizedBox(height: 6),
-                        Text(
-                              '오늘의 마음을 부드럽게 기록해요',
-                              style: Theme.of(context).textTheme.bodyLarge
-                                  ?.copyWith(
-                                    color: AppColors.statsTextSecondary,
-                                  ),
-                              textAlign: TextAlign.center,
-                            )
-                            .animate(controller: _animationController)
-                            .fadeIn(delay: const Duration(milliseconds: 250))
-                            .slideY(begin: 0.2, end: 0),
+                          // 부제목 텍스트
+                          const SizedBox(height: 6),
+                          Text(
+                                '오늘의 마음을 부드럽게 기록해요',
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(
+                                      color: AppColors.statsTextSecondary,
+                                    ),
+                                textAlign: TextAlign.center,
+                              )
+                              .animate(controller: _animationController)
+                              .fadeIn(delay: const Duration(milliseconds: 250))
+                              .slideY(begin: 0.2, end: 0),
 
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                        // 애니메이션 로딩
-                        const LoadingIndicator(
-                              message: '마음 기록을 준비 중이에요',
-                              subMessage: '따뜻한 마음 케어를 준비하고 있어요',
-                              accentColor: AppColors.statsPrimaryDark,
-                              cardColor: AppColors.statsCardBackground,
-                              subTextColor: AppColors.statsTextTertiary,
-                            )
-                            .animate(controller: _animationController)
-                            .fadeIn(delay: const Duration(milliseconds: 400)),
+                          // 애니메이션 로딩
+                          const LoadingIndicator(
+                                message: '마음 기록을 준비 중이에요',
+                                subMessage: '따뜻한 마음 케어를 준비하고 있어요',
+                                accentColor: AppColors.statsPrimaryDark,
+                                cardColor: AppColors.statsCardBackground,
+                                subTextColor: AppColors.statsTextTertiary,
+                              )
+                              .animate(controller: _animationController)
+                              .fadeIn(delay: const Duration(milliseconds: 400)),
 
-                        // 로딩 버튼
-                        const SizedBox(height: 22),
-                        _buildStartButton(),
-                      ],
+                          // 로딩 버튼
+                          const SizedBox(height: 22),
+                          _buildStartButton(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -42,20 +43,23 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
   Widget build(BuildContext context) {
     final diaryListState = ref.watch(diaryListControllerProvider);
 
-    return Scaffold(
-      appBar: const MindlogAppBar(
-        title: HomeHeaderTitle(),
-        centerTitle: false,
-        leading: SizedBox.shrink(),
-        leadingWidth: 16,
-        actions: [_SecretDiaryEntryButton()],
+    return AccessibilityWrapper(
+      screenTitle: '일기 목록',
+      child: Scaffold(
+        appBar: const MindlogAppBar(
+          title: HomeHeaderTitle(),
+          centerTitle: false,
+          leading: SizedBox.shrink(),
+          leadingWidth: 16,
+          actions: [_SecretDiaryEntryButton()],
+        ),
+        body: diaryListState.when(
+          data: (diaries) => _buildList(diaries),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => _buildErrorState(ref),
+        ),
+        floatingActionButton: WriteFab(onPressed: () => context.goNewDiary()),
       ),
-      body: diaryListState.when(
-        data: (diaries) => _buildList(diaries),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildErrorState(ref),
-      ),
-      floatingActionButton: WriteFab(onPressed: () => context.goNewDiary()),
     );
   }
 

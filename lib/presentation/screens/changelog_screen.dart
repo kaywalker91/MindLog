@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/services/update_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
@@ -17,13 +18,16 @@ class ChangelogScreen extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final configAsync = ref.watch(updateConfigProvider);
 
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      appBar: const MindlogAppBar(title: Text('변경사항')),
-      body: configAsync.when(
-        loading: () => _buildLoadingState(context),
-        error: (_, _) => _buildErrorState(context, ref),
-        data: (config) => _buildContent(context, ref, config),
+    return AccessibilityWrapper(
+      screenTitle: '변경사항',
+      child: Scaffold(
+        backgroundColor: colorScheme.surfaceContainerLowest,
+        appBar: const MindlogAppBar(title: Text('변경사항')),
+        body: configAsync.when(
+          loading: () => _buildLoadingState(context),
+          error: (_, _) => _buildErrorState(context, ref),
+          data: (config) => _buildContent(context, ref, config),
+        ),
       ),
     );
   }

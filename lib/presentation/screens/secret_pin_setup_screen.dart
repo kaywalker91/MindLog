@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
@@ -89,27 +90,30 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      appBar: AppBar(
-        backgroundColor: colorScheme.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _isLoading ? null : _goBack,
-        ),
-        title: Text(
-          '비밀일기 PIN 설정',
-          style: AppTextStyles.appBarTitle.copyWith(
-            color: colorScheme.onSurface,
+    return AccessibilityWrapper(
+      screenTitle: 'PIN 설정',
+      child: Scaffold(
+        backgroundColor: colorScheme.surfaceContainerLowest,
+        appBar: AppBar(
+          backgroundColor: colorScheme.surface,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _isLoading ? null : _goBack,
+          ),
+          title: Text(
+            '비밀일기 PIN 설정',
+            style: AppTextStyles.appBarTitle.copyWith(
+              color: colorScheme.onSurface,
+            ),
           ),
         ),
+        body: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.statsPrimary),
+              )
+            : _buildCenteredBody(colorScheme),
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.statsPrimary),
-            )
-          : _buildCenteredBody(colorScheme),
     );
   }
 

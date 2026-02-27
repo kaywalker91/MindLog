@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../core/accessibility/app_accessibility.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/statistics_theme_tokens.dart';
 
@@ -133,9 +134,17 @@ class _DayCellState extends State<DayCell> {
                 ),
               ),
               if (hasRecord && widget.isCurrentMonth && !widget.isFuture) ...[
-                Text(emoji, style: TextStyle(fontSize: widget.emojiSize)),
+                Semantics(
+                  label: _getLabelForScore(widget.score!),
+                  excludeSemantics: true,
+                  child: Text(emoji, style: TextStyle(fontSize: widget.emojiSize)),
+                ),
               ] else if (isTodayNoRecord) ...[
-                Text('✨', style: TextStyle(fontSize: widget.emojiSize - 2)),
+                Semantics(
+                  label: '오늘',
+                  excludeSemantics: true,
+                  child: Text('✨', style: TextStyle(fontSize: widget.emojiSize - 2)),
+                ),
               ],
             ],
           ),
@@ -155,26 +164,30 @@ class _DayCellState extends State<DayCell> {
               child: content,
             );
 
-      return Tooltip(
-        message: _getTooltipMessage(),
-        decoration: BoxDecoration(
-          color: statsTokens.chartTooltipBackground,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        textStyle: TextStyle(
-          color: statsTokens.chartTooltipForeground,
-          fontSize: 12,
-        ),
-        child: GestureDetector(
-          onTapDown: reduceMotion ? null : _handleTapDown,
-          onTapUp: reduceMotion
-              ? null
-              : _handleTapUp, // scale 복귀 후 onTap 호출은 _handleTapUp 내부에서 처리하거나, 별도로 Future.delayed 사용 가능하나 여기서는 단순화
-          onTapCancel: reduceMotion ? null : _handleTapCancel,
-          onTap: reduceMotion && widget.onTap != null
-              ? () => widget.onTap!(widget.date)
-              : null, // reduceMotion일 때만 여기서 호출, 애니메이션시는 onTapUp에서 처리
-          child: animatedCell,
+      return Semantics(
+        button: true,
+        label: AppAccessibility.dateLabel(widget.date),
+        child: Tooltip(
+          message: _getTooltipMessage(),
+          decoration: BoxDecoration(
+            color: statsTokens.chartTooltipBackground,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          textStyle: TextStyle(
+            color: statsTokens.chartTooltipForeground,
+            fontSize: 12,
+          ),
+          child: GestureDetector(
+            onTapDown: reduceMotion ? null : _handleTapDown,
+            onTapUp: reduceMotion
+                ? null
+                : _handleTapUp, // scale 복귀 후 onTap 호출은 _handleTapUp 내부에서 처리하거나, 별도로 Future.delayed 사용 가능하나 여기서는 단순화
+            onTapCancel: reduceMotion ? null : _handleTapCancel,
+            onTap: reduceMotion && widget.onTap != null
+                ? () => widget.onTap!(widget.date)
+                : null, // reduceMotion일 때만 여기서 호출, 애니메이션시는 onTapUp에서 처리
+            child: animatedCell,
+          ),
         ),
       );
     }

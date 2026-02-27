@@ -277,20 +277,24 @@ class SentimentDashboard extends StatelessWidget {
         ? AppColors.warning
         : (level <= 6 ? AppColors.statsPrimary : AppColors.success);
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 16)),
-        const SizedBox(width: 8),
-        Text(
-          '에너지 레벨: $level/10 ($label)',
-          style: TextStyle(
-            fontSize: 12,
-            color: color,
-            fontWeight: FontWeight.w500,
+    return Semantics(
+      label: '에너지 레벨 $level점 중 10점, $label',
+      excludeSemantics: true,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 8),
+          Text(
+            '에너지 레벨: $level/10 ($label)',
+            style: TextStyle(
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

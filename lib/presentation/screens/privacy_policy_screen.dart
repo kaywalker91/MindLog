@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../widgets/mindlog_app_bar.dart';
@@ -51,10 +52,13 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainerLowest,
-      appBar: const MindlogAppBar(title: Text('개인정보 처리방침')),
-      body: _buildBody(context),
+    return AccessibilityWrapper(
+      screenTitle: '개인정보 처리방침',
+      child: Scaffold(
+        backgroundColor: colorScheme.surfaceContainerLowest,
+        appBar: const MindlogAppBar(title: Text('개인정보 처리방침')),
+        body: _buildBody(context),
+      ),
     );
   }
 

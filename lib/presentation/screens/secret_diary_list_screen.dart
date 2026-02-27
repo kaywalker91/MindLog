@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
@@ -30,25 +31,28 @@ class SecretDiaryListScreen extends ConsumerWidget {
 
     final secretListAsync = ref.watch(secretDiaryListProvider);
 
-    return Scaffold(
-      appBar: MindlogAppBar(
-        title: const Text('비밀일기'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.lock_outline),
-            tooltip: '잠금',
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              ref.read(secretAuthProvider.notifier).lock();
-              if (context.canPop()) context.pop();
-            },
-          ),
-        ],
-      ),
-      body: secretListAsync.when(
-        data: (diaries) => _buildBody(context, ref, diaries),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, _) => _buildErrorState(ref),
+    return AccessibilityWrapper(
+      screenTitle: '비밀일기',
+      child: Scaffold(
+        appBar: MindlogAppBar(
+          title: const Text('비밀일기'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.lock_outline),
+              tooltip: '잠금',
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                ref.read(secretAuthProvider.notifier).lock();
+                if (context.canPop()) context.pop();
+              },
+            ),
+          ],
+        ),
+        body: secretListAsync.when(
+          data: (diaries) => _buildBody(context, ref, diaries),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, _) => _buildErrorState(ref),
+        ),
       ),
     );
   }

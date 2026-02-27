@@ -73,6 +73,7 @@ Architecture: Clean Architecture (domain/data/presentation) + Riverpod state man
 - 버그 해결 완료 → `/troubleshoot-save`
 - 버그 해결 + 새 학습 포인트 → `/til-save [topic]` 추가 제안
 - context 70% → `/session-wrap`
+- 태스크 구현 완료 직후 → `/task-done [TASK-ID] [summary]` (docs/tasks.md 자동 업데이트)
 
 ### P5 Workflow Optimization (참고 제안)
 - Play Store 배포 직전 → `/release-unified [type]` 사용 권장

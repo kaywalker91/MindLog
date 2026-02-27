@@ -25,8 +25,8 @@ class MindcareWelcomeDialog extends StatelessWidget {
     final mindcareOnAccent =
         ThemeData.estimateBrightnessForColor(AppColors.mindcareAccent) ==
             Brightness.dark
-        ? Colors.white
-        : Colors.black;
+        ? colorScheme.onPrimary
+        : colorScheme.onSurface;
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),

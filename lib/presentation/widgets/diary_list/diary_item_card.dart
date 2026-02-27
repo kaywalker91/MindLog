@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import '../../../core/accessibility/app_accessibility.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../domain/entities/diary.dart';
@@ -26,11 +27,13 @@ class DiaryItemCard extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
     final cardShadowAlpha = isDark ? 0.12 : 0.05;
 
-    final dateStr = _dateFormatter.format(diary.createdAt);
     final score = diary.analysisResult?.sentimentScore;
-    final semanticsLabel = score != null
-        ? '$dateStr 일기, 감정 점수 ${score.round()}점'
-        : '$dateStr 일기';
+    final semanticsLabel = AppAccessibility.diaryItemLabel(
+      date: diary.createdAt,
+      sentimentScore: score?.round(),
+      contentPreview: diary.content,
+      keywords: diary.analysisResult?.keywords ?? [],
+    );
 
     return Semantics(
       label: semanticsLabel,

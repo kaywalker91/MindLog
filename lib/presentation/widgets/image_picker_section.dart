@@ -193,6 +193,7 @@ class _ImagePreviewTile extends StatelessWidget {
             cacheWidth: 240,
             cacheHeight: 240,
             fit: BoxFit.cover,
+            semanticLabel: '이미지 미리보기',
             errorBuilder: (context, error, stackTrace) {
               return Container(
                 color: colorScheme.surfaceContainerHighest,

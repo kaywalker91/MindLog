@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/theme/statistics_theme_tokens.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../core/services/analytics_service.dart';
@@ -40,60 +41,63 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
     final statisticsAsync = ref.watch(statisticsProvider);
     final selectedPeriod = ref.watch(selectedStatisticsPeriodProvider);
 
-    return Scaffold(
-      backgroundColor: statsTokens.pageBackground,
-      appBar: const MindlogAppBar(
-        title: Text('감정 통계'),
-        leading: SizedBox.shrink(),
-        variant: MindlogAppBarVariant.statistics,
-      ),
-      body: statisticsAsync.when(
-        loading: () => Center(
-          child: CircularProgressIndicator(color: statsTokens.primaryStrong),
+    return AccessibilityWrapper(
+      screenTitle: '감정 통계',
+      child: Scaffold(
+        backgroundColor: statsTokens.pageBackground,
+        appBar: const MindlogAppBar(
+          title: Text('감정 통계'),
+          leading: SizedBox.shrink(),
+          variant: MindlogAppBarVariant.statistics,
         ),
-        error: (error, stack) => _buildErrorState(context, ref),
-        data: (statistics) => RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(statisticsProvider);
-          },
-          color: Theme.of(context).colorScheme.primary,
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 12,
-              bottom: ResponsiveUtils.bottomSafeAreaPadding(context, extra: 32),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // [A] 요약 + 스트릭 Row
-                StatisticsSummaryRow(statistics: statistics),
-                const SizedBox(height: 16),
+        body: statisticsAsync.when(
+          loading: () => Center(
+            child: CircularProgressIndicator(color: statsTokens.primaryStrong),
+          ),
+          error: (error, stack) => _buildErrorState(context, ref),
+          data: (statistics) => RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(statisticsProvider);
+            },
+            color: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 12,
+                bottom: ResponsiveUtils.bottomSafeAreaPadding(context, extra: 32),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // [A] 요약 + 스트릭 Row
+                  StatisticsSummaryRow(statistics: statistics),
+                  const SizedBox(height: 16),
 
-                // [B] 히트맵 카드 (기간 필터 포함)
-                StatisticsHeatmapCard(
-                  statistics: statistics,
-                  selectedPeriod: selectedPeriod,
-                ),
-                const SizedBox(height: 16),
+                  // [B] 히트맵 카드 (기간 필터 포함)
+                  StatisticsHeatmapCard(
+                    statistics: statistics,
+                    selectedPeriod: selectedPeriod,
+                  ),
+                  const SizedBox(height: 16),
 
-                // [C] 감정 추이 차트
-                StatisticsChartCard(
-                  statistics: statistics,
-                  selectedPeriod: selectedPeriod,
-                ),
-                const SizedBox(height: 16),
+                  // [C] 감정 추이 차트
+                  StatisticsChartCard(
+                    statistics: statistics,
+                    selectedPeriod: selectedPeriod,
+                  ),
+                  const SizedBox(height: 16),
 
-                // [D] 자주 느낀 감정
-                StatisticsKeywordCard(
-                  statistics: statistics,
-                  selectedPeriod: selectedPeriod,
-                ),
-                const SizedBox(height: 32),
-              ],
+                  // [D] 자주 느낀 감정
+                  StatisticsKeywordCard(
+                    statistics: statistics,
+                    selectedPeriod: selectedPeriod,
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         ),

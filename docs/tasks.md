@@ -1,7 +1,7 @@
 # MindLog 태스크 추적 (tasks.md)
 
-**최종 업데이트**: 2026-02-24 (TASK-UI-010~012 완료)
-**현재 버전**: v1.4.46
+**최종 업데이트**: 2026-02-27 (TASK-A11Y-001~009 완료, Sprint 1+2)
+**현재 버전**: v1.4.48
 
 > SDD 워크플로우 포맷: `TASK-XXX (REQ-YYY): 설명`
 > 새 태스크는 이 파일에 추가 후 코드 작성 시작.
@@ -90,18 +90,52 @@ _현재 없음_
 
 #### Sprint 1 — High 우선순위 (2~3시간)
 
-- [ ] **TASK-A11Y-001** (REQ-093): `tappable_card.dart` — GestureDetector Semantics 래핑
-- [ ] **TASK-A11Y-002** (REQ-093): `day_cell.dart` — 날짜 셀 + 이모지(🌱🌿🌷) 레이블 추가
-- [ ] **TASK-A11Y-003** (REQ-093): `sentiment_dashboard.dart` — 에너지 이모지(🔋⚡💪) Semantics
-- [ ] **TASK-A11Y-004** (REQ-093): 이미지 위젯 5개 `semanticLabel` 추가 (diary_image_gallery 등)
-- [ ] **TASK-A11Y-005** (REQ-093): IconButton Semantics 3개 (삭제, 비밀일기, 이전/다음달 버튼)
+- [x] **TASK-A11Y-001** (REQ-093): `tappable_card.dart` — GestureDetector Semantics 래핑
+  - 완료: v1.4.48 (2026-02-27)
+  - 파일: `lib/presentation/widgets/common/tappable_card.dart`
+  - 추가: Semantics(button:true) 래핑으로 스크린리더 버튼 인식
+
+- [x] **TASK-A11Y-002** (REQ-093): `day_cell.dart` — 날짜 셀 + 이모지(🌱🌿🌷) 레이블 추가
+  - 완료: v1.4.48 (2026-02-27)
+  - 파일: `lib/presentation/widgets/emotion_calendar/day_cell.dart`
+  - 추가: 날짜 버튼 semantics + 이모지 excludeSemantics
+
+- [x] **TASK-A11Y-003** (REQ-093): `sentiment_dashboard.dart` — 에너지 이모지(🔋⚡💪) Semantics
+  - 완료: v1.4.48 (2026-02-27)
+  - 파일: `lib/presentation/widgets/result_card/sentiment_dashboard.dart`
+  - 추가: 에너지 레벨 Semantics(label) 래핑
+
+- [x] **TASK-A11Y-004** (REQ-093): 이미지 위젯 5개 `semanticLabel` 추가 (diary_image_gallery 등)
+  - 완료: v1.4.48 (2026-02-27)
+  - 파일: `lib/presentation/widgets/diary_image_gallery.dart`, `lib/presentation/widgets/image_picker_section.dart`, `lib/presentation/widgets/result_card/character_banner.dart`
+  - 추가: 이미지 5개 semanticLabel 추가
+
+- [x] **TASK-A11Y-005** (REQ-093): IconButton Semantics 3개 (삭제, 비밀일기, 이전/다음달 버튼)
+  - 완료: v1.4.48 (2026-02-27)
+  - 파일: `lib/presentation/widgets/emotion_calendar/calendar_header.dart`
+  - 추가: prev/next 달 이동 버튼 tooltip 추가
 
 #### Sprint 2 — Medium 우선순위 (1일)
 
-- [ ] **TASK-A11Y-006** (REQ-093): `fullscreen_image_viewer.dart` — 하드코딩 색상 8건 theme-aware 전환
-- [ ] **TASK-A11Y-007** (REQ-093): 다이얼로그 하드코딩 색상 (mindcare_welcome, weekly_insight_guide, activity_heatmap)
-- [ ] **TASK-A11Y-008** (REQ-093): `diary_item_card.dart` — `AppAccessibility.diaryItemLabel()` 유틸 도입
-- [ ] **TASK-A11Y-009** (REQ-093): 14개 화면 `AccessibilityWrapper` 추가 (screenTitle Semantics)
+- [x] **TASK-A11Y-006** (REQ-093): `fullscreen_image_viewer.dart` — 하드코딩 색상 8건 theme-aware 전환
+  - 완료: v1.4.48 (2026-02-27)
+  - 파일: `lib/presentation/widgets/fullscreen_image_viewer.dart`
+  - 추가: scrim/shadow/onSurface/onSurfaceVariant/surfaceContainerLowest theme-aware 전환
+
+- [x] **TASK-A11Y-007** (REQ-093): 다이얼로그 하드코딩 색상 (mindcare_welcome, weekly_insight_guide, activity_heatmap)
+  - 완료: v1.4.48 (2026-02-27)
+  - 파일: `lib/presentation/widgets/mindcare_welcome_dialog.dart`, `lib/presentation/widgets/weekly_insight_guide_dialog.dart`, `lib/presentation/widgets/activity_heatmap.dart`
+  - 추가: Colors.white/black → colorScheme.onPrimary/onSurface; Color.lerp(Colors.white) → colorScheme.surface
+
+- [x] **TASK-A11Y-008** (REQ-093): `diary_item_card.dart` — `AppAccessibility.diaryItemLabel()` 유틸 도입
+  - 완료: v1.4.48 (2026-02-27)
+  - 파일: `lib/presentation/widgets/diary_list/diary_item_card.dart`
+  - 추가: AppAccessibility.diaryItemLabel() (date/sentimentScore/contentPreview/keywords)
+
+- [x] **TASK-A11Y-009** (REQ-093): 14개 화면 `AccessibilityWrapper` 추가 (screenTitle Semantics)
+  - 완료: v1.4.48 (2026-02-27)
+  - 파일: `lib/presentation/screens/` 전체 14개 화면
+  - 추가: AccessibilityWrapper(screenTitle: '...') 래핑 (모든 Scaffold 루트)
 
 ### Phase 4: 마이크로인터랙션 (Polish)
 

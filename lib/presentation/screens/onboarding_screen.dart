@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
@@ -111,85 +112,88 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      backgroundColor: AppColors.statsBackground,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // 건너뛰기 버튼
-            Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextButton(
-                  onPressed: _skipOnboarding,
-                  child: Text(
-                    '건너뛰기',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
+    return AccessibilityWrapper(
+      screenTitle: '온보딩',
+      child: Scaffold(
+        backgroundColor: AppColors.statsBackground,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // 건너뛰기 버튼
+              Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextButton(
+                    onPressed: _skipOnboarding,
+                    child: Text(
+                      '건너뛰기',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
 
-            // 페이지 콘텐츠
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: _onPageChanged,
-                itemCount: _pages.length,
-                itemBuilder: (context, index) {
-                  return _buildPage(_pages[index], index);
-                },
+              // 페이지 콘텐츠
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: _onPageChanged,
+                  itemCount: _pages.length,
+                  itemBuilder: (context, index) {
+                    return _buildPage(_pages[index], index);
+                  },
+                ),
               ),
-            ),
 
-            // 하단 인디케이터 및 버튼
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-              child: Column(
-                children: [
-                  // 페이지 인디케이터
-                  SmoothPageIndicator(
-                    controller: _pageController,
-                    count: _pages.length,
-                    effect: WormEffect(
-                      dotWidth: 10,
-                      dotHeight: 10,
-                      spacing: 12,
-                      dotColor: colorScheme.surfaceContainerHighest,
-                      activeDotColor: AppColors.statsPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // 다음/시작하기 버튼
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: _goToNextPage,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.statsPrimary,
-                        foregroundColor: colorScheme.onPrimary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Text(
-                        _currentPage < _pages.length - 1 ? '다음' : '시작하기',
-                        style: AppTextStyles.button.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
+              // 하단 인디케이터 및 버튼
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                child: Column(
+                  children: [
+                    // 페이지 인디케이터
+                    SmoothPageIndicator(
+                      controller: _pageController,
+                      count: _pages.length,
+                      effect: WormEffect(
+                        dotWidth: 10,
+                        dotHeight: 10,
+                        spacing: 12,
+                        dotColor: colorScheme.surfaceContainerHighest,
+                        activeDotColor: AppColors.statsPrimary,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 32),
+
+                    // 다음/시작하기 버튼
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: _goToNextPage,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.statsPrimary,
+                          foregroundColor: colorScheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          _currentPage < _pages.length - 1 ? '다음' : '시작하기',
+                          style: AppTextStyles.button.copyWith(
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

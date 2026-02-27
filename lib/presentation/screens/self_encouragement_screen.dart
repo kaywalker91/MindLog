@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/constants/notification_messages.dart';
 import '../../domain/entities/self_encouragement_message.dart';
 import '../providers/providers.dart';
@@ -27,49 +28,52 @@ class SelfEncouragementScreen extends ConsumerWidget {
     final colorScheme = theme.colorScheme;
     final messagesAsync = ref.watch(selfEncouragementProvider);
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Cheer Me'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: messagesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: colorScheme.error),
-              const SizedBox(height: 16),
-              Text('메시지를 불러올 수 없습니다', style: theme.textTheme.bodyLarge),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => ref.invalidate(selfEncouragementProvider),
-                child: const Text('다시 시도'),
-              ),
-            ],
+    return AccessibilityWrapper(
+      screenTitle: 'Cheer Me',
+      child: Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          title: const Text('Cheer Me'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
           ),
         ),
-        data: (messages) =>
-            _MessageList(messages: messages, hintShownKey: _hintShownKey),
-      ),
-      // FAB는 메시지가 1개 이상일 때만 표시 (Empty State에서는 중앙 버튼만 사용)
-      floatingActionButton: messagesAsync.maybeWhen(
-        data: (messages) =>
-            messages.isNotEmpty &&
-                messages.length < SelfEncouragementMessage.maxMessageCount
-            ? FloatingActionButton.extended(
-                onPressed: () => _showAddDialog(context, ref),
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-                icon: const Icon(Icons.add),
-                label: Text('메시지 추가 (${messages.length}/10)'),
-              )
-            : null,
-        orElse: () => null,
+        body: messagesAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+                const SizedBox(height: 16),
+                Text('메시지를 불러올 수 없습니다', style: theme.textTheme.bodyLarge),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => ref.invalidate(selfEncouragementProvider),
+                  child: const Text('다시 시도'),
+                ),
+              ],
+            ),
+          ),
+          data: (messages) =>
+              _MessageList(messages: messages, hintShownKey: _hintShownKey),
+        ),
+        // FAB는 메시지가 1개 이상일 때만 표시 (Empty State에서는 중앙 버튼만 사용)
+        floatingActionButton: messagesAsync.maybeWhen(
+          data: (messages) =>
+              messages.isNotEmpty &&
+                  messages.length < SelfEncouragementMessage.maxMessageCount
+              ? FloatingActionButton.extended(
+                  onPressed: () => _showAddDialog(context, ref),
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
+                  icon: const Icon(Icons.add),
+                  label: Text('메시지 추가 (${messages.length}/10)'),
+                )
+              : null,
+          orElse: () => null,
+        ),
       ),
     );
   }

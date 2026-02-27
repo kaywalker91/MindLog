@@ -23,41 +23,44 @@ class _TappableCardState extends State<TappableCard> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        HapticFeedback.lightImpact();
-        setState(() => _isPressed = true);
-      },
-      onTapUp: (_) {
-        setState(() => _isPressed = false);
-        widget.onTap();
-      },
-      onTapCancel: () => setState(() => _isPressed = false),
-      onLongPress: widget.onLongPress != null
-          ? () {
-              HapticFeedback.mediumImpact();
-              widget.onLongPress!();
-            }
-          : null,
-      child: AnimatedScale(
-        scale: _isPressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTapDown: (_) {
+          HapticFeedback.lightImpact();
+          setState(() => _isPressed = true);
+        },
+        onTapUp: (_) {
+          setState(() => _isPressed = false);
+          widget.onTap();
+        },
+        onTapCancel: () => setState(() => _isPressed = false),
+        onLongPress: widget.onLongPress != null
+            ? () {
+                HapticFeedback.mediumImpact();
+                widget.onLongPress!();
+              }
+            : null,
+        child: AnimatedScale(
+          scale: _isPressed ? 0.97 : 1.0,
           duration: const Duration(milliseconds: 100),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).colorScheme.shadow.withValues(
-                  alpha: _isPressed ? 0.02 : 0.05,
+          curve: Curves.easeOut,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 100),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).colorScheme.shadow.withValues(
+                    alpha: _isPressed ? 0.02 : 0.05,
+                  ),
+                  blurRadius: _isPressed ? 4 : 10,
+                  offset: Offset(0, _isPressed ? 2 : 4),
                 ),
-                blurRadius: _isPressed ? 4 : 10,
-                offset: Offset(0, _isPressed ? 2 : 4),
-              ),
-            ],
+              ],
+            ),
+            child: widget.child,
           ),
-          child: widget.child,
         ),
       ),
     );

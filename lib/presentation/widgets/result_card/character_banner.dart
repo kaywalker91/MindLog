@@ -33,6 +33,7 @@ class CharacterBanner extends StatelessWidget {
               cacheWidth: 132,
               cacheHeight: 132,
               fit: BoxFit.cover,
+              semanticLabel: '${character.displayName} 캐릭터',
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   width: 44,

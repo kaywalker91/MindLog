@@ -36,7 +36,7 @@ class FullscreenImageViewer extends StatefulWidget {
     return Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
-        barrierColor: Colors.black87,
+        barrierColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.87),
         barrierDismissible: true,
         pageBuilder: (context, animation, secondaryAnimation) {
           return FullscreenImageViewer(
@@ -83,6 +83,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: GestureDetector(
@@ -129,11 +130,11 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
                 onPressed: () => context.pop(),
                 icon: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Colors.black54,
+                  decoration: BoxDecoration(
+                    color: colorScheme.shadow,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.close, color: Colors.white, size: 24),
+                  child: Icon(Icons.close, color: colorScheme.onSurface, size: 24),
                 ),
               ),
             ),
@@ -166,13 +167,13 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black54,
+                      color: colorScheme.shadow,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
                       '${_currentIndex + 1} / ${widget.imagePaths.length}',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -190,23 +191,25 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
     return Image.file(
       File(imagePath),
       fit: BoxFit.contain,
+      semanticLabel: '확대 보기 이미지',
       errorBuilder: (context, error, stackTrace) {
+        final cs = Theme.of(context).colorScheme;
         return Container(
           width: 200,
           height: 200,
-          color: Colors.grey[900],
+          color: cs.surfaceContainerLowest,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.broken_image_outlined,
                 size: 48,
-                color: Colors.grey[600],
+                color: cs.onSurfaceVariant,
               ),
               const SizedBox(height: 8),
               Text(
                 '이미지를 불러올 수 없습니다',
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14),
               ),
             ],
           ),
@@ -225,7 +228,7 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
       decoration: BoxDecoration(
         color: isActive
             ? AppColors.statsPrimary
-            : Colors.white.withValues(alpha: 0.5),
+            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(4),
       ),
     );
