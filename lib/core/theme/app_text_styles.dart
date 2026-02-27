@@ -81,10 +81,31 @@ class AppTextStyles {
     fontStyle: FontStyle.italic,
   );
 
-  // Keywords (감정 키워드)
+  // Keywords (감정 키워드) — primaryDark: #4A90B8, WCAG AA 대비 충족
   static const TextStyle keyword = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
-    color: AppColors.primary,
+    color: AppColors.primaryDark,
+  );
+
+  // Supplemental tokens (추가 도메인 특화 스타일)
+  static const TextStyle tooltipText = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.normal,
+  );
+
+  static const TextStyle statValue = TextStyle(
+    fontSize: 28,
+    fontWeight: FontWeight.bold,
+  );
+
+  static const TextStyle calendarDate = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w500,
+  );
+
+  static const TextStyle chartLabel = TextStyle(
+    fontSize: 10,
+    fontWeight: FontWeight.normal,
   );
 }

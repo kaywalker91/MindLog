@@ -49,6 +49,8 @@ linter:
     avoid_dynamic_calls: true
     prefer_typing_uninitialized_variables: true
 
+    unnecessary_new: true
+
     # ===== 가독성 =====
     curly_braces_in_flow_control_structures: true
     prefer_adjacent_string_concatenation: true

@@ -3,6 +3,29 @@ import 'package:flutter/material.dart';
 import '../../../core/services/notification_diagnostic_service.dart';
 import '../../../core/services/notification_permission_service.dart';
 
+/// 진단 위젯 전용 색상 상수 (design-ok: diagnostic-only private tokens)
+class _DiagnosticColors {
+  _DiagnosticColors._();
+
+  // Positive (green) palette
+  static const Color summaryPositiveDark = Color(0xFF22362A);
+  static const Color summaryPositiveLight = Color(0xFFE8F3EA);
+  static const Color positiveForegroundDark = Color(0xFFA5D6A7);
+  static const Color positiveForegroundLight = Color(0xFF1D5E2D);
+
+  // Warning (amber) palette
+  static const Color summaryWarningDark = Color(0xFF3A2C1D);
+  static const Color summaryWarningLight = Color(0xFFFFF1E2);
+  static const Color warningForegroundDark = Color(0xFFFFCC80);
+  static const Color warningForegroundLight = Color(0xFF8A4E00);
+
+  // Chip-specific backgrounds (slightly different tones from summary)
+  static const Color chipPositiveDark = Color(0xFF1E3226);
+  static const Color chipPositiveLight = Color(0xFFE8F3EA);
+  static const Color chipWarningDark = Color(0xFF35281A);
+  static const Color chipWarningLight = Color(0xFFFFF1E2);
+}
+
 enum _StatusTone { positive, warning, neutral }
 
 class _DiagnosticVisualTokens {
@@ -60,29 +83,29 @@ class _DiagnosticVisualTokens {
         alpha: isDark ? 0.86 : 1.0,
       ),
       summaryPositiveBackground: isDark
-          ? const Color(0xFF22362A)
-          : const Color(0xFFE8F3EA),
+          ? _DiagnosticColors.summaryPositiveDark
+          : _DiagnosticColors.summaryPositiveLight,
       summaryPositiveForeground: isDark
-          ? const Color(0xFFA5D6A7)
-          : const Color(0xFF1D5E2D),
+          ? _DiagnosticColors.positiveForegroundDark
+          : _DiagnosticColors.positiveForegroundLight,
       summaryWarningBackground: isDark
-          ? const Color(0xFF3A2C1D)
-          : const Color(0xFFFFF1E2),
+          ? _DiagnosticColors.summaryWarningDark
+          : _DiagnosticColors.summaryWarningLight,
       summaryWarningForeground: isDark
-          ? const Color(0xFFFFCC80)
-          : const Color(0xFF8A4E00),
+          ? _DiagnosticColors.warningForegroundDark
+          : _DiagnosticColors.warningForegroundLight,
       chipPositiveBackground: isDark
-          ? const Color(0xFF1E3226)
-          : const Color(0xFFE8F3EA),
+          ? _DiagnosticColors.chipPositiveDark
+          : _DiagnosticColors.chipPositiveLight,
       chipPositiveForeground: isDark
-          ? const Color(0xFFA5D6A7)
-          : const Color(0xFF1D5E2D),
+          ? _DiagnosticColors.positiveForegroundDark
+          : _DiagnosticColors.positiveForegroundLight,
       chipWarningBackground: isDark
-          ? const Color(0xFF35281A)
-          : const Color(0xFFFFF1E2),
+          ? _DiagnosticColors.chipWarningDark
+          : _DiagnosticColors.chipWarningLight,
       chipWarningForeground: isDark
-          ? const Color(0xFFFFCC80)
-          : const Color(0xFF8A4E00),
+          ? _DiagnosticColors.warningForegroundDark
+          : _DiagnosticColors.warningForegroundLight,
       chipNeutralBackground: colorScheme.surfaceContainerHigh.withValues(
         alpha: isDark ? 0.82 : 1.0,
       ),

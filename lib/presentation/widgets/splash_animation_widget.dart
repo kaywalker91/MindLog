@@ -75,7 +75,7 @@ class _SplashAnimationWidgetState extends State<SplashAnimationWidget>
                 ],
               ),
               child: Center(
-                child: AppIcons.getSvgIcon(size: 80, color: Colors.white)
+                child: AppIcons.getSvgIcon(size: 80, color: AppTheme.onDarkSurface) // design-ok: icon on primary bg
                     .animate(controller: _controller)
                     .scaleX(
                       begin: 0.8,

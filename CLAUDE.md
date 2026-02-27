@@ -69,6 +69,7 @@ Architecture: Clean Architecture (domain/data/presentation) + Riverpod state man
 ### P3 Quality Enforcement (강하게 제안)
 - 새 UseCase/Repository 클래스 생성 → `/test-unit-gen [파일]` 제안 (TDD RED phase)
 - `Colors.*` 또는 `Color(0x...)` 하드코딩 감지 → `/color-migrate [파일]` 제안
+- UI 파일 수정 후 → `/design-audit lib/presentation/` 현황 확인 권장
 
 ### P4 Knowledge Capture (제안)
 - 버그 해결 완료 → `/troubleshoot-save`

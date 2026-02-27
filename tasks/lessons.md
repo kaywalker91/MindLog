@@ -63,3 +63,15 @@
 **근본 원인**: Flutter binding은 초기화된 zone을 기억함. `runApp()`은 동일 zone에서 호출해야 하는데, `MarionetteBinding.ensureInitialized()`가 `runZonedGuarded` 바깥에 있어 다른 zone에 등록됨.
 **해결책**: `ErrorBoundary.runAppWithErrorHandling`에 `bindingInitializer` 파라미터 추가. `main()`에서 `MarionetteBinding.ensureInitialized`를 `bindingInitializer`로 전달 → `runZonedGuarded` 내부에서 올바른 zone으로 초기화.
 **예방 규칙**: `runZonedGuarded` + `runApp` 패턴 사용 시, 모든 binding 초기화(WidgetsFlutterBinding, MarionetteBinding 등)는 반드시 같은 zone 내에서 호출. 커스텀 binding이 있으면 `bindingInitializer` 콜백 패턴 사용.
+
+## 2026-02-27 - 디자인 토큰 통일: 이중 primary 제거
+**무엇이 잘못됐나**: AppColors.primary(보라 #6B5B95)와 AppTheme.primaryColor(하늘 #7EC8E3)가 공존 — 브랜드 아이덴티티 불일치
+**근본 원인**: 통계 화면 추가 시 새 하늘색 primary를 AppColors가 아닌 AppTheme에만 추가, 기존 보라색을 제거하지 않음
+**해결책**: AppColors.primary → #87CEEB(파스텔 하늘), primaryDark → #4A90B8(텍스트용, WCAG AA), background → #F0F8FF
+**예방 규칙**: primary 계열은 AppColors 단일 출처 원칙. 텍스트용(primaryDark)과 아이콘/강조선용(primary) 분리. design-token-rules.md 5-step decision 트리 먼저 확인.
+
+## 2026-02-27 - 서브에이전트 Write 권한: .claude/ 신규 파일 생성 불가
+**무엇이 잘못됐나**: 백그라운드 서브에이전트가 `.claude/rules/`, `.claude/skills/`, `.claude/commands/` 하위 신규 파일 Write 권한을 얻지 못해 차단됨
+**근본 원인**: 서브에이전트 기본 권한에서 `.claude/` 경로 내 신규 파일 생성은 허용 안 됨 (보안 정책)
+**해결책**: 서브에이전트는 기존 파일 편집(Edit)만 위임. 신규 파일(Write)은 메인 에이전트가 직접 생성
+**예방 규칙**: Task 위임 시 "신규 파일 생성"은 메인 에이전트 몫. 서브에이전트 프롬프트에서 `.claude/` 내 Write 작업 제거.

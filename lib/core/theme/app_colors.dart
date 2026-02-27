@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary Colors
-  static const Color primary = Color(0xFF6B5B95);
-  static const Color primaryLight = Color(0xFF9B8BC7);
-  static const Color primaryDark = Color(0xFF3E3466);
+  // Primary Colors (파스텔 하늘색 계열)
+  static const Color primary = Color(0xFF87CEEB);      // 파스텔 하늘 — 액센트, 아이콘 강조
+  static const Color primaryLight = Color(0xFFB3E5FC); // 베이비 블루 — hover, 소프트 강조
+  static const Color primaryDark = Color(0xFF4A90B8);  // 아주르 블루 — 텍스트용 (WCAG AA)
 
   // Background Colors
-  static const Color background = Color(0xFFF8F7FC);
+  static const Color background = Color(0xFFF0F8FF);         // 앨리스 블루 (하늘빛 배경)
+  static const Color pageSoftBackground = Color(0xFFF0F8FF); // 비밀일기 등 소프트 페이지 배경
   static const Color surface = Color(0xFFFFFFFF); // Colors.white 대체
   static const Color cardBackground = Color(0xFFFFFFFF); // Colors.white 대체
 

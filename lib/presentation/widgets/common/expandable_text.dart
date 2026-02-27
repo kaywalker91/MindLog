@@ -140,16 +140,17 @@ class _ExpandableTextState extends State<ExpandableText> {
     }
 
     // 그라데이션 페이드 효과 적용
+    // design-ok: alpha mask uses BlendMode.dstIn — white is alpha channel, not surface color
     return ShaderMask(
-      shaderCallback: (bounds) => LinearGradient(
+      shaderCallback: (bounds) => const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Colors.white,
-          Colors.white,
-          Colors.white.withValues(alpha: 0.0),
+          Color(0xFFFFFFFF), // design-ok: alpha mask (BlendMode.dstIn)
+          Color(0xFFFFFFFF), // design-ok: alpha mask (BlendMode.dstIn)
+          Color(0x00FFFFFF), // design-ok: alpha mask (BlendMode.dstIn)
         ],
-        stops: const [0.0, 0.7, 1.0],
+        stops: [0.0, 0.7, 1.0],
       ).createShader(bounds),
       blendMode: BlendMode.dstIn,
       child: textWidget,

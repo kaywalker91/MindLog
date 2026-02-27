@@ -76,4 +76,5 @@ Skills in `.claude/skills/`. Read skill file on invocation. Workflows: `skill-wo
 | `/notification-audit [path]` | notification-audit.md |
 | `/l10n-manager [action]` | l10n-manager.md |
 | `/a11y-audit [path]` | a11y-audit.md |
+| `/design-audit [path]` | design-audit.md |
 | `/new-skill <name>` | new-skill.md |

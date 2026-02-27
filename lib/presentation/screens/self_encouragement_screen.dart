@@ -329,7 +329,7 @@ class _DragHintOverlay extends StatelessWidget {
     return GestureDetector(
       onTap: onDismiss,
       child: Container(
-        color: Colors.black.withValues(alpha: 0.5),
+        color: colorScheme.scrim.withValues(alpha: 0.5),
         child: Center(
           child: Container(
             margin: const EdgeInsets.all(32),

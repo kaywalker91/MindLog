@@ -237,13 +237,17 @@ case "$1" in
     quality)
         echo -e "${GREEN}Running full quality gates...${NC}"
         echo ""
-        echo -e "${YELLOW}Step 1/3: Static analysis${NC}"
+        echo -e "${YELLOW}Step 1/4: Static analysis${NC}"
         flutter analyze --fatal-infos || exit 1
         echo ""
-        echo -e "${YELLOW}Step 2/3: Format check${NC}"
+        echo -e "${YELLOW}Step 2/4: Format check${NC}"
         dart format --set-exit-if-changed . || exit 1
         echo ""
-        echo -e "${YELLOW}Step 3/3: Tests${NC}"
+        echo -e "${YELLOW}Step 3/4: Design audit${NC}"
+        SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+        bash "$SCRIPT_DIR/design-audit.sh" lib/presentation/ || exit 1
+        echo ""
+        echo -e "${YELLOW}Step 4/4: Tests${NC}"
         flutter test --coverage || exit 1
         echo ""
         echo -e "${GREEN}✓ All quality gates passed${NC}"
@@ -288,7 +292,7 @@ case "$1" in
         echo "  lint            Run static analysis (flutter analyze)"
         echo "  format          Format all Dart code"
         echo "  format-check    Check code formatting without changes"
-        echo "  quality         Run full quality gates (lint + format + test)"
+        echo "  quality         Run full quality gates (lint + format + design-audit + test)"
         echo "  clean           Clean and reinstall dependencies"
         echo "  deps            Install dependencies (flutter pub get)"
         echo "  outdated        Check for outdated packages"
