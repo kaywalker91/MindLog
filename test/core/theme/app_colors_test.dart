@@ -121,13 +121,13 @@ void main() {
 
     group('상수 정의 검증', () {
       test('Primary 색상이 올바르게 정의되어야 한다', () {
-        expect(AppColors.primary, const Color(0xFF6B5B95));
-        expect(AppColors.primaryLight, const Color(0xFF9B8BC7));
-        expect(AppColors.primaryDark, const Color(0xFF3E3466));
+        expect(AppColors.primary, const Color(0xFF87CEEB));
+        expect(AppColors.primaryLight, const Color(0xFFB3E5FC));
+        expect(AppColors.primaryDark, const Color(0xFF4A90B8));
       });
 
       test('Background 색상이 올바르게 정의되어야 한다', () {
-        expect(AppColors.background, const Color(0xFFF8F7FC));
+        expect(AppColors.background, const Color(0xFFF0F8FF));
         expect(AppColors.surface, Colors.white);
       });
 
