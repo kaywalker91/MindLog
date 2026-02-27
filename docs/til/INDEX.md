@@ -2,7 +2,7 @@
 
 **생성일**: 2026-01-21
 **주제**: Groq Vision API 통합 학습 자료
-**총 5개 문서 / ~13,500 단어**
+**총 10개 문서 / ~17,000 단어**
 
 ---
 
@@ -19,7 +19,8 @@ docs/til/
 ├── FCM_IDEMPOTENCY_LOCK.md             [FCM 중복 발송 방지 Pre-lock 패턴]
 ├── FIREBASE_CLI_EXTENSIONS_BUG.md      [Firebase CLI Extensions API 403 버그 패치]
 ├── FLUTTER_TESTING_STATIC_OVERRIDE_PATTERN_TIL.md [플랫폼 서비스 정적 오버라이드 패턴]
-└── TROUBLESHOOTING_SYSTEM_CLASSIFICATION_TIL.md [3-System 지식 분류 프레임워크]
+├── TROUBLESHOOTING_SYSTEM_CLASSIFICATION_TIL.md [3-System 지식 분류 프레임워크]
+└── COLOR_SYSTEM.md                              [MindLog 컬러 시스템 4-팔레트 레퍼런스]
 ```
 
 ---
@@ -356,6 +357,114 @@ iOS 이해: 핵심 학습 3 (5분)
 
 ---
 
+## 8️⃣ FLUTTER_TESTING_STATIC_OVERRIDE_PATTERN_TIL.md
+
+**길이**: ~600 단어
+**난이도**: 중급
+**소요 시간**: 10분
+
+### 주요 내용
+
+**1장. 문제: CI 로그 노이즈 (Side Effect Leakage)**
+- `LateInitializationError`, `UnknownFailure` 로그가 CI에 반복 출력 (테스트는 통과)
+- 위젯 탭 → Controller → UseCase → 실제 플랫폼 서비스 체인 호출
+
+**2장. 해결책: `@visibleForTesting static Function? override` 패턴**
+- `EmotionTrendNotificationService` (1개 오버라이드)
+- `NotificationSettingsService` (9개 오버라이드)
+- setUp/tearDown에서 `resetForTesting()` 필수
+
+**3장. 핵심 교훈**
+- 로그 노이즈도 실패다
+- `resetForTesting()`은 반드시 tearDown에 (leak 방지)
+- 스택 트레이스 전체 추적 (표면 메시지 아닌 원인)
+
+### 대상 독자
+- 플랫폼 서비스를 사용하는 위젯 테스트 작성자
+- CI 로그 노이즈 원인을 추적하는 개발자
+
+### 빠른 네비게이션
+```
+문제 이해: 문제 섹션 (3분)
+코드 적용: EmotionTrend 오버라이드 (2분) / NotificationSettings 오버라이드 (5분)
+```
+
+---
+
+## 9️⃣ TROUBLESHOOTING_SYSTEM_CLASSIFICATION_TIL.md
+
+**길이**: ~500 단어
+**난이도**: 초급
+**소요 시간**: 10분
+
+### 주요 내용
+
+**1장. 문제: 3-System 드리프트**
+- troubleshooting.json / docs/til/ / tasks/lessons.md 역할 경계 불명확
+- 정보가 한 곳에만 기록되고 나머지 누락
+
+**2장. 핵심 학습: 3-System 분류 원칙**
+- troubleshooting.json: 프로덕션 버그 검색 가이드 (외부 개발자 대상)
+- docs/til/: 재현 가능 기술 HOW-TO (내부 개발자)
+- tasks/lessons.md: AI 자기 수정 교훈 (Claude 전용)
+
+**3장. 판단 트리 (Decision Tree)**
+- 프로덕션 영향 → troubleshooting.json + lessons.md
+- dev-time 패턴 → docs/til/ + lessons.md
+- Claude 내부 실수 → lessons.md only
+
+**4장. 자동화 연결 포인트**
+- `/debug` pre-check, `continuous-improvement.md` 트리거, `/session-wrap` Step 5
+
+### 대상 독자
+- MindLog 지식 관리 시스템을 이해하려는 개발자
+- 버그 기록 후 어디에 넣어야 할지 헷갈리는 개발자
+
+### 빠른 네비게이션
+```
+분류 기준만: 3-System 표 + 판단 트리 (3분)
+자동화 연결: 자동화 연결 포인트 섹션 (3분)
+```
+
+---
+
+## 🔟 COLOR_SYSTEM.md
+
+**길이**: ~800 단어
+**난이도**: 초급~중급
+**소요 시간**: 10분
+
+### 주요 내용
+
+**1장. 4개 팔레트 역할 및 범위**
+- `AppColors` — 앱 전역 기본 팔레트 (`lib/core/theme/app_colors.dart`)
+- `StatisticsThemeTokens` — 통계 화면 전용 `ThemeExtension` (라이트/다크 완전 분리)
+- `HealingColorSchemes` — Cheer Me 모달 전용 `ColorScheme` (라이트 전용, 개선 필요)
+- `CheerMeSectionPalette` — Cheer Me 섹션별 컬러 세부 관리
+
+**2장. 팔레트 간 관계도**
+- AppColors(전역) → StatisticsThemeTokens(통계) / HealingColorSchemes(모달) / CheerMeSectionPalette(섹션)
+
+**3장. 신규 기능 개발 시 팔레트 선택 기준**
+- 전역 공통 → AppColors / 화면 전용 라이트·다크 → ThemeExtension 신규 생성
+- 모달 전용 → HealingColorSchemes / 다크 변형 → `*Dark` suffix 또는 ThemeExtension 전환
+
+**4장. 다크 모드 대응 현황 (2026-02-24)**
+- ✅ StatisticsThemeTokens, textTheme / ⚠️ HealingColorSchemes (라이트 전용) / ❌ AppColors, CheerMeSectionPalette (Phase 2 마이그레이션 대상)
+
+### 대상 독자
+- 새 화면/위젯에 색상을 추가해야 하는 개발자
+- 다크 모드 대응 시 어떤 팔레트를 써야 할지 결정해야 하는 개발자
+
+### 빠른 네비게이션
+```
+팔레트 선택: 3장 선택 기준 표 (2분)
+다크 모드 현황: 4장 (2분)
+전체 이해: 1~4장 (10분)
+```
+
+---
+
 ## 🎯 사용 시나리오별 가이드
 
 ### 시나리오 1: "Vision API가 뭔가요?"
@@ -438,6 +547,11 @@ iOS 이해: 핵심 학습 3 (5분)
 **소요시간**: 10분
 **내용**: 3-System 분류 원칙 (troubleshooting.json / docs/til/ / lessons.md), 판단 트리, 자동화 연결 포인트
 
+### 시나리오 17: "새 화면에 색상을 추가할 때 어떤 팔레트를 써야 하나요?"
+**추천**: COLOR_SYSTEM.md 3장 선택 기준 표
+**소요시간**: 5분
+**내용**: AppColors vs ThemeExtension vs HealingColorSchemes 선택 기준, 다크 모드 대응 현황
+
 ---
 
 ## 📊 문서 통계
@@ -450,7 +564,7 @@ iOS 이해: 핵심 학습 3 (5분)
 | 다이어그램 | 8+ |
 | 표 | 22+ |
 | 생성 시간 | 2026-01-21 |
-| 최종 업데이트 | 2026-02-27 |
+| 최종 업데이트 | 2026-02-27 (v1.7) |
 
 ---
 
@@ -488,6 +602,7 @@ iOS 이해: 핵심 학습 3 (5분)
 | 1.4 | 2026-02-27 | Firebase CLI Extensions API 403 버그 패치 TIL 추가 (7개 문서) |
 | 1.5 | 2026-02-27 | Flutter 플랫폼 서비스 정적 오버라이드 패턴 TIL 추가 (8개 문서) |
 | 1.6 | 2026-02-27 | 트러블슈팅 시스템 분류 프레임워크 TIL 추가 (9개 문서) |
+| 1.7 | 2026-02-27 | COLOR_SYSTEM.md 색인 추가, FLUTTER_TESTING·TROUBLESHOOTING 누락 섹션 보완 (10개 문서) |
 
 ---
 

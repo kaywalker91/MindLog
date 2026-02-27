@@ -161,11 +161,24 @@ wc -l ~/.claude/projects/-Users-kaywalker-AndroidStudioProjects-mindlog/memory/M
 3. 신규 패턴이면: 해당 섹션에 1줄 요약 추가 (Write/Edit 도구로 직접 반영 또는 제안)
 4. MEMORY.md가 180줄 이상이면: 아카이빙 후보 자동 식별 (가장 오래된 비필수 항목 목록 출력)
 
+**아카이빙 점검** (G-7 — `memory/archiving-policy.md` 기준):
+```bash
+# MEMORY.md 줄 수 확인
+wc -l ~/.claude/projects/-Users-kaywalker-AndroidStudioProjects-mindlog/memory/MEMORY.md
+
+# memory/ 파일 목록 (수정일 기준)
+ls -lt ~/.claude/projects/-Users-kaywalker-AndroidStudioProjects-mindlog/memory/
+```
+- `SUPERSEDED` 마킹 파일 감지 → 아카이빙 제안
+- 90일 이상 미수정 날짜 기반 파일 → 아카이빙 후보 출력
+- Memory Index 미등록 파일 → 등록 또는 삭제 제안
+
 **보고 형식**:
 ```
 ### 🧠 MEMORY.md 동기화
 ✅ 신규 패턴 반영: [패턴명] → Testing Patterns 섹션 추가
 ⚠️ 200줄 임박 (현재 N줄): 아카이빙 후보 → [항목 목록]
+🗂️ 아카이빙 후보: [파일명] — SUPERSEDED / 90일 초과
 🔵 변경 없음: 기존 메모리와 동일
 ```
 
@@ -360,4 +373,4 @@ AI 응답:
 | Category | workflow |
 | Dependencies | - |
 | Created | 2026-01-26 |
-| Updated | 2026-02-27 |
+| Updated | 2026-02-27 (G-7 archiving policy integrated) |
