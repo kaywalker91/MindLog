@@ -4,6 +4,33 @@
   "schemaVersion": "2.0",
   "issues": [
     {
+      "id": "fcm-notification-empty-body",
+      "title": "FCM 마음케어 알림 body 빈 문자열로 인한 알림 미표시",
+      "status": "resolved",
+      "resolvedAt": "2026-02-27",
+      "affectedVersions": [],
+      "fixedInVersion": null,
+      "category": "notification",
+      "severity": "high",
+      "platform": "android,ios",
+      "rootCauseType": "data",
+      "summary": "FCM notification payload의 body가 빈 문자열이면 Android/iOS가 알림을 무시하여 사용자에게 표시되지 않음",
+      "symptoms": [
+        "마음케어 FCM 알림이 수신되지 않음",
+        "알림 트레이에 아무것도 표시 안 됨",
+        "Firebase Console에서 전송 성공으로 보이나 기기에서 미수신",
+        "특정 메시지 타입에서만 발생"
+      ],
+      "cause": "FCM notification payload의 body 필드가 빈 문자열('')이면 Android/iOS 플랫폼이 해당 알림을 자동으로 무시함",
+      "solution": "NotificationMessages.getRandomMindcareBody()를 강제 사용하여 항상 non-empty body 전달",
+      "documentation": "troubleshooting/fcm-notification-empty-body.md",
+      "relatedIssues": ["notification-not-firing-release"],
+      "relatedCommits": [],
+      "tags": ["fcm", "notification", "body", "empty-string", "android", "ios", "mindcare", "notification-messages"],
+      "preventionRule": "FCM body는 항상 NotificationMessages.* 상수에서 가져올 것. 빈 문자열 리터럴 절대 금지.",
+      "confidence": "high"
+    },
+    {
       "id": "notification-not-firing-release",
       "title": "Release 빌드에서 예약 알림 미작동",
       "status": "resolved",
@@ -53,5 +80,5 @@
     "integration": "컴포넌트 간 통합 이슈",
     "ui": "레이아웃/렌더링/UX 이슈"
   },
-  "updatedAt": "2026-02-07"
+  "updatedAt": "2026-02-27"
 }

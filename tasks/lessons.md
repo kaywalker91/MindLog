@@ -4,6 +4,8 @@
 
 **TRIGGER**: 사용자 수정 요청 수신 즉시 (구현 전) 이 파일에 기록.
 
+**분류**: 프로덕션 앱 동작에 영향 있으면 → `/troubleshoot-save` 도 함께 실행 (troubleshooting.json + 상세 MD 생성)
+
 ---
 
 <!-- 형식:
@@ -25,6 +27,18 @@
 **근본 원인**: `notification` payload의 body가 비어있으면 Android/iOS에서 알림 무시
 **해결책**: `NotificationMessages.getRandomMindcareBody()` 사용 강제화
 **예방 규칙**: FCM body는 항상 `NotificationMessages.*` 상수에서 가져올 것. 빈 문자열 리터럴 금지.
+
+## 2026-02-27 - 테스트 플랫폼 서비스 side effect 미가드 → CI 로그 노이즈
+**무엇이 잘못됐나**: 위젯/프로바이더 테스트에서 플랫폼 서비스(FlutterLocalNotificationsPlugin, NotificationSettingsService) 오버라이드 없이 실제 호출 → `LateInitializationError`, `UnknownFailure` 로그가 CI에 반복 출력 (테스트는 통과)
+**근본 원인**: 위젯 탭이 Controller → UseCase → 실제 플랫폼 서비스 체인을 타는데, 테스트 setUp에서 해당 서비스의 override를 설정하지 않음
+**해결책**: `Service.methodOverride = ({...}) async {};` in setUp + `Service.resetForTesting();` in tearDown. 각 서비스의 `@visibleForTesting static Function? override` 필드 전부 설정 필요
+**예방 규칙**: 위젯 탭이나 Provider 상태 변경을 테스트할 때, 호출 체인 끝의 플랫폼 서비스 오버라이드도 setUp에 포함할 것. `docs/til/FLUTTER_TESTING_STATIC_OVERRIDE_PATTERN_TIL.md` 참조.
+
+## 2026-02-27 - session-wrap 시 tasks/lessons.md 누락
+**무엇이 잘못됐나**: session-wrap 실행 시 TIL 파일(`docs/til/`)만 생성하고 `tasks/lessons.md` 업데이트를 빠뜨림
+**근본 원인**: session-wrap 스킬이 TIL 생성에 집중되어 있고, continuous-improvement 규칙의 `tasks/lessons.md` 기록 의무를 별도로 체크하지 않음
+**해결책**: session-wrap 완료 후 항상 `tasks/lessons.md` 업데이트 수행
+**예방 규칙**: session-wrap 마지막 단계에 `tasks/lessons.md` 기록을 명시적 체크 항목으로 추가.
 
 ## 2026-02-27 - TIL 경로 오인 (tasks/ vs docs/til/)
 **무엇이 잘못됐나**: MEMORY.md Memory Index에서 TIL 파일 경로를 `tasks/til-*.md`로 잘못 인식

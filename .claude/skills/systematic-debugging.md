@@ -37,6 +37,26 @@
 
 **목표**: 버그 재현 및 증거 수집
 
+**[Pre-check] 기존 트러블슈팅 DB 검색**
+새 디버깅을 시작하기 전에 `docs/troubleshooting.json`에서 동일/유사 이슈를 확인합니다:
+
+```bash
+# 키워드로 기존 해결책 검색 (증상, 카테고리, 태그)
+python3 -c "
+import json, sys
+data = json.load(open('docs/troubleshooting.json'))
+keyword = sys.argv[1].lower()
+for issue in data['issues']:
+    text = json.dumps(issue, ensure_ascii=False).lower()
+    if keyword in text:
+        print(f\"[{issue['id']}] {issue['title']}\")
+        print(f\"  → Solution: {issue.get('solution', 'N/A')}\")
+" "[keyword]"
+```
+
+- **기존 해결책 발견 시**: 솔루션 적용 후 검증만 수행 → Stage 4로 이동
+- **신규 이슈 확인 시**: 아래 조사 진행 → 해결 완료 후 `/troubleshoot-save` 실행
+
 ```
 1. 재현 조건 정의
    - 입력값

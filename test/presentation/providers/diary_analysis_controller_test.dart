@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/errors/failures.dart';
+import 'package:mindlog/core/services/emotion_trend_notification_service.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 import 'package:mindlog/domain/usecases/analyze_diary_usecase.dart';
 import 'package:mindlog/presentation/providers/diary_analysis_controller.dart';
@@ -63,6 +64,9 @@ void main() {
     mockStatisticsRepository = MockStatisticsRepository();
     mockDiaryRepository = MockDiaryRepository();
 
+    EmotionTrendNotificationService.showNotificationOverride =
+        ({required String title, required String body, String? payload, String channel = ''}) async {};
+
     container = ProviderContainer(
       overrides: [
         analyzeDiaryUseCaseProvider.overrideWithValue(mockUseCase),
@@ -79,6 +83,7 @@ void main() {
     mockUseCase.reset();
     mockStatisticsRepository.reset();
     mockDiaryRepository.reset();
+    EmotionTrendNotificationService.resetForTesting();
   });
 
   group('DiaryAnalysisNotifier', () {

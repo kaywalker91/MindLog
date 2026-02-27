@@ -127,6 +127,34 @@ Resolved 이슈를 구조화된 트러블슈팅 메모리로 자동 캡처하는
 
 ## 프로세스
 
+### Step 0: 청중 분류 (저장 전 필수 판단)
+
+버그/패턴이 **어느 시스템에 기록되어야 하는지** 먼저 결정한다:
+
+```
+버그/패턴 발생
+    ↓
+  프로덕션 앱 동작에 영향?
+    ├─ YES → troubleshooting.json + troubleshooting/{id}.md 생성 (+ lessons.md 기록)
+    └─ NO (dev-time only)
+         ↓
+       재현 가능 기술 패턴?
+         ├─ YES → docs/til/ TIL 생성 (+ lessons.md 기록)
+         └─ NO (Claude 내부 실수) → tasks/lessons.md 기록 only
+```
+
+**중복 가능**: 프로덕션 버그는 `troubleshooting.json` AND `tasks/lessons.md` 양쪽 모두 기록.
+
+| 항목 | 판단 기준 | 저장 대상 |
+|------|----------|----------|
+| FCM body 빈 문자열 | 사용자에게 알림 미표시 → 프로덕션 영향 | troubleshooting.json + lessons.md |
+| flutter_animate + pumpAndSettle | 테스트 도구 이슈 → dev-time only | docs/til/ + lessons.md |
+| Claude 경로 오인 | Claude 내부 실수 | lessons.md only |
+
+이 판단 후 Step 1~6을 진행한다.
+
+---
+
 ### Step 1: 이슈 컨텍스트 추출
 
 현재 세션에서 다음 정보를 자동 추출합니다:

@@ -14,6 +14,7 @@ docs/troubleshooting/README.md     ← 이 파일: 사람이 읽는 목차
 
 | Issue | Status | Severity | Category | Root Cause | Platform |
 |-------|--------|----------|----------|------------|----------|
+| [FCM 알림 body 빈 문자열 미표시](./fcm-notification-empty-body.md) | resolved | high | notification | data | android,ios |
 | [예약 알림 미작동 (Release)](./notification-not-firing-release.md) | resolved | critical | notification | environment | android |
 
 ## By Root Cause Type
@@ -40,7 +41,7 @@ docs/troubleshooting/README.md     ← 이 파일: 사람이 읽는 목차
 - (이슈 없음)
 
 ### data (데이터 무결성 오류)
-- (이슈 없음)
+- [FCM 알림 body 빈 문자열 미표시](./fcm-notification-empty-body.md) — body 빈 값 시 플랫폼 silent drop
 
 ### integration (컴포넌트 통합 이슈)
 - (이슈 없음)

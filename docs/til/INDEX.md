@@ -17,7 +17,9 @@ docs/til/
 ├── ANDROID_PHOTO_PICKER_POLICY_TIL.md  [Google Play 정책 대응]
 ├── CLEAN_ARCHITECTURE_VIOLATION_FIX_TIL.md [아키텍처 위반 수정]
 ├── FCM_IDEMPOTENCY_LOCK.md             [FCM 중복 발송 방지 Pre-lock 패턴]
-└── FIREBASE_CLI_EXTENSIONS_BUG.md      [Firebase CLI Extensions API 403 버그 패치]
+├── FIREBASE_CLI_EXTENSIONS_BUG.md      [Firebase CLI Extensions API 403 버그 패치]
+├── FLUTTER_TESTING_STATIC_OVERRIDE_PATTERN_TIL.md [플랫폼 서비스 정적 오버라이드 패턴]
+└── TROUBLESHOOTING_SYSTEM_CLASSIFICATION_TIL.md [3-System 지식 분류 프레임워크]
 ```
 
 ---
@@ -426,6 +428,16 @@ iOS 이해: 핵심 학습 3 (5분)
 **소요시간**: 10분
 **내용**: Extensions planner.js 패치, IAM vs 서비스 레벨 제한 차이, 재적용 체크리스트
 
+### 시나리오 15: "테스트는 통과하는데 CI 로그에 에러가 계속 찍혀요"
+**추천**: FLUTTER_TESTING_STATIC_OVERRIDE_PATTERN_TIL.md
+**소요시간**: 10분
+**내용**: 정적 오버라이드 패턴, setUp/tearDown 설정, `resetForTesting()` 필수 적용
+
+### 시나리오 16: "버그를 lessons.md에 기록했는데 troubleshooting.json에도 넣어야 하나요?"
+**추천**: TROUBLESHOOTING_SYSTEM_CLASSIFICATION_TIL.md
+**소요시간**: 10분
+**내용**: 3-System 분류 원칙 (troubleshooting.json / docs/til/ / lessons.md), 판단 트리, 자동화 연결 포인트
+
 ---
 
 ## 📊 문서 통계
@@ -474,6 +486,8 @@ iOS 이해: 핵심 학습 3 (5분)
 | 1.2 | 2026-01-26 | Clean Architecture 위반 수정 TIL 추가 (5개 문서) |
 | 1.3 | 2026-02-27 | FCM 멱등성 Pre-lock 패턴 TIL 추가 (6개 문서) |
 | 1.4 | 2026-02-27 | Firebase CLI Extensions API 403 버그 패치 TIL 추가 (7개 문서) |
+| 1.5 | 2026-02-27 | Flutter 플랫폼 서비스 정적 오버라이드 패턴 TIL 추가 (8개 문서) |
+| 1.6 | 2026-02-27 | 트러블슈팅 시스템 분류 프레임워크 TIL 추가 (9개 문서) |
 
 ---
 

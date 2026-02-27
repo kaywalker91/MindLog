@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/constants/ai_character.dart';
+import 'package:mindlog/core/services/notification_settings_service.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/entities/statistics.dart';
 import 'package:mindlog/presentation/providers/app_info_provider.dart';
@@ -249,6 +250,28 @@ void main() {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
       mockSettingsRepo = MockSettingsRepository();
+
+      NotificationSettingsService.resetForTesting();
+      NotificationSettingsService.areNotificationsEnabledOverride =
+          () async => true;
+      NotificationSettingsService.canScheduleExactAlarmsOverride =
+          () async => true;
+      NotificationSettingsService.isIgnoringBatteryOverride = () async => true;
+      NotificationSettingsService.scheduleDailyReminderOverride = ({
+        required int hour,
+        required int minute,
+        required String title,
+        String? body,
+        String? payload,
+        dynamic scheduleMode,
+      }) async => true;
+      NotificationSettingsService.cancelDailyReminderOverride = () async {};
+      NotificationSettingsService.subscribeToTopicOverride = (_) async {};
+      NotificationSettingsService.unsubscribeFromTopicOverride = (_) async {};
+      NotificationSettingsService.scheduleWeeklyInsightOverride =
+          ({required bool enabled}) async => true;
+      NotificationSettingsService.analyticsLog = [];
+
       container = ProviderContainer(
         overrides: [
           settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
@@ -259,6 +282,7 @@ void main() {
     tearDown(() {
       mockSettingsRepo.reset();
       container.dispose();
+      NotificationSettingsService.resetForTesting();
     });
 
     testWidgets('알림 섹션이 렌더링되어야 한다', (tester) async {
