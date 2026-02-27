@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.48] - 2026-02-27
+
+### Added
+- **`AppDurations`** (`lib/core/theme/app_durations.dart`): 애니메이션 지속 시간 토큰 클래스 도입; `fast(200ms)`, `normal(300ms)`, `slow(500ms)` 상수 추가 — 분산된 Duration 리터럴을 단일 소스로 통합
+- **`darkTheme` textTheme 완성** (`lib/core/theme/app_theme.dart`): `displayLarge`→`labelSmall` 전 범위 textTheme 정의; 공백으로 남아있던 스타일 모두 채움
+- **빈 상태 화면** (`lib/presentation/screens/diary_screen.dart`): 일기 미작성 시 빈 상태 안내 위젯 추가 (TASK-UI-006)
+- **글자수 카운터** (`lib/presentation/screens/diary_screen.dart`): 일기 입력 중 실시간 글자수 카운터 표시 (TASK-UI-007)
+- **분석 단계 UI** (`lib/presentation/screens/diary_screen.dart`): 분석 중 단계별 진행상황 표시 (TASK-UI-008~009)
+- **에이전트 명세 3종** (`.claude/agents/`): `a11y-audit`, `l10n-manager`, `notification-tester` 에이전트 spec 추가
+
+### Fixed
+- **FCM 마음케어 중복 알림** (`functions/src/services/fcm.service.ts`): Firebase Functions retry + 부분 실패 시 3회 중복 발송되던 문제를 Firestore `create()` 원자적 잠금(pre-lock 패턴)으로 해결; `acquireSendLock` / `completeSendLock` / `releaseSendLockOnFailure` 3-함수 패턴 도입 — fail-open → fail-safe 전환
+- **라이트 전용 그라디언트** (`lib/presentation/widgets/`): `Colors.white` 기반 그라디언트가 다크모드에서 깨지던 문제 수정 (TASK-UI-013)
+- **`withAlpha` → `withValues` 마이그레이션** (`lib/`): Flutter 3.x deprecation에 따라 `withAlpha()` → `withValues(alpha:)` 전환
+
+### Changed
+- **하드코딩 색상 토큰화** (`lib/presentation/`): `Colors.*`, `Color(0x...)` 직접 사용 → `AppColors.*` 테마 토큰 교체 (TASK-UI-004~005); 다크/라이트 양 모드 자동 대응
+
+### Testing
+- **FCM 백그라운드 핸들러 테스트** (`test/core/services/`): `notification != null` guard 로직 검증, data-only 메시지 처리 조건 커버; guard log 개선
+
+### Chore
+- **Skill 커맨드 래퍼 69개** (`.claude/commands/`): 모든 스킬에 대한 슬래시 커맨드 명세 파일 추가
+- **스킬 자동 트리거 시스템 강화** (`.claude/rules/`): P0~P5 우선순위 레이어 기반 트리거 조건 명확화
+
+---
+
 ## [1.4.47] - 2026-02-24
 
 ### Added

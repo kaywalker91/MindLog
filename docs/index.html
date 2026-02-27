@@ -93,8 +93,18 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.46까지의 개선 사항을 소개합니다. 비밀일기 보안 기능, 다크모드 완전 지원, Healing Color Themes, CI 품질 강화 등 대규모 업데이트가 이루어졌습니다.</p>
+            <p class="section-subtitle">v1.4.48까지의 개선 사항을 소개합니다. FCM 멱등성 Pre-lock 패턴, 화면 UX 완성도 개선, 다크모드 완전 지원, 비밀일기 보안 기능, CI 품질 강화 등 대규모 업데이트가 이루어졌습니다.</p>
             <div class="updates-grid">
+                <div class="update-card">
+                    <span class="update-tag">Reliability</span>
+                    <h3>FCM 멱등성 Pre-lock 패턴 (v1.4.48)</h3>
+                    <p>Firebase Functions retry + Firestore 부분 실패로 인한 3회 중복 발송 문제를 Firestore <code>create()</code> 원자적 잠금으로 해결했습니다. 기존 check-send-mark 패턴의 race condition을 분석하고 <code>acquireSendLock</code> / <code>completeSendLock</code> / <code>releaseSendLockOnFailure</code> 3-함수 패턴으로 교체했습니다. fail-open → fail-safe 전환으로 장애 시 안전성을 우선했습니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">UX</span>
+                    <h3>화면 UX 완성도 — Empty State · 글자수 · 분석 단계 (v1.4.48)</h3>
+                    <p>일기 미작성 시 빈 상태 안내 위젯, 실시간 글자수 카운터, 분석 중 단계별 진행 표시를 추가했습니다(TASK-UI-006~009). AppDurations 토큰으로 애니메이션 지속 시간을 중앙화하고, 하드코딩된 색상 전체를 AppColors 토큰으로 교체(TASK-UI-004~005)하여 다크/라이트 양 모드 자동 대응을 완성했습니다.</p>
+                </div>
                 <div class="update-card">
                     <span class="update-tag">Quality</span>
                     <h3>CI 타임존 안정성 강화 (v1.4.46)</h3>
@@ -109,16 +119,6 @@
                     <span class="update-tag">UI</span>
                     <h3>다크모드 통계 화면 완전 지원 (v1.4.45)</h3>
                     <p>StatisticsThemeTokens 디자인 토큰 시스템을 도입하여 Light/Dark 40여 개 명명 토큰으로 통계 탭 전 영역을 커버합니다. 하드코딩된 색상을 전부 토큰으로 교체하여 테마 전환 시 깨지는 UI를 완전히 해소했습니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">UX</span>
-                    <h3>Healing Color Themes + Cheer Me 개선 (v1.4.43)</h3>
-                    <p>mutedTeal·pastelComfort 힐링 테마 2종을 추가했습니다. Cheer Me 화면에 프리셋 템플릿 20개(5카테고리)를 제공하여 응원 메시지 입력 편의성을 대폭 향상시켰으며, 바텀시트 UX와 햅틱 피드백도 함께 개선했습니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">Fix</span>
-                    <h3>Provider 무효화 체인 개선 (v1.4.42)</h3>
-                    <p>일기 생성 후 목록이 즉시 갱신되지 않던 버그를 수정했습니다. statisticsProvider와 diaryListControllerProvider를 함께 invalidate하는 패턴을 확립하여 데이터 일관성을 보장합니다.</p>
                 </div>
             </div>
         </div>
