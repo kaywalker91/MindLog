@@ -2,44 +2,29 @@
 
 ## 완료된 항목
 
-### session-wrap v2 개선 ✅ (2026-02-27)
-- G-1: `commands/session-wrap.md` → skills 파일 위임 단순화
-- G-2: Step 5.5 추가 — tasks/lessons.md → MEMORY.md 자동 반영
-- G-3: Step 6.5 추가 — progress/current.md 세션 종료 동기화
-- G-4: Step 7.5 추가 — TIL 생성 시 docs/til/INDEX.md 조건부 동기화
+### 이전 세션 (2026-02-27 오전): 실리콘밸리 워크플로우 + MCP 연동
+- `.claude/rules/model-strategy.md` 신규 — Haiku/Sonnet/Opus 전환 기준
+- `.mcp.json` 신규 — `fvm dart mcp-server`
+- `docs/guides/dart-flutter-mcp-setup.md` 세팅 가이드
+- Accessibility Sprint 1+2 완료 (14개 화면)
+- docs/tasks.md 아카이브 시스템 구축
 
-### TIL INDEX --fix ✅ (2026-02-27)
-- COLOR_SYSTEM.md: 트리 + 섹션 10️⃣ + 시나리오 17 추가
-- FLUTTER_TESTING·TROUBLESHOOTING: 누락 섹션 8️⃣·9️⃣ 보완
-- docs/til/INDEX.md v1.7 (총 10개 문서, 17 시나리오)
-
-### G-7 메모리 아카이빙 정책 ✅ (2026-02-27)
-- `memory/archiving-policy.md` 신규 생성 (90일 기준, SUPERSEDED 처리, 200줄 한도)
-- session-wrap Step 5.5에 아카이빙 체크리스트 통합
-- MEMORY.md Memory Index: notification-audit + archiving-policy 추가
-
-### Accessibility Sprint 1+2 ✅ (2026-02-27)
-- TASK-A11Y-001~009 완료 (14개 화면 AccessibilityWrapper 적용)
-- 컬러 theme-aware 마이그레이션 패턴 확립
-
-### session-wrap 후속 구현 ✅ (2026-02-27)
-- CLAUDE.md: P4 `/til-index-sync --fix` 트리거 추가, session-wrap v2 설명 보강, A11y Sprint 상태 추가
-- `/memory-sync` 스킬 생성 (skills + commands)
-- `/memory-index-audit` 스킬 생성 (skills + commands)
-- TIL 3개 생성: A11Y_THEME_AWARE / MEMORY_ARCHIVING / SESSION_WRAP_PROCESS_AUDIT
-- docs/til/INDEX.md v1.8 (13개 문서, 20 시나리오)
+### 이번 세션 (2026-02-27): Zone mismatch 버그 수정
+- **`lib/main.dart`**: `MarionetteBinding.ensureInitialized()` root zone 호출 제거 → `bindingInitializer` 파라미터로 이전
+- **`lib/core/errors/error_boundary.dart`**: `bindingInitializer` 옵셔널 파라미터 추가 (`WidgetsFlutterBinding` 기본값, 하위 호환 유지)
+- `flutter analyze` 오류 0개 확인
 
 ## 다음 작업 후보
 
-- **git push** — 미push 커밋 원격 동기화
-- **G-5 구현** — session-wrap에서 `/changelog` 자동 제안 추가
-- **memory/ 아카이빙 첫 적용** — `claude-mem-critical-patterns.md` → `archived-2026-02.md` 병합
-- **Accessibility Sprint 3** (TASK-A11Y-010+, REQ-093) — `memory/a11y-backlog.md` 참조
-- **비밀일기 Phase 1** — TASK-SD-001~006 (`memory/secret-diary-plan-2026-02-19.md` 참조)
+1. **git push** — 6개 미push 커밋 + 이번 세션 변경(main.dart, error_boundary.dart) 커밋/push
+2. **Dart MCP 라이브 도구 테스트** — beta 채널 전환 리스크 평가
+3. **Accessibility Sprint 3** — `memory/a11y-backlog.md` 참조
+4. **memory/ 아카이빙** — `claude-mem-critical-patterns.md` SUPERSEDED → 병합
 
 ## 주의사항
 
-- `claude-mem-critical-patterns.md`: SUPERSEDED 상태 — 다음 정리 세션에서 archived-2026-02.md에 병합 예정
-- TASK-UI-013: 과거 커밋 참조되나 docs/tasks.md에 미등록 — 확인 필요
+- Zone mismatch 패턴: `runZonedGuarded` 사용 시 binding 초기화는 반드시 동일 zone 내에서 (`tasks/lessons.md` 2026-02-27 항목)
+- `docs/tasks.md` 150줄 상한 — 현재 44줄 (여유 충분)
+- `.mcp.json` 다음 세션 시작 시 `dart` MCP 자동 로드
 
-## 마지막 업데이트: 2026-02-27 / Agent Teams 세션
+## 마지막 업데이트: 2026-02-27 / 세션 9524e0b+zone-fix

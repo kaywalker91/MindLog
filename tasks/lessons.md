@@ -57,3 +57,9 @@
 **근본 원인**: 비동기 서브에이전트 완료 전 grep 실행 → 결과 불일치
 **해결책**: 서브에이전트 완료 알림(task-notification) 받은 후 검증 실행
 **예방 규칙**: 백그라운드 에이전트 결과는 notification 확인 후 검증. 중간 점검은 "아직 진행 중" 전제 하에 해석.
+
+## 2026-02-27 - Flutter Zone mismatch: binding 초기화 위치 오류
+**무엇이 잘못됐나**: `MarionetteBinding.ensureInitialized()`를 `runZonedGuarded` 외부(root zone)에서 호출 → binding이 root zone에 등록됨. 이후 `runApp()`은 `runZonedGuarded` 내부 zone에서 실행 → Zone mismatch assertion.
+**근본 원인**: Flutter binding은 초기화된 zone을 기억함. `runApp()`은 동일 zone에서 호출해야 하는데, `MarionetteBinding.ensureInitialized()`가 `runZonedGuarded` 바깥에 있어 다른 zone에 등록됨.
+**해결책**: `ErrorBoundary.runAppWithErrorHandling`에 `bindingInitializer` 파라미터 추가. `main()`에서 `MarionetteBinding.ensureInitialized`를 `bindingInitializer`로 전달 → `runZonedGuarded` 내부에서 올바른 zone으로 초기화.
+**예방 규칙**: `runZonedGuarded` + `runApp` 패턴 사용 시, 모든 binding 초기화(WidgetsFlutterBinding, MarionetteBinding 등)는 반드시 같은 zone 내에서 호출. 커스텀 binding이 있으면 `bindingInitializer` 콜백 패턴 사용.
