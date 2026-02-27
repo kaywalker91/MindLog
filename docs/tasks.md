@@ -84,6 +84,25 @@ _현재 없음_
   - `pin_keypad_widget.dart`: 숫자 버튼 `Semantics(label: digit)`, 삭제 버튼 `Semantics(label: '지우기')`
   - 검증: `flutter analyze` — No issues
 
+### Phase 5: 접근성 개선 (Accessibility, v1.5.x 예정)
+
+> Sprint 1~3 상세: `memory/a11y-backlog.md`
+
+#### Sprint 1 — High 우선순위 (2~3시간)
+
+- [ ] **TASK-A11Y-001** (REQ-093): `tappable_card.dart` — GestureDetector Semantics 래핑
+- [ ] **TASK-A11Y-002** (REQ-093): `day_cell.dart` — 날짜 셀 + 이모지(🌱🌿🌷) 레이블 추가
+- [ ] **TASK-A11Y-003** (REQ-093): `sentiment_dashboard.dart` — 에너지 이모지(🔋⚡💪) Semantics
+- [ ] **TASK-A11Y-004** (REQ-093): 이미지 위젯 5개 `semanticLabel` 추가 (diary_image_gallery 등)
+- [ ] **TASK-A11Y-005** (REQ-093): IconButton Semantics 3개 (삭제, 비밀일기, 이전/다음달 버튼)
+
+#### Sprint 2 — Medium 우선순위 (1일)
+
+- [ ] **TASK-A11Y-006** (REQ-093): `fullscreen_image_viewer.dart` — 하드코딩 색상 8건 theme-aware 전환
+- [ ] **TASK-A11Y-007** (REQ-093): 다이얼로그 하드코딩 색상 (mindcare_welcome, weekly_insight_guide, activity_heatmap)
+- [ ] **TASK-A11Y-008** (REQ-093): `diary_item_card.dart` — `AppAccessibility.diaryItemLabel()` 유틸 도입
+- [ ] **TASK-A11Y-009** (REQ-093): 14개 화면 `AccessibilityWrapper` 추가 (screenTitle Semantics)
+
 ### Phase 4: 마이크로인터랙션 (Polish)
 
 - [x] **TASK-UI-010** (REQ-094): `AppDurations` 애니메이션 상수 클래스 도입
@@ -107,6 +126,38 @@ _현재 없음_
 ---
 
 ## 완료 (Completed)
+
+### Phase 7: Secret Diary 완성 ✅ (v1.4.44, 2026-02-19)
+
+> 설계 상세: `memory/secret-diary-plan-2026-02-19.md`
+
+- [x] **TASK-SD-001** (REQ-030): Domain layer — Diary.isSecret entity + SecretPinRepository 인터페이스 + 6개 UseCase (TDD)
+  - 완료: v1.4.44 (2026-02-19)
+  - 파일: `lib/domain/entities/diary.dart`, `lib/domain/repositories/secret_pin_repository.dart`, `lib/domain/usecases/secret/`
+  - 테스트: `test/domain/usecases/secret/` 3개 파일, 17 tests pass
+
+- [x] **TASK-SD-002** (REQ-031): Data layer — SQLite v7 마이그레이션 (`is_secret` 컬럼) + SecureStorageDataSource
+  - 완료: v1.4.44 (2026-02-19)
+  - 파일: `lib/data/datasources/local/sqlite_local_datasource.dart`, `lib/data/datasources/local/secure_storage_datasource.dart`
+  - PIN 해싱: SHA-256(rawPin + salt), salt = Random.secure() 32바이트 base64
+
+- [x] **TASK-SD-003** (REQ-032): Provider + DI — SecretAuthProvider (in-memory 세션) + secretDiaryListProvider
+  - 완료: v1.4.44 (2026-02-19)
+  - 파일: `lib/presentation/providers/secret_auth_provider.dart`, `lib/presentation/providers/secret_diary_providers.dart`
+
+- [x] **TASK-SD-004** (REQ-033): PIN 키패드 위젯 + PIN 설정/잠금해제 화면
+  - 완료: v1.4.44 (2026-02-19)
+  - 파일: `lib/presentation/widgets/secret/pin_keypad_widget.dart`, `lib/presentation/screens/secret_pin_setup_screen.dart`, `lib/presentation/screens/secret_diary_unlock_screen.dart`
+
+- [x] **TASK-SD-005** (REQ-034): 비밀일기 목록 화면 + DiaryItemCard 롱프레스 메뉴 (비밀 설정/해제)
+  - 완료: v1.4.44 (2026-02-19)
+  - 파일: `lib/presentation/screens/secret_diary_list_screen.dart`, `lib/presentation/widgets/diary_list/diary_item_card.dart`
+
+- [x] **TASK-SD-006** (REQ-035): 라우팅 보호 + DiaryListScreen AppBar 진입점 + 통합 테스트
+  - 완료: v1.4.44 (2026-02-19)
+  - 파일: `lib/presentation/router/app_router.dart`, `lib/presentation/screens/diary_list_screen.dart`
+
+---
 
 - [x] **TASK-003** (REQ-064): EmotionAware UseCase 통합 테스트
   - 완료: v1.4.46 (2026-02-24)

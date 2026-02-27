@@ -280,6 +280,41 @@ execute(settings, currentEmotionScore):
 
 ---
 
+## 11. 비밀일기 아키텍처 (v1.4.44, 2026-02-19)
+
+> 구현 상세: `memory/secret-diary-plan-2026-02-19.md`
+
+### 핵심 설계 결정
+
+**PIN 해싱 전략**
+- 알고리즘: `SHA-256(rawPin + salt)` (4자리 숫자 PIN)
+- salt: `Random.secure()` 32바이트 base64 → `flutter_secure_storage`에 별도 저장 (hash/salt 분리 키)
+- 저장소: iOS Keychain / Android Keystore 전용 — SQLite·SharedPreferences 절대 금지
+
+**격리 네비게이션**
+- 라우팅 가드: Router-level redirect 미사용 → `SecretDiaryListScreen` 내부 `ref.listen(secretAuthProvider, ...)` 처리
+- 세션 인증: in-memory only (앱 재시작/프로세스 종료 시 자동 잠금)
+- 진입점: `DiaryListScreen` AppBar → `/secret-diary/` 라우트 계층 분리 (설정 화면 아님)
+
+**통계 완전 제외**
+- `getAllDiaries()` + `getAnalyzedDiariesInRange()` 모두 `WHERE is_secret = 0` 필터 적용
+
+**DB 마이그레이션**
+- Schema v6 → v7: `diaries.is_secret INTEGER DEFAULT 0` (ALTER TABLE)
+- `idx_diaries_is_secret` 인덱스 추가
+
+### 관련 파일 (핵심)
+
+```
+domain/usecases/secret/           # 6개 UseCase
+data/datasources/local/secure_storage_datasource.dart
+data/repositories/secret_pin_repository_impl.dart
+presentation/providers/secret_auth_provider.dart    # in-memory 인증 상태
+presentation/providers/secret_diary_providers.dart
+```
+
+---
+
 ## 10. 향후 기술 결정 필요 사항
 
 | 결정 사항 | 현재 상태 | 검토 시점 |
