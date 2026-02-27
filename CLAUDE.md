@@ -32,6 +32,7 @@ Architecture: Clean Architecture (domain/data/presentation) + Riverpod state man
 - **Rules**: `.claude/rules/` — architecture, build, workflow, layer-specific constraints
 - **Skills**: `.claude/skills/` — on-demand skill files (read when command is invoked)
 - **Skill index**: `.claude/rules/skill-catalog.md`
+- **Model strategy**: `.claude/rules/model-strategy.md` — Haiku/Sonnet/Opus 전환 기준
 
 ## Debugging Rules
 - IMPORTANT: 에러 수정 전 반드시 근본 원인(root cause)을 먼저 분석하고 설명할 것
@@ -74,7 +75,8 @@ Architecture: Clean Architecture (domain/data/presentation) + Riverpod state man
 - 버그 해결 + 새 학습 포인트 → `/til-save [topic]` 추가 제안
 - TIL 파일 생성 후 → `/til-index-sync --fix` (INDEX.md 동기화)
 - context 70% → `/session-wrap` (v2: Step 5.5 MEMORY.md / Step 6.5 progress / Step 7.5 TIL INDEX 포함)
-- 태스크 구현 완료 직후 → `/task-done [TASK-ID] [summary]` (docs/tasks.md 자동 업데이트)
+- 태스크 구현 완료 직후 → `/task-done [TASK-ID] [summary]` (docs/tasks.md 자동 업데이트, 완료 태스크 이력 → `docs/tasks/history.md`, 150줄 상한)
+- tasks.md 크기 거버넌스 → `/task-done` Step 8 (≥5개 경고/≥10개 즉시 제안) + `/session-wrap` Step 6.1 (≥150줄 자동 아카이브)
 
 ### P5 Workflow Optimization (참고 제안)
 - Play Store 배포 직전 → `/release-unified [type]` 사용 권장

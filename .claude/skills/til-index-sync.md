@@ -20,15 +20,25 @@ TIL 파일 ↔ INDEX.md 동기화 검증 스킬 (`/til-index-sync`)
 ls docs/til/*.md | grep -v INDEX.md | sort
 
 # INDEX.md에 등록된 파일 목록 추출
-grep -oE '[A-Z_]+_TIL\.md|[A-Z_]+\.md' docs/til/INDEX.md | sort -u
+grep -oE '[A-Z_]+_TIL\.md' docs/til/INDEX.md | sort -u
 ```
+
+### Step 1.5: 데드링크 감지 (P3)
+INDEX.md에 등록된 파일명을 하나씩 실제 존재 여부로 검증:
+```bash
+# INDEX.md에서 파일명 추출 후 존재 확인
+for f in $(grep -oE '[A-Z_]+_TIL\.md' docs/til/INDEX.md | sort -u); do
+  [ -f "docs/til/$f" ] || echo "❌ 데드링크: $f (INDEX.md 등록, 실제 파일 없음)"
+done
+```
+→ 데드링크 발견 시: INDEX.md 해당 항목 제거 또는 파일 복구 제안
 
 ### Step 2: 비교 분석
 ```
 실제 파일 목록 vs INDEX.md 등록 목록 diff
 
 → INDEX에 없는 파일: "누락 파일" (추가 필요)
-→ 파일이 없는 INDEX 항목: "고아 링크" (제거 또는 파일 생성 필요)
+→ 파일이 없는 INDEX 항목: "고아/데드링크" (Step 1.5에서 이미 감지)
 → 버전 히스토리 카운트 불일치: "통계 오류" (숫자 갱신 필요)
 ```
 

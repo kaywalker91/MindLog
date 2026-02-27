@@ -104,6 +104,7 @@ dev_dependencies:
   firebase_analytics_platform_interface: ^4.4.3
   firebase_core_platform_interface: ^6.0.2
   plugin_platform_interface: ^2.1.8
+  marionette_flutter: ^0.3.0
 
 flutter:
   uses-material-design: true

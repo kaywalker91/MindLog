@@ -79,6 +79,28 @@ tasks.md 상단의 `**최종 업데이트**` 줄을 오늘 날짜와 TASK-ID로 
    └─ 파일: lib/presentation/widgets/common/tappable_card.dart
 ```
 
+### Step 8: 아카이브 트리거 점검
+
+완료 처리 후 tasks.md의 [x] 태스크 수를 카운트:
+```bash
+grep -c '^\- \[x\]' docs/tasks.md
+```
+
+- 결과 **0** → 🔵 이번 세션에서 `/session-wrap` 아카이브가 이미 실행된 경우 정상 (skip)
+- 결과 **≥ 5**이면: ⚠️ 경고 출력
+  ```
+  tasks.md에 완료된 태스크 N개 감지.
+  /session-wrap 또는 다음 릴리스 시 history.md로 이동 권장.
+  ```
+- 결과 **≥ 10**이면: 🔴 즉시 아카이브 제안
+  ```
+  tasks.md가 비대해지고 있습니다. 지금 archive 하시겠습니까?
+  → docs/tasks/history.md로 N개 이동 예정
+  ```
+
+**멱등성 보장**: `/session-wrap` Step 6.1이 이미 실행됐으면 [x] 카운트는 0으로 리셋됨.
+이후 task-done 추가 실행 시 5개 누적 전까지 경고 없음 (이중 경고 방지).
+
 ## 출력 형식
 
 **성공:**

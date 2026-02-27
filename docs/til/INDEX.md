@@ -2,7 +2,7 @@
 
 **생성일**: 2026-01-21
 **주제**: Groq Vision API 통합 학습 자료
-**총 13개 문서 / ~19,500 단어**
+**총 14개 문서 / ~20,500 단어**
 
 ---
 
@@ -23,7 +23,8 @@ docs/til/
 ├── COLOR_SYSTEM.md                              [MindLog 컬러 시스템 4-팔레트 레퍼런스]
 ├── A11Y_THEME_AWARE_COLOR_MIGRATION_PATTERN_TIL.md [접근성 theme-aware 색상 마이그레이션]
 ├── MEMORY_ARCHIVING_LIFECYCLE_TIL.md [메모리 7레이어 아카이빙 수명주기]
-└── SESSION_WRAP_PROCESS_AUDIT_TIL.md [멀티 문서 동기화 갭 분석 방법론]
+├── SESSION_WRAP_PROCESS_AUDIT_TIL.md [멀티 문서 동기화 갭 분석 방법론]
+└── LIVING_DOCUMENT_ARCHIVE_PATTERN_TIL.md [리빙 문서 성장 억제 — Rolling Window + Append-Only Archive]
 ```
 
 ---
