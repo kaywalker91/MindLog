@@ -98,6 +98,11 @@ class KoreanTextFilter {
   // 안전한 은/는 교정 패턴 (대명사 및 고빈도 오류)
   // 오탐 가능성이 매우 낮은 패턴만 포함
   // ============================================================
+  /// 중복 동사 패턴: ~하고 하기 → ~하기 (예: 심호흡하고 하기 → 심호흡하기)
+  static final RegExp _redundantDoPattern = RegExp(
+    r'([\uAC00-\uD7AF]+)하고\s*하기',
+  );
+
   static final List<(RegExp, String)> _topicMarkerCorrections = [
     // 대명사 (오탐 가능성 매우 낮음)
     (RegExp(r'나은([\s.,!?~\-)":\u0027]|$)'), r'나는$1'),
@@ -320,6 +325,16 @@ class KoreanTextFilter {
     return result;
   }
 
+  /// 중복 동사 패턴 제거
+  ///
+  /// 예: "10분간 심호흡하고 하기" → "10분간 심호흡하기"
+  static String _removeRedundantVerbPattern(String text) {
+    if (text.isEmpty) return text;
+    return text.replaceAllMapped(_redundantDoPattern, (match) {
+      return '${match.group(1)}하기';
+    });
+  }
+
   /// 반말 어미를 존댓말로 교정
   ///
   /// 일반적인 반말 어미를 존댓말로 변환합니다.
@@ -380,6 +395,7 @@ class KoreanTextFilter {
   /// 5. 은/는 주제격 조사 교정
   /// 6. 을/를 목적격 조사 교정 (구분자 패턴 기반)
   /// 7. 존댓말 정규화
+  /// 7.5. 중복 동사 패턴 제거 (하고 하기 → 하기)
   /// 8. 연속 공백 정리
   ///
   /// [text] 처리할 텍스트
@@ -407,6 +423,9 @@ class KoreanTextFilter {
 
     // 7. 존댓말 정규화
     processed = normalizeHonorific(processed);
+
+    // 7.5. 중복 동사 패턴 제거 (하고 하기 → 하기)
+    processed = _removeRedundantVerbPattern(processed);
 
     // 8. 연속 공백 정리
     return processed.replaceAll(RegExp(r'\s+'), ' ').trim();
@@ -510,10 +529,11 @@ class KoreanTextFilter {
         _commonGrammarErrors.keys.any((k) => text.contains(k));
 
     if (!hasIssue) {
-      // 조사 및 존댓말 교정만 적용 (경미한 오류 교정)
+      // 조사, 존댓말, 중복 동사 교정만 적용 (경미한 오류 교정)
       String corrected = _correctTopicMarkers(text);
       corrected = _correctParticlesWithDelimiter(corrected);
       corrected = normalizeHonorific(corrected);
+      corrected = _removeRedundantVerbPattern(corrected);
       return corrected;
     }
 

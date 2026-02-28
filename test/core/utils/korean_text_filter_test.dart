@@ -381,6 +381,31 @@ void main() {
     });
 
     // ============================================================
+    // 신규 기능 테스트: 중복 동사 패턴 제거
+    // ============================================================
+    group('processKoreanText - 중복 동사 패턴 제거', () {
+      test('심호흡하고 하기 → 심호흡하기로 교정한다', () {
+        final result = KoreanTextFilter.processKoreanText('10분간 심호흡하고 하기');
+        expect(result, equals('10분간 심호흡하기'));
+      });
+
+      test('산책하고 하기 → 산책하기로 교정한다', () {
+        final result = KoreanTextFilter.processKoreanText('30분간 산책하고 하기');
+        expect(result, equals('30분간 산책하기'));
+      });
+
+      test('정상 패턴은 변경하지 않는다', () {
+        final result = KoreanTextFilter.processKoreanText('심호흡하기');
+        expect(result, equals('심호흡하기'));
+      });
+
+      test('filterMessage에서도 중복 동사를 교정한다', () {
+        final result = KoreanTextFilter.filterMessage('30분간 산책하고 하기');
+        expect(result, equals('30분간 산책하기'));
+      });
+    });
+
+    // ============================================================
     // 통합 테스트: 전체 파이프라인 복합 케이스
     // ============================================================
     group('processKoreanText - 전체 파이프라인 복합', () {
