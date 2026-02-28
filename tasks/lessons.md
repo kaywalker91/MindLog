@@ -81,3 +81,9 @@
 **근본 원인**: Stack이 non-positioned 자식에게 loose 제약(0~maxWidth) 전달. SingleChildScrollView가 이를 그대로 하위에 전달(copyWith(maxHeight: ∞)). Column이 loose width 받으면 가장 넓은 자식 너비로 수축 → Padding 좌측 끝에 붙음.
 **해결책**: Column 위에 `SizedBox(width: double.infinity)` 래퍼 추가. Loose 제약 안에서 double.infinity는 max값(screenWidth-48)으로 클램핑되어 Column에 tight 제약 전달.
 **예방 규칙**: Stack 내 SingleChildScrollView + Column(mainAxisSize.min) 패턴 사용 시 Column을 반드시 SizedBox(width: double.infinity)로 감싸야 정상 중앙 정렬. Responsive layout pattern 참조.
+
+## 2026-02-28 - KoreanTextFilter length guard가 짧은 교정 결과를 차단
+**무엇이 잘못됐나**: `filterMessage()` 내 `filtered.length < 10` 가드가 "30분간 산책하기"(9자) 같은 정상 교정 결과를 차단하고 원문을 반환함
+**근본 원인**: 외국어 오염 감지 시 적용하는 최소 길이 가드가, 중복 동사 패턴처럼 경미한 오류 교정에는 부적합
+**해결책**: `_redundantDoPattern`을 `hasIssue` 트리거에서 제외하고, `!hasIssue` 경량 교정 브랜치에 `_removeRedundantVerbPattern()` 추가 → length 가드 우회
+**예방 규칙**: `filterMessage` 경량 브랜치(`!hasIssue`)는 항상 안전하게 반환. 새 교정 로직 추가 시 length 가드가 있는 `processKoreanText` 경로를 타는지 확인할 것.
