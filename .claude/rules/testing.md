@@ -20,21 +20,19 @@ test('정상 입력 시 올바른 결과를 반환해야 한다', () async {
 ```
 
 ## Test Framework
-- `flutter_test` only — NO mockito, NO build_runner mocks
-- Manual mock classes using `implements`
+- `flutter_test` + `mocktail` for mocking
+- No `mockito`, no `build_runner` generated mocks
 
 ## Mock Pattern
 ```dart
-class MockXxxRepository implements XxxRepository {
-  bool shouldThrowError = false;
-  String? errorMessage;
+// mocktail (standard)
+class MockXxxRepository extends Mock implements XxxRepository {}
 
-  @override
-  Future<Result> someMethod(Params params) async {
-    if (shouldThrowError) throw Exception(errorMessage ?? 'Mock error');
-    return MockResult();
-  }
-}
+// In test:
+setUp(() {
+  mockRepo = MockXxxRepository();
+  when(() => mockRepo.someMethod(any())).thenAnswer((_) async => result);
+});
 ```
 
 ## Test Group Structure

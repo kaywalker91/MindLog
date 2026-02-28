@@ -82,3 +82,32 @@ paths: [".claude/skills/**", ".claude/rules/**"]
 - **Session end**: `/session-wrap` -> `/til-save [topic]` + `/troubleshoot-save [id]`
 - **Official docs lookup**: `/c7-flutter [topic]` -> 공식 패턴 확인 -> memories 참조
 - **New pattern learning**: `/c7-flutter [topic]` -> 코드 적용 -> `/til-save [topic]`
+
+## Auto-invoke Triggers (P0~P5)
+
+### P0 Safety (즉시 실행)
+- SafetyBlockedFailure / 위기감지 코드 수정 → `/crisis-check validate-prompt`
+
+### P1 Architecture Guards (즉시 실행)
+- 레이어 간 import 변경 → `/arch-check`
+
+### P2 Domain Safety (즉시 실행)
+- 알림 서비스 코드 수정 → `/notification-audit`
+- Provider 추가/변경 → `/provider-invalidation-audit`
+- `_currentVersion` 증가 + `_onUpgrade` 수정 → `/db-migrate-validate`
+
+### P3 Quality Enforcement (강하게 제안)
+- 새 UseCase/Repository 클래스 생성 → `/test-unit-gen [파일]` 제안 (TDD RED phase)
+- `Colors.*` 또는 `Color(0x...)` 하드코딩 감지 → `/color-migrate [파일]` 제안
+- UI 파일 수정 후 → `/design-audit lib/presentation/` 현황 확인 권장
+
+### P4 Knowledge Capture (제안)
+- 버그 해결 완료 → `/troubleshoot-save`
+- 버그 해결 + 새 학습 포인트 → `/til-save [topic]` 추가 제안
+- TIL 파일 생성 후 → `/til-index-sync --fix` (INDEX.md 동기화)
+- context 70% → `/session-wrap` (v2: Step 5.5 MEMORY.md / Step 6.5 progress / Step 7.5 TIL INDEX 포함)
+- 태스크 구현 완료 직후 → `/task-done [TASK-ID] [summary]` (docs/tasks.md 자동 업데이트, 완료 태스크 이력 → `docs/tasks/history.md`, 150줄 상한)
+- tasks.md 크기 거버넌스 → `/task-done` Step 8 (≥5개 경고/≥10개 즉시 제안) + `/session-wrap` Step 6.1 (≥150줄 자동 아카이브)
+
+### P5 Workflow Optimization (참고 제안)
+- Play Store 배포 직전 → `/release-unified [type]` 사용 권장

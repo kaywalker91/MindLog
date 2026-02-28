@@ -14,7 +14,7 @@
 - `/arch-check` 실행 후 색상 위반 발견 시
 
 ## 참조 템플릿
-참조: `.claude/rules/patterns-theme-colors.md`
+참조: `.claude/rules/design-token-rules.md` (Color Migration Table 섹션)
 
 ```dart
 // Before
@@ -223,7 +223,7 @@ AI 응답:
 - `/widget-decompose` - 대형 위젯 분해 (색상 마이그레이션과 병행)
 
 ## 참조 파일
-- `.claude/rules/patterns-theme-colors.md` - 전체 색상 매핑 가이드
+- `.claude/rules/design-token-rules.md` - 전체 색상 매핑 가이드 (Color Migration Table 섹션)
 - `lib/core/theme/app_colors.dart` - AppColors 정의
 
 ---
