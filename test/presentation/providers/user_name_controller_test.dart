@@ -287,7 +287,8 @@ void main() {
         );
       });
 
-      test('메시지 없을 때 reschedule을 건너뛰어야 한다', () async {
+      test('메시지가 없어도 rescheduleWithMessages가 호출되어야 한다', () async {
+        // Fix B: 외부 guard 제거 → applySettings 내부에서 empty 처리
         rescheduleContainer = createRescheduleContainer(messages: []);
 
         // 초기화
@@ -298,8 +299,9 @@ void main() {
         final notifier = rescheduleContainer.read(userNameProvider.notifier);
         await notifier.setUserName('지수');
 
-        // Assert
-        expect(trackingController.rescheduleCalls, isEmpty);
+        // Assert: empty messages로 reschedule 1회 호출됨
+        expect(trackingController.rescheduleCalls, hasLength(1));
+        expect(trackingController.rescheduleCalls[0], isEmpty);
       });
 
       test('reschedule 실패해도 이름 설정이 성공해야 한다', () async {

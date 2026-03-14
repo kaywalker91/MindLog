@@ -31,9 +31,10 @@ void main() {
         expect(NotificationMessages.reminderBodies, isNotEmpty);
       });
 
-      test('getRandomReminderTitle은 목록 내 값을 반환해야 한다', () {
+      test('getRandomReminderTitle은 {name}이 제거된 유효한 값을 반환해야 한다', () {
         final title = NotificationMessages.getRandomReminderTitle();
-        expect(NotificationMessages.reminderTitles, contains(title));
+        expect(title, isNot(contains('{name}')));
+        expect(title.trim(), isNotEmpty);
       });
 
       test('getRandomReminderBody는 목록 내 값을 반환해야 한다', () {
@@ -45,7 +46,7 @@ void main() {
         final message = NotificationMessages.getRandomReminderMessage();
         expect(message.title, isNotEmpty);
         expect(message.body, isNotEmpty);
-        expect(NotificationMessages.reminderTitles, contains(message.title));
+        expect(message.title, isNot(contains('{name}')));
         expect(NotificationMessages.reminderBodies, contains(message.body));
       });
     });
@@ -447,6 +448,116 @@ void main() {
           '  지수  ',
         );
         expect(result, '지수님, 안녕하세요');
+      });
+    });
+
+    group('applyNamePersonalization - 조사 커버리지 (Fix D)', () {
+      test('{name}님에게 패턴을 null 이름에서 제거해야 한다', () {
+        final result = NotificationMessages.applyNamePersonalization(
+          '{name}님에게 보내는 응원',
+          null,
+        );
+        expect(result, '보내는 응원');
+      });
+
+      test('{name}님께 패턴을 null 이름에서 제거해야 한다', () {
+        final result = NotificationMessages.applyNamePersonalization(
+          '{name}님께 드리는 메시지',
+          null,
+        );
+        expect(result, '드리는 메시지');
+      });
+
+      test('{name}님에게 패턴에 실제 이름이 치환되어야 한다', () {
+        final result = NotificationMessages.applyNamePersonalization(
+          '{name}님에게 보내는 응원',
+          '지수',
+        );
+        expect(result, '지수님에게 보내는 응원');
+      });
+
+      test('{name}님께 패턴에 실제 이름이 치환되어야 한다', () {
+        final result = NotificationMessages.applyNamePersonalization(
+          '{name}님께 드리는 메시지',
+          '지수',
+        );
+        expect(result, '지수님께 드리는 메시지');
+      });
+
+      test('기존 조사 , 는 여전히 동작해야 한다', () {
+        expect(
+          NotificationMessages.applyNamePersonalization('{name}님, 안녕', null),
+          '안녕',
+        );
+      });
+
+      test('기존 조사 의 는 여전히 동작해야 한다', () {
+        expect(
+          NotificationMessages.applyNamePersonalization('{name}님의 응원', null),
+          '응원',
+        );
+      });
+
+      test('기존 조사 은 는 여전히 동작해야 한다', () {
+        expect(
+          NotificationMessages.applyNamePersonalization(
+            '{name}님은 잘하고 있어요',
+            null,
+          ),
+          '잘하고 있어요',
+        );
+      });
+
+      test('기존 조사 을 는 여전히 동작해야 한다', () {
+        expect(
+          NotificationMessages.applyNamePersonalization('{name}님을 응원해요', null),
+          '응원해요',
+        );
+      });
+
+      test('기존 조사 이 는 여전히 동작해야 한다', () {
+        expect(
+          NotificationMessages.applyNamePersonalization(
+            '{name}님이 잘하고 있어요',
+            null,
+          ),
+          '잘하고 있어요',
+        );
+      });
+    });
+
+    group('getRandomReminderTitle - userName 파라미터 (Fix C)', () {
+      test('userName 전달 시 {name}이 이름으로 치환되어야 한다', () {
+        // MockRandom counter=0 → index 0 → '{name}님, 오늘 하루는 어떠셨나요?'
+        NotificationMessages.setRandom(MockRandom());
+        final title = NotificationMessages.getRandomReminderTitle('지수');
+        expect(title, '지수님, 오늘 하루는 어떠셨나요?');
+      });
+
+      test('userName이 null이면 {name}님 패턴이 제거되어야 한다', () {
+        NotificationMessages.setRandom(MockRandom());
+        final title = NotificationMessages.getRandomReminderTitle(null);
+        expect(title, isNot(contains('{name}')));
+        expect(title.trim(), isNotEmpty);
+      });
+
+      test('userName이 빈 문자열이면 {name}님 패턴이 제거되어야 한다', () {
+        NotificationMessages.setRandom(MockRandom());
+        final title = NotificationMessages.getRandomReminderTitle('');
+        expect(title, isNot(contains('{name}')));
+      });
+
+      test('인자 없이 호출해도 컴파일 오류 없이 {name} 제거됨', () {
+        NotificationMessages.setRandom(MockRandom());
+        final title = NotificationMessages.getRandomReminderTitle();
+        expect(title, isNot(contains('{name}')));
+      });
+
+      test('{name}이 없는 템플릿은 userName과 무관하게 그대로 반환되어야 한다', () {
+        // index 1 → '오늘 기분이 어떠셨어요?' ({name} 없음)
+        NotificationMessages.setRandom(MockRandom()..nextInt(8)); // skip index 0
+        final title = NotificationMessages.getRandomReminderTitle('지수');
+        expect(title, '오늘 기분이 어떠셨어요?');
       });
     });
 
