@@ -37,6 +37,35 @@ Architecture: Clean Architecture (domain/data/presentation) + Riverpod state man
 - **Debugging & Error Handling**: See `.claude/rules/architecture.md`
 - **Model strategy**: See `~/.claude/rules/model-selection-strategy.md`
 
+## Protected Files (삭제 금지)
+
+> ⚠️ 아래 파일들은 프로젝트 운영에 필수적이며 **절대 삭제하지 않는다**.
+> 리팩토링, 정리, cleanup 작업 시에도 이 목록에 있는 파일은 제외한다.
+
+### GitHub Pages 사이트 (`docs/`)
+
+GitHub Pages 소스 디렉토리. `https://github.com/kaywalker91/mindlog` 레포의 `/docs` 폴더로 퍼블리시된다.
+
+| 파일 | 역할 | 삭제 금지 이유 |
+|------|------|--------------|
+| `docs/index.html` | 메인 랜딩 페이지 (앱 소개, 기능, 스크린샷) | 공개 마케팅 사이트 진입점 |
+| `docs/troubleshooting.html` | 트러블슈팅 가이드 페이지 | JSON 인덱스 기반 동적 이슈 가이드 |
+| `docs/style.css` | 전체 페이지 통합 스타일시트 | index + troubleshooting 양쪽에서 사용 |
+| `docs/troubleshooting.json` | 트러블슈팅 이슈 인덱스 데이터 | troubleshooting.html이 동적 로드 |
+| `docs/update.json` | 버전별 업데이트 정보 | 앱 업데이트 히스토리 표시용 |
+
+### GitHub Actions 워크플로우 (`.github/`)
+
+CI/CD 파이프라인 및 자동화 스크립트. 삭제 시 PR 검증·배포·문서 동기화가 전부 중단된다.
+
+| 파일 | 역할 | 삭제 금지 이유 |
+|------|------|--------------|
+| `.github/workflows/ci.yml` | PR 검증 파이프라인 (lint·test·build) | PR 머지 전 품질 게이트 |
+| `.github/workflows/cd.yml` | Play Store 배포 자동화 | main 푸시 → Internal Track 자동 배포 |
+| `.github/workflows/readme-sync.yml` | README 동기화 검증 | README.md ↔ README.ko.md 헤더 일치 보장 |
+| `.github/workflows/test-health.yml` | 테스트 상태 모니터링 | 테스트 건강도 추적 |
+| `.github/scripts/check-readme-sync.sh` | README 동기화 검증 셸 스크립트 | readme-sync.yml 워크플로우 의존 |
+
 ## Known Issues
 - Notification: 앱 시작 시 selfEncouragementProvider + userNameProvider 미전달 → 리마인더 취소 (v1.4.36 수정완료)
 - 이름 개인화: `{name}` 패턴 제거 시 조사(님,의,은,을,이) + 후행 공백도 함께 제거 필요
