@@ -16,6 +16,7 @@ docs/troubleshooting/README.md     ← 이 파일: 사람이 읽는 목차
 |-------|--------|----------|----------|------------|----------|
 | [FCM 알림 body 빈 문자열 미표시](./fcm-notification-empty-body.md) | resolved | high | notification | data | android,ios |
 | [예약 알림 미작동 (Release)](./notification-not-firing-release.md) | resolved | critical | notification | environment | android |
+| [{name}님 플레이스홀더 미치환](./cheer-me-name-placeholder-not-replaced.md) | resolved | high | notification | timing | android,ios |
 
 ## By Root Cause Type
 
@@ -26,7 +27,7 @@ docs/troubleshooting/README.md     ← 이 파일: 사람이 읽는 목차
 - (이슈 없음)
 
 ### timing (비동기/레이스 컨디션)
-- (이슈 없음)
+- [{name}님 플레이스홀더 미치환](./cheer-me-name-placeholder-not-replaced.md) — hasReminder 가드 + provider 로딩 타이밍 복합 원인
 
 ### state (상태 관리 버그)
 - (이슈 없음)

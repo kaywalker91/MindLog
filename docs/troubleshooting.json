@@ -56,6 +56,34 @@
       "tags": ["android", "proguard", "r8", "notification", "alarmmanager", "release-build", "flutter_local_notifications"],
       "preventionRule": "외부 패키지의 BroadcastReceiver/Service 사용 시 proguard keep 규칙 필수 확인",
       "confidence": "high"
+    },
+    {
+      "id": "cheer-me-name-placeholder-not-replaced",
+      "title": "Cheer Me 알림에 {name}님 플레이스홀더가 치환되지 않고 그대로 표시",
+      "status": "resolved",
+      "reportedAt": "2026-03-14",
+      "resolvedAt": "2026-03-14",
+      "affectedVersions": ["<= 1.4.49"],
+      "fixedInVersion": "1.4.50",
+      "category": "notification",
+      "severity": "high",
+      "platform": "android,ios",
+      "rootCauseType": "timing",
+      "summary": "사용자 이름 설정 후에도 Cheer Me 알림 제목에 {name}님의 응원 메시지 등 플레이스홀더 원문이 그대로 표시됨. 4개 독립 원인(regex/API/timing/guard) 동시 수정으로 해소.",
+      "symptoms": [
+        "알림 제목에 {name}님, 오늘도 파이팅! 등 플레이스홀더 리터럴 표시",
+        "이름 설정 후에도 알림 제목에 실제 이름 대신 {name} 문자열 노출",
+        "앱 재시작 후에도 동일 증상 지속",
+        "알림 끄기→켜기 후 정상화되는 경우 있음"
+      ],
+      "cause": "4개 복합 원인: (D) _nameWithSuffixPattern 정규식이 에게/께 2자 조사 미커버. (C) getRandomReminderTitle()에 userName 미전달. (B) setUserName()에서 valueOrNull이 AsyncLoading=null → reschedule 스킵. (A) main.dart hasReminder 조기반환이 {name} bake-in 알림 덮어쓰기 차단.",
+      "solution": "Fix D: 정규식 [,의은을이]? → (?:[,의은을이]|에게|께)?. Fix C: getRandomReminderTitle([String? userName]) + applyNamePersonalization 적용. Fix B: valueOrNull → await selfEncouragementProvider.future + isNotEmpty guard 제거. Fix A: hasReminder 내 hasPlaceholder 체크 → {name} 포함 시 강제 재스케줄.",
+      "documentation": "troubleshooting/cheer-me-name-placeholder-not-replaced.md",
+      "relatedIssues": ["notification-not-firing-release", "fcm-notification-empty-body"],
+      "relatedCommits": [],
+      "tags": ["notification", "personalization", "name", "placeholder", "cheer-me", "timing", "riverpod", "async", "hasReminder", "reschedule", "regex", "korean-suffix"],
+      "preventionRule": "{name} 패턴 포함 함수는 반드시 userName 인자 + applyNamePersonalization 호출. valueOrNull은 AsyncLoading=null 반환 — 로딩 완료 대기 시 .future await 사용. hasReminder 조기반환은 title 내용 검증 없이 skip 금지.",
+      "confidence": "high"
     }
   ],
   "categories": {
@@ -80,5 +108,5 @@
     "integration": "컴포넌트 간 통합 이슈",
     "ui": "레이아웃/렌더링/UX 이슈"
   },
-  "updatedAt": "2026-02-27"
+  "updatedAt": "2026-03-14 (cheer-me-placeholder resolved)"
 }
