@@ -1,33 +1,25 @@
 {
-  "latestVersion": "1.4.49",
+  "latestVersion": "1.4.50",
   "minimumVersion": "1.4.0",
   "releaseNotes": {
     "ko": {
-      "title": "v1.4.49 업데이트 안내",
-      "features": [
-        "스플래시 화면 애니메이션이 새롭게 디자인됐어요! 더 부드럽고 세련된 인트로를 경험해보세요.",
-        "접근성이 향상됐어요. 화면 읽기 기능을 사용하시는 분들도 더 편리하게 이용할 수 있어요."
-      ],
+      "title": "v1.4.50 업데이트 안내",
+      "features": [],
       "improvements": [
-        "앱 전체 색상이 아름다운 스카이 블루 테마로 통일됐어요. 더 일관된 디자인을 경험해보세요."
+        "AI 응원 메시지 필터링이 더 정확해졌어요. 부자연스러운 반복 표현이 더 자연스럽게 정리돼요."
       ],
       "bugFixes": [
-        "일부 화면이 왼쪽으로 치우쳐 보이던 레이아웃 문제를 수정했어요.",
-        "앱 시작 시 간헐적으로 발생하던 오류를 수정했어요."
+        "이름을 설정해도 Cheer Me 알림에 '{name}님' 문자가 그대로 보이던 문제를 완전히 해결했어요. 이제 이름이 정확하게 표시돼요."
       ]
     },
     "en": {
-      "title": "v1.4.49 Update",
-      "features": [
-        "The splash screen has been redesigned with a smoother, more elegant animation.",
-        "Improved accessibility — screen reader users will find the app more comfortable to use."
-      ],
+      "title": "v1.4.50 Update",
+      "features": [],
       "improvements": [
-        "App-wide colors unified to a beautiful sky blue theme for a more consistent look."
+        "AI message filtering is more accurate — unnatural repeated expressions are cleaned up more naturally."
       ],
       "bugFixes": [
-        "Fixed a layout issue where some screens appeared left-aligned.",
-        "Fixed an occasional crash on app startup."
+        "Fixed an issue where the literal '{name}' placeholder appeared in Cheer Me notification titles even after setting a name. Your name now shows correctly."
       ]
     }
   },

@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.50] - 2026-03-14
+
+### Fixed
+- **Cheer Me {name}님 플레이스홀더 미치환 (4개 복합 원인)** (`lib/core/constants/notification_messages.dart`, `lib/presentation/providers/user_name_controller.dart`, `lib/main.dart`):
+  - Fix D: `_nameWithSuffixPattern` 정규식 `[,의은을이]?` → `(?:[,의은을이]|에게|께)?` — 2자 조사 `에게`/`께` 미커버로 `님에게`, `님께` 잔류 해소
+  - Fix C: `getRandomReminderTitle()` / `getRandomReminderMessage()`에 optional `[String? userName]` 파라미터 추가 + `applyNamePersonalization()` 호출 — 개인화 미적용 경로 해소
+  - Fix B: `setUserName()`에서 `selfEncouragementProvider.valueOrNull ?? []`(AsyncLoading=null → 스킵) → `await selfEncouragementProvider.future`로 교체 — 로딩 완료 전 reschedule 누락 해소
+  - Fix A: `main.dart` `hasReminder` 조기반환에 `hasPlaceholder` 체크 추가 — 이전 버전에서 bake-in된 `{name}` 리터럴 알림을 강제 재스케줄로 덮어쓰기
+- **KoreanTextFilter 중복 동사 패턴 오탐** (`lib/core/services/korean_text_filter.dart`): `~하고 하기` 패턴을 `hasIssue` 트리거에서 제외하고 경량 교정 브랜치에 이동 — `filterMessage` length guard가 정상 교정 결과를 차단하는 문제 해소
+
+### Testing
+- **알림 개인화 테스트 확장** (`test/core/constants/notification_messages_test.dart`): `에게`/`께` 조사 커버리지 9개 케이스, `getRandomReminderTitle` userName 파라미터 5개 케이스 추가; 테스트 기대값 `reminderTitles contains` → `{name} 미포함` 검증으로 변경
+- **UserNameController reschedule 테스트 수정** (`test/presentation/providers/user_name_controller_test.dart`): 빈 메시지 목록에서 reschedule 스킵 → 1회 호출 검증으로 변경 (Fix B 반영)
+
+### Chore
+- **CLAUDE.md 보호 파일 섹션 추가**: GitHub Pages (`docs/`) + GitHub Actions (`.github/workflows/`) 삭제 금지 목록 명시
+- **메모리 파일 분할 재구성** (`.claude/memories/`): 7개 대용량 TIL 파일 → 13개 포커스 파일로 분할 (MEMORY.md 200줄 제한 준수)
+- **진행 아카이브 정리** (`.claude/progress/archive/`): 누적된 분석/요약 파일 정리 → `.gitkeep` 유지
+
+---
+
 ## [1.4.49] - 2026-02-27
 
 ### Added
