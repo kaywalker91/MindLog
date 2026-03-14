@@ -316,17 +316,20 @@ class NotificationMessages {
 
   // ===== 리마인더 API =====
 
-  /// 랜덤 리마인더 제목 반환
-  static String getRandomReminderTitle() =>
-      _reminderTitles[_random.nextInt(_reminderTitles.length)];
+  /// 랜덤 리마인더 제목 반환 (이름 개인화 적용)
+  static String getRandomReminderTitle([String? userName]) {
+    final template = _reminderTitles[_random.nextInt(_reminderTitles.length)];
+    return applyNamePersonalization(template, userName);
+  }
 
   /// 랜덤 리마인더 본문 반환
   static String getRandomReminderBody() =>
       _reminderBodies[_random.nextInt(_reminderBodies.length)];
 
-  /// 랜덤 리마인더 메시지 쌍 반환
-  static ({String title, String body}) getRandomReminderMessage() =>
-      (title: getRandomReminderTitle(), body: getRandomReminderBody());
+  /// 랜덤 리마인더 메시지 쌍 반환 (이름 개인화 적용)
+  static ({String title, String body}) getRandomReminderMessage([
+    String? userName,
+  ]) => (title: getRandomReminderTitle(userName), body: getRandomReminderBody());
 
   // ===== 마음케어 API =====
 
@@ -428,7 +431,7 @@ class NotificationMessages {
   /// 개인화 템플릿 패턴
   /// - "{name}님, " → 이름이 있으면 "지수님, ", 없으면 제거
   /// - "{name}" → 이름이 있으면 "지수", 없으면 제거
-  static final RegExp _nameWithSuffixPattern = RegExp(r'\{name\}님[,의은을이]?\s*');
+  static final RegExp _nameWithSuffixPattern = RegExp(r'\{name\}님(?:[,의은을이]|에게|께)?\s*');
   static final RegExp _nameOnlyPattern = RegExp(r'\{name\}');
 
   /// 메시지에 이름 개인화 적용

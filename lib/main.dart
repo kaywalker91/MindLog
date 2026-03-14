@@ -76,10 +76,24 @@ Future<void> _rescheduleNotificationsIfNeeded() async {
       (n) => n.id == NotificationService.dailyReminderId,
     );
     if (hasReminder) {
-      if (kDebugMode) {
-        debugPrint('[Main] Reminder already pending, skipping reschedule');
+      // 예약된 알림이 있어도 {name} 플레이스홀더가 포함되어 있으면 강제 재스케줄
+      // (이전 버전에서 bake-in 된 리터럴 알림 덮어쓰기)
+      final hasPlaceholder = pendingNotifications.any(
+        (n) =>
+            n.id == NotificationService.dailyReminderId &&
+            (n.title?.contains('{name}') ?? false),
+      );
+      if (!hasPlaceholder) {
+        if (kDebugMode) {
+          debugPrint('[Main] Reminder already pending (clean), skipping reschedule');
+        }
+        return;
       }
-      return;
+      if (kDebugMode) {
+        debugPrint(
+          '[Main] Reminder pending but contains {name} placeholder — forcing reschedule',
+        );
+      }
     }
 
     // SharedPreferences에서 알림 설정 읽기

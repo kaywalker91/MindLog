@@ -22,13 +22,13 @@ class UserNameController extends AsyncNotifier<String?> {
     state = AsyncValue.data(finalName);
 
     // 이름 변경 → 알림 재스케줄링 (개인화 반영)
+    // selfEncouragementProvider가 로딩 중이면 완료를 기다린 후 재스케줄
+    // messages.isEmpty 시 applySettings 내부에서 cancel 처리되므로 외부 guard 불필요
     try {
-      final messages = ref.read(selfEncouragementProvider).valueOrNull ?? [];
-      if (messages.isNotEmpty) {
-        await ref
-            .read(notificationSettingsProvider.notifier)
-            .rescheduleWithMessages(messages);
-      }
+      final messages = await ref.read(selfEncouragementProvider.future);
+      await ref
+          .read(notificationSettingsProvider.notifier)
+          .rescheduleWithMessages(messages);
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[UserNameController] Reschedule failed: $e');
