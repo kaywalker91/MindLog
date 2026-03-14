@@ -87,3 +87,9 @@
 **근본 원인**: 외국어 오염 감지 시 적용하는 최소 길이 가드가, 중복 동사 패턴처럼 경미한 오류 교정에는 부적합
 **해결책**: `_redundantDoPattern`을 `hasIssue` 트리거에서 제외하고, `!hasIssue` 경량 교정 브랜치에 `_removeRedundantVerbPattern()` 추가 → length 가드 우회
 **예방 규칙**: `filterMessage` 경량 브랜치(`!hasIssue`)는 항상 안전하게 반환. 새 교정 로직 추가 시 length 가드가 있는 `processKoreanText` 경로를 타는지 확인할 것.
+
+## 2026-03-14 - Cheer Me {name} 플레이스홀더 미치환: 4개 근본 원인
+**무엇이 잘못됐나**: Cheer Me 알림 제목에 `{name}님의 응원 메시지` 리터럴이 그대로 표시됨
+**근본 원인**: (D) 정규식 `[,의은을이]?`가 2자 조사 `에게`/`께` 미커버 → `님에게` 잔류. (C) `getRandomReminderTitle()`이 개인화 미적용. (B) `valueOrNull ?? []` = AsyncLoading 시 null → reschedule 스킵. (A) `hasReminder=true` 조기반환이 stale `{name}` 알림 무시
+**해결책**: (D) 정규식 → `(?:[,의은을이]|에게|께)?`. (C) optional userName 파라미터 추가. (B) `await selfEncouragementProvider.future`로 로딩 완료 대기. (A) `hasPlaceholder` 체크 추가 → `{name}` 포함 시 강제 재스케줄
+**예방 규칙**: character class `[...]`는 1글자만 매칭 — 2자 이상 패턴은 반드시 `(?:...|...)` alternation. `valueOrNull`은 AsyncLoading = null 반환 → 로딩 대기 필요 시 `.future` await 사용
