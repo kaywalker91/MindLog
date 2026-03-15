@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../core/accessibility/app_accessibility.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/animation_settings.dart';
@@ -144,7 +145,7 @@ class SentimentDashboard extends StatelessWidget {
 
     if (!shouldAnimate) {
       return Semantics(
-        label: '감정 점수 $score점, $_sentimentText',
+        label: AppAccessibility.emotionScoreLabel(score),
         child: emojiWidget,
       );
     }

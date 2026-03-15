@@ -10,6 +10,7 @@ import 'package:mindlog/core/services/emotion_trend_service.dart';
 import 'package:mindlog/core/services/notification_service.dart';
 import 'package:mindlog/core/services/safety_followup_service.dart';
 import 'package:mindlog/domain/entities/diary.dart';
+import 'package:mindlog/core/accessibility/app_accessibility.dart';
 import 'package:mindlog/presentation/providers/providers.dart';
 
 /// 일기 분석 상태
@@ -68,6 +69,7 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
         return;
       }
       state = DiaryAnalysisSuccess(diary);
+      AccessibilityAnnouncer.announceAnalysisComplete();
       final analysisResult = diary.analysisResult;
       unawaited(
         AnalyticsService.logDiaryCreated(

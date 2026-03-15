@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/accessibility/app_accessibility.dart';
 import '../../../core/theme/statistics_theme_tokens.dart';
 
 /// 캘린더 헤더 위젯 (월 네비게이션)
@@ -25,14 +26,17 @@ class CalendarHeader extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        IconButton(
-          onPressed: onPrevMonth,
-          icon: const Icon(Icons.chevron_left),
-          tooltip: '이전 달',
-          color: statsTokens.textSecondary,
-          iconSize: 24,
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          padding: EdgeInsets.zero,
+        Semantics(
+          hint: AppAccessibility.buttonHint('이전 달로 이동'),
+          child: IconButton(
+            onPressed: onPrevMonth,
+            icon: const Icon(Icons.chevron_left),
+            tooltip: '이전 달',
+            color: statsTokens.textSecondary,
+            iconSize: 24,
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+            padding: EdgeInsets.zero,
+          ),
         ),
         Text(
           '${focusedMonth.year}년 ${focusedMonth.month}월',
@@ -58,14 +62,17 @@ class CalendarHeader extends StatelessWidget {
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
               ),
-            IconButton(
-              onPressed: onNextMonth,
-              icon: const Icon(Icons.chevron_right),
-              tooltip: '다음 달',
-              color: statsTokens.textSecondary,
-              iconSize: 24,
-              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-              padding: EdgeInsets.zero,
+            Semantics(
+              hint: AppAccessibility.buttonHint('다음 달로 이동'),
+              child: IconButton(
+                onPressed: onNextMonth,
+                icon: const Icon(Icons.chevron_right),
+                tooltip: '다음 달',
+                color: statsTokens.textSecondary,
+                iconSize: 24,
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                padding: EdgeInsets.zero,
+              ),
             ),
           ],
         ),

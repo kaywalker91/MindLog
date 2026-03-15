@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/accessibility/app_accessibility.dart';
 import '../../core/theme/app_text_styles.dart';
 
 /// 로딩 메시지 데이터
@@ -75,6 +76,11 @@ class _LoadingIndicatorState extends State<LoadingIndicator> {
   @override
   void initState() {
     super.initState();
+    if (widget.rotatingMessages != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        AccessibilityAnnouncer.announceAnalysisStart();
+      });
+    }
     _startRotationTimer();
   }
 
