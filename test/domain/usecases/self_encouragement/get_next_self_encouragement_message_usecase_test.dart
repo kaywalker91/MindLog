@@ -1,10 +1,12 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/entities/self_encouragement_message.dart';
 import 'package:mindlog/domain/usecases/self_encouragement/get_next_self_encouragement_message_usecase.dart';
 
+import '../../../helpers/mock_fallbacks.dart';
 import '../../../mocks/mock_repositories.dart';
 
 class MockRandom implements Random {
@@ -24,6 +26,10 @@ void main() {
   late GetNextSelfEncouragementMessageUseCase useCase;
   late MockSettingsRepositoryWithMessages mockRepository;
   late MockRandom mockRandom;
+
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
 
   setUp(() {
     mockRepository = MockSettingsRepositoryWithMessages();
@@ -63,7 +69,9 @@ void main() {
   group('GetNextSelfEncouragementMessageUseCase', () {
     test('should return null when no messages exist', () async {
       // Arrange
-      mockRepository.messages = [];
+      when(
+        () => mockRepository.getSelfEncouragementMessages(),
+      ).thenAnswer((_) async => []);
       final settings = NotificationSettings.defaults();
 
       // Act
@@ -77,7 +85,9 @@ void main() {
       test('should return message at random index', () async {
         // Arrange
         final messages = createMessages(5);
-        mockRepository.messages = messages;
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
         mockRandom.nextValue = 2;
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.random,
@@ -95,7 +105,9 @@ void main() {
       test('should return message at next index', () async {
         // Arrange
         final messages = createMessages(5);
-        mockRepository.messages = messages;
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.sequential,
           lastDisplayedIndex: 1, // next should be 2
@@ -111,7 +123,9 @@ void main() {
       test('should wrap around when reaching end', () async {
         // Arrange
         final messages = createMessages(3);
-        mockRepository.messages = messages;
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.sequential,
           lastDisplayedIndex: 2, // next should be 0 (wrap)
@@ -129,7 +143,9 @@ void main() {
       test('currentEmotionScore 없으면 랜덤 폴백', () async {
         // Arrange
         final messages = createMessages(3);
-        mockRepository.messages = messages;
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
         mockRandom.nextValue = 1;
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.emotionAware,
@@ -147,7 +163,9 @@ void main() {
         final lowMsg = createMessageWithScore('low', 2.0, 0);
         final medMsg = createMessageWithScore('med', 5.0, 1);
         final highMsg = createMessageWithScore('high', 8.0, 2);
-        mockRepository.messages = [lowMsg, medMsg, highMsg];
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => [lowMsg, medMsg, highMsg]);
         mockRandom.nextValue = 0;
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.emotionAware,
@@ -169,7 +187,9 @@ void main() {
         final medMsg1 = createMessageWithScore('med1', 4.0, 1);
         final medMsg2 = createMessageWithScore('med2', 6.0, 2);
         final highMsg = createMessageWithScore('high', 8.0, 3);
-        mockRepository.messages = [lowMsg, medMsg1, medMsg2, highMsg];
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => [lowMsg, medMsg1, medMsg2, highMsg]);
         mockRandom.nextValue = 1;
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.emotionAware,
@@ -189,7 +209,9 @@ void main() {
         // Arrange
         final lowMsg = createMessageWithScore('low', 2.0, 0);
         final highMsg = createMessageWithScore('high', 8.0, 1);
-        mockRepository.messages = [lowMsg, highMsg];
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => [lowMsg, highMsg]);
         mockRandom.nextValue = 0;
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.emotionAware,
@@ -209,7 +231,9 @@ void main() {
         // Arrange - all messages have low scores, but current is high
         final msg1 = createMessageWithScore('m1', 2.0, 0);
         final msg2 = createMessageWithScore('m2', 3.0, 1);
-        mockRepository.messages = [msg1, msg2];
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => [msg1, msg2]);
         mockRandom.nextValue = 1;
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.emotionAware,
@@ -234,7 +258,9 @@ void main() {
           displayOrder: 0,
         );
         final lowMsg = createMessageWithScore('low', 2.0, 1);
-        mockRepository.messages = [noScore, lowMsg];
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => [noScore, lowMsg]);
         mockRandom.nextValue = 0;
         final settings = NotificationSettings.defaults().copyWith(
           rotationMode: MessageRotationMode.emotionAware,

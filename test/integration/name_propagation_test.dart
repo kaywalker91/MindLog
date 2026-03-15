@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mindlog/core/constants/notification_messages.dart';
 import 'package:mindlog/core/services/fcm_service.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
@@ -11,6 +12,7 @@ import 'package:mindlog/presentation/providers/notification_settings_controller.
 import 'package:mindlog/presentation/providers/self_encouragement_controller.dart';
 import 'package:mindlog/presentation/providers/user_name_controller.dart';
 
+import '../helpers/mock_fallbacks.dart';
 import '../mocks/mock_repositories.dart';
 
 /// 테스트용 메시지 팩토리
@@ -71,15 +73,25 @@ void main() {
   late MockSettingsRepository mockRepo;
   late _TrackingNotificationSettingsController trackingController;
 
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
+
   setUp(() {
     mockRepo = MockSettingsRepository();
     trackingController = _TrackingNotificationSettingsController();
     FCMService.resetForTesting();
     NotificationMessages.resetForTesting();
+
+    // Stateful mock: tracks stored user name
+    String? storedName;
+    when(() => mockRepo.getUserName()).thenAnswer((_) async => storedName);
+    when(() => mockRepo.setUserName(any())).thenAnswer((inv) async {
+      storedName = inv.positionalArguments.first as String?;
+    });
   });
 
   tearDown(() {
-    mockRepo.reset();
     FCMService.resetForTesting();
     NotificationMessages.resetForTesting();
   });

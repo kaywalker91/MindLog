@@ -1,16 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/usecases/secret/set_diary_secret_usecase.dart';
 
+import '../../../helpers/mock_fallbacks.dart';
 import '../../../mocks/mock_repositories.dart';
 
 void main() {
   late SetDiarySecretUseCase useCase;
   late MockDiaryRepository mockRepository;
 
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
+
   setUp(() {
     mockRepository = MockDiaryRepository();
     useCase = SetDiarySecretUseCase(mockRepository);
+
+    when(
+      () => mockRepository.setDiarySecret(any(), any()),
+    ).thenAnswer((_) async {});
   });
 
   group('SetDiarySecretUseCase', () {
@@ -23,8 +33,9 @@ void main() {
         await useCase.execute(diaryId, isSecret: true);
 
         // Assert
-        expect(mockRepository.setSecretCalls, contains(diaryId));
-        expect(mockRepository.setSecretValues[diaryId], true);
+        verify(
+          () => mockRepository.setDiarySecret('diary-001', true),
+        ).called(1);
       });
 
       test('should unset diary secret when isSecret is false', () async {
@@ -35,8 +46,9 @@ void main() {
         await useCase.execute(diaryId, isSecret: false);
 
         // Assert
-        expect(mockRepository.setSecretCalls, contains(diaryId));
-        expect(mockRepository.setSecretValues[diaryId], false);
+        verify(
+          () => mockRepository.setDiarySecret('diary-001', false),
+        ).called(1);
       });
     });
 
@@ -47,15 +59,16 @@ void main() {
           () => useCase.execute('', isSecret: true),
           throwsA(isA<ValidationFailure>()),
         );
-        expect(mockRepository.setSecretCalls, isEmpty);
+        verifyNever(() => mockRepository.setDiarySecret(any(), any()));
       });
     });
 
     group('오류 처리', () {
       test('should rethrow Failure from repository', () async {
         // Arrange
-        mockRepository.shouldThrowOnUpdate = true;
-        mockRepository.failureToThrow = const CacheFailure(message: '저장 실패');
+        when(
+          () => mockRepository.setDiarySecret(any(), any()),
+        ).thenThrow(const CacheFailure(message: '저장 실패'));
 
         // Act & Assert
         expect(
@@ -66,7 +79,9 @@ void main() {
 
       test('should wrap unknown exception as UnknownFailure', () async {
         // Arrange
-        mockRepository.shouldThrowGenericError = true;
+        when(
+          () => mockRepository.setDiarySecret(any(), any()),
+        ).thenThrow(Exception('generic error'));
 
         // Act & Assert
         expect(

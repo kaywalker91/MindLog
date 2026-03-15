@@ -6,7 +6,9 @@ import 'package:mindlog/core/theme/app_theme.dart';
 import 'package:mindlog/domain/usecases/secret/verify_secret_pin_usecase.dart';
 import 'package:mindlog/presentation/providers/secret_diary_providers.dart';
 import 'package:mindlog/presentation/screens/secret_diary_unlock_screen.dart';
+import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/mock_fallbacks.dart';
 import '../../mocks/mock_repositories.dart';
 
 Widget _buildHarness({List<Override> overrides = const []}) {
@@ -40,6 +42,7 @@ Future<void> _tapPin1234(WidgetTester tester) async {
 void main() {
   setUpAll(() {
     Animate.restartOnHotReload = false;
+    registerMockFallbackValues();
   });
 
   group('SecretDiaryUnlockScreen', () {
@@ -113,7 +116,9 @@ void main() {
       addTearDown(() => tester.view.resetPhysicalSize());
 
       final mockPinRepo = MockSecretPinRepository();
-      // correctPin = null → 모든 PIN 검증 실패
+      // hasPin() → true, verifyPin('1234') → false (모든 PIN 검증 실패)
+      when(() => mockPinRepo.hasPin()).thenAnswer((_) async => true);
+      when(() => mockPinRepo.verifyPin(any())).thenAnswer((_) async => false);
 
       await tester.pumpWidget(
         _buildHarness(
@@ -147,6 +152,8 @@ void main() {
       addTearDown(() => tester.view.resetPhysicalSize());
 
       final mockPinRepo = MockSecretPinRepository();
+      when(() => mockPinRepo.hasPin()).thenAnswer((_) async => true);
+      when(() => mockPinRepo.verifyPin(any())).thenAnswer((_) async => false);
 
       await tester.pumpWidget(
         _buildHarness(

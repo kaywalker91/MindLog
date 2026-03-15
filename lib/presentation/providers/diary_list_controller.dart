@@ -25,7 +25,19 @@ class DiaryListController extends AsyncNotifier<List<Diary>> {
 
   Future<List<Diary>> _fetchDiaries() async {
     final repository = ref.read(diaryRepositoryProvider);
-    return await repository.getAllDiaries();
+    final diaries = await repository.getAllDiaries();
+    return _sort(diaries);
+  }
+
+  List<Diary> _sort(List<Diary> diaries) {
+    final sorted = List<Diary>.from(diaries);
+    sorted.sort((a, b) {
+      if (a.isPinned != b.isPinned) {
+        return a.isPinned ? -1 : 1;
+      }
+      return b.createdAt.compareTo(a.createdAt);
+    });
+    return sorted;
   }
 
   /// 목록 새로고침
@@ -47,15 +59,7 @@ class DiaryListController extends AsyncNotifier<List<Diary>> {
       return diary;
     }).toList();
 
-    // 정렬 유지: 고정된 일기 우선, 그 다음 최신순
-    updatedList.sort((a, b) {
-      if (a.isPinned != b.isPinned) {
-        return a.isPinned ? -1 : 1;
-      }
-      return b.createdAt.compareTo(a.createdAt);
-    });
-
-    state = AsyncValue.data(updatedList);
+    state = AsyncValue.data(_sort(updatedList));
 
     try {
       final repository = ref.read(diaryRepositoryProvider);
@@ -96,15 +100,7 @@ class DiaryListController extends AsyncNotifier<List<Diary>> {
     final currentList = state.value ?? [];
     final restoredList = [...currentList, pending.diary];
 
-    // 정렬 유지
-    restoredList.sort((a, b) {
-      if (a.isPinned != b.isPinned) {
-        return a.isPinned ? -1 : 1;
-      }
-      return b.createdAt.compareTo(a.createdAt);
-    });
-
-    state = AsyncValue.data(restoredList);
+    state = AsyncValue.data(_sort(restoredList));
   }
 
   Future<void> _executeDeletion(String diaryId) async {
@@ -121,15 +117,7 @@ class DiaryListController extends AsyncNotifier<List<Diary>> {
       final currentList = state.value ?? [];
       final restoredList = [...currentList, pending.diary];
 
-      // 정렬 유지: 고정된 일기 우선, 그 다음 최신순
-      restoredList.sort((a, b) {
-        if (a.isPinned != b.isPinned) {
-          return a.isPinned ? -1 : 1;
-        }
-        return b.createdAt.compareTo(a.createdAt);
-      });
-
-      state = AsyncValue.data(restoredList);
+      state = AsyncValue.data(_sort(restoredList));
     }
   }
 

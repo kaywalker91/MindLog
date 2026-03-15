@@ -36,6 +36,7 @@ dependencies:
 
   # JSON Serialization
   json_annotation: ^4.9.0
+  freezed_annotation: ^2.4.4
 
   # URL Launcher (for phone calls)
   url_launcher: ^6.3.1
@@ -79,6 +80,10 @@ dependencies:
   characters: ^1.4.0
   flutter_timezone: ^5.0.1
 
+  # Structured Logging
+  talker: ^4.9.3
+  talker_riverpod_logger: ^4.9.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -98,9 +103,16 @@ dev_dependencies:
   # Code Generation
   build_runner: ^2.4.13
   json_serializable: ^6.8.0
+  freezed: ^2.5.7
 
   # App Icon Generator
   flutter_launcher_icons: ^0.14.3
+
+  # Mock Testing
+  mocktail: ^1.0.0
+
+  # Dev Logging UI
+  talker_flutter: ^4.9.3
   firebase_analytics_platform_interface: ^4.4.3
   firebase_core_platform_interface: ^6.0.2
   plugin_platform_interface: ^2.1.8

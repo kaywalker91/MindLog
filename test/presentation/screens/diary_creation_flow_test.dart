@@ -17,11 +17,13 @@ import 'package:mindlog/presentation/widgets/image_picker_section.dart';
 import 'package:mindlog/presentation/widgets/loading_indicator.dart';
 import 'package:mindlog/presentation/widgets/result_card.dart';
 import 'package:mindlog/presentation/widgets/sos_card.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz_data;
 
 import '../../fixtures/diary_fixtures.dart';
 import '../../fixtures/statistics_fixtures.dart';
+import '../../helpers/mock_fallbacks.dart';
 import '../../mocks/mock_repositories.dart';
 import '../../mocks/mock_usecases.dart';
 
@@ -116,6 +118,7 @@ const _shortContent = '짧은텍스트'; // 6자 — diaryMinLength(10) 미만
 void main() {
   setUpAll(() {
     Animate.restartOnHotReload = false;
+    registerMockFallbackValues();
   });
 
   group('DiaryScreen', () {
@@ -123,7 +126,17 @@ void main() {
       _setLargeView(tester);
       addTearDown(() => _resetView(tester));
 
-      await tester.pumpWidget(_buildHarness());
+      final mockUseCase = MockAnalyzeDiaryUseCase();
+      when(
+        () => mockUseCase.execute(
+          any(),
+          imagePaths: any(named: 'imagePaths'),
+        ),
+      ).thenAnswer(
+        (_) async => DiaryFixtures.analyzed(),
+      );
+
+      await tester.pumpWidget(_buildHarness(analyzeUseCase: mockUseCase));
       await tester.pump();
 
       // 텍스트 입력 필드
@@ -140,7 +153,17 @@ void main() {
       _setLargeView(tester);
       addTearDown(() => _resetView(tester));
 
-      await tester.pumpWidget(_buildHarness());
+      final mockUseCase = MockAnalyzeDiaryUseCase();
+      when(
+        () => mockUseCase.execute(
+          any(),
+          imagePaths: any(named: 'imagePaths'),
+        ),
+      ).thenAnswer(
+        (_) async => DiaryFixtures.analyzed(),
+      );
+
+      await tester.pumpWidget(_buildHarness(analyzeUseCase: mockUseCase));
       await tester.pump();
 
       // 짧은 텍스트 → 버튼 비활성
@@ -199,10 +222,17 @@ void main() {
       _setLargeView(tester);
       addTearDown(() => _resetView(tester));
 
-      final mock = MockAnalyzeDiaryUseCase()
-        ..mockDiary = DiaryFixtures.analyzed(sentimentScore: 8);
+      final mockUseCase = MockAnalyzeDiaryUseCase();
+      when(
+        () => mockUseCase.execute(
+          any(),
+          imagePaths: any(named: 'imagePaths'),
+        ),
+      ).thenAnswer(
+        (_) async => DiaryFixtures.analyzed(sentimentScore: 8),
+      );
 
-      await tester.pumpWidget(_buildHarness(analyzeUseCase: mock));
+      await tester.pumpWidget(_buildHarness(analyzeUseCase: mockUseCase));
       await tester.pump();
 
       await tester.enterText(find.byType(TextFormField), _validContent);
@@ -223,11 +253,15 @@ void main() {
       _setLargeView(tester);
       addTearDown(() => _resetView(tester));
 
-      final mock = MockAnalyzeDiaryUseCase()
-        ..shouldThrow = true
-        ..failureToThrow = const Failure.network(message: '네트워크 연결을 확인해주세요.');
+      final mockUseCase = MockAnalyzeDiaryUseCase();
+      when(
+        () => mockUseCase.execute(
+          any(),
+          imagePaths: any(named: 'imagePaths'),
+        ),
+      ).thenThrow(const Failure.network(message: '네트워크 연결을 확인해주세요.'));
 
-      await tester.pumpWidget(_buildHarness(analyzeUseCase: mock));
+      await tester.pumpWidget(_buildHarness(analyzeUseCase: mockUseCase));
       await tester.pump();
 
       await tester.enterText(find.byType(TextFormField), _validContent);
@@ -247,11 +281,15 @@ void main() {
       _setLargeView(tester);
       addTearDown(() => _resetView(tester));
 
-      final mock = MockAnalyzeDiaryUseCase()
-        ..shouldThrow = true
-        ..failureToThrow = const SafetyBlockedFailure();
+      final mockUseCase = MockAnalyzeDiaryUseCase();
+      when(
+        () => mockUseCase.execute(
+          any(),
+          imagePaths: any(named: 'imagePaths'),
+        ),
+      ).thenThrow(const SafetyBlockedFailure());
 
-      await tester.pumpWidget(_buildHarness(analyzeUseCase: mock));
+      await tester.pumpWidget(_buildHarness(analyzeUseCase: mockUseCase));
       await tester.pump();
 
       await tester.enterText(
@@ -275,7 +313,17 @@ void main() {
       _setLargeView(tester);
       addTearDown(() => _resetView(tester));
 
-      await tester.pumpWidget(_buildHarness());
+      final mockUseCase = MockAnalyzeDiaryUseCase();
+      when(
+        () => mockUseCase.execute(
+          any(),
+          imagePaths: any(named: 'imagePaths'),
+        ),
+      ).thenAnswer(
+        (_) async => DiaryFixtures.analyzed(),
+      );
+
+      await tester.pumpWidget(_buildHarness(analyzeUseCase: mockUseCase));
       await tester.pump();
 
       expect(find.byType(ImagePickerSection), findsOneWidget);
@@ -312,15 +360,19 @@ void main() {
           };
       addTearDown(() => SafetyFollowupService.resetForTesting());
 
-      final mock = MockAnalyzeDiaryUseCase()
-        ..shouldThrow = true
-        ..failureToThrow = const SafetyBlockedFailure();
+      final mockUseCase = MockAnalyzeDiaryUseCase();
+      when(
+        () => mockUseCase.execute(
+          any(),
+          imagePaths: any(named: 'imagePaths'),
+        ),
+      ).thenThrow(const SafetyBlockedFailure());
 
       // 실제 DiaryAnalysisNotifier 사용 (analyzeDiaryUseCaseProvider만 오버라이드)
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            analyzeDiaryUseCaseProvider.overrideWithValue(mock),
+            analyzeDiaryUseCaseProvider.overrideWithValue(mockUseCase),
             diaryRepositoryProvider.overrideWithValue(MockDiaryRepository()),
             statisticsProvider.overrideWith(
               (ref) => StatisticsFixtures.weekly(),
@@ -359,9 +411,14 @@ void main() {
       _setLargeView(tester);
       addTearDown(() => _resetView(tester));
 
-      final mock = _CountingMock()
-        ..shouldThrow = true
-        ..failureToThrow = const Failure.network();
+      final mock = _CountingMock();
+      when(
+        () => mock.execute(
+          any(),
+          imagePaths: any(named: 'imagePaths'),
+        ),
+      ).thenThrow(const Failure.network());
+      mock.callCount = 0; // when() 클로저 실행으로 증가된 카운트 초기화
 
       await tester.pumpWidget(_buildHarness(analyzeUseCase: mock));
       await tester.pump();

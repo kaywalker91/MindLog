@@ -1,21 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/usecases/get_notification_settings_usecase.dart';
 
+import '../../helpers/mock_fallbacks.dart';
 import '../../mocks/mock_repositories.dart';
 
 void main() {
   late GetNotificationSettingsUseCase useCase;
   late MockSettingsRepository mockRepository;
 
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
+
   setUp(() {
     mockRepository = MockSettingsRepository();
     useCase = GetNotificationSettingsUseCase(mockRepository);
-  });
-
-  tearDown(() {
-    mockRepository.reset();
   });
 
   group('GetNotificationSettingsUseCase', () {
@@ -23,7 +25,9 @@ void main() {
       test('Repository에서 알림 설정을 반환해야 한다', () async {
         // Arrange
         final settings = NotificationSettings.defaults();
-        mockRepository.setMockNotificationSettings(settings);
+        when(
+          () => mockRepository.getNotificationSettings(),
+        ).thenAnswer((_) async => settings);
 
         // Act
         final result = await useCase.execute();
@@ -42,7 +46,9 @@ void main() {
           reminderMinute: 0,
           isMindcareTopicEnabled: false,
         );
-        mockRepository.setMockNotificationSettings(settings);
+        when(
+          () => mockRepository.getNotificationSettings(),
+        ).thenAnswer((_) async => settings);
 
         // Act
         final result = await useCase.execute();
@@ -59,7 +65,9 @@ void main() {
           reminderMinute: 30,
           isMindcareTopicEnabled: true,
         );
-        mockRepository.setMockNotificationSettings(settings);
+        when(
+          () => mockRepository.getNotificationSettings(),
+        ).thenAnswer((_) async => settings);
 
         // Act
         final result = await useCase.execute();
@@ -77,7 +85,9 @@ void main() {
           reminderMinute: 0,
           isMindcareTopicEnabled: true,
         );
-        mockRepository.setMockNotificationSettings(settings);
+        when(
+          () => mockRepository.getNotificationSettings(),
+        ).thenAnswer((_) async => settings);
 
         // Act
         final result = await useCase.execute();
@@ -90,10 +100,9 @@ void main() {
     group('에러 처리', () {
       test('Repository 에러 시 예외를 전파해야 한다', () async {
         // Arrange
-        mockRepository.shouldThrowOnGet = true;
-        mockRepository.failureToThrow = const Failure.cache(
-          message: '알림 설정 조회 실패',
-        );
+        when(
+          () => mockRepository.getNotificationSettings(),
+        ).thenAnswer((_) async => throw const Failure.cache(message: '알림 설정 조회 실패'));
 
         // Act & Assert
         await expectLater(useCase.execute(), throwsA(isA<CacheFailure>()));

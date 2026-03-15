@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mindlog/core/config/environment_service.dart';
+import 'package:mindlog/core/services/app_logger.dart';
+import 'package:talker/talker.dart';
 import 'package:mindlog/core/network/circuit_breaker.dart';
 import 'package:mindlog/data/datasources/local/preferences_local_datasource.dart';
 import 'package:mindlog/data/datasources/local/sqlite_local_datasource.dart';
@@ -24,6 +26,9 @@ import 'package:mindlog/domain/usecases/validate_diary_content_usecase.dart';
 
 /// 인프라 의존성 Provider 모음
 /// - 데이터 소스, 리포지토리, 유스케이스를 구성합니다.
+
+/// 구조화 로거 Provider
+final appLoggerProvider = Provider<Talker>((ref) => appLogger);
 
 /// SQLite 로컬 데이터 소스 Provider
 final sqliteLocalDataSourceProvider = Provider<SqliteLocalDataSource>((ref) {

@@ -8,7 +8,9 @@ import 'package:mindlog/core/theme/app_theme.dart';
 import 'package:mindlog/domain/usecases/secret/set_secret_pin_usecase.dart';
 import 'package:mindlog/presentation/providers/secret_diary_providers.dart';
 import 'package:mindlog/presentation/screens/secret_pin_setup_screen.dart';
+import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/mock_fallbacks.dart';
 import '../../mocks/mock_repositories.dart';
 
 class _HostScreen extends StatelessWidget {
@@ -89,6 +91,7 @@ int _filledDotCount(WidgetTester tester) {
 void main() {
   setUpAll(() {
     Animate.restartOnHotReload = false;
+    registerMockFallbackValues();
   });
 
   group('SecretPinSetupScreen', () {
@@ -101,6 +104,8 @@ void main() {
       });
 
       final mockPinRepo = MockSecretPinRepository();
+      when(() => mockPinRepo.setPin(any())).thenAnswer((_) async {});
+
       await tester.pumpWidget(_buildHarness(mockPinRepo: mockPinRepo));
       await tester.pumpAndSettle();
       await _openSetup(tester);
@@ -121,6 +126,8 @@ void main() {
       });
 
       final mockPinRepo = MockSecretPinRepository();
+      when(() => mockPinRepo.setPin(any())).thenAnswer((_) async {});
+
       await tester.pumpWidget(_buildHarness(mockPinRepo: mockPinRepo));
       await tester.pumpAndSettle();
       await _openSetup(tester);
@@ -140,6 +147,8 @@ void main() {
       });
 
       final mockPinRepo = MockSecretPinRepository();
+      when(() => mockPinRepo.setPin(any())).thenAnswer((_) async {});
+
       await tester.pumpWidget(_buildHarness(mockPinRepo: mockPinRepo));
       await tester.pumpAndSettle();
       await _openSetup(tester);
@@ -161,6 +170,8 @@ void main() {
       });
 
       final mockPinRepo = MockSecretPinRepository();
+      when(() => mockPinRepo.setPin(any())).thenAnswer((_) async {});
+
       await tester.pumpWidget(_buildHarness(mockPinRepo: mockPinRepo));
       await tester.pumpAndSettle();
       await _openSetup(tester);
@@ -169,7 +180,7 @@ void main() {
       await _tapPin(tester, '1234');
       await tester.pumpAndSettle();
 
-      expect(mockPinRepo.setPinCallCount, 1);
+      verify(() => mockPinRepo.setPin(any())).called(1);
       expect(find.text('Open Setup'), findsOneWidget);
       expect(find.text('비밀일기 PIN 설정'), findsNothing);
     });

@@ -1,12 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/usecases/secret/verify_secret_pin_usecase.dart';
 
+import '../../../helpers/mock_fallbacks.dart';
 import '../../../mocks/mock_repositories.dart';
 
 void main() {
   late VerifySecretPinUseCase useCase;
   late MockSecretPinRepository mockRepository;
+
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
 
   setUp(() {
     mockRepository = MockSecretPinRepository();
@@ -16,8 +22,14 @@ void main() {
   group('VerifySecretPinUseCase', () {
     group('정상 케이스', () {
       test('should return true when correct PIN is provided', () async {
-        // Arrange
-        mockRepository.correctPin = '1234';
+        // Arrange: correctPin = '1234'
+        // Register general fallback first, then specific override last
+        when(
+          () => mockRepository.verifyPin(any()),
+        ).thenAnswer((_) async => false);
+        when(
+          () => mockRepository.verifyPin('1234'),
+        ).thenAnswer((_) async => true);
 
         // Act
         final result = await useCase.execute('1234');
@@ -27,8 +39,13 @@ void main() {
       });
 
       test('should return false when incorrect PIN is provided', () async {
-        // Arrange
-        mockRepository.correctPin = '1234';
+        // Arrange: correctPin = '1234'
+        when(
+          () => mockRepository.verifyPin(any()),
+        ).thenAnswer((_) async => false);
+        when(
+          () => mockRepository.verifyPin('1234'),
+        ).thenAnswer((_) async => true);
 
         // Act
         final result = await useCase.execute('9999');
@@ -38,8 +55,10 @@ void main() {
       });
 
       test('should return false when no PIN is set', () async {
-        // Arrange
-        mockRepository.correctPin = null; // PIN 미설정
+        // Arrange: no PIN set — verifyPin always returns false
+        when(
+          () => mockRepository.verifyPin(any()),
+        ).thenAnswer((_) async => false);
 
         // Act
         final result = await useCase.execute('1234');
@@ -79,8 +98,9 @@ void main() {
     group('오류 처리', () {
       test('should rethrow Failure from repository', () async {
         // Arrange
-        mockRepository.shouldThrow = true;
-        mockRepository.failureToThrow = const CacheFailure(message: '검증 실패');
+        when(
+          () => mockRepository.verifyPin(any()),
+        ).thenThrow(const CacheFailure(message: '검증 실패'));
 
         // Act & Assert
         expect(() => useCase.execute('1234'), throwsA(isA<CacheFailure>()));

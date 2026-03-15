@@ -93,3 +93,21 @@
 **근본 원인**: (D) 정규식 `[,의은을이]?`가 2자 조사 `에게`/`께` 미커버 → `님에게` 잔류. (C) `getRandomReminderTitle()`이 개인화 미적용. (B) `valueOrNull ?? []` = AsyncLoading 시 null → reschedule 스킵. (A) `hasReminder=true` 조기반환이 stale `{name}` 알림 무시
 **해결책**: (D) 정규식 → `(?:[,의은을이]|에게|께)?`. (C) optional userName 파라미터 추가. (B) `await selfEncouragementProvider.future`로 로딩 완료 대기. (A) `hasPlaceholder` 체크 추가 → `{name}` 포함 시 강제 재스케줄
 **예방 규칙**: character class `[...]`는 1글자만 매칭 — 2자 이상 패턴은 반드시 `(?:...|...)` alternation. `valueOrNull`은 AsyncLoading = null 반환 → 로딩 대기 필요 시 `.future` await 사용
+
+## 2026-03-16 - mocktail when() 클로저가 카운팅 Mock을 선 증가시킴
+**무엇이 잘못됐나**: `_CountingMock` 테스트에서 `expect(callCount, 1)`이 actual 2로 실패
+**근본 원인**: `when(() => mock.execute(...))` 호출 시 클로저가 한 번 실행됨 → `_CountingMock.execute()` 내 `callCount++` 가 stub 등록 시점에 선행 실행
+**해결책**: `when(...).thenThrow(...)` 이후 `mock.callCount = 0;` 리셋 추가
+**예방 규칙**: 호출 횟수를 카운팅하는 Mock 사용 시, `when()` 설정 후 반드시 카운터를 0으로 리셋할 것. `when()` 클로저는 "등록"이 아니라 "실행"이다.
+
+## 2026-03-15 - mocktail 전환: thenThrow vs thenAnswer 패턴 선택
+**무엇이 잘못됐나**: Phase 2 mocktail 전환 중 3가지 패턴으로 테스트 실패 발생
+**근본 원인**:
+- (1) non-async UseCase + thenThrow: `execute()` 비동기 아님 → thenThrow 동기 throw → `expectLater`에 전달할 Future 없음
+- (2) mocktail verify 소비: `verify(any, any).called(n)` 후 인터랙션 [VERIFIED] 마킹 → 이후 specific verify 실패
+- (3) extends Mock 기본 동작 없음: 수동 Mock에 있던 sort 로직 미포함
+**해결책**:
+- (1) `thenAnswer((_) async => throw SomeFailure())` 사용
+- (2) generic `any()` verify 제거, specific argument verify만 남김
+- (3) `_sort()` 헬퍼 메서드를 `_fetchDiaries()` 내부에서 호출
+**예방 규칙**: Non-async UseCase Failure 테스트는 `thenAnswer(async throw)` 강제. verify 체인 시 generic verify 제거 필수.

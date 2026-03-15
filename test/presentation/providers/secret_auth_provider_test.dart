@@ -3,15 +3,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/domain/usecases/secret/verify_secret_pin_usecase.dart';
 import 'package:mindlog/presentation/providers/secret_auth_provider.dart';
 import 'package:mindlog/presentation/providers/secret_diary_providers.dart';
+import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/mock_fallbacks.dart';
 import '../../mocks/mock_repositories.dart';
 
 void main() {
   late ProviderContainer container;
   late MockSecretPinRepository mockPinRepository;
 
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
+
   setUp(() {
     mockPinRepository = MockSecretPinRepository();
+    // Default stubs: no PIN set
+    when(() => mockPinRepository.hasPin()).thenAnswer((_) async => false);
+    when(
+      () => mockPinRepository.verifyPin(any()),
+    ).thenAnswer((_) async => false);
+    when(() => mockPinRepository.setPin(any())).thenAnswer((_) async {});
+    when(() => mockPinRepository.deletePin()).thenAnswer((_) async {});
+
     container = ProviderContainer(
       overrides: [
         secretPinRepositoryProvider.overrideWithValue(mockPinRepository),
@@ -20,7 +34,6 @@ void main() {
   });
 
   tearDown(() {
-    mockPinRepository.reset();
     container.dispose();
   });
 
@@ -34,8 +47,11 @@ void main() {
 
     group('unlock', () {
       test('올바른 PIN으로 잠금 해제 시 상태가 true가 되어야 한다', () async {
-        // Arrange
-        mockPinRepository.correctPin = '1234';
+        // Arrange - PIN '1234' is correct
+        when(() => mockPinRepository.hasPin()).thenAnswer((_) async => true);
+        when(
+          () => mockPinRepository.verifyPin('1234'),
+        ).thenAnswer((_) async => true);
         final verifyUseCase = container.read(verifySecretPinUseCaseProvider);
 
         // Act
@@ -49,8 +65,14 @@ void main() {
       });
 
       test('잘못된 PIN으로 잠금 해제 시 상태가 false를 유지해야 한다', () async {
-        // Arrange
-        mockPinRepository.correctPin = '1234';
+        // Arrange - correct PIN is '1234', testing with '9999'
+        when(() => mockPinRepository.hasPin()).thenAnswer((_) async => true);
+        when(
+          () => mockPinRepository.verifyPin('1234'),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockPinRepository.verifyPin('9999'),
+        ).thenAnswer((_) async => false);
         final verifyUseCase = container.read(verifySecretPinUseCaseProvider);
 
         // Act
@@ -64,7 +86,7 @@ void main() {
       });
 
       test('PIN 미설정 시 잠금 해제가 실패해야 한다', () async {
-        // Arrange — correctPin = null (미설정)
+        // Arrange — hasPin returns false (default stub)
         final verifyUseCase = container.read(verifySecretPinUseCaseProvider);
 
         // Act
@@ -79,7 +101,10 @@ void main() {
 
       test('유효하지 않은 PIN(4자리 미만)으로 잠금 해제 시 예외가 발생해야 한다', () async {
         // Arrange
-        mockPinRepository.correctPin = '1234';
+        when(() => mockPinRepository.hasPin()).thenAnswer((_) async => true);
+        when(
+          () => mockPinRepository.verifyPin('1234'),
+        ).thenAnswer((_) async => true);
         final verifyUseCase = VerifySecretPinUseCase(mockPinRepository);
 
         // Act & Assert
@@ -95,7 +120,10 @@ void main() {
     group('lock', () {
       test('잠금 해제 후 lock() 호출 시 상태가 false로 돌아와야 한다', () async {
         // Arrange — 먼저 잠금 해제
-        mockPinRepository.correctPin = '1234';
+        when(() => mockPinRepository.hasPin()).thenAnswer((_) async => true);
+        when(
+          () => mockPinRepository.verifyPin('1234'),
+        ).thenAnswer((_) async => true);
         final verifyUseCase = container.read(verifySecretPinUseCaseProvider);
         await container
             .read(secretAuthProvider.notifier)

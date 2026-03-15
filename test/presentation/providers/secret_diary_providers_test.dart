@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
 import 'package:mindlog/presentation/providers/secret_diary_providers.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../fixtures/diary_fixtures.dart';
+import '../../helpers/mock_fallbacks.dart';
 import '../../mocks/mock_repositories.dart';
 
 void main() {
@@ -11,9 +13,54 @@ void main() {
   late MockDiaryRepository mockDiaryRepository;
   late MockSecretPinRepository mockPinRepository;
 
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
+
   setUp(() {
     mockDiaryRepository = MockDiaryRepository();
     mockPinRepository = MockSecretPinRepository();
+
+    // Default DiaryRepository stubs
+    when(
+      () => mockDiaryRepository.getAllDiaries(),
+    ).thenAnswer((_) async => []);
+    when(
+      () => mockDiaryRepository.getTodayDiaries(),
+    ).thenAnswer((_) async => []);
+    when(
+      () => mockDiaryRepository.createDiary(
+        any(),
+        imagePaths: any(named: 'imagePaths'),
+      ),
+    ).thenAnswer((_) async => DiaryFixtures.pending());
+    when(
+      () => mockDiaryRepository.updateDiary(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockDiaryRepository.deleteDiary(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockDiaryRepository.toggleDiaryPin(any(), any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockDiaryRepository.deleteAllDiaries(),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockDiaryRepository.setDiarySecret(any(), any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockDiaryRepository.getSecretDiaries(),
+    ).thenAnswer((_) async => []);
+
+    // Default SecretPinRepository stubs
+    when(() => mockPinRepository.hasPin()).thenAnswer((_) async => false);
+    when(
+      () => mockPinRepository.verifyPin(any()),
+    ).thenAnswer((_) async => false);
+    when(() => mockPinRepository.setPin(any())).thenAnswer((_) async {});
+    when(() => mockPinRepository.deletePin()).thenAnswer((_) async {});
+
     container = ProviderContainer(
       overrides: [
         diaryRepositoryProvider.overrideWithValue(mockDiaryRepository),
@@ -23,15 +70,13 @@ void main() {
   });
 
   tearDown(() {
-    mockDiaryRepository.reset();
-    mockPinRepository.reset();
     container.dispose();
   });
 
   // ──────────────────────────────────────────────
   group('hasPinProvider', () {
     test('PIN 미설정 시 false를 반환해야 한다', () async {
-      // Arrange — correctPin = null (기본값)
+      // Arrange — hasPin returns false (default stub)
 
       // Act
       final hasPin = await container.read(hasPinProvider.future);
@@ -42,7 +87,7 @@ void main() {
 
     test('PIN 설정 시 true를 반환해야 한다', () async {
       // Arrange
-      mockPinRepository.correctPin = '1234';
+      when(() => mockPinRepository.hasPin()).thenAnswer((_) async => true);
 
       // Act
       final hasPin = await container.read(hasPinProvider.future);
@@ -53,11 +98,11 @@ void main() {
 
     test('PIN 설정 후 삭제 시 invalidate로 갱신되어야 한다', () async {
       // Arrange — PIN 있음
-      mockPinRepository.correctPin = '1234';
+      when(() => mockPinRepository.hasPin()).thenAnswer((_) async => true);
       expect(await container.read(hasPinProvider.future), isTrue);
 
-      // Act — PIN 삭제 후 invalidate
-      mockPinRepository.correctPin = null;
+      // Act — PIN 삭제 후 stub 변경, then invalidate
+      when(() => mockPinRepository.hasPin()).thenAnswer((_) async => false);
       container.invalidate(hasPinProvider);
 
       // Assert — 갱신된 상태 반영
@@ -68,9 +113,10 @@ void main() {
   // ──────────────────────────────────────────────
   group('secretDiaryListProvider', () {
     test('비밀일기가 없을 때 빈 목록을 반환해야 한다', () async {
-      // Arrange
-      mockDiaryRepository.diaries = DiaryFixtures.weekOfDiaries();
-      // 모든 일기가 isSecret = false (기본값)
+      // Arrange - all diaries are isSecret=false by default
+      when(
+        () => mockDiaryRepository.getAllDiaries(),
+      ).thenAnswer((_) async => DiaryFixtures.weekOfDiaries());
 
       // Act
       final secretDiaries = await container.read(
@@ -86,10 +132,11 @@ void main() {
       final secretDiary = DiaryFixtures.pending(
         id: 'secret-1',
       ).copyWith(isSecret: true);
-      mockDiaryRepository.diaries = [
-        secretDiary,
-        DiaryFixtures.pending(id: 'normal-1'),
-      ];
+      when(
+        () => mockDiaryRepository.getSecretDiaries(),
+      ).thenAnswer(
+        (_) async => [secretDiary],
+      );
 
       // Act
       final secretDiaries = await container.read(
@@ -104,7 +151,9 @@ void main() {
 
     test('오류 발생 시 AsyncError 상태여야 한다', () async {
       // Arrange
-      mockDiaryRepository.shouldThrowOnGet = true;
+      when(
+        () => mockDiaryRepository.getSecretDiaries(),
+      ).thenThrow(Exception('load error'));
 
       // Act
       Object? caughtError;
@@ -119,15 +168,16 @@ void main() {
     });
 
     test('invalidate 후 목록이 갱신되어야 한다', () async {
-      // Arrange — 초기에는 비밀일기 없음
-      mockDiaryRepository.diaries = [DiaryFixtures.pending(id: 'normal-1')];
+      // Arrange — 초기에는 비밀일기 없음 (default stub: getSecretDiaries → [])
       expect(await container.read(secretDiaryListProvider.future), isEmpty);
 
-      // Act — 비밀일기 추가 후 invalidate
+      // Act — 비밀일기 추가 후 stub 변경, then invalidate
       final secretDiary = DiaryFixtures.pending(
         id: 'secret-1',
       ).copyWith(isSecret: true);
-      mockDiaryRepository.diaries.add(secretDiary);
+      when(
+        () => mockDiaryRepository.getSecretDiaries(),
+      ).thenAnswer((_) async => [secretDiary]);
       container.invalidate(secretDiaryListProvider);
 
       // Assert

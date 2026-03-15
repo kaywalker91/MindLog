@@ -1,9 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/core/constants/app_constants.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 import 'package:mindlog/domain/usecases/analyze_diary_usecase.dart';
 
+import '../../fixtures/diary_fixtures.dart';
+import '../../helpers/mock_fallbacks.dart';
 import '../../mocks/mock_repositories.dart';
 
 void main() {
@@ -11,15 +15,43 @@ void main() {
   late MockDiaryRepository mockRepository;
   late MockSettingsRepository mockSettingsRepository;
 
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
+
   setUp(() {
     mockRepository = MockDiaryRepository();
     mockSettingsRepository = MockSettingsRepository();
     useCase = AnalyzeDiaryUseCase(mockRepository, mockSettingsRepository);
-  });
 
-  tearDown(() {
-    mockRepository.reset();
-    mockSettingsRepository.reset();
+    // Default stubs
+    when(
+      () => mockRepository.createDiary(
+        any(),
+        imagePaths: any(named: 'imagePaths'),
+      ),
+    ).thenAnswer(
+      (inv) async =>
+          DiaryFixtures.pending(content: inv.positionalArguments.first as String),
+    );
+    when(
+      () => mockSettingsRepository.getSelectedAiCharacter(),
+    ).thenAnswer((_) async => AiCharacter.warmCounselor);
+    when(
+      () => mockSettingsRepository.getUserName(),
+    ).thenAnswer((_) async => null);
+    when(
+      () => mockRepository.analyzeDiary(
+        any(),
+        character: any(named: 'character'),
+        userName: any(named: 'userName'),
+        imagePaths: any(named: 'imagePaths'),
+      ),
+    ).thenAnswer(
+      (inv) async =>
+          DiaryFixtures.analyzed(id: inv.positionalArguments.first as String),
+    );
+    when(() => mockRepository.updateDiary(any())).thenAnswer((_) async {});
   });
 
   group('AnalyzeDiaryUseCase', () {
@@ -86,11 +118,10 @@ void main() {
 
       test('응급 키워드 감지 시 DB 업데이트가 호출되어야 한다', () async {
         await useCase.execute('살기싫다. 모든게 무의미하다.');
-        expect(mockRepository.updatedDiaries, isNotEmpty);
-        expect(
-          mockRepository.updatedDiaries.last.status,
-          DiaryStatus.safetyBlocked,
-        );
+        final captured =
+            verify(() => mockRepository.updateDiary(captureAny())).captured;
+        expect(captured, isNotEmpty);
+        expect((captured.last as Diary).status, DiaryStatus.safetyBlocked);
       });
 
       test('암시적 위기 표현도 감지해야 한다', () async {
@@ -144,14 +175,25 @@ void main() {
 
     group('에러 처리', () {
       test('분석 실패 시에도 일기는 저장되어야 한다', () async {
-        mockRepository.shouldThrowOnAnalyze = true;
-        mockRepository.errorMessage = 'API Error';
+        when(
+          () => mockRepository.analyzeDiary(
+            any(),
+            character: any(named: 'character'),
+            userName: any(named: 'userName'),
+            imagePaths: any(named: 'imagePaths'),
+          ),
+        ).thenThrow(const Failure.api(message: 'API Error'));
 
         await expectLater(
           useCase.execute('오늘 하루는 평범하게 지나갔다.'),
           throwsA(isA<Failure>()),
         );
-        expect(mockRepository.savedDiaries, isNotEmpty);
+        verify(
+          () => mockRepository.createDiary(
+            any(),
+            imagePaths: any(named: 'imagePaths'),
+          ),
+        ).called(greaterThan(0));
       });
     });
   });

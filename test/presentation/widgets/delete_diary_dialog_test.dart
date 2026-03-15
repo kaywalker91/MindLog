@@ -4,24 +4,31 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mindlog/presentation/providers/providers.dart';
 import 'package:mindlog/presentation/widgets/delete_diary_dialog.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../fixtures/diary_fixtures.dart';
+import '../../helpers/mock_fallbacks.dart';
 import '../../mocks/mock_repositories.dart';
 
 void main() {
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
+
   group('DeleteDiaryDialog', () {
     late MockDiaryRepository mockDiaryRepo;
     late ProviderContainer container;
 
     setUp(() {
       mockDiaryRepo = MockDiaryRepository();
+      when(() => mockDiaryRepo.getAllDiaries()).thenAnswer((_) async => []);
+      when(() => mockDiaryRepo.deleteDiary(any())).thenAnswer((_) async {});
       container = ProviderContainer(
         overrides: [diaryRepositoryProvider.overrideWithValue(mockDiaryRepo)],
       );
     });
 
     tearDown(() {
-      mockDiaryRepo.reset();
       container.dispose();
     });
 
@@ -46,7 +53,8 @@ void main() {
       testWidgets('다이얼로그가 올바른 UI 요소를 표시해야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -67,7 +75,8 @@ void main() {
       testWidgets('삭제 아이콘이 표시되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -85,7 +94,8 @@ void main() {
       testWidgets('둥근 모서리가 적용되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -109,7 +119,8 @@ void main() {
       testWidgets('다이얼로그가 올바르게 표시되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -146,7 +157,8 @@ void main() {
       testWidgets('취소 버튼 탭 시 다이얼로그가 닫혀야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         await tester.pumpWidget(
@@ -181,7 +193,8 @@ void main() {
       testWidgets('삭제 버튼 탭 시 일기가 삭제되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'to-delete');
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         await tester.pumpWidget(
@@ -208,14 +221,15 @@ void main() {
         await tester.tap(find.text('삭제'));
         await tester.pumpAndSettle();
 
-        // Assert - 삭제 호출 확인
-        expect(mockDiaryRepo.deletedDiaryIds, contains('to-delete'));
+        // Assert - deleteDiary('to-delete')가 호출됨
+        verify(() => mockDiaryRepo.deleteDiary('to-delete')).called(1);
       });
 
       testWidgets('삭제 후 스낵바가 표시되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'snackbar-test');
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         await tester.pumpWidget(
@@ -251,7 +265,8 @@ void main() {
       testWidgets('popAfterDelete 기본값은 false이다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'default-pop');
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -271,7 +286,8 @@ void main() {
       ) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'pop-after');
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -294,7 +310,8 @@ void main() {
       testWidgets('삭제 버튼 탭 시 true를 반환해야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'return-true');
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         bool? dialogResult;
@@ -334,7 +351,8 @@ void main() {
       testWidgets('취소 버튼 탭 시 false를 반환해야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'return-false');
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         bool? dialogResult;
@@ -376,9 +394,10 @@ void main() {
       testWidgets('삭제 실패 시 에러 스낵바가 표시되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'error-test');
-        mockDiaryRepo.diaries = [diary];
-        mockDiaryRepo.shouldThrowOnDelete = true;
-        mockDiaryRepo.errorMessage = 'Database error';
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
+        when(() => mockDiaryRepo.deleteDiary(any()))
+            .thenThrow(Exception('Database error'));
         await container.read(diaryListControllerProvider.future);
 
         await tester.pumpWidget(
@@ -414,7 +433,8 @@ void main() {
       testWidgets('다크 모드에서 올바르게 렌더링되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        mockDiaryRepo.diaries = [diary];
+        when(() => mockDiaryRepo.getAllDiaries())
+            .thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act

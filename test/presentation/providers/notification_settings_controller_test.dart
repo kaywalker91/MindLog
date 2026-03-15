@@ -13,12 +13,6 @@ class MockGetNotificationSettingsUseCase
   bool shouldThrow = false;
   Failure? failureToThrow;
 
-  void reset() {
-    mockSettings = NotificationSettings.defaults();
-    shouldThrow = false;
-    failureToThrow = null;
-  }
-
   @override
   Future<NotificationSettings> execute() async {
     if (shouldThrow) {
@@ -34,12 +28,6 @@ class MockSetNotificationSettingsUseCase
   bool shouldThrow = false;
   Failure? failureToThrow;
   final List<NotificationSettings> savedSettings = [];
-
-  void reset() {
-    shouldThrow = false;
-    failureToThrow = null;
-    savedSettings.clear();
-  }
 
   @override
   Future<void> execute(NotificationSettings settings) async {
@@ -70,11 +58,6 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-  });
-
-  tearDown(() {
-    mockGetUseCase.reset();
-    mockSetUseCase.reset();
   });
 
   group('NotificationSettingsController', () {

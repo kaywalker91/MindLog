@@ -7,7 +7,9 @@ import 'package:mindlog/core/theme/app_theme.dart';
 import 'package:mindlog/domain/entities/self_encouragement_message.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
 import 'package:mindlog/presentation/widgets/self_encouragement/message_card.dart';
+import 'package:mocktail/mocktail.dart';
 
+import '../../../helpers/mock_fallbacks.dart';
 import '../../../mocks/mock_repositories.dart';
 
 /// 테스트용 메시지 팩토리
@@ -85,20 +87,19 @@ void main() {
 
   setUpAll(() {
     Animate.restartOnHotReload = false;
+    registerMockFallbackValues();
   });
 
   setUp(() {
     mockRepo = MockSettingsRepository();
-  });
-
-  tearDown(() {
-    mockRepo.reset();
+    // Default stub: userName is null
+    when(() => mockRepo.getUserName()).thenAnswer((_) async => null);
   });
 
   group('MessageCard 이름 개인화', () {
     testWidgets('이름이 설정되면 {name}을 실제 이름으로 치환해야 한다', (tester) async {
       // Arrange
-      await mockRepo.setUserName('지수');
+      when(() => mockRepo.getUserName()).thenAnswer((_) async => '지수');
       final message = _makeMessage(content: '{name}님, 오늘도 화이팅! 💪');
 
       // Act
@@ -116,7 +117,7 @@ void main() {
     });
 
     testWidgets('이름이 null이면 {name}님, 패턴을 제거해야 한다', (tester) async {
-      // Arrange: mockRepo의 userName은 기본 null
+      // Arrange: userName is null (default stub)
       final message = _makeMessage(content: '{name}님, 오늘도 화이팅! 💪');
 
       // Act
@@ -152,7 +153,7 @@ void main() {
 
     testWidgets('이모지 추출이 개인화된 텍스트에서 동작해야 한다', (tester) async {
       // Arrange
-      await mockRepo.setUserName('민수');
+      when(() => mockRepo.getUserName()).thenAnswer((_) async => '민수');
       final message = _makeMessage(content: '🎉 {name}님, 축하해요!');
 
       // Act
@@ -171,7 +172,7 @@ void main() {
     });
 
     testWidgets('{name}님의 패턴도 올바르게 처리해야 한다', (tester) async {
-      // Arrange: 이름 없음
+      // Arrange: 이름 없음 (default null stub)
       final message = _makeMessage(content: '{name}님의 하루가 빛나길 🌈');
 
       // Act
@@ -190,7 +191,7 @@ void main() {
 
     testWidgets('{name}님의 패턴 + 이름 있을 때 치환해야 한다', (tester) async {
       // Arrange
-      await mockRepo.setUserName('하늘');
+      when(() => mockRepo.getUserName()).thenAnswer((_) async => '하늘');
       final message = _makeMessage(content: '{name}님의 하루가 빛나길 🌈');
 
       // Act

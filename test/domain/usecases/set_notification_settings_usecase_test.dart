@@ -1,21 +1,34 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/usecases/set_notification_settings_usecase.dart';
 
+import '../../helpers/mock_fallbacks.dart';
 import '../../mocks/mock_repositories.dart';
 
 void main() {
   late SetNotificationSettingsUseCase useCase;
   late MockSettingsRepository mockRepository;
 
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
+
   setUp(() {
     mockRepository = MockSettingsRepository();
     useCase = SetNotificationSettingsUseCase(mockRepository);
-  });
 
-  tearDown(() {
-    mockRepository.reset();
+    // Stateful mock: tracks the last saved settings and serves it back
+    NotificationSettings stored = NotificationSettings.defaults();
+    when(
+      () => mockRepository.setNotificationSettings(any()),
+    ).thenAnswer((inv) async {
+      stored = inv.positionalArguments.first as NotificationSettings;
+    });
+    when(
+      () => mockRepository.getNotificationSettings(),
+    ).thenAnswer((_) async => stored);
   });
 
   group('SetNotificationSettingsUseCase', () {
@@ -142,10 +155,9 @@ void main() {
     group('에러 처리', () {
       test('Repository 에러 시 예외를 전파해야 한다', () async {
         // Arrange
-        mockRepository.shouldThrowOnSet = true;
-        mockRepository.failureToThrow = const Failure.cache(
-          message: '알림 설정 저장 실패',
-        );
+        when(
+          () => mockRepository.setNotificationSettings(any()),
+        ).thenAnswer((_) async => throw const Failure.cache(message: '알림 설정 저장 실패'));
 
         const settings = NotificationSettings(
           isReminderEnabled: true,

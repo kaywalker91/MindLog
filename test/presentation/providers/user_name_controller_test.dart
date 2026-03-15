@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/entities/self_encouragement_message.dart';
@@ -9,7 +10,9 @@ import 'package:mindlog/presentation/providers/infra_providers.dart';
 import 'package:mindlog/presentation/providers/notification_settings_controller.dart';
 import 'package:mindlog/presentation/providers/self_encouragement_controller.dart';
 import 'package:mindlog/presentation/providers/user_name_controller.dart';
+import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/mock_fallbacks.dart';
 import '../../mocks/mock_repositories.dart';
 
 /// 테스트용 메시지 팩토리
@@ -65,8 +68,33 @@ void main() {
   late ProviderContainer container;
   late MockSettingsRepository mockRepository;
 
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
+
   setUp(() {
     mockRepository = MockSettingsRepository();
+    when(
+      () => mockRepository.getUserName(),
+    ).thenAnswer((_) async => null);
+    when(
+      () => mockRepository.setUserName(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockRepository.getSelectedAiCharacter(),
+    ).thenAnswer((_) async => AiCharacter.warmCounselor);
+    when(
+      () => mockRepository.setSelectedAiCharacter(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockRepository.getNotificationSettings(),
+    ).thenAnswer((_) async => NotificationSettings.defaults());
+    when(
+      () => mockRepository.setNotificationSettings(any()),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockRepository.getSelfEncouragementMessages(),
+    ).thenAnswer((_) async => []);
 
     container = ProviderContainer(
       overrides: [settingsRepositoryProvider.overrideWithValue(mockRepository)],
@@ -74,15 +102,13 @@ void main() {
     addTearDown(container.dispose);
   });
 
-  tearDown(() {
-    mockRepository.reset();
-  });
-
   group('UserNameController', () {
     group('build', () {
       test('초기 로드 시 Repository에서 이름을 조회해야 한다', () async {
         // Arrange
-        mockRepository.setMockUserName('홍길동');
+        when(
+          () => mockRepository.getUserName(),
+        ).thenAnswer((_) async => '홍길동');
 
         // Act
         final userName = await container.read(userNameProvider.future);
@@ -101,10 +127,9 @@ void main() {
 
       test('Repository 에러 시 AsyncError 상태여야 한다', () async {
         // Arrange
-        mockRepository.shouldThrowOnGet = true;
-        mockRepository.failureToThrow = const Failure.cache(
-          message: '이름 조회 실패',
-        );
+        when(
+          () => mockRepository.getUserName(),
+        ).thenThrow(const Failure.cache(message: '이름 조회 실패'));
 
         // Act
         await container.read(userNameProvider.future).catchError((_) => null);
@@ -118,6 +143,13 @@ void main() {
     group('setUserName', () {
       test('이름 설정 시 Repository에 저장해야 한다', () async {
         // Arrange
+        String? savedName;
+        when(() => mockRepository.setUserName(any())).thenAnswer((inv) async {
+          savedName = inv.positionalArguments[0] as String?;
+        });
+        when(
+          () => mockRepository.getUserName(),
+        ).thenAnswer((_) async => savedName);
         await container.read(userNameProvider.future);
         final notifier = container.read(userNameProvider.notifier);
 
@@ -125,8 +157,10 @@ void main() {
         await notifier.setUserName('김철수');
 
         // Assert - Repository에서 저장 확인
-        final savedName = await mockRepository.getUserName();
-        expect(savedName, '김철수');
+        final captured = verify(
+          () => mockRepository.setUserName(captureAny()),
+        ).captured;
+        expect(captured.last, '김철수');
       });
 
       test('설정 후 상태가 업데이트되어야 한다', () async {
@@ -144,7 +178,9 @@ void main() {
 
       test('null 전달 시 이름이 삭제되어야 한다', () async {
         // Arrange
-        mockRepository.setMockUserName('기존이름');
+        when(
+          () => mockRepository.getUserName(),
+        ).thenAnswer((_) async => '기존이름');
         await container.read(userNameProvider.future);
         final notifier = container.read(userNameProvider.notifier);
 
@@ -199,8 +235,9 @@ void main() {
         // Arrange
         await container.read(userNameProvider.future);
         final notifier = container.read(userNameProvider.notifier);
-        mockRepository.shouldThrowOnSet = true;
-        mockRepository.failureToThrow = const Failure.cache(message: '저장 실패');
+        when(
+          () => mockRepository.setUserName(any()),
+        ).thenThrow(const Failure.cache(message: '저장 실패'));
 
         // Act & Assert
         await expectLater(
@@ -326,7 +363,9 @@ void main() {
 
       test('이름 삭제(null) 시에도 reschedule이 트리거되어야 한다', () async {
         final messages = [_makeMessage('m1', content: '{name}님, 화이팅!')];
-        mockRepository.setMockUserName('기존이름');
+        when(
+          () => mockRepository.getUserName(),
+        ).thenAnswer((_) async => '기존이름');
         rescheduleContainer = createRescheduleContainer(messages: messages);
 
         // 초기화

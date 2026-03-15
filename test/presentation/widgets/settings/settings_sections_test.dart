@@ -12,14 +12,20 @@ import 'package:mindlog/presentation/providers/infra_providers.dart';
 import 'package:mindlog/presentation/providers/ui_state_providers.dart';
 import 'package:mindlog/presentation/widgets/weekly_insight_guide_dialog.dart';
 import 'package:mindlog/presentation/widgets/settings/settings_sections.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../helpers/mock_fallbacks.dart';
 import '../../../mocks/mock_repositories.dart';
 
 /// Settings Section 위젯 테스트
 ///
 /// 분해된 5개 Section 위젯의 렌더링 및 상호작용 테스트
 void main() {
+  setUpAll(() {
+    registerMockFallbackValues();
+  });
+
   group('AppInfoSection', () {
     late ProviderContainer container;
 
@@ -186,6 +192,11 @@ void main() {
 
     setUp(() {
       mockSettingsRepo = MockSettingsRepository();
+      when(() => mockSettingsRepo.getSelectedAiCharacter())
+          .thenAnswer((_) async => AiCharacter.warmCounselor);
+      when(() => mockSettingsRepo.getUserName()).thenAnswer((_) async => null);
+      when(() => mockSettingsRepo.getNotificationSettings())
+          .thenAnswer((_) async => NotificationSettings.defaults());
       container = ProviderContainer(
         overrides: [
           settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
@@ -194,13 +205,11 @@ void main() {
     });
 
     tearDown(() {
-      mockSettingsRepo.reset();
       container.dispose();
     });
 
     testWidgets('AI 캐릭터 섹션이 렌더링되어야 한다', (tester) async {
-      // Arrange
-      mockSettingsRepo.setMockCharacter(AiCharacter.warmCounselor);
+      // Arrange: AiCharacter.warmCounselor (already in setUp)
 
       // Act
       await tester.pumpWidget(
@@ -223,7 +232,8 @@ void main() {
 
     testWidgets('AI 캐릭터 라벨이 올바르게 표시되어야 한다', (tester) async {
       // Arrange
-      mockSettingsRepo.setMockCharacter(AiCharacter.realisticCoach);
+      when(() => mockSettingsRepo.getSelectedAiCharacter())
+          .thenAnswer((_) async => AiCharacter.realisticCoach);
 
       // Act
       await tester.pumpWidget(
@@ -250,6 +260,25 @@ void main() {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
       mockSettingsRepo = MockSettingsRepository();
+      when(() => mockSettingsRepo.getSelectedAiCharacter())
+          .thenAnswer((_) async => AiCharacter.warmCounselor);
+      when(() => mockSettingsRepo.getUserName()).thenAnswer((_) async => null);
+      when(() => mockSettingsRepo.getNotificationSettings())
+          .thenAnswer((_) async => NotificationSettings.defaults());
+      when(() => mockSettingsRepo.setNotificationSettings(any()))
+          .thenAnswer((_) async {});
+      when(() => mockSettingsRepo.setSelectedAiCharacter(any()))
+          .thenAnswer((_) async {});
+      when(() => mockSettingsRepo.setUserName(any()))
+          .thenAnswer((_) async {});
+      when(() => mockSettingsRepo.getSelfEncouragementMessages())
+          .thenAnswer((_) async => []);
+      when(() => mockSettingsRepo.getLastSeenAppVersion())
+          .thenAnswer((_) async => null);
+      when(() => mockSettingsRepo.getDismissedUpdateVersion())
+          .thenAnswer((_) async => null);
+      when(() => mockSettingsRepo.getDismissedUpdateTimestamp())
+          .thenAnswer((_) async => null);
 
       NotificationSettingsService.resetForTesting();
       NotificationSettingsService.areNotificationsEnabledOverride =
@@ -280,17 +309,11 @@ void main() {
     });
 
     tearDown(() {
-      mockSettingsRepo.reset();
       container.dispose();
       NotificationSettingsService.resetForTesting();
     });
 
     testWidgets('알림 섹션이 렌더링되어야 한다', (tester) async {
-      // Arrange
-      mockSettingsRepo.setMockNotificationSettings(
-        NotificationSettings.defaults(),
-      );
-
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -316,8 +339,8 @@ void main() {
 
     testWidgets('리마인더 토글 상태가 올바르게 표시되어야 한다', (tester) async {
       // Arrange - 리마인더 비활성화 상태
-      mockSettingsRepo.setMockNotificationSettings(
-        const NotificationSettings(
+      when(() => mockSettingsRepo.getNotificationSettings()).thenAnswer(
+        (_) async => const NotificationSettings(
           isReminderEnabled: false,
           reminderHour: 21,
           reminderMinute: 0,
@@ -347,11 +370,6 @@ void main() {
     testWidgets('알림 섹션이 2개의 AccentSettingsCard로 분리되어 렌더링되어야 한다', (
       tester,
     ) async {
-      // Arrange
-      mockSettingsRepo.setMockNotificationSettings(
-        NotificationSettings.defaults(),
-      );
-
       // Act
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -376,8 +394,8 @@ void main() {
 
     testWidgets('마음케어 비활성화 시 테스트 알림이 비활성화되어야 한다', (tester) async {
       // Arrange - 마음케어 비활성화 상태
-      mockSettingsRepo.setMockNotificationSettings(
-        const NotificationSettings(
+      when(() => mockSettingsRepo.getNotificationSettings()).thenAnswer(
+        (_) async => const NotificationSettings(
           isReminderEnabled: true,
           reminderHour: 21,
           reminderMinute: 0,
@@ -410,8 +428,8 @@ void main() {
 
     testWidgets('마음케어 활성화 시 테스트 알림이 활성화되어야 한다', (tester) async {
       // Arrange - 마음케어 활성화 상태
-      mockSettingsRepo.setMockNotificationSettings(
-        const NotificationSettings(
+      when(() => mockSettingsRepo.getNotificationSettings()).thenAnswer(
+        (_) async => const NotificationSettings(
           isReminderEnabled: true,
           reminderHour: 21,
           reminderMinute: 0,
@@ -438,8 +456,8 @@ void main() {
 
     testWidgets('주간 인사이트 첫 활성화 시 가이드 다이얼로그가 표시되어야 한다', (tester) async {
       // Arrange
-      mockSettingsRepo.setMockNotificationSettings(
-        const NotificationSettings(
+      when(() => mockSettingsRepo.getNotificationSettings()).thenAnswer(
+        (_) async => const NotificationSettings(
           isReminderEnabled: false,
           reminderHour: 21,
           reminderMinute: 0,
@@ -473,8 +491,8 @@ void main() {
       SharedPreferences.setMockInitialValues({
         'weekly_insight_first_activation_shown': true,
       });
-      mockSettingsRepo.setMockNotificationSettings(
-        const NotificationSettings(
+      when(() => mockSettingsRepo.getNotificationSettings()).thenAnswer(
+        (_) async => const NotificationSettings(
           isReminderEnabled: false,
           reminderHour: 21,
           reminderMinute: 0,
@@ -507,8 +525,8 @@ void main() {
       tester,
     ) async {
       // Arrange
-      mockSettingsRepo.setMockNotificationSettings(
-        const NotificationSettings(
+      when(() => mockSettingsRepo.getNotificationSettings()).thenAnswer(
+        (_) async => const NotificationSettings(
           isReminderEnabled: false,
           reminderHour: 21,
           reminderMinute: 0,
@@ -555,6 +573,8 @@ void main() {
 
     setUp(() {
       mockDiaryRepo = MockDiaryRepository();
+      when(() => mockDiaryRepo.getAllDiaries()).thenAnswer((_) async => []);
+      when(() => mockDiaryRepo.deleteAllDiaries()).thenAnswer((_) async {});
       container = ProviderContainer(
         overrides: [diaryRepositoryProvider.overrideWithValue(mockDiaryRepo)],
       );

@@ -4,10 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/config/environment_service.dart';
 import 'core/observability/app_provider_observer.dart';
+import 'core/services/app_logger.dart';
 import 'core/constants/app_constants.dart';
 import 'core/errors/error_boundary.dart';
 import 'core/services/fcm_service.dart';
@@ -29,7 +31,10 @@ import 'presentation/providers/app_info_provider.dart';
 import 'presentation/providers/update_state_provider.dart';
 
 final ProviderContainer appContainer = ProviderContainer(
-  observers: [if (kDebugMode) AppProviderObserver()],
+  observers: [
+    if (kDebugMode) AppProviderObserver(),
+    TalkerRiverpodObserver(talker: appLogger),
+  ],
 );
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
