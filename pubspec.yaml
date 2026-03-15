@@ -15,6 +15,7 @@ dependencies:
 
   # State Management
   flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
 
   # Local Database (SQLite)
   sqflite: ^2.3.3+2
@@ -104,6 +105,7 @@ dev_dependencies:
   build_runner: ^2.4.13
   json_serializable: ^6.8.0
   freezed: ^2.5.7
+  riverpod_generator: ^2.6.3
 
   # App Icon Generator
   flutter_launcher_icons: ^0.14.3

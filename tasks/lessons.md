@@ -111,3 +111,27 @@
 - (2) generic `any()` verify 제거, specific argument verify만 남김
 - (3) `_sort()` 헬퍼 메서드를 `_fetchDiaries()` 내부에서 호출
 **예방 규칙**: Non-async UseCase Failure 테스트는 `thenAnswer(async throw)` 강제. verify 체인 시 generic verify 제거 필수.
+
+## 2026-03-16 - freezed toString은 camelCase 필드명 그대로 출력
+**무엇이 잘못됐나**: `DailyEmotion` freezed 전환 후 `contains('score: 8.0')` 테스트 실패
+**근본 원인**: 원래 커스텀 toString은 `score: $averageScore` (소문자 별칭)를 사용. freezed 생성 toString은 필드명 그대로 `averageScore: 8.0` (camelCase S 대문자) 출력
+**해결책**: 테스트를 `contains('averageScore: 8.0')` / `contains('diaryCount: 2')` 로 수정
+**예방 규칙**: freezed 전환 시 커스텀 toString에 별칭(score:, count: 등)이 있으면 반드시 테스트 기대값을 freezed 필드명 형식으로 업데이트할 것.
+
+## 2026-03-16 - @Freezed(copyWith: false)로 clamp 등 커스텀 copyWith 보존
+**무엇이 잘못됐나**: freezed 기본 생성 copyWith은 clamping 같은 사이드 로직을 수행하지 않음
+**근본 원인**: freezed 표준 copyWith은 단순 필드 교체만 수행 — 검증/변환 로직 불포함
+**해결책**: `@Freezed(copyWith: false)` + `const ClassName._()` 패턴으로 직접 copyWith 구현. 기존 clamp 로직 그대로 유지
+**예방 규칙**: copyWith에 검증/변환 로직이 있는 엔티티는 반드시 `@Freezed(copyWith: false)` 사용. `@Assert`와 달리 기존 const 생성자 호환성 유지됨.
+
+## 2026-03-16 - freezed clear* 플래그 → nullable copyWith(field: null) 마이그레이션
+**무엇이 잘못됐나**: `copyWith(clearAnalysisResult: true)` 패턴이 freezed 표준 API에 없음
+**근본 원인**: 기존 수작업 copyWith의 `clear*` boolean flag 패턴은 freezed에서 불필요 — freezed v2+는 nullable 필드에 null 직접 전달 지원
+**해결책**: `copyWith(clearAnalysisResult: true)` → `copyWith(analysisResult: null)` 로 일괄 치환. 테스트도 동일하게 수정
+**예방 규칙**: freezed 마이그레이션 시 `clear*` 플래그 패턴은 전부 `copyWith(field: null)` 으로 교체. 프로덕션 코드 사용처도 반드시 확인할 것.
+
+## 2026-03-15 - hydrated_riverpod는 AsyncNotifier와 호환 불가
+**무엇이 잘못됐나**: Phase 3-2 계획에서 `hydrated_riverpod`로 `UserNameController` 상태 영속화를 시도하려 했음
+**근본 원인**: `hydrated_riverpod`는 동기 `HydratedNotifier<T>`만 제공. `HydratedAsyncNotifier` 미존재. SharedPreferences.getInstance()는 Future 반환 → 동기 래핑 불가
+**해결책**: Phase 3-2 드롭. 현재 `AsyncNotifier<String?>` 유지 (SharedPrefs 단일 소스, 수 ms 접근, 실질적 문제 없음)
+**예방 규칙**: hydrated_riverpod 도입 시 대상 Notifier가 동기인지 먼저 확인. AsyncNotifier가 필요한 경우 대안 없음 (패키지 미지원). 복잡한 객체(NotificationSettings 등)에만 유의미.

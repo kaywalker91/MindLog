@@ -1,47 +1,44 @@
-# 현재 작업: Phase 3-1 완료 (freezed 도입)
+# 현재 작업: Phase 3 진행 중
+
+## 현재 작업
+없음
 
 ## 완료된 항목
 
-### 이번 세션 (2026-03-16)
+### 이번 세션 (2026-03-15)
 
-**Priority 2 완료**: `diary_creation_flow_test.dart` 수정
-- 원인: `when(() => mock.execute(...))` 클로저 실행이 `_CountingMock.callCount` 를 1 증가 → 버튼 탭 후 callCount가 2가 되어 실패
-- 수정: `.thenThrow()` 이후 `mock.callCount = 0;` 리셋
+**Phase 3-3 완료**: `riverpod_annotation` 패키지 도입
+- `pubspec.yaml`: `riverpod_annotation: ^2.6.1` (dependencies 추가)
+- `pubspec.yaml`: `riverpod_generator: ^2.6.3` (dev_dependencies 추가)
+- `pub get` 성공, analyze 이상 없음 (pre-existing 경고 4개만 유지)
+- **신규 코드 전용**: 기존 파일은 현행 패턴 유지, 신규 파일에서 `@riverpod` 사용
 
-**Priority 3 완료**: Phase 3-1 — freezed 패키지 추가 + `self_encouragement_message.dart` 변환
-- `pubspec.yaml`: `freezed_annotation: ^2.4.4` (dependencies), `freezed: ^2.5.7` (dev_dependencies) 추가
-- `flutter pub get` 완료 (freezed 2.5.8, freezed_annotation 2.4.4 설치)
-- `self_encouragement_message.dart` → `@freezed` 패턴 전환
-  - `==`, `hashCode`, `toString`, `copyWith` 자동 생성
-  - `@JsonKey(includeIfNull: false)` — nullable 필드 (category, writtenEmotionScore) backward 호환
-  - `MessageRotationMode` enum 유지
-  - `static const maxContentLength`, `maxMessageCount` 유지
-- `dart run build_runner build --delete-conflicting-outputs` — 5 outputs 생성
-  - `self_encouragement_message.freezed.dart`
-  - `self_encouragement_message.g.dart`
-- **테스트 결과: 1633 pass, 0 fail**
+**Phase 3-2 설계 검토 → 현재 설계 유지 결정**
+- 분석 결과: 이중 저장소 없음 (SharedPreferences 단일 소스)
+- `hydrated_riverpod`: `HydratedAsyncNotifier` 미존재 → AsyncNotifier와 호환 불가
+- 결정: 현재 `AsyncNotifier<String?>` 유지 (수 ms SharedPrefs 접근, 문제 없음)
+- Phase 3-2 항목 드롭
 
-**변경 파일** (미커밋):
-- `test/presentation/screens/diary_creation_flow_test.dart` — callCount 리셋
-- `pubspec.yaml` — freezed 패키지 추가
-- `pubspec.lock` — 의존성 잠금 업데이트
-- `lib/domain/entities/self_encouragement_message.dart` — freezed 변환
-- `lib/domain/entities/self_encouragement_message.freezed.dart` — 신규 생성
-- `lib/domain/entities/self_encouragement_message.g.dart` — 신규 생성
-- (+ Phase 2 미커밋 파일 40개)
+### 이전 세션 (2026-03-16)
 
-## 다음 작업 후보
+**Phase 3-1 완료**: 4개 엔티티 모두 freezed 전환
+- `statistics.dart`, `notification_settings.dart`, `diary.dart` → `@freezed`
+- 테스트 전체 pass, 커밋: `ef81d9b`
 
-1. **[HIGH] Phase 1+2+3-1 작업 커밋 + git push** — 전체 uncommitted 파일 정리
-2. **[MEDIUM] Phase 3-1 계속**: `statistics.dart` 변환 (다음으로 단순한 엔티티)
-3. **[MEDIUM] Phase 3-1 계속**: `diary.dart` 변환 (핵심, `clearAnalysisResult` 패턴 설계 검토 필요)
-4. **[MEDIUM] Phase 3-1 계속**: `notification_settings.dart` 변환 (`reminderHour.clamp` 검증 패턴 보존 필요)
-5. **[LOW] Accessibility Sprint 3** — `memory/a11y-backlog.md` 참조
+**Phase 1+2 완료** (talker 로깅 + mocktail extends Mock 전환)
+- 커밋: `2c3458b`
+
+## 다음 단계
+
+1. **[HIGH] git push** — origin/main 대비 3개 커밋 미푸시
+2. **[LOW] Accessibility Sprint 3** — `memory/a11y-backlog.md` 참조
+3. **[LOW] riverpod_annotation 실사용**: 신규 feature 개발 시 `@riverpod` 적용
 
 ## 주의사항
 
-- **미커밋 상태**: 40+ 파일 uncommitted (Phase 2 + Phase 3-1)
-- **diary.dart 변환 시**: `clearAnalysisResult` 패턴 — `copy(analysisResult: null)` 가능한지 먼저 검토
-- **notification_settings.dart 변환 시**: `reminderHour.clamp(0,23)` 로직 → `const NotificationSettings._()` private constructor + getter로 보존 필요
+- origin/main 대비 3커밋 미푸시: Phase 1+2+3-1 전체
+- Phase 3-3 패키지 추가 커밋도 미푸시 (이번 세션)
+- `@JsonKey` on freezed factory param warning: 3건 pre-existing false-positive — 기능 정상
+- riverpod_annotation 사용 시 `dart run build_runner build --delete-conflicting-outputs` 필요
 
-## 마지막 업데이트: 2026-03-16 / 세션 framework-upgrade-phase3-1
+## 마지막 업데이트: 2026-03-15 / Phase 3-3 완료

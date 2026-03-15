@@ -89,18 +89,21 @@ feature_providers.dart (presentation)
 ```
 
 ### Controller 패턴
-```dart
-// AsyncNotifier 사용
-@riverpod
-class DiaryAnalysisController extends _$DiaryAnalysisController {
-  @override
-  FutureOr<AnalysisResult?> build() => null;
 
-  Future<void> analyze(String content) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() => ref.read(analyzeDiaryUseCaseProvider).execute(content));
-  }
+**기존 코드**: `AsyncNotifier` / `StateNotifier` 수동 패턴 유지 (마이그레이션 안 함)
+
+**신규 코드**: `riverpod_annotation` (`@riverpod`) 사용 (v1.4.50+ 신규 기능부터 적용)
+```dart
+// 신규 파일: @riverpod 어노테이션 사용
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+part 'some_controller.g.dart';
+
+@riverpod
+class SomeController extends _$SomeController {
+  @override
+  Future<SomeState> build() async { ... }
 }
+// 코드 생성: dart run build_runner build --delete-conflicting-outputs
 ```
 
 ### Provider 사용 규칙
@@ -111,6 +114,11 @@ class DiaryAnalysisController extends _$DiaryAnalysisController {
 ### Provider Invalidation Chain
 - 일기 생성/분석 완료 시: `statisticsProvider` + `diaryListControllerProvider` 동시 invalidate 필수
 - 적용 위치: `diary_analysis_controller.dart:92-94`
+
+### UserNameController 영속화 결정 (2026-03-15)
+- **결정**: `AsyncNotifier<String?>` 현재 설계 유지
+- **배경**: SharedPreferences 단일 소스 → 이중 저장소 없음. `hydrated_riverpod`는 `HydratedAsyncNotifier` 미지원 → 호환 불가
+- **근거**: SharedPreferences 접근은 수 ms, 실질적 성능 이슈 없음
 
 ---
 
