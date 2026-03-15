@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
+part 'diary.freezed.dart';
 part 'diary.g.dart';
 
 /// 일기 상태
@@ -19,117 +20,76 @@ enum DiaryStatus {
 }
 
 /// 일기 엔티티
-@JsonSerializable()
-class Diary {
-  /// 고유 ID
-  final String id;
+@freezed
+class Diary with _$Diary {
+  const Diary._();
 
-  /// 일기 내용
-  final String content;
+  const factory Diary({
+    /// 고유 ID
+    required String id,
 
-  /// 작성 시간
-  final DateTime createdAt;
+    /// 일기 내용
+    required String content,
 
-  /// 분석 상태
-  final DiaryStatus status;
+    /// 작성 시간
+    required DateTime createdAt,
 
-  /// 분석 결과 (분석 완료 시)
-  final AnalysisResult? analysisResult;
+    /// 분석 상태
+    @Default(DiaryStatus.pending) DiaryStatus status,
 
-  /// 상단 고정 여부
-  final bool isPinned;
+    /// 분석 결과 (분석 완료 시)
+    AnalysisResult? analysisResult,
 
-  /// 첨부 이미지 경로 목록 (nullable - 하위 호환성 유지)
-  final List<String>? imagePaths;
+    /// 상단 고정 여부
+    @Default(false) bool isPinned,
 
-  /// 비밀일기 여부 (기본값 false - 하위 호환성 유지)
-  @JsonKey(defaultValue: false)
-  final bool isSecret;
+    /// 첨부 이미지 경로 목록 (nullable - 하위 호환성 유지)
+    List<String>? imagePaths,
 
-  const Diary({
-    required this.id,
-    required this.content,
-    required this.createdAt,
-    this.status = DiaryStatus.pending,
-    this.analysisResult,
-    this.isPinned = false,
-    this.imagePaths,
-    this.isSecret = false,
-  });
+    /// 비밀일기 여부 (기본값 false - 하위 호환성 유지)
+    @Default(false) bool isSecret,
+  }) = _Diary;
+
+  factory Diary.fromJson(Map<String, dynamic> json) => _$DiaryFromJson(json);
 
   /// 이미지가 첨부되어 있는지 여부
   bool get hasImages => imagePaths != null && imagePaths!.isNotEmpty;
 
   /// 첨부된 이미지 수
   int get imageCount => imagePaths?.length ?? 0;
-
-  /// copyWith 메서드
-  /// [clearAnalysisResult]를 true로 설정하면 analysisResult를 명시적으로 null로 설정합니다.
-  /// [clearImagePaths]를 true로 설정하면 imagePaths를 명시적으로 null로 설정합니다.
-  /// 이는 null 파라미터가 "변경 없음"을 의미하는 copyWith 패턴의 한계를 해결합니다.
-  Diary copyWith({
-    String? id,
-    String? content,
-    DateTime? createdAt,
-    DiaryStatus? status,
-    AnalysisResult? analysisResult,
-    bool clearAnalysisResult = false,
-    bool? isPinned,
-    List<String>? imagePaths,
-    bool clearImagePaths = false,
-    bool? isSecret,
-  }) {
-    return Diary(
-      id: id ?? this.id,
-      content: content ?? this.content,
-      createdAt: createdAt ?? this.createdAt,
-      status: status ?? this.status,
-      analysisResult: clearAnalysisResult
-          ? null
-          : (analysisResult ?? this.analysisResult),
-      isPinned: isPinned ?? this.isPinned,
-      imagePaths: clearImagePaths ? null : (imagePaths ?? this.imagePaths),
-      isSecret: isSecret ?? this.isSecret,
-    );
-  }
-
-  factory Diary.fromJson(Map<String, dynamic> json) => _$DiaryFromJson(json);
-  Map<String, dynamic> toJson() => _$DiaryToJson(this);
 }
 
 /// 감정 범주 (1차/2차 감정)
-@JsonSerializable()
-class EmotionCategory {
-  /// 1차 감정 (기쁨, 슬픔, 분노, 공포, 놀람, 혐오, 평온)
-  final String primary;
+@freezed
+class EmotionCategory with _$EmotionCategory {
+  const factory EmotionCategory({
+    /// 1차 감정 (기쁨, 슬픔, 분노, 공포, 놀람, 혐오, 평온)
+    required String primary,
 
-  /// 2차 감정 (세부 감정)
-  final String secondary;
-
-  const EmotionCategory({required this.primary, required this.secondary});
+    /// 2차 감정 (세부 감정)
+    required String secondary,
+  }) = _EmotionCategory;
 
   factory EmotionCategory.fromJson(Map<String, dynamic> json) =>
       _$EmotionCategoryFromJson(json);
-  Map<String, dynamic> toJson() => _$EmotionCategoryToJson(this);
 
   // primaryEmoji getter는 Presentation Layer로 이동됨
   // → lib/presentation/extensions/emotion_emoji_extension.dart
 }
 
 /// 감정 유발 요인
-@JsonSerializable()
-class EmotionTrigger {
-  /// 카테고리
-  final String category;
+@freezed
+class EmotionTrigger with _$EmotionTrigger {
+  const factory EmotionTrigger({
+    /// 카테고리
+    required String category,
 
-  /// 설명
-  final String description;
-
-  const EmotionTrigger({required this.category, required this.description});
+    /// 설명
+    required String description,
+  }) = _EmotionTrigger;
 
   factory EmotionTrigger.fromJson(Map<String, dynamic> json) =>
       _$EmotionTriggerFromJson(json);
-  Map<String, dynamic> toJson() => _$EmotionTriggerToJson(this);
 
   // categoryEmoji getter는 Presentation Layer로 이동됨
   // → lib/presentation/extensions/emotion_emoji_extension.dart
@@ -140,70 +100,56 @@ DateTime _dateTimeFromJsonOrNow(String? json) =>
     json != null ? DateTime.parse(json) : DateTime.now();
 
 /// 감정 분석 결과 엔티티
-@JsonSerializable()
-class AnalysisResult {
-  /// 감정 키워드 (최대 5개)
-  final List<String> keywords;
-
-  /// 감정 점수 (1-10)
-  final int sentimentScore;
-
-  /// 공감 메시지
-  final String empathyMessage;
-
-  /// 추천 행동 (레거시 호환용)
-  final String actionItem;
-
-  /// 단계별 추천 행동 (즉시/오늘/이번주)
-  final List<String> actionItems;
-
-  /// 분석 시간 (JSON에서 null일 경우 현재 시간으로 대체)
-  @JsonKey(fromJson: _dateTimeFromJsonOrNow)
-  final DateTime analyzedAt;
-
-  /// 추천 행동 완료 여부
-  final bool isActionCompleted;
-
-  /// 응급 상황 여부 (자해/자살 위험 등)
-  final bool isEmergency;
-
-  /// AI 캐릭터 ID (설정 시점 기준)
-  final String? aiCharacterId;
-
-  /// 감정 범주 (1차/2차 감정)
-  final EmotionCategory? emotionCategory;
-
-  /// 감정 유발 요인
-  final EmotionTrigger? emotionTrigger;
-
-  /// 에너지 레벨 (1-10)
-  final int? energyLevel;
-
-  /// 인지 패턴 (선택적 - 부정적 사고 패턴 감지 시)
-  final String? cognitivePattern;
+@freezed
+class AnalysisResult with _$AnalysisResult {
+  const AnalysisResult._();
 
   /// [analyzedAt]은 필수 파라미터로, 호출자가 명시적으로 제공해야 합니다.
   /// 테스트에서는 고정된 시간을 주입하여 결정론적 테스트가 가능합니다.
   /// 프로덕션 코드에서는 `DateTime.now()`를 전달합니다.
-  const AnalysisResult({
-    this.keywords = const [],
-    this.sentimentScore = 5,
-    this.empathyMessage = '',
-    this.actionItem = '',
-    this.actionItems = const [],
-    required this.analyzedAt,
-    this.isActionCompleted = false,
-    this.isEmergency = false,
-    this.aiCharacterId,
-    this.emotionCategory,
-    this.emotionTrigger,
-    this.energyLevel,
-    this.cognitivePattern,
-  });
+  const factory AnalysisResult({
+    /// 감정 키워드 (최대 5개)
+    @Default([]) List<String> keywords,
+
+    /// 감정 점수 (1-10)
+    @Default(5) int sentimentScore,
+
+    /// 공감 메시지
+    @Default('') String empathyMessage,
+
+    /// 추천 행동 (레거시 호환용)
+    @Default('') String actionItem,
+
+    /// 단계별 추천 행동 (즉시/오늘/이번주)
+    @Default([]) List<String> actionItems,
+
+    /// 분석 시간 (JSON에서 null일 경우 현재 시간으로 대체)
+    @JsonKey(fromJson: _dateTimeFromJsonOrNow) required DateTime analyzedAt,
+
+    /// 추천 행동 완료 여부
+    @Default(false) bool isActionCompleted,
+
+    /// 응급 상황 여부 (자해/자살 위험 등)
+    @Default(false) bool isEmergency,
+
+    /// AI 캐릭터 ID (설정 시점 기준)
+    String? aiCharacterId,
+
+    /// 감정 범주 (1차/2차 감정)
+    EmotionCategory? emotionCategory,
+
+    /// 감정 유발 요인
+    EmotionTrigger? emotionTrigger,
+
+    /// 에너지 레벨 (1-10)
+    int? energyLevel,
+
+    /// 인지 패턴 (선택적 - 부정적 사고 패턴 감지 시)
+    String? cognitivePattern,
+  }) = _AnalysisResult;
 
   factory AnalysisResult.fromJson(Map<String, dynamic> json) =>
       _$AnalysisResultFromJson(json);
-  Map<String, dynamic> toJson() => _$AnalysisResultToJson(this);
 
   /// 표시할 추천 행동 목록 (actionItems가 비어있으면 actionItem 사용)
   List<String> get displayActionItems {
@@ -240,52 +186,5 @@ class AnalysisResult {
     }
 
     return [];
-  }
-
-  /// copyWith 메서드
-  /// clear* 파라미터를 사용하여 nullable 필드를 명시적으로 null로 설정할 수 있습니다.
-  AnalysisResult copyWith({
-    List<String>? keywords,
-    int? sentimentScore,
-    String? empathyMessage,
-    String? actionItem,
-    List<String>? actionItems,
-    DateTime? analyzedAt,
-    bool? isActionCompleted,
-    bool? isEmergency,
-    String? aiCharacterId,
-    bool clearAiCharacterId = false,
-    EmotionCategory? emotionCategory,
-    bool clearEmotionCategory = false,
-    EmotionTrigger? emotionTrigger,
-    bool clearEmotionTrigger = false,
-    int? energyLevel,
-    bool clearEnergyLevel = false,
-    String? cognitivePattern,
-    bool clearCognitivePattern = false,
-  }) {
-    return AnalysisResult(
-      keywords: keywords ?? this.keywords,
-      sentimentScore: sentimentScore ?? this.sentimentScore,
-      empathyMessage: empathyMessage ?? this.empathyMessage,
-      actionItem: actionItem ?? this.actionItem,
-      actionItems: actionItems ?? this.actionItems,
-      analyzedAt: analyzedAt ?? this.analyzedAt,
-      isActionCompleted: isActionCompleted ?? this.isActionCompleted,
-      isEmergency: isEmergency ?? this.isEmergency,
-      aiCharacterId: clearAiCharacterId
-          ? null
-          : (aiCharacterId ?? this.aiCharacterId),
-      emotionCategory: clearEmotionCategory
-          ? null
-          : (emotionCategory ?? this.emotionCategory),
-      emotionTrigger: clearEmotionTrigger
-          ? null
-          : (emotionTrigger ?? this.emotionTrigger),
-      energyLevel: clearEnergyLevel ? null : (energyLevel ?? this.energyLevel),
-      cognitivePattern: clearCognitivePattern
-          ? null
-          : (cognitivePattern ?? this.cognitivePattern),
-    );
   }
 }

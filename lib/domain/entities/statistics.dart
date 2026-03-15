@@ -1,57 +1,49 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'statistics.freezed.dart';
+
 /// 일별 감정 데이터 (라인 차트용)
-class DailyEmotion {
-  /// 날짜
-  final DateTime date;
+@freezed
+class DailyEmotion with _$DailyEmotion {
+  const factory DailyEmotion({
+    /// 날짜
+    required DateTime date,
 
-  /// 해당 날짜의 평균 감정 점수 (1-10)
-  final double averageScore;
+    /// 해당 날짜의 평균 감정 점수 (1-10)
+    required double averageScore,
 
-  /// 해당 날짜의 일기 수
-  final int diaryCount;
-
-  const DailyEmotion({
-    required this.date,
-    required this.averageScore,
-    required this.diaryCount,
-  });
-
-  @override
-  String toString() =>
-      'DailyEmotion(date: $date, score: $averageScore, count: $diaryCount)';
+    /// 해당 날짜의 일기 수
+    required int diaryCount,
+  }) = _DailyEmotion;
 }
 
 /// 감정 통계 엔티티
-class EmotionStatistics {
-  /// 일별 감정 데이터 (라인 차트용)
-  final List<DailyEmotion> dailyEmotions;
+@freezed
+class EmotionStatistics with _$EmotionStatistics {
+  const EmotionStatistics._();
 
-  /// 키워드 빈도 (태그용) - {키워드: 빈도}
-  final Map<String, int> keywordFrequency;
+  const factory EmotionStatistics({
+    /// 일별 감정 데이터 (라인 차트용)
+    required List<DailyEmotion> dailyEmotions,
 
-  /// 날짜별 작성 여부와 감정 점수 (히트맵용) - {날짜: 평균점수}
-  final Map<DateTime, double> activityMap;
+    /// 키워드 빈도 (태그용) - {키워드: 빈도}
+    required Map<String, int> keywordFrequency,
 
-  /// 전체 일기 수
-  final int totalDiaries;
+    /// 날짜별 작성 여부와 감정 점수 (히트맵용) - {날짜: 평균점수}
+    required Map<DateTime, double> activityMap,
 
-  /// 전체 평균 감정 점수
-  final double overallAverageScore;
+    /// 전체 일기 수
+    required int totalDiaries,
 
-  /// 통계 기간 시작일
-  final DateTime? periodStart;
+    /// 전체 평균 감정 점수
+    required double overallAverageScore,
 
-  /// 통계 기간 종료일
-  final DateTime? periodEnd;
+    /// 통계 기간 시작일
+    DateTime? periodStart,
 
-  const EmotionStatistics({
-    required this.dailyEmotions,
-    required this.keywordFrequency,
-    required this.activityMap,
-    required this.totalDiaries,
-    required this.overallAverageScore,
-    this.periodStart,
-    this.periodEnd,
-  });
+    /// 통계 기간 종료일
+    DateTime? periodEnd,
+  }) = _EmotionStatistics;
 
   /// 빈 통계 데이터
   factory EmotionStatistics.empty() {

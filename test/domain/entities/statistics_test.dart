@@ -24,8 +24,8 @@ void main() {
 
       final str = emotion.toString();
       expect(str, contains('DailyEmotion'));
-      expect(str, contains('score: 8.0'));
-      expect(str, contains('count: 2'));
+      expect(str, contains('averageScore: 8.0'));
+      expect(str, contains('diaryCount: 2'));
     });
   });
 

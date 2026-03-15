@@ -36,7 +36,7 @@ void main() {
     });
 
     test(
-      'copyWith의 clearAnalysisResult로 analysisResult를 null로 설정할 수 있어야 한다',
+      'copyWith로 analysisResult를 null로 설정할 수 있어야 한다',
       () {
         final original = Diary(
           id: 'test-id',
@@ -48,7 +48,7 @@ void main() {
           ),
         );
 
-        final cleared = original.copyWith(clearAnalysisResult: true);
+        final cleared = original.copyWith(analysisResult: null);
 
         expect(cleared.analysisResult, isNull);
       },
@@ -163,7 +163,7 @@ void main() {
 
       final copied = original.copyWith(
         sentimentScore: 8,
-        clearAiCharacterId: true,
+        aiCharacterId: null,
       );
 
       expect(copied.keywords, original.keywords);

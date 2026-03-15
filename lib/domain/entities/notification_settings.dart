@@ -1,33 +1,28 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 import 'self_encouragement_message.dart';
 
-class NotificationSettings {
-  const NotificationSettings({
-    required this.isReminderEnabled,
-    required this.reminderHour,
-    required this.reminderMinute,
-    required this.isMindcareTopicEnabled,
-    this.rotationMode = MessageRotationMode.random,
-    this.lastDisplayedIndex = 0,
-    this.isWeeklyInsightEnabled = false,
-  }) : assert(reminderHour >= 0 && reminderHour <= 23, 'hour must be 0-23'),
-       assert(
-         reminderMinute >= 0 && reminderMinute <= 59,
-         'minute must be 0-59',
-       );
+part 'notification_settings.freezed.dart';
 
-  final bool isReminderEnabled;
-  final int reminderHour;
-  final int reminderMinute;
-  final bool isMindcareTopicEnabled;
+@Freezed(copyWith: false)
+class NotificationSettings with _$NotificationSettings {
+  const NotificationSettings._();
 
-  /// 메시지 로테이션 모드 (random: 랜덤, sequential: 순차)
-  final MessageRotationMode rotationMode;
+  const factory NotificationSettings({
+    required bool isReminderEnabled,
+    required int reminderHour,
+    required int reminderMinute,
+    required bool isMindcareTopicEnabled,
 
-  /// 마지막으로 표시된 메시지 인덱스 (순차 모드용)
-  final int lastDisplayedIndex;
+    /// 메시지 로테이션 모드 (random: 랜덤, sequential: 순차)
+    @Default(MessageRotationMode.random) MessageRotationMode rotationMode,
 
-  /// 주간 감정 인사이트 알림 활성화 (매주 일요일 20:00)
-  final bool isWeeklyInsightEnabled;
+    /// 마지막으로 표시된 메시지 인덱스 (순차 모드용)
+    @Default(0) int lastDisplayedIndex,
+
+    /// 주간 감정 인사이트 알림 활성화 (매주 일요일 20:00)
+    @Default(false) bool isWeeklyInsightEnabled,
+  }) = _NotificationSettings;
 
   // 연구 기반: 17:00-20:00 참여율 최고, 19:00은 직장인 퇴근 후 여유 시간
   static const int defaultReminderHour = 19;
