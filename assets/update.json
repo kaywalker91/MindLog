@@ -1,25 +1,27 @@
 {
-  "latestVersion": "1.4.50",
+  "latestVersion": "1.4.51",
   "minimumVersion": "1.4.0",
   "releaseNotes": {
     "ko": {
-      "title": "v1.4.50 업데이트 안내",
+      "title": "v1.4.51 업데이트 안내",
       "features": [],
       "improvements": [
-        "AI 응원 메시지 필터링이 더 정확해졌어요. 부자연스러운 반복 표현이 더 자연스럽게 정리돼요."
+        "접근성이 더욱 향상됐어요! 화면 읽기 기능을 사용하시는 분들이 더 편리하게 이용할 수 있어요.",
+        "앱 내부 코드가 더 안정적으로 개선됐어요. 빠르고 안전한 앱을 위한 기반을 계속 강화하고 있어요."
       ],
       "bugFixes": [
-        "이름을 설정해도 Cheer Me 알림에 '{name}님' 문자가 그대로 보이던 문제를 완전히 해결했어요. 이제 이름이 정확하게 표시돼요."
+        "자동 배포 파이프라인의 경로 오류를 수정했어요. 더 안정적인 업데이트 제공이 가능해졌어요."
       ]
     },
     "en": {
-      "title": "v1.4.50 Update",
+      "title": "v1.4.51 Update",
       "features": [],
       "improvements": [
-        "AI message filtering is more accurate — unnatural repeated expressions are cleaned up more naturally."
+        "Accessibility improvements — screen reader users will find the app even more comfortable to use.",
+        "Internal code quality has been improved for a faster and more stable app experience."
       ],
       "bugFixes": [
-        "Fixed an issue where the literal '{name}' placeholder appeared in Cheer Me notification titles even after setting a name. Your name now shows correctly."
+        "Fixed a path error in the automated deployment pipeline for more reliable updates."
       ]
     }
   },

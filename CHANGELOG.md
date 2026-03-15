@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.51] - 2026-03-15
+
+### Added
+- **Accessibility Sprint 3 — L1 AppAccessibility 유틸 점진적 도입** (`lib/core/accessibility/app_accessibility.dart`): 기존 AppAccessibility 유틸 중 `diaryItemLabel`, `dateLabel` 2종 적용에 그쳤던 구조에서 L1 레벨 유틸을 코드베이스 전반에 점진적으로 도입 시작. Sprint 3 백로그 항목과 연계.
+
+### Fixed
+- **Fastlane `Dir.chdir("..")` 경로 오류** (`android/fastlane/Fastfile`): Fastfile CWD는 `android/fastlane/`이므로 `Dir.chdir("..")` → `android/` 이동 — `pubspec.yaml` 미발견으로 CD 파이프라인 실패. `PROJECT_ROOT = File.expand_path("../..", __dir__).freeze` 상수로 교체하고 4곳 `Dir.chdir` + 3곳 `aab:` 경로 모두 절대경로 기반으로 수정.
+
+### Changed
+- **도메인 엔티티 freezed 패턴 전환** (`lib/domain/entities/`): `Statistics`, `NotificationSettings`, `Diary`, `SelfEncouragementMessage` 4개 엔티티를 freezed 패턴으로 전환 완료 (Phase 3-1). `copyWith` 자동 생성, `==`/`hashCode` 일관성 보장.
+- **mocktail `extends Mock` 전환** (`test/`): 수동 Mock 클래스에서 `extends Mock` 패턴으로 전환 (Phase 1+2). talker 기반 로깅 인프라 추가로 테스트 디버깅 가시성 향상.
+
+### Chore
+- **riverpod_annotation + riverpod_generator 추가** (`pubspec.yaml`): `riverpod_annotation: ^2.6.1`, `riverpod_generator: ^2.6.3` 의존성 추가 (Phase 3-3). 신규 코드 전용 코드젠 기반 Provider 작성 경로 확보.
+
+---
+
 ## [1.4.50] - 2026-03-14
 
 ### Fixed

@@ -1,12 +1,14 @@
 # Fastlane configuration for MindLog Android
 # Documentation: https://docs.fastlane.tools
 
+PROJECT_ROOT = File.expand_path("../..", __dir__).freeze
+
 default_platform(:android)
 
 platform :android do
   desc "Run Flutter tests"
   lane :test do
-    Dir.chdir("..") do
+    Dir.chdir(PROJECT_ROOT) do
       sh("flutter", "test")
     end
   end
@@ -22,20 +24,20 @@ platform :android do
     end
 
     # Ensure dependencies are installed
-    Dir.chdir("..") do
+    Dir.chdir(PROJECT_ROOT) do
       sh("flutter", "pub", "get")
       sh("dart", "run", "build_runner", "build", "--delete-conflicting-outputs")
     end
 
     # Build AAB with dart-define for API key injection
-    Dir.chdir("..") do
+    Dir.chdir(PROJECT_ROOT) do
       sh("flutter", "build", "appbundle", "--release",
          "--dart-define=GROQ_API_KEY=#{groq_key}",
          "--dart-define=ENVIRONMENT=production")
     end
 
     # Build APK with dart-define for API key injection
-    Dir.chdir("..") do
+    Dir.chdir(PROJECT_ROOT) do
       sh("flutter", "build", "apk", "--release",
          "--dart-define=GROQ_API_KEY=#{groq_key}",
          "--dart-define=ENVIRONMENT=production")
@@ -52,7 +54,7 @@ platform :android do
 
     upload_to_play_store(
       track: "internal",
-      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      aab: "#{PROJECT_ROOT}/build/app/outputs/bundle/release/app-release.aab",
       skip_upload_metadata: true,
       skip_upload_images: true,
       skip_upload_screenshots: true,
@@ -68,7 +70,7 @@ platform :android do
 
     upload_to_play_store(
       track: "beta",
-      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      aab: "#{PROJECT_ROOT}/build/app/outputs/bundle/release/app-release.aab",
       skip_upload_metadata: true,
       skip_upload_images: true,
       skip_upload_screenshots: true,
@@ -84,7 +86,7 @@ platform :android do
 
     upload_to_play_store(
       track: "production",
-      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      aab: "#{PROJECT_ROOT}/build/app/outputs/bundle/release/app-release.aab",
       skip_upload_metadata: true,
       skip_upload_images: true,
       skip_upload_screenshots: true,

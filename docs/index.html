@@ -93,32 +93,32 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.50까지의 개선 사항을 소개합니다. 알림 개인화 4-원인 복합 버그 수정, 디자인 토큰 시스템 확립, 스플래시 애니메이션 리디자인, 접근성 Sprint 완료, FCM 멱등성 Pre-lock 패턴 등 대규모 업데이트가 이루어졌습니다.</p>
+            <p class="section-subtitle">v1.4.51까지의 개선 사항을 소개합니다. Fastlane CD 파이프라인 경로 버그 수정, 도메인 엔티티 freezed 패턴 전환, 접근성 Sprint 3 착수, mocktail extends Mock 전환 등 코드베이스 품질 향상이 이루어졌습니다.</p>
             <div class="updates-grid">
+                <div class="update-card">
+                    <span class="update-tag">CI/CD</span>
+                    <h3>Fastlane CD 파이프라인 경로 버그 수정 (v1.4.51)</h3>
+                    <p>Fastfile CWD가 <code>android/fastlane/</code>임을 간과한 <code>Dir.chdir("..")</code> 호출이 <code>android/</code>로만 이동해 <code>pubspec.yaml</code> 미발견 오류를 유발했습니다. <code>PROJECT_ROOT = File.expand_path("../..", __dir__).freeze</code> 상수로 교체해 CWD에 무관한 절대경로 기반 빌드를 보장합니다. <code>Dir.chdir</code> 4곳 + <code>aab:</code> 경로 3곳 모두 동일 상수로 통일했습니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Architecture</span>
+                    <h3>도메인 엔티티 freezed 전환 — Phase 3-1 (v1.4.51)</h3>
+                    <p><code>Statistics</code>, <code>NotificationSettings</code>, <code>Diary</code>, <code>SelfEncouragementMessage</code> 4개 핵심 도메인 엔티티를 freezed 패턴으로 전환했습니다. 수동 <code>copyWith</code>/<code>==</code>/<code>hashCode</code> 구현 대비 코드젠 기반 일관성 보장, <code>@Freezed(copyWith: false)</code> 패턴으로 커스텀 검증 로직 공존을 설계했습니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Accessibility</span>
+                    <h3>접근성 Sprint 3 착수 — AppAccessibility L1 유틸 (v1.4.51)</h3>
+                    <p>Sprint 1+2(14개 화면 <code>AccessibilityWrapper</code> + theme-aware 색상)에 이어 Sprint 3를 시작했습니다. <code>AppAccessibility</code> 유틸 9개 중 L1 레벨 유틸을 코드베이스 전반에 점진적으로 도입하여 스크린 리더 지원 범위를 확장합니다. 백로그 47항목 중 우선순위 기반 순차 적용 중입니다.</p>
+                </div>
                 <div class="update-card">
                     <span class="update-tag">Bug Fix</span>
                     <h3>Cheer Me 알림 개인화 복합 버그 수정 (v1.4.50)</h3>
-                    <p>4개 독립 원인이 동시에 작용한 복합 버그를 체계적으로 분석하고 수정했습니다. (D) 정규식 character class <code>[,의은을이]?</code>가 2자 조사 <code>에게</code>/<code>께</code>를 매칭하지 못하는 문제 → <code>(?:[,의은을이]|에게|께)?</code> alternation으로 수정. (C) <code>getRandomReminderTitle()</code>에 <code>userName</code> 인자 전파 누락 → optional 파라미터 추가. (B) <code>valueOrNull</code>이 AsyncLoading 상태에서 null 반환 → <code>await .future</code>로 완료 대기. (A) <code>hasReminder</code> 조기반환이 bake-in된 <code>{name}</code> 리터럴 알림 갱신 차단 → <code>hasPlaceholder</code> 검사 추가 후 강제 재스케줄.</p>
+                    <p>4개 독립 원인이 동시에 작용한 복합 버그를 체계적으로 분석하고 수정했습니다. (D) 정규식 <code>[,의은을이]?</code> → <code>(?:[,의은을이]|에게|께)?</code> alternation. (C) <code>getRandomReminderTitle()</code> userName 인자 전파 누락. (B) <code>valueOrNull</code> AsyncLoading → <code>await .future</code>. (A) <code>hasPlaceholder</code> 검사로 bake-in 리터럴 강제 재스케줄.</p>
                 </div>
                 <div class="update-card">
                     <span class="update-tag">Design System</span>
                     <h3>디자인 토큰 시스템 & 스카이 블루 팔레트 (v1.4.49)</h3>
-                    <p>Primary 색상을 스카이 블루(#87CEEB)로 확립하고 <code>AppColors.primary</code>(아이콘/강조) / <code>AppColors.primaryDark</code>(텍스트, WCAG AA 4.5:1) / <code>AppTheme.primaryColor</code>(theme 경유) 삼각형 토큰 체계를 설계했습니다. 텍스트에 primary 직접 사용 시 대비율 1.7:1 미달 문제를 구조적으로 방지합니다. <code>// design-ok</code> 이스케이프 패턴으로 BlendMode 등 불가피한 예외만 명시적으로 허용합니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">Animation</span>
-                    <h3>스플래시 이중 컨트롤러 아키텍처 (v1.4.49)</h3>
-                    <p><code>_entranceController</code>(800ms one-shot, easeOutBack) + <code>_loopController</code>(2500ms repeat/reverse) 이중 컨트롤러로 일회성 진입과 반복 루프를 분리했습니다. <code>Listenable.merge([c1, c2])</code> 기반 <code>AnimatedBuilder</code>로 두 컨트롤러를 단일 리빌드 트리로 통합하여 <code>addStatusListener</code> cascade 패턴을 구현했습니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">Accessibility</span>
-                    <h3>접근성 Sprint 1+2 완료 — 14개 화면 (v1.4.49)</h3>
-                    <p>전체 14개 화면에 <code>AccessibilityWrapper(screenTitle:)</code>를 적용하고 theme-aware 색상 매핑을 완성했습니다(<code>Colors.black87→scrim.withValues()</code>, <code>Colors.white→onSurface</code>, <code>Colors.grey[900]→surfaceContainerLowest</code>). <code>diary_item_card</code>에 <code>AppAccessibility.diaryItemLabel()</code>을 도입해 date/sentimentScore/contentPreview/keywords를 시맨틱으로 노출합니다.</p>
-                </div>
-                <div class="update-card">
-                    <span class="update-tag">Reliability</span>
-                    <h3>FCM 멱등성 Pre-lock 패턴 (v1.4.48)</h3>
-                    <p>Firebase Functions retry + Firestore 부분 실패로 인한 3회 중복 발송 문제를 Firestore <code>create()</code> 원자적 잠금으로 해결했습니다. 기존 check-send-mark 패턴의 race condition을 분석하고 <code>acquireSendLock</code> / <code>completeSendLock</code> / <code>releaseSendLockOnFailure</code> 3-함수 패턴으로 교체했습니다. fail-open → fail-safe 전환으로 장애 시 안전성을 우선했습니다.</p>
+                    <p>Primary 색상을 스카이 블루(#87CEEB)로 확립하고 <code>AppColors.primary</code>(아이콘/강조) / <code>AppColors.primaryDark</code>(텍스트, WCAG AA 4.5:1) / <code>AppTheme.primaryColor</code>(theme 경유) 삼각형 토큰 체계를 설계했습니다. 텍스트에 primary 직접 사용 시 대비율 1.7:1 미달 문제를 구조적으로 방지합니다.</p>
                 </div>
             </div>
         </div>
