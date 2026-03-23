@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.52] - 2026-03-23
+
+### Fixed
+- **공감 메시지 4줄 잘림 제거** (`lib/presentation/widgets/result_card/empathy_message.dart`): `ResultCard`는 `diary_screen`, `diary_detail_screen` 모두 `SingleChildScrollView` 안에 렌더링되므로 내부 truncation이 불필요했음. `maxLines: 4` + `TextOverflow.ellipsis` + `AnimatedCrossFade` + `TextPainter` 측정 + "전체보기/접기" 토글 로직 전체 제거. `StatefulWidget` → `StatelessWidget` 전환으로 코드 90줄 → 62줄 단순화.
+
+---
+
 ## [1.4.51] - 2026-03-15
 
 ### Added

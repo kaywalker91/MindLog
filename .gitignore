@@ -65,6 +65,7 @@ keystore-base64.txt
 
 # Claude Code local settings
 CLAUDE.local.md
+.claude/settings.local.json
 
 # Fastlane
 android/fastlane/report.xml

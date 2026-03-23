@@ -1,3 +1,12 @@
 {
-  "description": "MindLog 프로젝트 전용 설정 - Playwright는 호출하지 않되 tool 목록에서 제거하지 않음 (캐시 안정성)"
+  "description": "MindLog 프로젝트 전용 설정 - Playwright는 호출하지 않되 tool 목록에서 제거하지 않음 (캐시 안정성)",
+  "permissions": {
+    "deny": [
+      "Write(android/key.properties)",
+      "Write(android/app/google-services.json)",
+      "Write(.env*)",
+      "Write(*.keystore)",
+      "Write(*.jks)"
+    ]
+  }
 }

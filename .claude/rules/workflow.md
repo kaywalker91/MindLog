@@ -57,12 +57,12 @@ Conventional Commits: `feat:`, `fix:`, `docs:`, `ci:`, `refactor:`, `test:`, `ch
 1. File issues for remaining work
 2. Run quality gates (if code changed): `flutter analyze && flutter test`
 3. Update issue status
-4. Push to remote: `git pull --rebase && git push`
+4. Push to remote: 사용자에게 `git pull --rebase && git push` 실행 여부를 확인한 후 승인 시에만 실행
 5. Clean up stashes, prune branches
 6. Verify `git status` shows "up to date with origin"
 7. Hand off context for next session
 
-**Critical**: Work is NOT complete until `git push` succeeds.
+**Critical**: Work is NOT complete until the user has confirmed and approved `git push`.
 
 ## Work Type Detection (작업 시작 시 체크)
 

@@ -220,8 +220,9 @@ git commit -m "chore(release): bump version to {version}+{build}"
 # Git 태그 (--no-tag 아닌 경우)
 git tag v{version}
 
-# Push (--no-push 아닌 경우)
-git push && git push origin v{version}
+# Push: 사용자 확인 후 실행 (--no-push 아닌 경우)
+# 반드시 사용자 승인을 받은 후 실행한다
+# → "git push && git push origin v{version} 실행할까요? [Y/n]" 확인 대기
 ```
 
 ---
@@ -248,7 +249,8 @@ git push && git push origin v{version}
 ✅ Step 5/8 assets/update.json 업데이트 (인앱 팝업용)
 ✅ Step 6/8 docs/index.html 업데이트 (채용담당자용)
 ✅ Step 7/8 RELEASE_NOTES.md 생성
-✅ Step 8/8 Git 커밋 + 태그 v1.4.48 + Push
+✅ Step 8/8 Git 커밋 + 태그 v1.4.48 생성
+⏸  Push 대기: `git push && git push origin v{version}` — 실행할까요? [Y/n]
 
 📝 변경 파일:
    ├── pubspec.yaml

@@ -37,6 +37,35 @@ Architecture: Clean Architecture (domain/data/presentation) + Riverpod state man
 - **Debugging & Error Handling**: See `.claude/rules/architecture.md`
 - **Model strategy**: See `~/.claude/rules/model-selection-strategy.md`
 
+## Build Commands
+
+```bash
+# 품질 게이트 (lint + format + test) — PR 전 필수
+./scripts/run.sh quality
+
+# 개별 실행
+./scripts/run.sh test          # 전체 테스트 + 커버리지
+./scripts/run.sh lint          # flutter analyze
+./scripts/run.sh format        # dart format
+
+# 릴리스 빌드 (GROQ_API_KEY 필수)
+GROQ_API_KEY=your_key ./scripts/run.sh build-appbundle
+
+# 코드 생성 (freezed / riverpod_annotation 변경 후)
+fvm dart run build_runner build --delete-conflicting-outputs
+```
+
+> `flutter` 대신 `fvm flutter` 사용. `GROQ_API_KEY`는 `--dart-define`으로 주입 (`.env` 미사용).
+
+## Arch Constraints
+
+- `presentation → domain` 참조만 허용 (data 직접 참조 금지)
+- `domain`: 순수 Dart — Flutter import 금지
+- `data → domain` 참조만 허용 (presentation 참조 금지)
+- UseCase: `execute()` 단일 메서드, Exception 캐치 후 Failure rethrow
+- `SafetyBlockedFailure` 절대 수정·삭제 금지 (위기 감지 핵심)
+- DB 스키마 변경: `_currentVersion` +1, `_onUpgrade` + `_onCreate` 동기화, DROP 금지
+
 ## Protected Files (삭제 금지)
 
 > ⚠️ 아래 파일들은 프로젝트 운영에 필수적이며 **절대 삭제하지 않는다**.
