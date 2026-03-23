@@ -26,58 +26,40 @@ void main() {
   const shortMessage = '오늘도 수고하셨어요.';
 
   group('EmpathyMessage', () {
-    testWidgets('긴 메시지에서 기본 4줄 축약과 전체보기 토글이 보여야 한다', (tester) async {
+    testWidgets('긴 메시지도 잘림 없이 전체 표시되어야 한다', (tester) async {
       await tester.pumpWidget(buildTestWidget(longMessage));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
 
-      expect(find.text('전체보기'), findsOneWidget);
+      expect(find.text('전체보기'), findsNothing);
+      expect(find.text('접기'), findsNothing);
 
-      final crossFade = tester.widget<AnimatedCrossFade>(
-        find.byType(AnimatedCrossFade),
-      );
-      expect(crossFade.crossFadeState, CrossFadeState.showFirst);
-
-      final collapsedText = tester
+      final textWidgets = tester
           .widgetList<Text>(find.byType(Text))
-          .where((text) => text.data == longMessage && text.maxLines == 4);
-      expect(collapsedText, isNotEmpty);
+          .where((t) => t.data == longMessage);
+      expect(textWidgets, isNotEmpty);
+
+      final displayedText = textWidgets.first;
+      expect(displayedText.maxLines, isNull);
+      expect(displayedText.overflow, isNull);
     });
 
-    testWidgets('전체보기/접기 토글로 확장과 축약을 전환할 수 있어야 한다', (tester) async {
-      await tester.pumpWidget(buildTestWidget(longMessage));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('전체보기'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('접기'), findsOneWidget);
-      expect(find.text('전체보기'), findsNothing);
-      expect(
-        tester
-            .widget<AnimatedCrossFade>(find.byType(AnimatedCrossFade))
-            .crossFadeState,
-        CrossFadeState.showSecond,
-      );
-
-      await tester.tap(find.text('접기'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('전체보기'), findsOneWidget);
-      expect(find.text('접기'), findsNothing);
-      expect(
-        tester
-            .widget<AnimatedCrossFade>(find.byType(AnimatedCrossFade))
-            .crossFadeState,
-        CrossFadeState.showFirst,
-      );
-    });
-
-    testWidgets('짧은 메시지에서는 전체보기/접기 토글이 없어야 한다', (tester) async {
+    testWidgets('짧은 메시지도 잘림 없이 전체 표시되어야 한다', (tester) async {
       await tester.pumpWidget(buildTestWidget(shortMessage));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
 
       expect(find.text('전체보기'), findsNothing);
       expect(find.text('접기'), findsNothing);
+      expect(find.text(shortMessage), findsOneWidget);
+    });
+
+    testWidgets('인용문 아이콘이 표시되어야 한다', (tester) async {
+      await tester.pumpWidget(buildTestWidget(shortMessage));
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.byIcon(Icons.format_quote_rounded), findsOneWidget);
     });
   });
 }
