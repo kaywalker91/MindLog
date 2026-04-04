@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.53] - 2026-04-05
+
+### Fixed
+- **Self-Encouragement timeAware 모드 실제 구현** (`lib/core/services/notification_settings_service.dart`): `MessageRotationMode.timeAware` 선택 시 `messages[Random().nextInt(messages.length)]`로 random과 동일하게 동작하던 버그 수정. morning(5-11h)/afternoon(12-17h)/evening(18-4h) 시간대별 `timeCategory` 필터링 로직 추가, 매칭 메시지 없을 때 전체 풀 폴백 안전장치 포함. `selectMessage()`에 `DateTime? now` 파라미터 추가로 테스트 주입 가능.
+- **emotionAware 이중 로직 통일** (`lib/core/di/infra_providers.dart`): `GetNextSelfEncouragementMessageUseCase` + 테스트 (485줄) 전량 삭제. Service가 유일한 메시지 선택 경로로 통일되어 emotionAware/timeAware 로직 분기가 한 곳에서만 관리됨. Provider 등록(`infra_providers.dart`)도 함께 제거.
+- **freezed `@JsonKey` invalid_annotation_target 경고 해소** (`analysis_options.yaml`): freezed constructor parameter에 `@JsonKey(includeIfNull: false)` 사용 시 발생하는 경고를 `invalid_annotation_target: ignore`로 처리 (freezed 공식 권장 패턴).
+
+### Added
+- **timeCategory 입력 UI** (`lib/presentation/widgets/self_encouragement/message_input_dialog.dart`): `MessageInputResult` record 타입 도입. ChoiceChip 4종(전체/아침/오후/저녁) UI 추가. 수정 모드에서 기존 timeCategory 프리로드 지원. `SelfEncouragementController.addMessage()`/`updateMessage()`에 `{String? timeCategory}` optional 파라미터 추가.
+- **시간대 뱃지 표시** (`lib/presentation/widgets/self_encouragement/message_card.dart`): `_timeCategoryIcon()`/`_timeCategoryLabel()` 헬퍼로 메시지 카드에 시간대 아이콘+라벨 뱃지 렌더링.
+- **RotationModeSheet timeAware 옵션** (`lib/presentation/widgets/settings/message_rotation_mode_sheet.dart`): 기존 3개(random/sequential/emotionAware) RadioListTile에 timeAware용 '시간대 맞춤 선택' 항목 추가.
+
+### Testing
+- **selectMessage() 단위 테스트 220줄** (`test/core/services/notification_settings_service_select_message_test.dart`): timeAware 시간대 필터링 (morning/evening 경계값), 매칭 없을 때 폴백, emotionAware 가중치(거리 ≤1→3x) 및 null writtenScore 균등 가중치 검증 6개 케이스.
+- **MessageInputDialog 위젯 테스트 17건** (`test/presentation/widgets/self_encouragement/message_input_dialog_test.dart`): timeCategory ChoiceChip 선택/해제, 수정 모드 프리로드, `MessageInputResult` record 반환값 검증, 빈 입력 유효성 검사 등.
+
+---
+
 ## [1.4.52] - 2026-03-23
 
 ### Fixed
