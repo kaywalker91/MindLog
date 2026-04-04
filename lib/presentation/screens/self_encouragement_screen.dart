@@ -80,11 +80,11 @@ class SelfEncouragementScreen extends ConsumerWidget {
 
   Future<void> _showAddDialog(BuildContext context, WidgetRef ref) async {
     final result = await MessageInputDialog.show(context);
-    if (result != null && result.isNotEmpty && context.mounted) {
+    if (result != null && result.content.isNotEmpty && context.mounted) {
       await HapticFeedback.mediumImpact();
       final success = await ref
           .read(selfEncouragementProvider.notifier)
-          .addMessage(result);
+          .addMessage(result.content, timeCategory: result.timeCategory);
       if (success && context.mounted) {
         // 알림 재스케줄링
         final messages = ref.read(selfEncouragementProvider).valueOrNull ?? [];
@@ -266,12 +266,17 @@ class _MessageListState extends ConsumerState<_MessageList> {
     final result = await MessageInputDialog.show(
       context,
       initialValue: message.content,
+      initialTimeCategory: message.timeCategory,
       isEditing: true,
     );
-    if (result != null && result.isNotEmpty && context.mounted) {
+    if (result != null && result.content.isNotEmpty && context.mounted) {
       final success = await ref
           .read(selfEncouragementProvider.notifier)
-          .updateMessage(message.id, result);
+          .updateMessage(
+            message.id,
+            result.content,
+            timeCategory: result.timeCategory,
+          );
       if (success && context.mounted) {
         // 알림 재스케줄링
         final messages = ref.read(selfEncouragementProvider).valueOrNull ?? [];

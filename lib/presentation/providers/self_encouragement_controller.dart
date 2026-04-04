@@ -24,7 +24,7 @@ class SelfEncouragementController
   SettingsRepository get _repository => ref.read(settingsRepositoryProvider);
 
   /// 새 메시지 추가
-  Future<bool> addMessage(String content) async {
+  Future<bool> addMessage(String content, {String? timeCategory}) async {
     final trimmed = content.trim();
     if (trimmed.isEmpty) {
       if (kDebugMode) {
@@ -53,6 +53,7 @@ class SelfEncouragementController
       content: trimmed,
       createdAt: DateTime.now(),
       displayOrder: current.length,
+      timeCategory: timeCategory,
     );
 
     await _repository.addSelfEncouragementMessage(message);
@@ -68,7 +69,11 @@ class SelfEncouragementController
   }
 
   /// 메시지 수정
-  Future<bool> updateMessage(String id, String content) async {
+  Future<bool> updateMessage(
+    String id,
+    String content, {
+    String? timeCategory,
+  }) async {
     final trimmed = content.trim();
     if (trimmed.isEmpty) return false;
 
@@ -80,7 +85,10 @@ class SelfEncouragementController
     final index = current.indexWhere((m) => m.id == id);
     if (index == -1) return false;
 
-    final updated = current[index].copyWith(content: trimmed);
+    final updated = current[index].copyWith(
+      content: trimmed,
+      timeCategory: timeCategory,
+    );
     await _repository.updateSelfEncouragementMessage(updated);
 
     final newList = [...current];

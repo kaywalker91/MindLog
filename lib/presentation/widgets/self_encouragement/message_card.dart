@@ -231,6 +231,27 @@ class _MessageCardState extends ConsumerState<MessageCard> {
                                                   color: metaTextColor,
                                                 ),
                                           ),
+                                          if (widget.message.timeCategory !=
+                                              null) ...[
+                                            const SizedBox(width: 8),
+                                            Icon(
+                                              _timeCategoryIcon(
+                                                widget.message.timeCategory!,
+                                              ),
+                                              size: 14,
+                                              color: metaTextColor,
+                                            ),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              _timeCategoryLabel(
+                                                widget.message.timeCategory!,
+                                              ),
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color: metaTextColor,
+                                                  ),
+                                            ),
+                                          ],
                                         ],
                                       ),
                                     ],
@@ -333,6 +354,24 @@ class _MessageCardState extends ConsumerState<MessageCard> {
       },
     );
     return confirmed == true;
+  }
+
+  static IconData _timeCategoryIcon(String category) {
+    return switch (category) {
+      'morning' => Icons.wb_sunny_outlined,
+      'afternoon' => Icons.wb_cloudy_outlined,
+      'evening' => Icons.nightlight_outlined,
+      _ => Icons.schedule_outlined,
+    };
+  }
+
+  static String _timeCategoryLabel(String category) {
+    return switch (category) {
+      'morning' => '아침',
+      'afternoon' => '오후',
+      'evening' => '저녁',
+      _ => category,
+    };
   }
 
   /// 날짜 포맷팅 (static 헬퍼로 now 계산 최소화)

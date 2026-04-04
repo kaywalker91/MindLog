@@ -6,26 +6,32 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/cheer_me_section_palette.dart';
 import '../../../domain/entities/self_encouragement_message.dart';
 
+/// 메시지 입력 결과 (content + 선택적 timeCategory)
+typedef MessageInputResult = ({String content, String? timeCategory});
+
 /// 응원 메시지 입력 바텀시트
 ///
 /// 새 메시지 작성 시 가로 스크롤 추천 칩 표시,
 /// 수정 모드에서는 입력 필드만 표시
 class MessageInputDialog extends StatefulWidget {
   final String? initialValue;
+  final String? initialTimeCategory;
   final bool isEditing;
 
   const MessageInputDialog({
     super.key,
     this.initialValue,
+    this.initialTimeCategory,
     this.isEditing = false,
   });
 
   /// 바텀시트 표시
   ///
-  /// Returns: 입력된 메시지 또는 null (취소 시)
-  static Future<String?> show(
+  /// Returns: 입력 결과 (content, timeCategory) 또는 null (취소 시)
+  static Future<MessageInputResult?> show(
     BuildContext context, {
     String? initialValue,
+    String? initialTimeCategory,
     bool isEditing = false,
   }) {
     HapticFeedback.lightImpact();
@@ -34,7 +40,7 @@ class MessageInputDialog extends StatefulWidget {
         ? baseTheme
         : baseTheme.copyWith(colorScheme: AppTheme.healingColorScheme());
 
-    return showModalBottomSheet<String>(
+    return showModalBottomSheet<MessageInputResult>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -63,6 +69,7 @@ class MessageInputDialog extends StatefulWidget {
             ),
             child: MessageInputDialog(
               initialValue: initialValue,
+              initialTimeCategory: initialTimeCategory,
               isEditing: isEditing,
             ),
           ),
@@ -122,15 +129,33 @@ const Map<_PresetCategory, List<String>> _presetTemplates = {
   ],
 };
 
+/// 시간대 카테고리 옵션
+enum _TimeCategoryOption {
+  all('전체', Icons.public_outlined, null),
+  morning('아침', Icons.light_mode_outlined, 'morning'),
+  afternoon('오후', Icons.wb_cloudy_outlined, 'afternoon'),
+  evening('저녁', Icons.nightlight_outlined, 'evening');
+
+  const _TimeCategoryOption(this.label, this.icon, this.value);
+  final String label;
+  final IconData icon;
+  final String? value;
+}
+
 class _MessageInputDialogState extends State<MessageInputDialog> {
   late final TextEditingController _controller;
   final _focusNode = FocusNode();
   _PresetCategory _selectedCategory = _PresetCategory.morningAffirmation;
+  late _TimeCategoryOption _selectedTimeCategory;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialValue);
+    _selectedTimeCategory = _TimeCategoryOption.values.firstWhere(
+      (o) => o.value == widget.initialTimeCategory,
+      orElse: () => _TimeCategoryOption.all,
+    );
     // 바텀시트가 열리면 자동으로 포커스
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
@@ -231,6 +256,84 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
                               : colorScheme.outline,
                         ),
                       ),
+                    ),
+
+                    // 시간대 선택
+                    const SizedBox(height: 12),
+                    Text(
+                      '알림 시간대',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: _TimeCategoryOption.values.map((option) {
+                        final isSelected = _selectedTimeCategory == option;
+                        return Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              right: option != _TimeCategoryOption.evening
+                                  ? 6
+                                  : 0,
+                            ),
+                            child: GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(
+                                  () => _selectedTimeCategory = option,
+                                );
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? colorScheme.primaryContainer
+                                      : colorScheme.surfaceContainerHighest
+                                            .withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? colorScheme.primary
+                                        : Colors.transparent,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      option.icon,
+                                      size: 18,
+                                      color: isSelected
+                                          ? colorScheme.onPrimaryContainer
+                                          : colorScheme.onSurfaceVariant,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      option.label,
+                                      style: theme.textTheme.labelSmall
+                                          ?.copyWith(
+                                            color: isSelected
+                                                ? colorScheme
+                                                      .onPrimaryContainer
+                                                : colorScheme
+                                                      .onSurfaceVariant,
+                                            fontWeight: isSelected
+                                                ? FontWeight.w600
+                                                : null,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
 
                     // 프리셋 템플릿 (새 메시지 작성 시에만)
@@ -401,7 +504,10 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
                   child: FilledButton(
                     onPressed: _controller.text.trim().isEmpty
                         ? null
-                        : () => context.pop(_controller.text.trim()),
+                        : () => context.pop((
+                            content: _controller.text.trim(),
+                            timeCategory: _selectedTimeCategory.value,
+                          )),
                     style: FilledButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,

@@ -435,10 +435,10 @@ class _FakeSelfEncouragementController
   FutureOr<List<SelfEncouragementMessage>> build() => _messages;
 
   @override
-  Future<bool> addMessage(String content) async => true;
+  Future<bool> addMessage(String content, {String? timeCategory}) async => true;
 
   @override
-  Future<bool> updateMessage(String id, String content) async => true;
+  Future<bool> updateMessage(String id, String content, {String? timeCategory}) async => true;
 
   @override
   Future<void> deleteMessage(String id) async {}

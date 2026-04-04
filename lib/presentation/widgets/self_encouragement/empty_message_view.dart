@@ -93,8 +93,10 @@ class EmptyMessageView extends ConsumerWidget {
 
   Future<void> _showAddDialog(BuildContext context, WidgetRef ref) async {
     final result = await MessageInputDialog.show(context);
-    if (result != null && result.isNotEmpty && context.mounted) {
-      await ref.read(selfEncouragementProvider.notifier).addMessage(result);
+    if (result != null && result.content.isNotEmpty && context.mounted) {
+      await ref
+          .read(selfEncouragementProvider.notifier)
+          .addMessage(result.content, timeCategory: result.timeCategory);
     }
   }
 }
