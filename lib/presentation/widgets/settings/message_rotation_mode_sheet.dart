@@ -120,6 +120,23 @@ class MessageRotationModeSheet extends ConsumerWidget {
                     ),
                     activeColor: theme.colorScheme.primary,
                   ),
+                  RadioListTile<MessageRotationMode>(
+                    value: MessageRotationMode.timeAware,
+                    controlAffinity: ListTileControlAffinity.trailing,
+                    title: Text(
+                      '시간대 맞춤 선택',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '아침/오후/저녁 시간대에 맞는 메시지가 우선 표시돼요',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    activeColor: theme.colorScheme.primary,
+                  ),
                 ],
               ),
             ),

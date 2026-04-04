@@ -283,5 +283,203 @@ void main() {
       expect(useCase.getNextIndex(2, 3), 0); // wrap
       expect(useCase.getNextIndex(0, 0), 0); // empty list
     });
+
+    group('timeAware mode', () {
+      SelfEncouragementMessage createTimedMessage(
+        String id,
+        String? timeCategory,
+        int order,
+      ) {
+        return SelfEncouragementMessage(
+          id: id,
+          content: '메시지 $id',
+          createdAt: DateTime.now(),
+          displayOrder: order,
+          timeCategory: timeCategory,
+        );
+      }
+
+      List<SelfEncouragementMessage> createTimedMessageSet() {
+        return [
+          createTimedMessage('m', 'morning', 0),
+          createTimedMessage('a', 'afternoon', 1),
+          createTimedMessage('e', 'evening', 2),
+        ];
+      }
+
+      test('T-1: hour=8(아침)이면 morning 카테고리 메시지 반환', () async {
+        final messages = createTimedMessageSet();
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
+        mockRandom.nextValue = 0;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.timeAware,
+        );
+
+        final result = await useCase.execute(
+          settings,
+          now: DateTime(2024, 1, 1, 8),
+        );
+
+        expect(result?.timeCategory, 'morning');
+      });
+
+      test('T-2: hour=14(오후)이면 afternoon 카테고리 메시지 반환', () async {
+        final messages = createTimedMessageSet();
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
+        mockRandom.nextValue = 0;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.timeAware,
+        );
+
+        final result = await useCase.execute(
+          settings,
+          now: DateTime(2024, 1, 1, 14),
+        );
+
+        expect(result?.timeCategory, 'afternoon');
+      });
+
+      test('T-3: hour=21(저녁)이면 evening 카테고리 메시지 반환', () async {
+        final messages = createTimedMessageSet();
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
+        mockRandom.nextValue = 0;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.timeAware,
+        );
+
+        final result = await useCase.execute(
+          settings,
+          now: DateTime(2024, 1, 1, 21),
+        );
+
+        expect(result?.timeCategory, 'evening');
+      });
+
+      test('T-4: hour=0(자정)이면 evening 카테고리 메시지 반환', () async {
+        final messages = createTimedMessageSet();
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
+        mockRandom.nextValue = 0;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.timeAware,
+        );
+
+        final result = await useCase.execute(
+          settings,
+          now: DateTime(2024, 1, 1, 0),
+        );
+
+        expect(result?.timeCategory, 'evening');
+      });
+
+      test('T-5: hour=5(아침 경계)이면 morning 카테고리 메시지 반환', () async {
+        final messages = createTimedMessageSet();
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
+        mockRandom.nextValue = 0;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.timeAware,
+        );
+
+        final result = await useCase.execute(
+          settings,
+          now: DateTime(2024, 1, 1, 5),
+        );
+
+        expect(result?.timeCategory, 'morning');
+      });
+
+      test('T-6: hour=4(새벽 경계)이면 evening 카테고리 메시지 반환', () async {
+        final messages = createTimedMessageSet();
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
+        mockRandom.nextValue = 0;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.timeAware,
+        );
+
+        final result = await useCase.execute(
+          settings,
+          now: DateTime(2024, 1, 1, 4),
+        );
+
+        expect(result?.timeCategory, 'evening');
+      });
+
+      test('T-7: 매칭 timeCategory 메시지 없으면 전체 풀로 폴백', () async {
+        // Only morning messages, but requesting at afternoon hour
+        final messages = [
+          createTimedMessage('m1', 'morning', 0),
+          createTimedMessage('m2', 'morning', 1),
+        ];
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
+        mockRandom.nextValue = 1;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.timeAware,
+        );
+
+        final result = await useCase.execute(
+          settings,
+          now: DateTime(2024, 1, 1, 14),
+        );
+
+        // Fallback to all messages, index 1
+        expect(result, equals(messages[1]));
+      });
+
+      test('T-8: 모든 메시지 timeCategory가 null이면 전체 풀로 폴백', () async {
+        final messages = [
+          createTimedMessage('n1', null, 0),
+          createTimedMessage('n2', null, 1),
+        ];
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => messages);
+        mockRandom.nextValue = 0;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.timeAware,
+        );
+
+        final result = await useCase.execute(
+          settings,
+          now: DateTime(2024, 1, 1, 8),
+        );
+
+        // Fallback since no morning messages
+        expect(result, isNotNull);
+      });
+
+      test('T-9: null timeCategory 메시지는 시간 필터 풀에서 제외됨', () async {
+        // morning + null: null should be excluded from time pool
+        final morningMsg = createTimedMessage('m', 'morning', 0);
+        final nullMsg = createTimedMessage('n', null, 1);
+        when(
+          () => mockRepository.getSelfEncouragementMessages(),
+        ).thenAnswer((_) async => [morningMsg, nullMsg]);
+        mockRandom.nextValue = 0;
+        final settings = NotificationSettings.defaults().copyWith(
+          rotationMode: MessageRotationMode.timeAware,
+        );
+
+        final result = await useCase.execute(
+          settings,
+          now: DateTime(2024, 1, 1, 8),
+        );
+
+        // Only morningMsg in morning pool, nullMsg excluded
+        expect(result, equals(morningMsg));
+      });
+    });
   });
 }

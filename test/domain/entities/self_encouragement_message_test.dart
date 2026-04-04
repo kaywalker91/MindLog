@@ -86,11 +86,42 @@ void main() {
   });
 
   group('MessageRotationMode', () {
-    test('should have random, sequential, and emotionAware modes', () {
-      expect(MessageRotationMode.values.length, 3);
+    test('should have random, sequential, emotionAware, and timeAware modes', () {
+      expect(MessageRotationMode.values.length, 4);
       expect(MessageRotationMode.random, isNotNull);
       expect(MessageRotationMode.sequential, isNotNull);
       expect(MessageRotationMode.emotionAware, isNotNull);
+      expect(MessageRotationMode.timeAware, isNotNull);
+    });
+  });
+
+  group('SelfEncouragementMessage timeCategory', () {
+    test('T-10: should round-trip serialize timeCategory field', () {
+      final message = SelfEncouragementMessage(
+        id: 'test-id',
+        content: '아침 메시지',
+        createdAt: DateTime(2024, 1, 1),
+        displayOrder: 0,
+        timeCategory: 'morning',
+      );
+
+      final json = message.toJson();
+      final restored = SelfEncouragementMessage.fromJson(json);
+
+      expect(restored.timeCategory, 'morning');
+    });
+
+    test('T-11: should omit timeCategory from JSON when null', () {
+      final message = SelfEncouragementMessage(
+        id: 'test-id',
+        content: '일반 메시지',
+        createdAt: DateTime(2024, 1, 1),
+        displayOrder: 0,
+      );
+
+      final json = message.toJson();
+
+      expect(json.containsKey('timeCategory'), isFalse);
     });
   });
 }

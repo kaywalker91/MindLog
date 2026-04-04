@@ -388,6 +388,8 @@ class NotificationSection extends ConsumerWidget {
         return '순차';
       case MessageRotationMode.emotionAware:
         return '감정 맞춤';
+      case MessageRotationMode.timeAware:
+        return '시간대 맞춤';
     }
   }
 

@@ -45,6 +45,8 @@ class PreferencesLocalDataSource {
         rotationMode = MessageRotationMode.sequential;
       case 'emotionAware':
         rotationMode = MessageRotationMode.emotionAware;
+      case 'timeAware':
+        rotationMode = MessageRotationMode.timeAware;
       default:
         rotationMode = MessageRotationMode.random;
     }
@@ -88,6 +90,7 @@ class PreferencesLocalDataSource {
     await prefs.setString(_rotationModeKey, switch (settings.rotationMode) {
       MessageRotationMode.sequential => 'sequential',
       MessageRotationMode.emotionAware => 'emotionAware',
+      MessageRotationMode.timeAware => 'timeAware',
       MessageRotationMode.random => 'random',
     });
     await prefs.setInt(_lastDisplayedIndexKey, settings.lastDisplayedIndex);

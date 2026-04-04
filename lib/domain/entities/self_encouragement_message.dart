@@ -13,6 +13,7 @@ class SelfEncouragementMessage with _$SelfEncouragementMessage {
     required int displayOrder,
     @JsonKey(includeIfNull: false) String? category,
     @JsonKey(includeIfNull: false) double? writtenEmotionScore,
+    @JsonKey(includeIfNull: false) String? timeCategory,
   }) = _SelfEncouragementMessage;
 
   factory SelfEncouragementMessage.fromJson(Map<String, dynamic> json) =>
@@ -35,4 +36,7 @@ enum MessageRotationMode {
 
   /// 감정 기반 선택 (현재 감정에 맞는 메시지 우선)
   emotionAware,
+
+  /// 시간대 기반 선택 (아침/오후/저녁 카테고리 매칭)
+  timeAware,
 }

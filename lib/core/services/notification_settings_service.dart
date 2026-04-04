@@ -468,6 +468,7 @@ class NotificationSettingsService {
     NotificationSettings settings,
     List<SelfEncouragementMessage> messages, {
     double? recentEmotionScore,
+    DateTime? now,
   }) {
     if (messages.isEmpty) return null;
 
@@ -484,7 +485,35 @@ class NotificationSettingsService {
         return messages[index];
       case MessageRotationMode.emotionAware:
         return _selectEmotionAwareMessage(messages, recentEmotionScore);
+      case MessageRotationMode.timeAware:
+        return _selectTimeAwareMessage(messages, now);
     }
+  }
+
+  /// 시간대 기반 메시지 선택
+  ///
+  /// morning(5-11), afternoon(12-17), evening(18-23, 0-4)
+  /// 매칭 메시지 없으면 전체 풀 폴백
+  static SelfEncouragementMessage _selectTimeAwareMessage(
+    List<SelfEncouragementMessage> messages,
+    DateTime? now,
+  ) {
+    final hour = (now ?? DateTime.now()).hour;
+    final category = _timeCategory(hour);
+    final filtered =
+        messages.where((m) => m.timeCategory == category).toList();
+    final pool = filtered.isEmpty ? messages : filtered;
+    return pool[Random().nextInt(pool.length)];
+  }
+
+  /// 시간(0-23)을 시간대 카테고리 문자열로 변환
+  @visibleForTesting
+  static String timeCategory(int hour) => _timeCategory(hour);
+
+  static String _timeCategory(int hour) {
+    if (hour >= 5 && hour <= 11) return 'morning';
+    if (hour >= 12 && hour <= 17) return 'afternoon';
+    return 'evening';
   }
 
   /// 감정 기반 가중치 메시지 선택
