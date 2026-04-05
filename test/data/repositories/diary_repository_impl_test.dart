@@ -430,6 +430,43 @@ void main() {
         expect(result?.status, DiaryStatus.failed);
       });
 
+      test(
+        '재시도 소진 후 NetworkException 발생 시 failed 상태와 NetworkFailure를 유지해야 한다',
+        () async {
+          final testDiary = Diary(
+            id: 'test-network-retry-exhausted',
+            content: '재시도 소진 테스트',
+            createdAt: DateTime.now(),
+            status: DiaryStatus.pending,
+          );
+          mockLocalDataSource.addDiary(testDiary);
+          mockRemoteDataSource.setCustomException(
+            NetworkException(
+              '네트워크 연결에 실패했습니다. (3번 재시도): SocketException: Connection refused',
+            ),
+          );
+
+          await expectLater(
+            () => repository.analyzeDiary(
+              'test-network-retry-exhausted',
+              character: AiCharacter.warmCounselor,
+            ),
+            throwsA(
+              isA<NetworkFailure>().having(
+                (failure) => failure.message,
+                'message',
+                contains('네트워크 연결에 실패했습니다.'),
+              ),
+            ),
+          );
+
+          final result = await repository.getDiaryById(
+            'test-network-retry-exhausted',
+          );
+          expect(result?.status, DiaryStatus.failed);
+        },
+      );
+
       test('ApiException 발생 시 failed 상태로 업데이트되어야 한다', () async {
         final testDiary = Diary(
           id: 'test-api',

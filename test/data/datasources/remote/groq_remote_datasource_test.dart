@@ -41,9 +41,21 @@ void main() {
     };
   }
 
+  http.Response createSuccessResponse() {
+    return http.Response.bytes(
+      utf8.encode(jsonEncode(createValidApiResponse())),
+      200,
+      headers: {'content-type': 'application/json; charset=utf-8'},
+    );
+  }
+
   setUp(() {
     mockClient = MockHttpClient();
-    dataSource = GroqRemoteDataSource('test-api-key', client: mockClient);
+    dataSource = GroqRemoteDataSource(
+      'test-api-key',
+      client: mockClient,
+      sleep: _noOpSleep,
+    );
   });
 
   tearDown(() {
@@ -120,30 +132,77 @@ void main() {
     });
 
     group('재시도 로직', () {
-      test('네트워크 오류는 _analyzeDiaryOnce의 catch에서 ApiException으로 래핑된다', () async {
-        // 현재 구현에서는 http.Client.post()에서 발생하는 SocketException이
-        // _analyzeDiaryOnce의 마지막 catch 블록에서 ApiException으로 래핑됨
-        // 재시도 로직은 analyzeDiaryWithRetry에서 SocketException을 직접 catch할 때만 작동
+      test('SocketException 발생 시 3회 재시도 후 NetworkException을 반환해야 한다', () async {
         mockClient.exceptionToThrow = const SocketException(
           'Connection refused',
         );
 
         await expectLater(
           dataSource.analyzeDiary('테스트', character: AiCharacter.warmCounselor),
-          throwsA(isA<ApiException>()),
+          throwsA(isA<NetworkException>()),
         );
-        // ApiException으로 래핑되어 재시도 없이 1회만 호출
-        expect(mockClient.callCount, 1);
+        expect(mockClient.callCount, 3);
       });
 
-      test('타임아웃 오류는 ApiException으로 래핑된다', () async {
-        mockClient.exceptionToThrow = TimeoutException('Request timed out');
+      test(
+        'TimeoutException 발생 시 3회 재시도 후 NetworkException을 반환해야 한다',
+        () async {
+          mockClient.exceptionToThrow = TimeoutException('Request timed out');
 
-        await expectLater(
-          dataSource.analyzeDiary('테스트', character: AiCharacter.warmCounselor),
-          throwsA(isA<ApiException>()),
+          await expectLater(
+            dataSource.analyzeDiary(
+              '테스트',
+              character: AiCharacter.warmCounselor,
+            ),
+            throwsA(isA<NetworkException>()),
+          );
+          expect(mockClient.callCount, 3);
+        },
+      );
+
+      test('두 번의 SocketException 후 성공하면 분석 결과를 반환해야 한다', () async {
+        final customClient = _SequenceClient(
+          steps: [
+            const SocketException('Connection refused'),
+            const SocketException('Connection refused'),
+            createSuccessResponse(),
+          ],
         );
-        expect(mockClient.callCount, 1);
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: customClient,
+          sleep: _noOpSleep,
+        );
+
+        final result = await customDataSource.analyzeDiary(
+          '테스트',
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result, isNotNull);
+        expect(customClient.callCount, 3);
+      });
+
+      test('한 번의 TimeoutException 후 성공하면 분석 결과를 반환해야 한다', () async {
+        final customClient = _SequenceClient(
+          steps: [
+            TimeoutException('Request timed out'),
+            createSuccessResponse(),
+          ],
+        );
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: customClient,
+          sleep: _noOpSleep,
+        );
+
+        final result = await customDataSource.analyzeDiary(
+          '테스트',
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result, isNotNull);
+        expect(customClient.callCount, 2);
       });
 
       test('API 호출 성공 후 정상 응답을 반환해야 한다', () async {
@@ -178,6 +237,7 @@ void main() {
         final customDataSource = GroqRemoteDataSource(
           'test-api-key',
           client: customClient,
+          sleep: _noOpSleep,
         );
 
         final result = await customDataSource.analyzeDiary(
@@ -190,18 +250,29 @@ void main() {
       });
 
       test('Retry-After 헤더(초 단위)를 파싱해야 한다', () async {
-        // 초 단위 Retry-After 헤더 테스트
-        mockClient.setErrorResponse(429, headers: {'retry-after': '5'});
+        final delays = <Duration>[];
+        final customClient = _RetryAfterMockHttpClient(
+          responses: [
+            http.Response('Rate limit', 429, headers: {'retry-after': '5'}),
+            createSuccessResponse(),
+          ],
+        );
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: customClient,
+          sleep: (duration) async {
+            delays.add(duration);
+          },
+        );
 
-        try {
-          await dataSource.analyzeDiary(
-            '테스트',
-            character: AiCharacter.warmCounselor,
-          );
-        } catch (e) {
-          // RateLimitException으로 변환 후 ApiException으로 재throw
-          expect(e, isA<ApiException>());
-        }
+        final result = await customDataSource.analyzeDiary(
+          '테스트',
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result, isNotNull);
+        expect(customClient.callCount, 2);
+        expect(delays, [const Duration(seconds: 5)]);
       });
     });
 
@@ -347,6 +418,7 @@ void main() {
           'test-api-key',
           client: mockClient,
           circuitBreaker: circuitBreaker,
+          sleep: _noOpSleep,
         );
 
         mockClient.setSuccessResponse(createValidApiResponse());
@@ -477,35 +549,47 @@ void main() {
 
     group('Retry-After 헤더 파싱', () {
       test('Retry-After 헤더가 없으면 기본 지연을 사용해야 한다', () async {
-        // 429 응답이지만 Retry-After 헤더 없음
         mockClient.setErrorResponse(429);
+        final delays = <Duration>[];
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: mockClient,
+          sleep: (duration) async {
+            delays.add(duration);
+          },
+        );
 
-        try {
-          await dataSource.analyzeDiary(
+        await expectLater(
+          customDataSource.analyzeDiary(
             '테스트',
             character: AiCharacter.warmCounselor,
-          );
-        } catch (e) {
-          expect(e, isA<ApiException>());
-        }
+          ),
+          throwsA(
+            isA<ApiException>().having((e) => e.statusCode, 'statusCode', 429),
+          ),
+        );
+        expect(mockClient.callCount, 3);
+        expect(delays, [
+          const Duration(seconds: 1),
+          const Duration(seconds: 2),
+        ]);
       });
 
       test('Retry-After가 초 단위 숫자이면 파싱해야 한다', () async {
-        // 첫 번째 요청: 429 with Retry-After, 두 번째: 성공
+        final delays = <Duration>[];
         final customClient = _RetryAfterMockHttpClient(
           responses: [
             http.Response('Rate limit', 429, headers: {'retry-after': '2'}),
-            http.Response.bytes(
-              utf8.encode(jsonEncode(createValidApiResponse())),
-              200,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            ),
+            createSuccessResponse(),
           ],
         );
 
         final customDataSource = GroqRemoteDataSource(
           'test-api-key',
           client: customClient,
+          sleep: (duration) async {
+            delays.add(duration);
+          },
         );
 
         final result = await customDataSource.analyzeDiary(
@@ -515,10 +599,11 @@ void main() {
 
         expect(result, isNotNull);
         expect(customClient.callCount, 2);
+        expect(delays, [const Duration(seconds: 2)]);
       });
 
       test('Retry-After가 HTTP-date 형식이면 파싱해야 한다', () async {
-        // HTTP-date 형식: "Fri, 31 Dec 2024 23:59:59 GMT"
+        final delays = <Duration>[];
         final futureDate = DateTime.now().toUtc().add(
           const Duration(seconds: 2),
         );
@@ -531,17 +616,16 @@ void main() {
               429,
               headers: {'retry-after': httpDateStr},
             ),
-            http.Response.bytes(
-              utf8.encode(jsonEncode(createValidApiResponse())),
-              200,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            ),
+            createSuccessResponse(),
           ],
         );
 
         final customDataSource = GroqRemoteDataSource(
           'test-api-key',
           client: customClient,
+          sleep: (duration) async {
+            delays.add(duration);
+          },
         );
 
         final result = await customDataSource.analyzeDiary(
@@ -551,10 +635,12 @@ void main() {
 
         expect(result, isNotNull);
         expect(customClient.callCount, 2);
+        expect(delays, hasLength(1));
+        expect(delays.single.inMilliseconds, inInclusiveRange(1000, 2500));
       });
 
       test('Retry-After가 과거 HTTP-date이면 기본 지연을 사용해야 한다', () async {
-        // 과거 날짜: 이 경우 _initialDelay 사용
+        final delays = <Duration>[];
         final pastDate = DateTime.now().toUtc().subtract(
           const Duration(hours: 1),
         );
@@ -567,17 +653,16 @@ void main() {
               429,
               headers: {'retry-after': httpDateStr},
             ),
-            http.Response.bytes(
-              utf8.encode(jsonEncode(createValidApiResponse())),
-              200,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            ),
+            createSuccessResponse(),
           ],
         );
 
         final customDataSource = GroqRemoteDataSource(
           'test-api-key',
           client: customClient,
+          sleep: (duration) async {
+            delays.add(duration);
+          },
         );
 
         final result = await customDataSource.analyzeDiary(
@@ -587,40 +672,38 @@ void main() {
 
         expect(result, isNotNull);
         expect(customClient.callCount, 2);
+        expect(delays, [const Duration(seconds: 1)]);
       });
 
       test('Retry-After가 300초를 초과하면 5분으로 제한해야 한다', () async {
+        final delays = <Duration>[];
         final customClient = _RetryAfterMockHttpClient(
           responses: [
-            // 600초(10분) → 5분으로 제한됨
             http.Response('Rate limit', 429, headers: {'retry-after': '600'}),
-            http.Response.bytes(
-              utf8.encode(jsonEncode(createValidApiResponse())),
-              200,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            ),
+            createSuccessResponse(),
           ],
         );
 
         final customDataSource = GroqRemoteDataSource(
           'test-api-key',
           client: customClient,
+          sleep: (duration) async {
+            delays.add(duration);
+          },
         );
 
-        // 실제로 5분 기다리지 않고, 클라이언트가 호출되었는지만 확인
-        // 실제 구현에서는 Future.delayed가 발생하지만 테스트에서는 callCount로 검증
-        try {
-          await customDataSource
-              .analyzeDiary('테스트', character: AiCharacter.warmCounselor)
-              .timeout(const Duration(seconds: 3));
-        } catch (_) {
-          // 타임아웃 예상됨 (5분 대기로 인해)
-        }
-        // 최소 1회는 호출됨
-        expect(customClient.callCount, greaterThanOrEqualTo(1));
+        final result = await customDataSource.analyzeDiary(
+          '테스트',
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result, isNotNull);
+        expect(customClient.callCount, 2);
+        expect(delays, [const Duration(minutes: 5)]);
       });
 
       test('Retry-After가 잘못된 형식이면 기본값을 사용해야 한다', () async {
+        final delays = <Duration>[];
         final customClient = _RetryAfterMockHttpClient(
           responses: [
             http.Response(
@@ -628,17 +711,16 @@ void main() {
               429,
               headers: {'retry-after': 'invalid-format'},
             ),
-            http.Response.bytes(
-              utf8.encode(jsonEncode(createValidApiResponse())),
-              200,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            ),
+            createSuccessResponse(),
           ],
         );
 
         final customDataSource = GroqRemoteDataSource(
           'test-api-key',
           client: customClient,
+          sleep: (duration) async {
+            delays.add(duration);
+          },
         );
 
         final result = await customDataSource.analyzeDiary(
@@ -648,64 +730,19 @@ void main() {
 
         expect(result, isNotNull);
         expect(customClient.callCount, 2);
+        expect(delays, [const Duration(seconds: 1)]);
       });
     });
 
     group('네트워크/타임아웃 예외 처리', () {
-      // 참고: 현재 구현에서 SocketException과 TimeoutException은
-      // _analyzeDiaryOnce의 마지막 catch 블록에서 ApiException으로 래핑됨
-      // 따라서 재시도 로직은 작동하지 않고 즉시 ApiException이 발생함
-
-      test('SocketException 발생 시 ApiException으로 래핑되어 반환되어야 한다', () async {
+      test('SocketException 발생 시 최종 NetworkException 메시지를 유지해야 한다', () async {
         final directClient = _DirectExceptionClient(
           exceptionFactory: () => const SocketException('Connection refused'),
         );
-
         final customDataSource = GroqRemoteDataSource(
           'test-api-key',
           client: directClient,
-        );
-
-        await expectLater(
-          customDataSource.analyzeDiary(
-            '테스트',
-            character: AiCharacter.warmCounselor,
-          ),
-          throwsA(isA<ApiException>()),
-        );
-        // _analyzeDiaryOnce에서 잡혀서 ApiException으로 변환, 재시도 없이 1회
-        expect(directClient.callCount, 1);
-      });
-
-      test('TimeoutException 발생 시 ApiException으로 래핑되어 반환되어야 한다', () async {
-        final directClient = _DirectExceptionClient(
-          exceptionFactory: () => TimeoutException('Request timed out'),
-        );
-
-        final customDataSource = GroqRemoteDataSource(
-          'test-api-key',
-          client: directClient,
-        );
-
-        await expectLater(
-          customDataSource.analyzeDiary(
-            '테스트',
-            character: AiCharacter.warmCounselor,
-          ),
-          throwsA(isA<ApiException>()),
-        );
-        // _analyzeDiaryOnce에서 잡혀서 ApiException으로 변환, 재시도 없이 1회
-        expect(directClient.callCount, 1);
-      });
-
-      test('SocketException 에러 메시지가 포함되어야 한다', () async {
-        final directClient = _DirectExceptionClient(
-          exceptionFactory: () => const SocketException('Connection refused'),
-        );
-
-        final customDataSource = GroqRemoteDataSource(
-          'test-api-key',
-          client: directClient,
+          sleep: _noOpSleep,
         );
 
         try {
@@ -713,14 +750,15 @@ void main() {
             '테스트',
             character: AiCharacter.warmCounselor,
           );
-          fail('ApiException이 발생해야 합니다');
+          fail('NetworkException이 발생해야 합니다');
         } catch (e) {
-          expect(e, isA<ApiException>());
-          expect((e as ApiException).message, contains('Groq 분석 중 오류'));
+          expect(e, isA<NetworkException>());
+          expect((e as NetworkException).message, contains('네트워크 연결에 실패했습니다.'));
+          expect(directClient.callCount, 3);
         }
       });
 
-      test('TimeoutException 에러 메시지가 포함되어야 한다', () async {
+      test('TimeoutException 발생 시 최종 NetworkException 메시지를 유지해야 한다', () async {
         final directClient = _DirectExceptionClient(
           exceptionFactory: () => TimeoutException('Request timed out'),
         );
@@ -728,6 +766,7 @@ void main() {
         final customDataSource = GroqRemoteDataSource(
           'test-api-key',
           client: directClient,
+          sleep: _noOpSleep,
         );
 
         try {
@@ -735,10 +774,11 @@ void main() {
             '테스트',
             character: AiCharacter.warmCounselor,
           );
-          fail('ApiException이 발생해야 합니다');
+          fail('NetworkException이 발생해야 합니다');
         } catch (e) {
-          expect(e, isA<ApiException>());
-          expect((e as ApiException).message, contains('Groq 분석 중 오류'));
+          expect(e, isA<NetworkException>());
+          expect((e as NetworkException).message, contains('요청 시간이 초과되었습니다.'));
+          expect(directClient.callCount, 3);
         }
       });
     });
@@ -806,36 +846,38 @@ void main() {
         );
       });
 
-      test('TimeoutException 발생 시 ApiException으로 래핑되어야 한다', () async {
-        // _analyzeDiaryWithImagesOnce의 catch 블록에서
-        // TimeoutException → ApiException으로 변환됨
-        final directClient = _DirectExceptionClient(
-          exceptionFactory: () => TimeoutException('Request timed out'),
-        );
-        final customDataSource = GroqRemoteDataSource(
-          'test-api-key',
-          client: directClient,
-        );
+      test(
+        'TimeoutException 발생 시 3회 재시도 후 NetworkException을 반환해야 한다',
+        () async {
+          final directClient = _DirectExceptionClient(
+            exceptionFactory: () => TimeoutException('Request timed out'),
+          );
+          final customDataSource = GroqRemoteDataSource(
+            'test-api-key',
+            client: directClient,
+            sleep: _noOpSleep,
+          );
 
-        await expectLater(
-          customDataSource.analyzeDiaryWithImages(
-            '테스트',
-            imagePaths: [tempImagePath],
-            character: AiCharacter.warmCounselor,
-          ),
-          throwsA(isA<ApiException>()),
-        );
-        // ApiException으로 래핑되어 재시도 없이 1회만 호출
-        expect(directClient.callCount, 1);
-      });
+          await expectLater(
+            customDataSource.analyzeDiaryWithImages(
+              '테스트',
+              imagePaths: [tempImagePath],
+              character: AiCharacter.warmCounselor,
+            ),
+            throwsA(isA<NetworkException>()),
+          );
+          expect(directClient.callCount, 3);
+        },
+      );
 
-      test('SocketException 발생 시 ApiException으로 래핑되어야 한다', () async {
+      test('SocketException 발생 시 3회 재시도 후 NetworkException을 반환해야 한다', () async {
         final directClient = _DirectExceptionClient(
           exceptionFactory: () => const SocketException('Connection refused'),
         );
         final customDataSource = GroqRemoteDataSource(
           'test-api-key',
           client: directClient,
+          sleep: _noOpSleep,
         );
 
         await expectLater(
@@ -844,9 +886,56 @@ void main() {
             imagePaths: [tempImagePath],
             character: AiCharacter.warmCounselor,
           ),
-          throwsA(isA<ApiException>()),
+          throwsA(isA<NetworkException>()),
         );
-        expect(directClient.callCount, 1);
+        expect(directClient.callCount, 3);
+      });
+
+      test('두 번의 SocketException 후 성공하면 이미지 분석 결과를 반환해야 한다', () async {
+        final customClient = _SequenceClient(
+          steps: [
+            const SocketException('Connection refused'),
+            const SocketException('Connection refused'),
+            createSuccessResponse(),
+          ],
+        );
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: customClient,
+          sleep: _noOpSleep,
+        );
+
+        final result = await customDataSource.analyzeDiaryWithImages(
+          '테스트',
+          imagePaths: [tempImagePath],
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result, isNotNull);
+        expect(customClient.callCount, 3);
+      });
+
+      test('한 번의 TimeoutException 후 성공하면 이미지 분석 결과를 반환해야 한다', () async {
+        final customClient = _SequenceClient(
+          steps: [
+            TimeoutException('Request timed out'),
+            createSuccessResponse(),
+          ],
+        );
+        final customDataSource = GroqRemoteDataSource(
+          'test-api-key',
+          client: customClient,
+          sleep: _noOpSleep,
+        );
+
+        final result = await customDataSource.analyzeDiaryWithImages(
+          '테스트',
+          imagePaths: [tempImagePath],
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result, isNotNull);
+        expect(customClient.callCount, 2);
       });
 
       test('429 Rate Limit 시 재시도 후 성공해야 한다', () async {
@@ -865,6 +954,7 @@ void main() {
         final customDataSource = GroqRemoteDataSource(
           'test-api-key',
           client: customClient,
+          sleep: _noOpSleep,
         );
 
         final result = await customDataSource.analyzeDiaryWithImages(
@@ -917,6 +1007,8 @@ void main() {
   });
 }
 
+Future<void> _noOpSleep(Duration duration) async {}
+
 /// 순차적으로 응답을 반환하는 Mock 클라이언트 (Retry-After 테스트용)
 class _RetryAfterMockHttpClient implements http.Client {
   final List<http.Response> responses;
@@ -935,6 +1027,94 @@ class _RetryAfterMockHttpClient implements http.Client {
       return responses[callCount++];
     }
     return responses.last;
+  }
+
+  @override
+  Future<http.Response> get(Uri url, {Map<String, String>? headers}) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> head(Uri url, {Map<String, String>? headers}) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> put(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> patch(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> delete(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<String> read(Uri url, {Map<String, String>? headers}) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  void close() {}
+
+  @override
+  Future<Uint8List> readBytes(Uri url, {Map<String, String>? headers}) {
+    throw UnimplementedError();
+  }
+}
+
+class _SequenceClient implements http.Client {
+  final List<Object> steps;
+  int callCount = 0;
+
+  _SequenceClient({required this.steps});
+
+  @override
+  Future<http.Response> post(
+    Uri url, {
+    Map<String, String>? headers,
+    Object? body,
+    Encoding? encoding,
+  }) async {
+    final index = callCount < steps.length ? callCount : steps.length - 1;
+    callCount++;
+
+    final step = steps[index];
+    if (step is http.Response) {
+      return step;
+    }
+    if (step is Exception) {
+      throw step;
+    }
+    if (step is Error) {
+      throw step;
+    }
+    throw StateError('Unsupported step type: ${step.runtimeType}');
   }
 
   @override

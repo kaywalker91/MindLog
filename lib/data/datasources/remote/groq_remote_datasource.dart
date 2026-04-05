@@ -13,6 +13,8 @@ import '../../../core/errors/exceptions.dart';
 
 import '../../../core/network/circuit_breaker.dart';
 
+typedef SleepCallback = Future<void> Function(Duration duration);
+
 /// Groq API 원격 데이터 소스
 class GroqRemoteDataSource {
   static const int _maxRetries = 3;
@@ -24,13 +26,16 @@ class GroqRemoteDataSource {
   final String _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
   final http.Client _client;
   final CircuitBreaker? _circuitBreaker;
+  final SleepCallback _sleep;
 
   GroqRemoteDataSource(
     this._apiKey, {
     http.Client? client,
     CircuitBreaker? circuitBreaker,
+    SleepCallback? sleep,
   }) : _client = client ?? http.Client(),
-       _circuitBreaker = circuitBreaker;
+       _circuitBreaker = circuitBreaker,
+       _sleep = sleep ?? _defaultSleep;
 
   /// 일기 내용 분석 (공용 인터페이스)
   Future<AnalysisResponseDto> analyzeDiary(
@@ -76,7 +81,7 @@ class GroqRemoteDataSource {
           throw NetworkException('네트워크 연결에 실패했습니다. ($_maxRetries번 재시도): $e');
         }
         _printRetryMessage(attempt, '네트워크 연결 오류', currentDelay);
-        await Future.delayed(currentDelay);
+        await _sleep(currentDelay);
         currentDelay = _calculateNextDelay(currentDelay);
       } on TimeoutException catch (e) {
         attempt++;
@@ -84,7 +89,7 @@ class GroqRemoteDataSource {
           throw NetworkException('요청 시간이 초과되었습니다. ($_maxRetries번 재시도): $e');
         }
         _printRetryMessage(attempt, '요청 시간 초과', currentDelay);
-        await Future.delayed(currentDelay);
+        await _sleep(currentDelay);
         currentDelay = _calculateNextDelay(currentDelay);
       } on RateLimitException catch (e) {
         // Rate Limit(429) 처리: Retry-After 헤더 값 우선 사용
@@ -94,7 +99,7 @@ class GroqRemoteDataSource {
         }
         final retryDelay = e.retryAfter ?? currentDelay;
         _printRetryMessage(attempt, '요청 제한(Rate Limit)', retryDelay);
-        await Future.delayed(retryDelay);
+        await _sleep(retryDelay);
         currentDelay = _calculateNextDelay(retryDelay);
         continue;
       } on ApiException {
@@ -161,7 +166,7 @@ class GroqRemoteDataSource {
           throw NetworkException('네트워크 연결에 실패했습니다. ($_maxRetries번 재시도): $e');
         }
         _printRetryMessage(attempt, '네트워크 연결 오류', currentDelay);
-        await Future.delayed(currentDelay);
+        await _sleep(currentDelay);
         currentDelay = _calculateNextDelay(currentDelay);
       } on TimeoutException catch (e) {
         attempt++;
@@ -169,7 +174,7 @@ class GroqRemoteDataSource {
           throw NetworkException('요청 시간이 초과되었습니다. ($_maxRetries번 재시도): $e');
         }
         _printRetryMessage(attempt, '요청 시간 초과', currentDelay);
-        await Future.delayed(currentDelay);
+        await _sleep(currentDelay);
         currentDelay = _calculateNextDelay(currentDelay);
       } on RateLimitException catch (e) {
         attempt++;
@@ -178,7 +183,7 @@ class GroqRemoteDataSource {
         }
         final retryDelay = e.retryAfter ?? currentDelay;
         _printRetryMessage(attempt, '요청 제한(Rate Limit)', retryDelay);
-        await Future.delayed(retryDelay);
+        await _sleep(retryDelay);
         currentDelay = _calculateNextDelay(retryDelay);
         continue;
       } on ApiException {
@@ -300,7 +305,9 @@ class GroqRemoteDataSource {
     } catch (e) {
       if (e is ApiException ||
           e is NetworkException ||
-          e is RateLimitException) {
+          e is RateLimitException ||
+          e is SocketException ||
+          e is TimeoutException) {
         rethrow;
       }
       throw ApiException(message: 'Groq Vision 분석 중 오류: $e');
@@ -417,7 +424,9 @@ class GroqRemoteDataSource {
     } catch (e) {
       if (e is ApiException ||
           e is NetworkException ||
-          e is RateLimitException) {
+          e is RateLimitException ||
+          e is SocketException ||
+          e is TimeoutException) {
         rethrow;
       }
       throw ApiException(message: 'Groq 분석 중 오류: $e');
@@ -480,5 +489,9 @@ class GroqRemoteDataSource {
       // 파싱 실패 시 기본값 사용
       return null;
     }
+  }
+
+  static Future<void> _defaultSleep(Duration duration) {
+    return Future<void>.delayed(duration);
   }
 }
