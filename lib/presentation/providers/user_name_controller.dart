@@ -28,7 +28,7 @@ class UserNameController extends AsyncNotifier<String?> {
       final messages = await ref.read(selfEncouragementProvider.future);
       await ref
           .read(notificationSettingsProvider.notifier)
-          .rescheduleWithMessages(messages);
+          .rescheduleWithMessages(messages, source: 'user_name_change');
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[UserNameController] Reschedule failed: $e');

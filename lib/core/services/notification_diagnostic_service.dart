@@ -25,8 +25,9 @@ class NotificationDiagnosticData {
     this.scheduledMinute,
   });
 
-  /// Cheer Me 알림(ID 1001)이 예약되어 있는지
-  bool get hasCheerMeScheduled => pendingNotifications.any((n) => n.id == 1001);
+  /// Cheer Me 알림(ID 1001..1007)이 예약되어 있는지
+  bool get hasCheerMeScheduled =>
+      pendingNotifications.any((n) => NotificationService.isCheerMeId(n.id));
 
   /// 정확한 알람 권한에 문제가 있는지
   bool get hasExactAlarmIssue => canScheduleExact != true;

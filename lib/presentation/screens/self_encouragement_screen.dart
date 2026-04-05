@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -8,13 +6,32 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/accessibility/app_accessibility.dart';
-import '../../core/constants/notification_messages.dart';
+import '../../core/services/notification_service.dart';
+import '../../core/services/notification_settings_service.dart';
 import '../../domain/entities/self_encouragement_message.dart';
 import '../providers/providers.dart';
 import '../widgets/self_encouragement/empty_message_view.dart';
 import '../widgets/self_encouragement/message_card.dart';
 import '../widgets/self_encouragement/message_input_dialog.dart';
 import '../widgets/self_encouragement/notification_preview_widget.dart';
+
+final cheerMePreviewProvider =
+    FutureProvider.autoDispose<CheerMeScheduledNotification?>((ref) async {
+      final settings = await ref.watch(notificationSettingsProvider.future);
+      final messages = await ref.watch(selfEncouragementProvider.future);
+      final userName = await ref.watch(userNameProvider.future);
+      final recentEmotionScore = ref
+          .watch(todayEmotionProvider)
+          .sentimentScore
+          ?.toDouble();
+
+      return NotificationSettingsService.loadNextCheerMePreview(
+        settings,
+        messages: messages,
+        userName: userName,
+        recentEmotionScore: recentEmotionScore,
+      );
+    });
 
 /// 개인 응원 메시지 관리 화면
 class SelfEncouragementScreen extends ConsumerWidget {
@@ -86,14 +103,6 @@ class SelfEncouragementScreen extends ConsumerWidget {
           .read(selfEncouragementProvider.notifier)
           .addMessage(result.content, timeCategory: result.timeCategory);
       if (success && context.mounted) {
-        // 알림 재스케줄링
-        final messages = ref.read(selfEncouragementProvider).valueOrNull ?? [];
-        unawaited(
-          ref
-              .read(notificationSettingsProvider.notifier)
-              .rescheduleWithMessages(messages),
-        );
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Row(
@@ -154,6 +163,7 @@ class _MessageListState extends ConsumerState<_MessageList> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final previewAsync = ref.watch(cheerMePreviewProvider);
 
     if (widget.messages.isEmpty) {
       return const EmptyMessageView();
@@ -166,16 +176,13 @@ class _MessageListState extends ConsumerState<_MessageList> {
             // 알림 미리보기 (메시지 리스트 화면에서만 표시)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: NotificationPreviewWidget(
-                previewMessage: widget.messages.isNotEmpty
-                    ? NotificationMessages.applyNamePersonalization(
-                        widget.messages.first.content,
-                        ref.watch(userNameProvider).valueOrNull,
-                      )
-                    : null,
-                previewTitle: NotificationMessages.getCheerMeTitle(
-                  ref.watch(userNameProvider).valueOrNull,
+              child: previewAsync.when(
+                data: (preview) => NotificationPreviewWidget(
+                  previewMessage: preview?.body,
+                  previewTitle: preview?.title,
                 ),
+                loading: () => const NotificationPreviewWidget(),
+                error: (_, _) => const NotificationPreviewWidget(),
               ),
             ),
 
@@ -278,14 +285,6 @@ class _MessageListState extends ConsumerState<_MessageList> {
             timeCategory: result.timeCategory,
           );
       if (success && context.mounted) {
-        // 알림 재스케줄링
-        final messages = ref.read(selfEncouragementProvider).valueOrNull ?? [];
-        unawaited(
-          ref
-              .read(notificationSettingsProvider.notifier)
-              .rescheduleWithMessages(messages),
-        );
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('메시지가 수정되었습니다'),
@@ -300,14 +299,6 @@ class _MessageListState extends ConsumerState<_MessageList> {
     await ref
         .read(selfEncouragementProvider.notifier)
         .deleteMessage(message.id);
-
-    // 알림 재스케줄링
-    final messages = ref.read(selfEncouragementProvider).valueOrNull ?? [];
-    unawaited(
-      ref
-          .read(notificationSettingsProvider.notifier)
-          .rescheduleWithMessages(messages),
-    );
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

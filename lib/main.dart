@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'core/config/environment_service.dart';
 import 'core/observability/app_provider_observer.dart';
 import 'core/services/app_logger.dart';
@@ -18,13 +17,14 @@ import 'core/services/notification_service.dart';
 import 'core/services/db_recovery_service.dart';
 import 'core/services/notification_settings_service.dart';
 import 'core/theme/app_theme.dart';
-import 'domain/entities/notification_settings.dart' as app;
 import 'l10n/app_localizations.dart';
 import 'core/di/infra_providers.dart';
 import 'presentation/providers/statistics_providers.dart';
 import 'presentation/providers/diary_list_controller.dart';
 import 'presentation/providers/self_encouragement_controller.dart';
+import 'presentation/providers/today_emotion_provider.dart';
 import 'presentation/providers/user_name_controller.dart';
+import 'presentation/providers/notification_settings_controller.dart';
 import 'presentation/services/notification_action_handler.dart';
 import 'presentation/router/app_router.dart';
 import 'presentation/providers/app_info_provider.dart';
@@ -41,32 +41,34 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 /// 앱 시작 시 알림 재스케줄링
 ///
 /// Android에서 기기 재부팅 시 모든 예약된 알람이 삭제됩니다.
-/// 이 함수는 앱 시작 시 리마인더가 활성화되어 있고, 예약된 알림이 없을 때만
-/// 알람을 다시 스케줄합니다.
-///
-/// 최적화:
-/// - 이미 예약된 알림이 있으면 불필요한 재스케줄링을 건너뜀
-/// - 이를 통해 알람 안정성을 높이고 시스템 리소스를 절약
-///
-/// 참고: zonedSchedule의 matchDateTimeComponents: DateTimeComponents.time이
-/// 매일 반복되는 알림을 처리하므로, 재스케줄 시 같은 시간으로 설정됩니다.
+/// 이 함수는 앱 시작 시 저장된 전체 알림 설정을 읽고,
+/// Cheer Me 7일 큐가 비어 있거나 구버전 payload/서명 불일치가 있으면
+/// 큐 전체를 다시 생성합니다.
 Future<void> _rescheduleNotificationsIfNeeded() async {
   try {
-    final prefs = await SharedPreferences.getInstance();
-    final reminderEnabled =
-        prefs.getBool('notification_reminder_enabled') ?? false;
+    final settings = await appContainer.read(
+      notificationSettingsProvider.future,
+    );
 
-    if (!reminderEnabled) {
+    if (!settings.isReminderEnabled) {
       if (kDebugMode) {
         debugPrint('[Main] Reminder is disabled, skipping reschedule');
       }
       return;
     }
 
-    // 이미 예약된 알림이 있으면 불필요한 재스케줄링을 건너뜀
-    // (기기 재부팅 후에는 알람이 없으므로 정상 재스케줄 실행)
+    final messages = await appContainer.read(selfEncouragementProvider.future);
+    if (messages.isEmpty) {
+      if (kDebugMode) {
+        debugPrint('[Main] No Cheer Me messages found, skipping reschedule');
+      }
+      return;
+    }
+
+    final userName = await appContainer.read(userNameProvider.future);
     final pendingNotifications =
         await NotificationService.getPendingNotifications();
+
     if (kDebugMode) {
       debugPrint(
         '[Main] App start reschedule — pending: ${pendingNotifications.length}',
@@ -77,58 +79,47 @@ Future<void> _rescheduleNotificationsIfNeeded() async {
         );
       }
     }
-    final hasReminder = pendingNotifications.any(
-      (n) => n.id == NotificationService.dailyReminderId,
-    );
-    if (hasReminder) {
-      // 예약된 알림이 있어도 {name} 플레이스홀더가 포함되어 있으면 강제 재스케줄
-      // (이전 버전에서 bake-in 된 리터럴 알림 덮어쓰기)
-      final hasPlaceholder = pendingNotifications.any(
-        (n) =>
-            n.id == NotificationService.dailyReminderId &&
-            (n.title?.contains('{name}') ?? false),
-      );
-      if (!hasPlaceholder) {
-        if (kDebugMode) {
-          debugPrint('[Main] Reminder already pending (clean), skipping reschedule');
-        }
-        return;
-      }
+
+    final requiresRebuild =
+        NotificationSettingsService.requiresCheerMeQueueRebuild(
+          settings,
+          messages: messages,
+          pendingNotifications: pendingNotifications,
+          userName: userName,
+        );
+
+    if (!requiresRebuild) {
       if (kDebugMode) {
         debugPrint(
-          '[Main] Reminder pending but contains {name} placeholder — forcing reschedule',
+          '[Main] Cheer Me queue is already current, skipping rebuild',
         );
       }
+      return;
     }
-
-    // SharedPreferences에서 알림 설정 읽기
-    final hour = prefs.getInt('notification_reminder_hour') ?? 21;
-    final minute = prefs.getInt('notification_reminder_minute') ?? 0;
-    final mindcareEnabled =
-        prefs.getBool('notification_mindcare_topic_enabled') ?? false;
-
-    final settings = app.NotificationSettings(
-      isReminderEnabled: true,
-      reminderHour: hour,
-      reminderMinute: minute,
-      isMindcareTopicEnabled: mindcareEnabled,
-    );
 
     if (kDebugMode) {
       debugPrint(
-        '[Main] No scheduled reminder found. Rescheduling for $hour:${minute.toString().padLeft(2, '0')}',
+        '[Main] Cheer Me queue missing or stale. Rebuilding for ${settings.reminderHour}:${settings.reminderMinute.toString().padLeft(2, '0')}',
       );
     }
 
-    // Riverpod 컨테이너에서 메시지와 사용자 이름 읽기
-    final messages = await appContainer.read(selfEncouragementProvider.future);
-    final userName = await appContainer.read(userNameProvider.future);
+    try {
+      await appContainer.read(diaryListControllerProvider.future);
+    } catch (_) {
+      // Emotion-aware fallback is handled below with a nullable score.
+    }
+
+    final recentEmotionScore = appContainer
+        .read(todayEmotionProvider)
+        .sentimentScore
+        ?.toDouble();
 
     await NotificationSettingsService.applySettings(
       settings,
       messages: messages,
       source: 'app_start',
       userName: userName,
+      recentEmotionScore: recentEmotionScore,
     );
 
     if (kDebugMode) {
@@ -245,8 +236,9 @@ void main() {
   // MarionetteBinding.ensureInitialized()는 runZonedGuarded 내부(bindingInitializer)에서
   // 호출해야 zone mismatch를 방지할 수 있음
   ErrorBoundary.runAppWithErrorHandling(
-    bindingInitializer:
-        !kReleaseMode ? MarionetteBinding.ensureInitialized : null,
+    bindingInitializer: !kReleaseMode
+        ? MarionetteBinding.ensureInitialized
+        : null,
     onEnsureInitialized: () async {
       await Future.any([
         _initializeApp(),

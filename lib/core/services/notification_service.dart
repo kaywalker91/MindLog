@@ -6,6 +6,22 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../constants/notification_messages.dart';
 
+class CheerMeScheduledNotification {
+  const CheerMeScheduledNotification({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.scheduledDate,
+    required this.payload,
+  });
+
+  final int id;
+  final String title;
+  final String body;
+  final tz.TZDateTime scheduledDate;
+  final String payload;
+}
+
 class NotificationService {
   NotificationService._();
 
@@ -13,11 +29,20 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
   static const int dailyReminderId = 1001;
   static const int _dailyReminderId = dailyReminderId;
+  static const int cheerMeQueueLength = 7;
   static const int fcmMindcareId = 2001;
 
   // 알림 채널 ID
   static const String channelCheerMe = 'mindlog_cheerme';
   static const String channelMindcare = 'mindlog_mindcare';
+
+  static List<int> get cheerMeNotificationIds => List<int>.generate(
+    cheerMeQueueLength,
+    (index) => dailyReminderId + index,
+  );
+
+  static bool isCheerMeId(int id) =>
+      id >= dailyReminderId && id < dailyReminderId + cheerMeQueueLength;
 
   static Future<void> initialize({
     void Function(String? payload)? onNotificationResponse,
@@ -223,6 +248,46 @@ class NotificationService {
     await _notifications.cancel(_dailyReminderId);
   }
 
+  static Future<void> cancelCheerMeQueue() async {
+    for (final id in cheerMeNotificationIds) {
+      await _notifications.cancel(id);
+    }
+  }
+
+  static Future<bool> scheduleCheerMeQueue({
+    required List<CheerMeScheduledNotification> notifications,
+    AndroidScheduleMode scheduleMode = AndroidScheduleMode.exactAllowWhileIdle,
+  }) async {
+    try {
+      await cancelCheerMeQueue();
+
+      for (final notification in notifications) {
+        await scheduleOneTimeNotification(
+          id: notification.id,
+          title: notification.title,
+          body: notification.body,
+          scheduledDate: notification.scheduledDate,
+          payload: notification.payload,
+          channel: channelCheerMe,
+          scheduleMode: scheduleMode,
+        );
+      }
+
+      if (kDebugMode) {
+        debugPrint(
+          '[Notification] Cheer Me queue scheduled: ${notifications.length} items',
+        );
+      }
+      return true;
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[Notification] Failed to schedule Cheer Me queue: $e');
+        debugPrint('[Notification] Stack trace: $stackTrace');
+      }
+      return false;
+    }
+  }
+
   static Future<bool?> areNotificationsEnabled() async {
     final androidPlugin = _notifications
         .resolvePlatformSpecificImplementation<
@@ -276,6 +341,7 @@ class NotificationService {
     required tz.TZDateTime scheduledDate,
     String? payload,
     String channel = channelMindcare,
+    AndroidScheduleMode scheduleMode = AndroidScheduleMode.exactAllowWhileIdle,
   }) async {
     try {
       await _notifications.zonedSchedule(
@@ -306,7 +372,7 @@ class NotificationService {
         payload: payload,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: scheduleMode,
       );
 
       if (kDebugMode) {

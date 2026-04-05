@@ -96,10 +96,12 @@ void main() {
 
         await scheduler.apply(settings, messages: messages, source: 'test');
 
-        expect(scheduleCalls, hasLength(1));
-        expect(scheduleCalls[0]['hour'], 8);
-        expect(scheduleCalls[0]['minute'], 30);
-        expect(scheduleCalls[0]['body'], '아침 응원 메시지');
+        expect(scheduleCalls, hasLength(7));
+        for (final call in scheduleCalls) {
+          expect(call['hour'], 8);
+          expect(call['minute'], 30);
+          expect(call['body'], '아침 응원 메시지');
+        }
       });
 
       test('isReminderEnabled=false이면 스케줄링을 취소하고 body를 전달하지 않는다', () async {
@@ -143,8 +145,10 @@ void main() {
         await scheduler.apply(settings, messages: messages);
 
         // score 없어도 단일 메시지는 항상 스케줄링됨
-        expect(scheduleCalls, hasLength(1));
-        expect(scheduleCalls[0]['body'], '감정 없음 메시지');
+        expect(scheduleCalls, hasLength(7));
+        for (final call in scheduleCalls) {
+          expect(call['body'], '감정 없음 메시지');
+        }
       });
 
       test('recentEmotionScore와 거리≤1인 메시지(1개)가 항상 선택된다', () async {
@@ -159,8 +163,10 @@ void main() {
           recentEmotionScore: 5.0,
         );
 
-        expect(scheduleCalls, hasLength(1));
-        expect(scheduleCalls[0]['body'], '감정 일치 메시지');
+        expect(scheduleCalls, hasLength(7));
+        for (final call in scheduleCalls) {
+          expect(call['body'], '감정 일치 메시지');
+        }
       });
 
       test('writtenEmotionScore 없는 메시지(1개)도 스케줄링된다 (weight=1 폴백)', () async {
@@ -174,8 +180,10 @@ void main() {
           recentEmotionScore: 7.0,
         );
 
-        expect(scheduleCalls, hasLength(1));
-        expect(scheduleCalls[0]['body'], '점수 없는 메시지');
+        expect(scheduleCalls, hasLength(7));
+        for (final call in scheduleCalls) {
+          expect(call['body'], '점수 없는 메시지');
+        }
       });
 
       test('messages가 비어 있으면 스케줄링이 호출되지 않는다', () async {

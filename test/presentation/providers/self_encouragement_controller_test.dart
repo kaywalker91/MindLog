@@ -9,6 +9,7 @@ import 'package:mindlog/domain/usecases/set_notification_settings_usecase.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
 import 'package:mindlog/presentation/providers/notification_settings_controller.dart';
 import 'package:mindlog/presentation/providers/self_encouragement_controller.dart';
+import 'package:mindlog/presentation/providers/today_emotion_provider.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/mock_fallbacks.dart';
@@ -66,6 +67,7 @@ void main() {
         notificationSettingsProvider.overrideWith(() {
           return _FakeNotificationSettingsController(settings);
         }),
+        todayEmotionProvider.overrideWith((ref) => TodayEmotionStatus.empty),
         setNotificationSettingsUseCaseProvider.overrideWithValue(
           mockSetUseCase,
         ),
@@ -108,9 +110,7 @@ void main() {
     group('build (초기 로드)', () {
       test('Repository에서 메시지 목록을 조회해야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -129,9 +129,7 @@ void main() {
 
       test('메시지가 displayOrder 순으로 정렬되어야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m2', displayOrder: 1),
             _makeMessage('m1', displayOrder: 0),
@@ -247,9 +245,7 @@ void main() {
 
       test('displayOrder가 기존 목록 끝에 추가되어야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -283,10 +279,7 @@ void main() {
           () => mockRepository.addSelfEncouragementMessage(captureAny()),
         ).captured;
         expect(captured.length, 1);
-        expect(
-          (captured[0] as SelfEncouragementMessage).content,
-          '저장할 메시지',
-        );
+        expect((captured[0] as SelfEncouragementMessage).content, '저장할 메시지');
       });
     });
 
@@ -385,9 +378,7 @@ void main() {
     group('deleteMessage', () {
       test('메시지를 삭제해야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -409,9 +400,7 @@ void main() {
 
       test('삭제 후 displayOrder가 재정렬되어야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -445,8 +434,7 @@ void main() {
 
         // Assert
         final captured = verify(
-          () =>
-              mockRepository.deleteSelfEncouragementMessage(captureAny()),
+          () => mockRepository.deleteSelfEncouragementMessage(captureAny()),
         ).captured;
         expect(captured, contains('m1'));
       });
@@ -459,9 +447,7 @@ void main() {
           rotationMode: MessageRotationMode.random,
           lastDisplayedIndex: 1,
         );
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -485,9 +471,7 @@ void main() {
           rotationMode: MessageRotationMode.sequential,
           lastDisplayedIndex: 0,
         );
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -511,9 +495,7 @@ void main() {
           rotationMode: MessageRotationMode.sequential,
           lastDisplayedIndex: 2,
         );
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -538,9 +520,7 @@ void main() {
           rotationMode: MessageRotationMode.sequential,
           lastDisplayedIndex: 1,
         );
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -566,9 +546,7 @@ void main() {
           rotationMode: MessageRotationMode.sequential,
           lastDisplayedIndex: 0,
         );
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -596,9 +574,7 @@ void main() {
         );
         when(
           () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
-          (_) async => [_makeMessage('m1', displayOrder: 0)],
-        );
+        ).thenAnswer((_) async => [_makeMessage('m1', displayOrder: 0)]);
         container = createContainer(notificationSettings: settings);
         await container.read(selfEncouragementProvider.future);
         final notifier = container.read(selfEncouragementProvider.notifier);
@@ -617,9 +593,7 @@ void main() {
           rotationMode: MessageRotationMode.sequential,
           lastDisplayedIndex: 3,
         );
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -648,9 +622,7 @@ void main() {
           rotationMode: MessageRotationMode.sequential,
           lastDisplayedIndex: 4,
         );
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -677,9 +649,7 @@ void main() {
     group('reorder', () {
       test('정상적으로 메시지 순서를 변경해야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0, content: '첫 번째'),
             _makeMessage('m2', displayOrder: 1, content: '두 번째'),
@@ -702,9 +672,7 @@ void main() {
 
       test('reorder 후 displayOrder가 올바르게 업데이트되어야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -727,9 +695,7 @@ void main() {
 
       test('oldIndex가 범위 밖이면 무시해야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -751,9 +717,7 @@ void main() {
 
       test('newIndex가 범위 밖이면 무시해야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -775,9 +739,7 @@ void main() {
 
       test('같은 위치로 reorder 시 내용은 유지되어야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -798,9 +760,7 @@ void main() {
 
       test('Repository에 새 순서가 저장되어야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => [
             _makeMessage('m1', displayOrder: 0),
             _makeMessage('m2', displayOrder: 1),
@@ -841,12 +801,8 @@ void main() {
 
       test('deleteMessage 중 repository 에러 시 예외가 전파되어야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
-          (_) async => [
-            _makeMessage('m1', displayOrder: 0, content: '메시지 1'),
-          ],
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
+          (_) async => [_makeMessage('m1', displayOrder: 0, content: '메시지 1')],
         );
         container = createContainer();
         await container.read(selfEncouragementProvider.future);
@@ -895,6 +851,8 @@ class _FakeNotificationSettingsController
 
   @override
   Future<void> rescheduleWithMessages(
-    List<SelfEncouragementMessage> messages,
-  ) async {}
+    List<SelfEncouragementMessage> messages, {
+    String source = 'message_change',
+    double? recentEmotionScore,
+  }) async {}
 }

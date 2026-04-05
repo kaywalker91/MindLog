@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/constants/notification_messages.dart';
+import 'package:mindlog/core/services/notification_service.dart';
 import 'package:mindlog/core/services/notification_settings_service.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/domain/entities/self_encouragement_message.dart';
@@ -34,6 +37,11 @@ void main() {
       rotationMode: mode,
       lastDisplayedIndex: lastDisplayedIndex,
     );
+  }
+
+  Map<String, dynamic> decodePayload(Map<String, dynamic> call) {
+    return (jsonDecode(call['payload'] as String) as Map)
+        .cast<String, dynamic>();
   }
 
   group('NotificationSettingsService.selectMessage', () {
@@ -265,6 +273,122 @@ void main() {
     });
   });
 
+  group('NotificationSettingsService Cheer Me queue planning', () {
+    test('timeAware는 재빌드 시간이 아니라 실제 예정 시각 기준으로 메시지를 고른다', () {
+      final settings = createSettings(
+        reminderHour: 21,
+        mode: MessageRotationMode.timeAware,
+      );
+      final messages = [
+        createMessage(0, content: '아침 메시지').copyWith(timeCategory: 'morning'),
+        createMessage(1, content: '저녁 메시지').copyWith(timeCategory: 'evening'),
+      ];
+      final now = tzlib.TZDateTime(tzlib.local, 2026, 4, 5, 8, 0);
+
+      final plan = NotificationSettingsService.buildCheerMeQueuePlan(
+        settings,
+        messages: messages,
+        now: now,
+      );
+
+      expect(
+        plan.notifications,
+        hasLength(NotificationService.cheerMeQueueLength),
+      );
+      expect(plan.notifications.first.body, '저녁 메시지');
+    });
+
+    test('sequential은 기존 pending 큐의 earliest payload를 기준으로 이어진다', () {
+      final settings = createSettings(mode: MessageRotationMode.sequential);
+      final messages = [
+        createMessage(0, content: '메시지 0'),
+        createMessage(1, content: '메시지 1'),
+        createMessage(2, content: '메시지 2'),
+      ];
+      final now = tzlib.TZDateTime(tzlib.local, 2026, 4, 5, 9, 0);
+
+      final initialPlan = NotificationSettingsService.buildCheerMeQueuePlan(
+        settings,
+        messages: messages,
+        now: now,
+      );
+      final pending = initialPlan.notifications
+          .map(
+            (notification) => PendingNotificationRequest(
+              notification.id,
+              notification.title,
+              notification.body,
+              notification.payload,
+            ),
+          )
+          .toList();
+
+      final rebuiltPlan = NotificationSettingsService.buildCheerMeQueuePlan(
+        settings.copyWith(lastDisplayedIndex: 2),
+        messages: messages,
+        pendingNotifications: pending,
+        now: now.add(const Duration(minutes: 5)),
+      );
+
+      expect(
+        rebuiltPlan.notifications.first.body,
+        initialPlan.notifications.first.body,
+      );
+      expect(
+        rebuiltPlan.notifications.first.payload,
+        initialPlan.notifications.first.payload,
+      );
+    });
+
+    test('현재 서명이 다르면 Cheer Me 큐 재빌드가 필요하다고 판단한다', () {
+      final settings = createSettings(mode: MessageRotationMode.sequential);
+      final messages = [
+        createMessage(0, content: '메시지 0'),
+        createMessage(1, content: '메시지 1'),
+      ];
+      final now = tzlib.TZDateTime(tzlib.local, 2026, 4, 5, 9, 0);
+
+      final plan = NotificationSettingsService.buildCheerMeQueuePlan(
+        settings,
+        messages: messages,
+        now: now,
+      );
+      final pending = plan.notifications
+          .map(
+            (notification) => PendingNotificationRequest(
+              notification.id,
+              notification.title,
+              notification.body,
+              notification.payload,
+            ),
+          )
+          .toList();
+
+      expect(
+        NotificationSettingsService.requiresCheerMeQueueRebuild(
+          settings,
+          messages: messages,
+          pendingNotifications: pending,
+        ),
+        isFalse,
+      );
+
+      final changedMessages = [
+        createMessage(0, content: '메시지 0 수정됨'),
+        createMessage(1, content: '메시지 1'),
+      ];
+
+      expect(
+        NotificationSettingsService.requiresCheerMeQueueRebuild(
+          settings,
+          messages: changedMessages,
+          pendingNotifications: pending,
+        ),
+        isTrue,
+      );
+    });
+  });
+
   // ── applySettings 통합 테스트 ──
 
   setUpAll(() {
@@ -292,6 +416,8 @@ void main() {
       NotificationSettingsService.canScheduleExactAlarmsOverride = () async =>
           true;
       NotificationSettingsService.isIgnoringBatteryOverride = () async => true;
+      NotificationSettingsService.getPendingNotificationsOverride = () async =>
+          [];
       NotificationSettingsService.scheduleDailyReminderOverride =
           ({
             required int hour,
@@ -332,7 +458,7 @@ void main() {
     });
 
     group('리마인더 활성화 + 메시지 있음', () {
-      test('스케줄링이 올바른 파라미터로 호출되어야 한다', () async {
+      test('앞으로 7일치 Cheer Me 큐가 올바른 파라미터로 생성되어야 한다', () async {
         final messages = [createMessage(0, content: '힘내세요!')];
         final settings = createSettings(reminderHour: 8, reminderMinute: 30);
 
@@ -342,20 +468,32 @@ void main() {
           source: 'user_toggle',
         );
 
-        expect(scheduleCalls, hasLength(1));
-        expect(scheduleCalls[0]['hour'], 8);
-        expect(scheduleCalls[0]['minute'], 30);
-        // 제목은 cheerMeTitles 풀에서 선택됨 (개인화 적용)
-        final title = scheduleCalls[0]['title'] as String;
-        final allCheerMeTitles = NotificationMessages.cheerMeTitles.map(
-          (t) => NotificationMessages.applyNamePersonalization(t, null),
-        );
-        expect(allCheerMeTitles, contains(title));
-        expect(scheduleCalls[0]['body'], '힘내세요!');
         expect(
-          scheduleCalls[0]['payload'],
-          NotificationSettingsService.reminderPayload,
+          scheduleCalls,
+          hasLength(NotificationService.cheerMeQueueLength),
         );
+        final allCheerMeTitles = NotificationMessages.cheerMeTitles.map(
+          (title) => NotificationMessages.applyNamePersonalization(title, null),
+        );
+
+        for (var i = 0; i < scheduleCalls.length; i++) {
+          final call = scheduleCalls[i];
+          final payload = decodePayload(call);
+
+          expect(call['hour'], 8);
+          expect(call['minute'], 30);
+          expect(allCheerMeTitles, contains(call['title']));
+          expect(call['body'], '힘내세요!');
+          expect(payload['type'], 'cheerme');
+          expect(
+            payload['v'],
+            NotificationSettingsService.cheerMePayloadVersion,
+          );
+          expect(payload['sequenceCursor'], 0);
+          expect(payload['messageId'], 'msg_0');
+          expect(payload['signature'], isA<String>());
+          expect(payload['scheduledFor'], contains('T08:30:00'));
+        }
       });
 
       test('exact alarm 권한이 있으면 EXACT 모드로 스케줄링해야 한다', () async {
@@ -368,9 +506,12 @@ void main() {
         );
 
         expect(
-          scheduleCalls[0]['scheduleMode'],
-          AndroidScheduleMode.exactAllowWhileIdle,
+          scheduleCalls,
+          hasLength(NotificationService.cheerMeQueueLength),
         );
+        for (final call in scheduleCalls) {
+          expect(call['scheduleMode'], AndroidScheduleMode.exactAllowWhileIdle);
+        }
       });
 
       test('exact alarm 권한 없으면 INEXACT fallback이어야 한다', () async {
@@ -385,9 +526,15 @@ void main() {
         );
 
         expect(
-          scheduleCalls[0]['scheduleMode'],
-          AndroidScheduleMode.inexactAllowWhileIdle,
+          scheduleCalls,
+          hasLength(NotificationService.cheerMeQueueLength),
         );
+        for (final call in scheduleCalls) {
+          expect(
+            call['scheduleMode'],
+            AndroidScheduleMode.inexactAllowWhileIdle,
+          );
+        }
       });
 
       test('스케줄링 성공 시 analytics 이벤트가 기록되어야 한다', () async {
@@ -575,8 +722,13 @@ void main() {
           userName: '지수',
         );
 
-        expect(scheduleCalls, hasLength(1));
-        expect(scheduleCalls[0]['body'], '지수님, 힘내세요!');
+        expect(
+          scheduleCalls,
+          hasLength(NotificationService.cheerMeQueueLength),
+        );
+        for (final call in scheduleCalls) {
+          expect(call['body'], '지수님, 힘내세요!');
+        }
       });
 
       test('userName이 null이면 {name} 패턴이 제거되어야 한다', () async {
@@ -589,8 +741,13 @@ void main() {
           userName: null,
         );
 
-        expect(scheduleCalls, hasLength(1));
-        expect(scheduleCalls[0]['body'], '힘내세요!');
+        expect(
+          scheduleCalls,
+          hasLength(NotificationService.cheerMeQueueLength),
+        );
+        for (final call in scheduleCalls) {
+          expect(call['body'], '힘내세요!');
+        }
       });
 
       test('userName이 빈 문자열이면 {name} 패턴이 제거되어야 한다', () async {
@@ -603,8 +760,13 @@ void main() {
           userName: '',
         );
 
-        expect(scheduleCalls, hasLength(1));
-        expect(scheduleCalls[0]['body'], '하루');
+        expect(
+          scheduleCalls,
+          hasLength(NotificationService.cheerMeQueueLength),
+        );
+        for (final call in scheduleCalls) {
+          expect(call['body'], '하루');
+        }
       });
 
       test('{name}이 없는 메시지는 변경 없이 전달되어야 한다', () async {
@@ -617,8 +779,13 @@ void main() {
           userName: '지수',
         );
 
-        expect(scheduleCalls, hasLength(1));
-        expect(scheduleCalls[0]['body'], '오늘도 화이팅!');
+        expect(
+          scheduleCalls,
+          hasLength(NotificationService.cheerMeQueueLength),
+        );
+        for (final call in scheduleCalls) {
+          expect(call['body'], '오늘도 화이팅!');
+        }
       });
 
       test('userName 미전달(기본값) 시 기존 동작 유지', () async {
@@ -631,9 +798,13 @@ void main() {
           // userName 미전달 → null 기본값
         );
 
-        expect(scheduleCalls, hasLength(1));
-        // userName=null → {name}님, 패턴 제거
-        expect(scheduleCalls[0]['body'], '좋은 하루!');
+        expect(
+          scheduleCalls,
+          hasLength(NotificationService.cheerMeQueueLength),
+        );
+        for (final call in scheduleCalls) {
+          expect(call['body'], '좋은 하루!');
+        }
       });
     });
 
@@ -648,15 +819,19 @@ void main() {
           userName: '지수',
         );
 
-        expect(scheduleCalls, hasLength(1));
-        final title = scheduleCalls[0]['title'] as String;
         // cheerMeTitles 풀에서 선택된 제목이어야 함
         final allTitles = NotificationMessages.cheerMeTitles.map(
           (t) => NotificationMessages.applyNamePersonalization(t, '지수'),
         );
-        expect(allTitles, contains(title));
-        // {name} 패턴이 남아있으면 안 됨
-        expect(title, isNot(contains('{name}')));
+        expect(
+          scheduleCalls,
+          hasLength(NotificationService.cheerMeQueueLength),
+        );
+        for (final call in scheduleCalls) {
+          final title = call['title'] as String;
+          expect(allTitles, contains(title));
+          expect(title, isNot(contains('{name}')));
+        }
       });
 
       test('userName이 null이면 제목에서 {name} 패턴이 제거되어야 한다', () async {
@@ -669,22 +844,27 @@ void main() {
           userName: null,
         );
 
-        expect(scheduleCalls, hasLength(1));
-        final title = scheduleCalls[0]['title'] as String;
-        expect(title, isNot(contains('{name}')));
         // cheerMeTitles 풀에서 선택된 제목이어야 함
         final allTitles = NotificationMessages.cheerMeTitles.map(
           (t) => NotificationMessages.applyNamePersonalization(t, null),
         );
-        expect(allTitles, contains(title));
+        expect(
+          scheduleCalls,
+          hasLength(NotificationService.cheerMeQueueLength),
+        );
+        for (final call in scheduleCalls) {
+          final title = call['title'] as String;
+          expect(title, isNot(contains('{name}')));
+          expect(allTitles, contains(title));
+        }
       });
 
-      test('제목이 cheerMeTitles 풀에서 선택되어야 한다', () async {
+      test('같은 입력이면 제목 큐가 안정적으로 재생성되어야 한다', () async {
         final messages = [createMessage(0, content: '테스트')];
         final settings = createSettings();
+        List<String>? firstRunTitles;
 
-        // 10회 반복으로 다양한 제목 선택 확인
-        for (var i = 0; i < 10; i++) {
+        for (var i = 0; i < 3; i++) {
           scheduleCalls.clear();
           await NotificationSettingsService.applySettings(
             settings,
@@ -692,15 +872,11 @@ void main() {
             userName: '민수',
           );
 
-          final title = scheduleCalls[0]['title'] as String;
-          final allTitles = NotificationMessages.cheerMeTitles.map(
-            (t) => NotificationMessages.applyNamePersonalization(t, '민수'),
-          );
-          expect(
-            allTitles,
-            contains(title),
-            reason: 'title "$title" not in pool',
-          );
+          final titles = scheduleCalls
+              .map((call) => call['title'] as String)
+              .toList(growable: false);
+          firstRunTitles ??= titles;
+          expect(titles, equals(firstRunTitles));
         }
       });
     });
@@ -721,8 +897,13 @@ void main() {
         );
 
         // 스케줄링 호출 확인
-        expect(scheduleCalls, hasLength(1));
-        expect(scheduleCalls[0]['body'], '화이팅!');
+        expect(
+          scheduleCalls,
+          hasLength(NotificationService.cheerMeQueueLength),
+        );
+        for (final call in scheduleCalls) {
+          expect(call['body'], '화이팅!');
+        }
 
         // FCM 구독 확인
         expect(subscribedTopics, ['mindlog_mindcare']);
@@ -743,10 +924,12 @@ void main() {
           messages: messages,
         );
 
-        expect(
-          scheduleCalls[0]['scheduleMode'],
-          AndroidScheduleMode.inexactAllowWhileIdle,
-        );
+        for (final call in scheduleCalls) {
+          expect(
+            call['scheduleMode'],
+            AndroidScheduleMode.inexactAllowWhileIdle,
+          );
+        }
       });
     });
 

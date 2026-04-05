@@ -1,22 +1,79 @@
+import 'dart:convert';
 import 'dart:math';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
-import '../constants/notification_messages.dart';
+
 import '../../domain/entities/notification_settings.dart';
 import '../../domain/entities/self_encouragement_message.dart';
+import '../constants/notification_messages.dart';
 import 'analytics_service.dart';
 import 'crashlytics_service.dart';
 import 'fcm_service.dart';
 import 'notification_permission_service.dart';
 import 'notification_service.dart';
 
+class CheerMeQueuePlan {
+  const CheerMeQueuePlan({
+    required this.notifications,
+    required this.nextSequentialCursor,
+    required this.signature,
+  });
+
+  final List<CheerMeScheduledNotification> notifications;
+  final int nextSequentialCursor;
+  final String signature;
+
+  CheerMeScheduledNotification? get firstNotification =>
+      notifications.isEmpty ? null : notifications.first;
+}
+
+class _IndexedMessage {
+  const _IndexedMessage({required this.index, required this.message});
+
+  final int index;
+  final SelfEncouragementMessage message;
+}
+
+class _CheerMeSelection {
+  const _CheerMeSelection({required this.index, required this.message});
+
+  final int index;
+  final SelfEncouragementMessage message;
+}
+
+class _ParsedCheerMePayload {
+  const _ParsedCheerMePayload({
+    required this.id,
+    required this.payload,
+    required this.title,
+    required this.body,
+    required this.version,
+    required this.signature,
+    required this.scheduledFor,
+    required this.sequenceCursor,
+    required this.messageId,
+  });
+
+  final int id;
+  final String payload;
+  final String? title;
+  final String? body;
+  final int? version;
+  final String? signature;
+  final DateTime? scheduledFor;
+  final int? sequenceCursor;
+  final String? messageId;
+}
+
 class NotificationSettingsService {
   NotificationSettingsService._();
 
   static const String mindcareTopic = 'mindlog_mindcare';
   static const String reminderPayload = '{"type":"cheerme"}';
+  static const int cheerMePayloadVersion = 2;
 
   // ── 테스트 오버라이드 ──
 
@@ -32,7 +89,24 @@ class NotificationSettingsService {
   @visibleForTesting
   static Future<bool> Function()? isIgnoringBatteryOverride;
 
-  /// NotificationService.scheduleDailyReminder() 대체
+  /// NotificationService.scheduleCheerMeQueue() 대체
+  @visibleForTesting
+  static Future<bool> Function({
+    required List<CheerMeScheduledNotification> notifications,
+    required AndroidScheduleMode scheduleMode,
+  })?
+  scheduleCheerMeQueueOverride;
+
+  /// NotificationService.cancelCheerMeQueue() 대체
+  @visibleForTesting
+  static Future<void> Function()? cancelCheerMeQueueOverride;
+
+  /// NotificationService.getPendingNotifications() 대체
+  @visibleForTesting
+  static Future<List<PendingNotificationRequest>> Function()?
+  getPendingNotificationsOverride;
+
+  /// 구형 테스트 호환용: NotificationService.scheduleDailyReminder() 대체
   @visibleForTesting
   static Future<bool> Function({
     required int hour,
@@ -44,7 +118,7 @@ class NotificationSettingsService {
   })?
   scheduleDailyReminderOverride;
 
-  /// NotificationService.cancelDailyReminder() 대체
+  /// 구형 테스트 호환용: NotificationService.cancelDailyReminder() 대체
   @visibleForTesting
   static Future<void> Function()? cancelDailyReminderOverride;
 
@@ -72,6 +146,9 @@ class NotificationSettingsService {
     areNotificationsEnabledOverride = null;
     canScheduleExactAlarmsOverride = null;
     isIgnoringBatteryOverride = null;
+    scheduleCheerMeQueueOverride = null;
+    cancelCheerMeQueueOverride = null;
+    getPendingNotificationsOverride = null;
     scheduleDailyReminderOverride = null;
     cancelDailyReminderOverride = null;
     subscribeToTopicOverride = null;
@@ -126,6 +203,23 @@ class NotificationSettingsService {
       canScheduleExact: canScheduleExact,
       isIgnoringBattery: isIgnoringBattery,
     );
+  }
+
+  static Future<List<PendingNotificationRequest>>
+  _loadPendingNotifications() async {
+    if (getPendingNotificationsOverride != null) {
+      return getPendingNotificationsOverride!();
+    }
+    if (scheduleCheerMeQueueOverride != null ||
+        scheduleDailyReminderOverride != null ||
+        analyticsLog != null) {
+      return const [];
+    }
+    try {
+      return await NotificationService.getPendingNotifications();
+    } catch (_) {
+      return const [];
+    }
   }
 
   /// FCM 토픽 구독/해제 관리
@@ -184,7 +278,7 @@ class NotificationSettingsService {
   /// [messages] 사용자가 작성한 응원 메시지 목록
   /// [source] 스케줄링 트리거 소스 ('user_toggle', 'app_start', 'time_change')
   ///
-  /// Returns: 순차 모드에서 다음 표시할 메시지 인덱스 (랜덤 모드에서는 현재값 유지)
+  /// Returns: 순차 모드에서 다음 미예약 커서
   static Future<int> applySettings(
     NotificationSettings settings, {
     List<SelfEncouragementMessage> messages = const [],
@@ -193,29 +287,23 @@ class NotificationSettingsService {
     double? recentEmotionScore,
   }) async {
     var nextIndex = settings.lastDisplayedIndex;
-    if (settings.isReminderEnabled && messages.isNotEmpty) {
-      // 메시지 선택
-      final selectedMessage = selectMessage(
-        settings,
-        messages,
-        recentEmotionScore: recentEmotionScore,
-      );
-      if (selectedMessage != null) {
-        // 순차 모드에서 다음 인덱스 계산
-        if (settings.rotationMode == MessageRotationMode.sequential) {
-          nextIndex = NotificationSettings.nextIndex(
-            settings.lastDisplayedIndex,
-            messages.length,
-          );
-        }
-      }
 
-      // 상세 로깅 (항상 출력)
+    if (settings.isReminderEnabled && messages.isNotEmpty) {
+      final pendingNotifications = await _loadPendingNotifications();
+      final plan = buildCheerMeQueuePlan(
+        settings,
+        messages: messages,
+        userName: userName,
+        recentEmotionScore: recentEmotionScore,
+        pendingNotifications: pendingNotifications,
+      );
+      nextIndex = plan.nextSequentialCursor;
+
       if (kDebugMode) {
         debugPrint(
           '[NotificationSettings] ═══════════════════════════════════════',
         );
-        debugPrint('[NotificationSettings] 📅 Scheduling Self Encouragement');
+        debugPrint('[NotificationSettings] 📅 Scheduling Cheer Me Queue');
         debugPrint(
           '[NotificationSettings] ═══════════════════════════════════════',
         );
@@ -224,15 +312,17 @@ class NotificationSettingsService {
         );
         debugPrint('[NotificationSettings] Source: $source');
         debugPrint(
-          '[NotificationSettings] Message: "${selectedMessage?.content ?? "none"}"',
+          '[NotificationSettings] First message: "${plan.firstNotification?.body ?? "none"}"',
         );
         debugPrint(
           '[NotificationSettings] Mode: ${settings.rotationMode.name}',
         );
         debugPrint('[NotificationSettings] Total messages: ${messages.length}');
+        debugPrint(
+          '[NotificationSettings] Queue size: ${plan.notifications.length}',
+        );
       }
 
-      // 권한 상태 확인
       final permissions = await _checkPermissions();
       final notificationsEnabled = permissions.notificationsEnabled;
       final canScheduleExact = permissions.canScheduleExact;
@@ -257,7 +347,6 @@ class NotificationSettingsService {
         );
       }
 
-      // 경고 출력
       if (kDebugMode) {
         if (notificationsEnabled != true) {
           debugPrint(
@@ -276,8 +365,6 @@ class NotificationSettingsService {
         }
       }
 
-      // 권한 기반 스케줄 모드 자동 선택 (Android 14+ 대응)
-      // exact alarm 권한이 없으면 inexact 모드로 fallback (최대 15분 지연)
       final scheduleMode = (canScheduleExact == true)
           ? AndroidScheduleMode.exactAllowWhileIdle
           : AndroidScheduleMode.inexactAllowWhileIdle;
@@ -288,35 +375,10 @@ class NotificationSettingsService {
         );
       }
 
-      // 이름 개인화 적용
-      final personalizedBody = selectedMessage?.content != null
-          ? NotificationMessages.applyNamePersonalization(
-              selectedMessage!.content,
-              userName,
-            )
-          : null;
-
-      // 알림 제목 개인화 (Cheer Me 전용 제목 템플릿 사용)
-      final cheerMeTitle = NotificationMessages.getCheerMeTitle(userName);
-
-      // 스케줄링 실행 (사용자 메시지 사용)
-      final success = scheduleDailyReminderOverride != null
-          ? await scheduleDailyReminderOverride!(
-              hour: settings.reminderHour,
-              minute: settings.reminderMinute,
-              title: cheerMeTitle,
-              body: personalizedBody,
-              payload: reminderPayload,
-              scheduleMode: scheduleMode,
-            )
-          : await NotificationService.scheduleDailyReminder(
-              hour: settings.reminderHour,
-              minute: settings.reminderMinute,
-              title: cheerMeTitle,
-              body: personalizedBody,
-              payload: reminderPayload,
-              scheduleMode: scheduleMode,
-            );
+      final success = await _scheduleCheerMeQueue(
+        plan.notifications,
+        scheduleMode: scheduleMode,
+      );
 
       final scheduleModeLabel = canScheduleExact == true ? 'exact' : 'inexact';
 
@@ -329,6 +391,7 @@ class NotificationSettingsService {
             'source': source,
             'schedule_mode': scheduleModeLabel,
             'timezone': tz.local.name,
+            'queue_size': plan.notifications.length,
           });
         } else {
           await AnalyticsService.logReminderScheduled(
@@ -341,9 +404,7 @@ class NotificationSettingsService {
         }
 
         if (kDebugMode) {
-          debugPrint(
-            '[NotificationSettings] ✅ Schedule call completed successfully',
-          );
+          debugPrint('[NotificationSettings] ✅ Queue scheduled successfully');
         }
       } else {
         if (analyticsLog != null) {
@@ -358,13 +419,10 @@ class NotificationSettingsService {
         }
 
         if (kDebugMode) {
-          debugPrint(
-            '[NotificationSettings] ❌ Schedule failed (returned false)',
-          );
+          debugPrint('[NotificationSettings] ❌ Queue schedule failed');
         }
       }
 
-      // 예약된 알림 확인 (테스트 모드에서는 skip)
       if (kDebugMode && analyticsLog == null) {
         final pending = await NotificationService.getPendingNotifications();
         debugPrint(
@@ -389,14 +447,10 @@ class NotificationSettingsService {
             '[NotificationSettings] 🔕 No messages to schedule - cancelling',
           );
         } else {
-          debugPrint('[NotificationSettings] 🔕 Cancelling daily reminder');
+          debugPrint('[NotificationSettings] 🔕 Cancelling Cheer Me queue');
         }
       }
-      if (cancelDailyReminderOverride != null) {
-        await cancelDailyReminderOverride!();
-      } else {
-        await NotificationService.cancelDailyReminder();
-      }
+      await _cancelCheerMeQueue();
 
       if (analyticsLog != null) {
         analyticsLog!.add({'event': 'reminder_cancelled', 'source': source});
@@ -409,6 +463,51 @@ class NotificationSettingsService {
     await _manageWeeklyInsight(settings);
 
     return nextIndex;
+  }
+
+  static Future<bool> _scheduleCheerMeQueue(
+    List<CheerMeScheduledNotification> notifications, {
+    required AndroidScheduleMode scheduleMode,
+  }) async {
+    if (scheduleCheerMeQueueOverride != null) {
+      return scheduleCheerMeQueueOverride!(
+        notifications: notifications,
+        scheduleMode: scheduleMode,
+      );
+    }
+
+    if (scheduleDailyReminderOverride != null) {
+      var success = true;
+      for (final notification in notifications) {
+        final scheduled = await scheduleDailyReminderOverride!(
+          hour: notification.scheduledDate.hour,
+          minute: notification.scheduledDate.minute,
+          title: notification.title,
+          body: notification.body,
+          payload: notification.payload,
+          scheduleMode: scheduleMode,
+        );
+        success = success && scheduled;
+      }
+      return success;
+    }
+
+    return NotificationService.scheduleCheerMeQueue(
+      notifications: notifications,
+      scheduleMode: scheduleMode,
+    );
+  }
+
+  static Future<void> _cancelCheerMeQueue() async {
+    if (cancelCheerMeQueueOverride != null) {
+      await cancelCheerMeQueueOverride!();
+      return;
+    }
+    if (cancelDailyReminderOverride != null) {
+      await cancelDailyReminderOverride!();
+      return;
+    }
+    await NotificationService.cancelCheerMeQueue();
   }
 
   /// 주간 인사이트 알림 관리
@@ -459,6 +558,486 @@ class NotificationSettingsService {
     }
   }
 
+  @visibleForTesting
+  static CheerMeQueuePlan buildCheerMeQueuePlan(
+    NotificationSettings settings, {
+    required List<SelfEncouragementMessage> messages,
+    String? userName,
+    double? recentEmotionScore,
+    List<PendingNotificationRequest> pendingNotifications = const [],
+    tz.TZDateTime? now,
+  }) {
+    final sortedMessages = [...messages]
+      ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+    final signature = _buildCheerMeSignature(
+      settings,
+      sortedMessages,
+      userName,
+    );
+
+    if (sortedMessages.isEmpty) {
+      return CheerMeQueuePlan(
+        notifications: const [],
+        nextSequentialCursor: settings.lastDisplayedIndex,
+        signature: signature,
+      );
+    }
+
+    final currentTime = now ?? tz.TZDateTime.now(tz.local);
+    final firstScheduledDate = _nextReminderDate(settings, currentTime);
+    final parsedPending = _parsePendingCheerMeNotifications(
+      pendingNotifications,
+    );
+
+    var rollingCursor = _resolveSequentialStartCursor(
+      settings,
+      sortedMessages,
+      parsedPending,
+    );
+
+    final notifications = <CheerMeScheduledNotification>[];
+    for (var i = 0; i < NotificationService.cheerMeQueueLength; i++) {
+      final scheduledDate = firstScheduledDate.add(Duration(days: i));
+      final selection = _selectMessageForSchedule(
+        settings,
+        sortedMessages,
+        scheduledDate: scheduledDate,
+        signature: signature,
+        recentEmotionScore: recentEmotionScore,
+        sequentialCursor: rollingCursor,
+      );
+
+      final title = _selectCheerMeTitle(
+        userName,
+        '${signature}_${scheduledDate.toIso8601String()}_${selection.index}',
+      );
+      final body = NotificationMessages.applyNamePersonalization(
+        selection.message.content,
+        userName,
+      );
+      final payload = _buildCheerMePayload(
+        scheduledDate: scheduledDate,
+        sequenceCursor: selection.index,
+        messageId: selection.message.id,
+        signature: signature,
+      );
+
+      notifications.add(
+        CheerMeScheduledNotification(
+          id: NotificationService.cheerMeNotificationIds[i],
+          title: title,
+          body: body,
+          scheduledDate: scheduledDate,
+          payload: payload,
+        ),
+      );
+
+      if (settings.rotationMode == MessageRotationMode.sequential) {
+        rollingCursor = NotificationSettings.nextIndex(
+          selection.index,
+          sortedMessages.length,
+        );
+      }
+    }
+
+    return CheerMeQueuePlan(
+      notifications: notifications,
+      nextSequentialCursor:
+          settings.rotationMode == MessageRotationMode.sequential
+          ? rollingCursor
+          : settings.lastDisplayedIndex,
+      signature: signature,
+    );
+  }
+
+  static bool requiresCheerMeQueueRebuild(
+    NotificationSettings settings, {
+    required List<SelfEncouragementMessage> messages,
+    required List<PendingNotificationRequest> pendingNotifications,
+    String? userName,
+  }) {
+    if (!settings.isReminderEnabled || messages.isEmpty) {
+      return false;
+    }
+
+    final cheerMePending = pendingNotifications
+        .where(
+          (notification) => NotificationService.isCheerMeId(notification.id),
+        )
+        .toList();
+
+    if (cheerMePending.length != NotificationService.cheerMeQueueLength) {
+      return true;
+    }
+
+    if (cheerMePending.map((item) => item.id).toSet().length !=
+        NotificationService.cheerMeQueueLength) {
+      return true;
+    }
+
+    final expectedSignature = _buildCheerMeSignature(
+      settings,
+      [...messages]..sort((a, b) => a.displayOrder.compareTo(b.displayOrder)),
+      userName,
+    );
+
+    for (final notification in cheerMePending) {
+      if (notification.title?.contains('{name}') ?? false) {
+        return true;
+      }
+
+      final parsed = _parseCheerMePayload(notification);
+      if (parsed == null ||
+          parsed.version != cheerMePayloadVersion ||
+          parsed.signature != expectedSignature ||
+          parsed.scheduledFor == null) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  static Future<CheerMeScheduledNotification?> loadNextCheerMePreview(
+    NotificationSettings settings, {
+    required List<SelfEncouragementMessage> messages,
+    String? userName,
+    double? recentEmotionScore,
+  }) async {
+    if (!settings.isReminderEnabled || messages.isEmpty) {
+      return null;
+    }
+
+    final pendingNotifications = await _loadPendingNotifications();
+    if (!requiresCheerMeQueueRebuild(
+      settings,
+      messages: messages,
+      pendingNotifications: pendingNotifications,
+      userName: userName,
+    )) {
+      final pendingPreview = _buildPreviewFromPending(pendingNotifications);
+      if (pendingPreview != null) {
+        return pendingPreview;
+      }
+    }
+
+    final plan = buildCheerMeQueuePlan(
+      settings,
+      messages: messages,
+      userName: userName,
+      recentEmotionScore: recentEmotionScore,
+      pendingNotifications: pendingNotifications,
+    );
+    return plan.firstNotification;
+  }
+
+  static CheerMeScheduledNotification? _buildPreviewFromPending(
+    List<PendingNotificationRequest> pendingNotifications,
+  ) {
+    final parsed = _parsePendingCheerMeNotifications(pendingNotifications);
+    if (parsed.isEmpty) return null;
+
+    final earliest = parsed.firstWhere(
+      (item) => item.scheduledFor != null,
+      orElse: () => parsed.first,
+    );
+
+    if (earliest.scheduledFor == null ||
+        earliest.title == null ||
+        earliest.body == null) {
+      return null;
+    }
+
+    return CheerMeScheduledNotification(
+      id: earliest.id,
+      title: earliest.title!,
+      body: earliest.body!,
+      scheduledDate: tz.TZDateTime.from(earliest.scheduledFor!, tz.local),
+      payload: earliest.payload,
+    );
+  }
+
+  static List<_ParsedCheerMePayload> _parsePendingCheerMeNotifications(
+    List<PendingNotificationRequest> pendingNotifications,
+  ) {
+    final parsed =
+        pendingNotifications
+            .where(
+              (notification) =>
+                  NotificationService.isCheerMeId(notification.id),
+            )
+            .map(_parseCheerMePayload)
+            .whereType<_ParsedCheerMePayload>()
+            .toList()
+          ..sort((a, b) {
+            final aTime = a.scheduledFor;
+            final bTime = b.scheduledFor;
+            if (aTime == null && bTime == null) {
+              return a.id.compareTo(b.id);
+            }
+            if (aTime == null) return 1;
+            if (bTime == null) return -1;
+            return aTime.compareTo(bTime);
+          });
+    return parsed;
+  }
+
+  static _ParsedCheerMePayload? _parseCheerMePayload(
+    PendingNotificationRequest notification,
+  ) {
+    final rawPayload = notification.payload;
+    if (rawPayload == null || rawPayload.isEmpty) {
+      return null;
+    }
+
+    try {
+      final decoded = jsonDecode(rawPayload);
+      if (decoded is! Map<String, dynamic>) return null;
+      if (decoded['type']?.toString() != 'cheerme') return null;
+
+      final version = decoded['v'] is int
+          ? decoded['v'] as int
+          : int.tryParse(decoded['v']?.toString() ?? '');
+      final sequenceCursor = decoded['sequenceCursor'] is int
+          ? decoded['sequenceCursor'] as int
+          : int.tryParse(decoded['sequenceCursor']?.toString() ?? '');
+
+      return _ParsedCheerMePayload(
+        id: notification.id,
+        payload: rawPayload,
+        title: notification.title,
+        body: notification.body,
+        version: version,
+        signature: decoded['signature']?.toString(),
+        scheduledFor: DateTime.tryParse(
+          decoded['scheduledFor']?.toString() ?? '',
+        ),
+        sequenceCursor: sequenceCursor,
+        messageId: decoded['messageId']?.toString(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static int _resolveSequentialStartCursor(
+    NotificationSettings settings,
+    List<SelfEncouragementMessage> messages,
+    List<_ParsedCheerMePayload> pendingNotifications,
+  ) {
+    if (settings.rotationMode != MessageRotationMode.sequential ||
+        messages.isEmpty) {
+      return settings.lastDisplayedIndex;
+    }
+
+    if (pendingNotifications.isNotEmpty) {
+      final earliest = pendingNotifications.first;
+      if (earliest.messageId != null) {
+        final messageIndex = messages.indexWhere(
+          (message) => message.id == earliest.messageId,
+        );
+        if (messageIndex >= 0) {
+          return messageIndex;
+        }
+      }
+    }
+
+    return NotificationSettings.currentIndex(
+      settings.lastDisplayedIndex,
+      messages.length,
+    );
+  }
+
+  static tz.TZDateTime _nextReminderDate(
+    NotificationSettings settings,
+    tz.TZDateTime now,
+  ) {
+    var scheduledDate = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      settings.reminderHour,
+      settings.reminderMinute,
+    );
+
+    if (!scheduledDate.isAfter(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    return scheduledDate;
+  }
+
+  static _CheerMeSelection _selectMessageForSchedule(
+    NotificationSettings settings,
+    List<SelfEncouragementMessage> messages, {
+    required tz.TZDateTime scheduledDate,
+    required String signature,
+    required int sequentialCursor,
+    double? recentEmotionScore,
+  }) {
+    switch (settings.rotationMode) {
+      case MessageRotationMode.random:
+        return _selectDeterministicRandomMessage(
+          messages,
+          seed: 'random_${signature}_${scheduledDate.toIso8601String()}',
+        );
+      case MessageRotationMode.sequential:
+        final index = NotificationSettings.currentIndex(
+          sequentialCursor,
+          messages.length,
+        );
+        return _CheerMeSelection(index: index, message: messages[index]);
+      case MessageRotationMode.emotionAware:
+        return _selectDeterministicEmotionAwareMessage(
+          messages,
+          recentEmotionScore,
+          seed: 'emotion_${signature}_${scheduledDate.toIso8601String()}',
+        );
+      case MessageRotationMode.timeAware:
+        return _selectDeterministicTimeAwareMessage(
+          messages,
+          scheduledDate,
+          seed: 'time_${signature}_${scheduledDate.toIso8601String()}',
+        );
+    }
+  }
+
+  static _CheerMeSelection _selectDeterministicRandomMessage(
+    List<SelfEncouragementMessage> messages, {
+    required String seed,
+  }) {
+    final index = _stableModulo(seed, messages.length);
+    return _CheerMeSelection(index: index, message: messages[index]);
+  }
+
+  static _CheerMeSelection _selectDeterministicTimeAwareMessage(
+    List<SelfEncouragementMessage> messages,
+    DateTime scheduledDate, {
+    required String seed,
+  }) {
+    final category = _timeCategory(scheduledDate.hour);
+    final filtered = <_IndexedMessage>[];
+
+    for (var i = 0; i < messages.length; i++) {
+      if (messages[i].timeCategory == category) {
+        filtered.add(_IndexedMessage(index: i, message: messages[i]));
+      }
+    }
+
+    final pool = filtered.isEmpty
+        ? [
+            for (var i = 0; i < messages.length; i++)
+              _IndexedMessage(index: i, message: messages[i]),
+          ]
+        : filtered;
+
+    final selected = pool[_stableModulo(seed, pool.length)];
+    return _CheerMeSelection(index: selected.index, message: selected.message);
+  }
+
+  static _CheerMeSelection _selectDeterministicEmotionAwareMessage(
+    List<SelfEncouragementMessage> messages,
+    double? recentEmotionScore, {
+    required String seed,
+  }) {
+    if (recentEmotionScore == null) {
+      return _selectDeterministicRandomMessage(messages, seed: seed);
+    }
+
+    final weights = <int>[];
+    for (final msg in messages) {
+      if (msg.writtenEmotionScore == null) {
+        weights.add(1);
+      } else {
+        final distance = (msg.writtenEmotionScore! - recentEmotionScore).abs();
+        if (distance <= 1.0) {
+          weights.add(3);
+        } else if (distance <= 3.0) {
+          weights.add(2);
+        } else {
+          weights.add(1);
+        }
+      }
+    }
+
+    final totalWeight = weights.fold(0, (sum, value) => sum + value);
+    var pick = _stableModulo(seed, totalWeight);
+    for (var i = 0; i < messages.length; i++) {
+      if (pick < weights[i]) {
+        return _CheerMeSelection(index: i, message: messages[i]);
+      }
+      pick -= weights[i];
+    }
+
+    return _CheerMeSelection(
+      index: messages.length - 1,
+      message: messages.last,
+    );
+  }
+
+  static String _buildCheerMeSignature(
+    NotificationSettings settings,
+    List<SelfEncouragementMessage> messages,
+    String? userName,
+  ) {
+    final payload = jsonEncode({
+      'v': cheerMePayloadVersion,
+      'queueLength': NotificationService.cheerMeQueueLength,
+      'reminderHour': settings.reminderHour,
+      'reminderMinute': settings.reminderMinute,
+      'rotationMode': settings.rotationMode.name,
+      'userName': userName ?? '',
+      'timezone': tz.local.name,
+      'messages': [
+        for (final message in messages)
+          {
+            'id': message.id,
+            'content': message.content,
+            'displayOrder': message.displayOrder,
+            'timeCategory': message.timeCategory,
+            'writtenEmotionScore': message.writtenEmotionScore,
+          },
+      ],
+    });
+    return sha1.convert(utf8.encode(payload)).toString();
+  }
+
+  static String _buildCheerMePayload({
+    required tz.TZDateTime scheduledDate,
+    required int sequenceCursor,
+    required String messageId,
+    required String signature,
+  }) {
+    return jsonEncode({
+      'type': 'cheerme',
+      'v': cheerMePayloadVersion,
+      'scheduledFor': scheduledDate.toIso8601String(),
+      'sequenceCursor': sequenceCursor,
+      'messageId': messageId,
+      'signature': signature,
+    });
+  }
+
+  static String _selectCheerMeTitle(String? userName, String seed) {
+    final templates = NotificationMessages.cheerMeTitles;
+    final index = _stableModulo(seed, templates.length);
+    return NotificationMessages.applyNamePersonalization(
+      templates[index],
+      userName,
+    );
+  }
+
+  static int _stableModulo(String seed, int length) {
+    if (length <= 1) return 0;
+    final digest = sha1.convert(utf8.encode(seed)).bytes;
+    var value = 0;
+    for (final byte in digest.take(4)) {
+      value = (value << 8) + byte;
+    }
+    return value % length;
+  }
+
   /// 설정에 따라 메시지 선택
   ///
   /// [messages]는 이미 displayOrder 순으로 정렬된 상태로 전달되어야 합니다.
@@ -472,8 +1051,6 @@ class NotificationSettingsService {
   }) {
     if (messages.isEmpty) return null;
 
-    // Note: messages는 이미 정렬된 상태 (Controller에서 displayOrder 순 정렬)
-    // 불필요한 리스트 복사 및 재정렬 제거
     switch (settings.rotationMode) {
       case MessageRotationMode.random:
         return messages[Random().nextInt(messages.length)];
@@ -500,8 +1077,9 @@ class NotificationSettingsService {
   ) {
     final hour = (now ?? DateTime.now()).hour;
     final category = _timeCategory(hour);
-    final filtered =
-        messages.where((m) => m.timeCategory == category).toList();
+    final filtered = messages
+        .where((message) => message.timeCategory == category)
+        .toList();
     final pool = filtered.isEmpty ? messages : filtered;
     return pool[Random().nextInt(pool.length)];
   }
@@ -528,12 +1106,10 @@ class NotificationSettingsService {
     List<SelfEncouragementMessage> messages,
     double? recentEmotionScore,
   ) {
-    // 최근 감정 점수가 없으면 랜덤 폴백
     if (recentEmotionScore == null) {
       return messages[Random().nextInt(messages.length)];
     }
 
-    // 가중치 계산
     final weights = <int>[];
     for (final msg in messages) {
       if (msg.writtenEmotionScore == null) {
@@ -550,8 +1126,7 @@ class NotificationSettingsService {
       }
     }
 
-    // 가중치 기반 랜덤 선택
-    final totalWeight = weights.fold(0, (sum, w) => sum + w);
+    final totalWeight = weights.fold(0, (sum, value) => sum + value);
     var pick = Random().nextInt(totalWeight);
     for (var i = 0; i < messages.length; i++) {
       pick -= weights[i];

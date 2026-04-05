@@ -10,6 +10,7 @@ import 'package:mindlog/core/services/emotion_trend_service.dart';
 import 'package:mindlog/core/services/notification_service.dart';
 import 'package:mindlog/core/services/safety_followup_service.dart';
 import 'package:mindlog/domain/entities/diary.dart';
+import 'package:mindlog/domain/entities/self_encouragement_message.dart';
 import 'package:mindlog/core/accessibility/app_accessibility.dart';
 import 'package:mindlog/presentation/providers/providers.dart';
 
@@ -123,6 +124,8 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
   /// 2. 감정 트렌드 분석 → 트렌드 알림
   Future<void> _triggerPostAnalysisNotifications(AnalysisResult result) async {
     try {
+      await _rescheduleEmotionAwareCheerMe(result.sentimentScore.toDouble());
+
       // 1. 인지 패턴 CBT 알림 (cognitivePattern이 있을 때만)
       if (result.cognitivePattern != null) {
         final cbtMessage = NotificationMessages.getCognitivePatternMessage(
@@ -154,6 +157,33 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[DiaryAnalysis] Post-analysis notification failed: $e');
+      }
+    }
+  }
+
+  Future<void> _rescheduleEmotionAwareCheerMe(double recentEmotionScore) async {
+    try {
+      final settings = await _ref.read(notificationSettingsProvider.future);
+      if (!settings.isReminderEnabled ||
+          settings.rotationMode != MessageRotationMode.emotionAware) {
+        return;
+      }
+
+      final messages = await _ref.read(selfEncouragementProvider.future);
+      if (messages.isEmpty) return;
+
+      await _ref
+          .read(notificationSettingsProvider.notifier)
+          .rescheduleWithMessages(
+            messages,
+            source: 'analysis_emotion_update',
+            recentEmotionScore: recentEmotionScore,
+          );
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint(
+          '[DiaryAnalysis] Emotion-aware Cheer Me reschedule failed: $e',
+        );
       }
     }
   }

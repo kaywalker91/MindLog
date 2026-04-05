@@ -54,8 +54,10 @@ class _TrackingNotificationSettingsController
 
   @override
   Future<void> rescheduleWithMessages(
-    List<SelfEncouragementMessage> messages,
-  ) async {
+    List<SelfEncouragementMessage> messages, {
+    String source = 'message_change',
+    double? recentEmotionScore,
+  }) async {
     rescheduleCalls.add(List.from(messages));
   }
 }

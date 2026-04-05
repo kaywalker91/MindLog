@@ -55,8 +55,10 @@ class _TrackingNotificationSettingsController
 
   @override
   Future<void> rescheduleWithMessages(
-    List<SelfEncouragementMessage> messages,
-  ) async {
+    List<SelfEncouragementMessage> messages, {
+    String source = 'message_change',
+    double? recentEmotionScore,
+  }) async {
     if (shouldThrow) {
       throw Exception('Reschedule failed');
     }
@@ -74,12 +76,8 @@ void main() {
 
   setUp(() {
     mockRepository = MockSettingsRepository();
-    when(
-      () => mockRepository.getUserName(),
-    ).thenAnswer((_) async => null);
-    when(
-      () => mockRepository.setUserName(any()),
-    ).thenAnswer((_) async {});
+    when(() => mockRepository.getUserName()).thenAnswer((_) async => null);
+    when(() => mockRepository.setUserName(any())).thenAnswer((_) async {});
     when(
       () => mockRepository.getSelectedAiCharacter(),
     ).thenAnswer((_) async => AiCharacter.warmCounselor);
@@ -106,9 +104,7 @@ void main() {
     group('build', () {
       test('초기 로드 시 Repository에서 이름을 조회해야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getUserName(),
-        ).thenAnswer((_) async => '홍길동');
+        when(() => mockRepository.getUserName()).thenAnswer((_) async => '홍길동');
 
         // Act
         final userName = await container.read(userNameProvider.future);
@@ -438,7 +434,11 @@ class _FakeSelfEncouragementController
   Future<bool> addMessage(String content, {String? timeCategory}) async => true;
 
   @override
-  Future<bool> updateMessage(String id, String content, {String? timeCategory}) async => true;
+  Future<bool> updateMessage(
+    String id,
+    String content, {
+    String? timeCategory,
+  }) async => true;
 
   @override
   Future<void> deleteMessage(String id) async {}

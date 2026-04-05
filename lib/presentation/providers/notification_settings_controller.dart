@@ -98,22 +98,26 @@ class NotificationSettingsController
 
   /// 메시지 변경 시 알림 재스케줄링
   Future<void> rescheduleWithMessages(
-    List<SelfEncouragementMessage> messages,
-  ) async {
+    List<SelfEncouragementMessage> messages, {
+    String source = 'message_change',
+    double? recentEmotionScore,
+  }) async {
     final current = state.valueOrNull ?? NotificationSettings.defaults();
     if (!current.isReminderEnabled) return;
 
     try {
       final userName = ref.read(userNameProvider).valueOrNull;
-      final recentScore = ref.read(todayEmotionProvider).sentimentScore;
+      final recentScore =
+          recentEmotionScore ??
+          ref.read(todayEmotionProvider).sentimentScore?.toDouble();
       final nextIndex = await ref
           .read(applyNotificationSettingsUseCaseProvider)
           .execute(
             current,
             messages: messages,
-            source: 'message_change',
+            source: source,
             userName: userName,
-            recentEmotionScore: recentScore?.toDouble(),
+            recentEmotionScore: recentScore,
           );
 
       await _updateSequentialIndex(current, nextIndex);

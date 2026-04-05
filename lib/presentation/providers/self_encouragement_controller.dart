@@ -23,6 +23,23 @@ class SelfEncouragementController
 
   SettingsRepository get _repository => ref.read(settingsRepositoryProvider);
 
+  double? _currentEmotionScore() =>
+      ref.read(todayEmotionProvider).sentimentScore?.toDouble();
+
+  Future<void> _rescheduleCheerMe(
+    List<SelfEncouragementMessage> messages, {
+    String source = 'message_change',
+    double? recentEmotionScore,
+  }) async {
+    await ref
+        .read(notificationSettingsProvider.notifier)
+        .rescheduleWithMessages(
+          messages,
+          source: source,
+          recentEmotionScore: recentEmotionScore,
+        );
+  }
+
   /// 새 메시지 추가
   Future<bool> addMessage(String content, {String? timeCategory}) async {
     final trimmed = content.trim();
@@ -48,18 +65,26 @@ class SelfEncouragementController
       return false;
     }
 
+    final writtenEmotionScore = _currentEmotionScore();
+
     final message = SelfEncouragementMessage(
       id: const Uuid().v4(),
       content: trimmed,
       createdAt: DateTime.now(),
       displayOrder: current.length,
       timeCategory: timeCategory,
+      writtenEmotionScore: writtenEmotionScore,
     );
 
     await _repository.addSelfEncouragementMessage(message);
 
     final updated = [...current, message];
     state = AsyncValue.data(updated);
+    await _rescheduleCheerMe(
+      updated,
+      recentEmotionScore: writtenEmotionScore,
+      source: 'message_change',
+    );
 
     if (kDebugMode) {
       debugPrint('[SelfEncouragement] Message added: ${message.id}');
@@ -85,15 +110,24 @@ class SelfEncouragementController
     final index = current.indexWhere((m) => m.id == id);
     if (index == -1) return false;
 
+    final currentEmotionScore = _currentEmotionScore();
+
     final updated = current[index].copyWith(
       content: trimmed,
       timeCategory: timeCategory,
+      writtenEmotionScore:
+          current[index].writtenEmotionScore ?? currentEmotionScore,
     );
     await _repository.updateSelfEncouragementMessage(updated);
 
     final newList = [...current];
     newList[index] = updated;
     state = AsyncValue.data(newList);
+    await _rescheduleCheerMe(
+      newList,
+      recentEmotionScore: currentEmotionScore,
+      source: 'message_change',
+    );
 
     if (kDebugMode) {
       debugPrint('[SelfEncouragement] Message updated: $id');
@@ -119,6 +153,11 @@ class SelfEncouragementController
 
     // 순차 모드: 삭제 위치에 따라 lastDisplayedIndex 보정
     await _adjustLastDisplayedIndex(deletedIndex, remaining.length);
+    await _rescheduleCheerMe(
+      remaining,
+      recentEmotionScore: _currentEmotionScore(),
+      source: 'message_change',
+    );
 
     if (kDebugMode) {
       debugPrint('[SelfEncouragement] Message deleted: $id');
@@ -184,6 +223,11 @@ class SelfEncouragementController
     // 저장
     final orderedIds = reordered.map((m) => m.id).toList();
     await _repository.reorderSelfEncouragementMessages(orderedIds);
+    await _rescheduleCheerMe(
+      reordered,
+      recentEmotionScore: _currentEmotionScore(),
+      source: 'message_reorder',
+    );
 
     if (kDebugMode) {
       debugPrint('[SelfEncouragement] Reordered: $oldIndex -> $newIndex');
