@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.54] - 2026-05-02
+
+### Added
+- **Firebase Performance 측정 인프라** (`lib/core/observability/performance_traces.dart`, `pubspec.yaml`): `firebase_performance: ^0.10.0+11` 의존성 추가. `PerformanceTraces.measure()` 헬퍼로 `TimelineTask` + Firebase Trace를 동시에 래핑하는 추상화 도입. 4개 trace 상수 정의 — `db.getAllDiaries`, `groq.analyze`, `notification.applySettings`, `first.diaryList.paint`. `FirebaseService`에서 prod 환경에만 collection enable, debug는 `dart:developer` Timeline로 폴백.
+- **Groq 응답 SQLite 캐싱** (`lib/data/datasources/local/sqlite_local_datasource.dart`, `lib/data/datasources/local/groq_cache_key.dart`): DB schema v7 → v8 마이그레이션으로 `groq_analysis_cache` 테이블 + `last_used_at` 인덱스 신설. `GroqCacheKey`는 `model + content_normalized + character + userName + imageHashes + promptVersion`을 SHA-256으로 해싱하며 content는 공백 압축 정규화. LRU 1000건 임계 도달 시 `last_used_at` 오래된 순으로 eviction. `is_emergency=true` 응답은 캐시 미저장 (위기 감지 매번 재평가). `PromptConstants.version` 상수로 프롬프트 변경 시 캐시 일괄 무효화 가능.
+- **알림 큐 diff 알고리즘** (`lib/core/services/notification_diff_planner.dart`): 신규 91줄 순수 함수 모듈. `getPendingNotifications()`로 추출한 현재 예약 상태와 새 plan을 비교하여 cancel/reschedule 변경분만 산출. 동일 plan 재적용 시 platform channel 호출 0건 달성. ID는 일기 ID/날짜 기반 결정적 생성으로 재계산마다 동일.
+- **DiaryListController.addOrUpdateDiary** (`lib/presentation/providers/diary_list_controller.dart`): 분석 후 메모리 상태 직접 갱신용 메서드. `DiaryAnalysisController`의 `invalidate()` 풀스캔 호출을 `addOrUpdateDiary(diary)`로 교체하여 분석 후 SQLite 풀스캔 0건.
+
+### Changed
+- **Cheer Me 7일 알림 큐 재구축** (`lib/core/services/notification_settings_service.dart`, `lib/core/services/notification_service.dart`, `lib/main.dart`): 단일 시점 reminder를 7일치 일별 큐로 재설계 (+1176/-322 lines). `requiresCheerMeQueueRebuild()` 게이트, `getPendingNotifications()` 노출, `getRandomMindcareBody()` 폴백 로직 정비. 자가응원 메시지 변경/이름 변경/시간 변경 등 트리거에서 큐 전체를 멱등적으로 재생성.
+- **applySettings diff 통합** (`lib/core/services/notification_settings_service.dart`): `notification_diff_planner.diffCheerMeQueue()` 결과만 cancel/schedule. diff 결과가 비어있으면 `reminder_unchanged` analytics 이벤트 발행으로 캐시 적중 모니터링. `PerformanceTraces.measure(notificationApplySettings)` trace로 응답성 측정.
+- **DiaryRepositoryImpl 캐시 통합** (`lib/data/repositories/diary_repository_impl.dart`): `analyze()`에서 cache lookup → miss 시 remote 호출 → 응답 저장 흐름 도입. 캐시 read/write 실패는 분석 흐름을 막지 않고 graceful degrade.
+- **AnalysisResponseParser top-level 함수 추출** (`lib/data/dto/analysis_response_parser.dart`, `lib/data/datasources/remote/groq_remote_datasource.dart`): `parseAnalysisResponseString` top-level 함수로 분리. `groq_remote_datasource`는 4KB+ 응답을 `compute()`로 isolate 오프로드하여 메인 isolate jank 방지. `compute()` 실패 시 메인 isolate fallback 안전장치.
+
+### Fixed
+- **Groq retry 복원력 회복** (`lib/data/datasources/remote/groq_remote_datasource.dart`): 이전 리팩토링 과정에서 누락된 retry 로직을 복원. 5xx/타임아웃에 대한 지수 백오프 재시도가 다시 활성화되어 일시 장애 내성 회복. 테스트 472줄 전면 재구성으로 retry 시나리오 검증 강화.
+
+### Testing
+- **신규 +41 / 회귀 보강 +다수** (`test/`): 1696/1696 그린.
+  - `notification_diff_planner_test.dart` 8건 (동일 plan 재적용 0-call, 변경분만 reschedule)
+  - `notification_settings_service_test.dart` P1-1 회귀 4건 + 기타 +454줄
+  - `groq_analysis_cache_test.dart` 7건 (CRUD + LRU + emergency 제외)
+  - `groq_cache_key_test.dart` 9건 (해시 결정성, 정규화, 컴포넌트 변경 시 키 분리)
+  - `diary_repository_impl_test.dart` cache 7건 + 추가 254줄
+  - `diary_analysis_controller_test.dart` invalidate → addOrUpdateDiary 동작 갱신
+  - `analysis_response_parser_test.dart` 3건 (top-level 함수 + 빈 입력)
+
+### Chore
+- **DB 마이그레이션 ADD-only 준수** (`lib/data/datasources/local/sqlite_local_datasource.dart`): v7 → v8 ALTER만 사용, DROP 없음 (`CLAUDE.md` 규약 준수). `_onCreate`/`_onUpgrade` 동기화 유지.
+- **CI/CD 게이트**: `flutter analyze` clean, marionette_flutter info만 잔존.
+
+---
+
 ## [1.4.53] - 2026-04-05
 
 ### Fixed

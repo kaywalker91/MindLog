@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20260405-v1453">
+    <link rel="stylesheet" href="style.css?v=20260502-v1454">
 </head>
 <body>
     <header class="hero">
@@ -93,8 +93,48 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.53까지의 개선 사항을 소개합니다. Self-Encouragement 시간대별 메시지 기능 완성(timeAware 모드 구현 + UI), dead code 제거에 의한 코드 품질 향상, 테스트 커버리지 확대 등이 이루어졌습니다.</p>
+            <p class="section-subtitle">v1.4.54까지의 개선 사항을 소개합니다. 3-way LLM 합의(Claude × Gemini × Codex)로 도출한 P0/P1 성능 최적화 묶음 — Firebase Performance 측정 인프라 도입, Groq 응답 SQLite 캐싱(SHA-256 해시·LRU 1000건), 알림 큐 diff 알고리즘으로 platform channel 호출 0-call 최적화, JSON 파싱 isolate 오프로드, Cheer Me 7일 큐 재구축 — 등이 포함됩니다.</p>
             <div class="updates-grid">
+                <div class="update-card">
+                    <span class="update-tag">Performance</span>
+                    <h3>Groq 응답 SQLite 캐싱 — DB v8 + SHA-256 + LRU (v1.4.54)</h3>
+                    <p>3-way LLM 합의 기반 P0 작업으로, 동일 일기 재분석 비용을 0에 가깝게 만들었습니다. <code>groq_analysis_cache</code> 테이블을 신설하고 <code>(model, content, character, userName, imageHashes, promptVersion)</code>을 SHA-256 해시 키로 사용합니다. content는 공백 압축으로 정규화하며, 1000건 임계 시 <code>last_used_at</code> 기반 LRU eviction이 작동합니다. 위기 감지(<code>is_emergency=true</code>) 응답은 캐시 제외로 매번 재평가하여 안전성을 보장하며, <code>PromptConstants.version</code> 변경으로 일괄 무효화 가능한 설계입니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Performance</span>
+                    <h3>알림 큐 diff 알고리즘 — Platform Channel 0-call 최적화 (v1.4.54)</h3>
+                    <p>매 호출마다 7일치 Cheer Me 큐를 통째로 cancel + reschedule 하던 비용을 제거했습니다. 신규 <code>notification_diff_planner.dart</code>는 <code>getPendingNotifications()</code>로 추출한 현재 상태와 새 plan을 결정적 ID 기준으로 비교하여 변경된 알림만 cancel/reschedule 합니다. 동일 plan 재적용 시 platform channel 호출 0건을 보장하며, 캐시 적중은 <code>reminder_unchanged</code> analytics 이벤트로 모니터링됩니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Performance</span>
+                    <h3>측정 인프라 — Firebase Performance + TimelineTask 통합 래퍼 (v1.4.54)</h3>
+                    <p>최적화 작업의 객관적 검증을 위해 측정 인프라부터 구축했습니다. <code>firebase_performance ^0.10.0+11</code>를 도입하고, <code>PerformanceTraces.measure()</code> 헬퍼로 <code>TimelineTask</code>(local DevTools)와 Firebase Trace(prod 텔레메트리)를 동시에 래핑합니다. <code>db.getAllDiaries</code>, <code>groq.analyze</code>, <code>notification.applySettings</code>, <code>first.diaryList.paint</code> 4개 핵심 trace 정의. prod에서만 collection enable로 debug 빌드 노이즈를 차단합니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Performance</span>
+                    <h3>JSON 파싱 Isolate 오프로드 — Vision 응답 jank 방지 (v1.4.54)</h3>
+                    <p>Vision 응답(약 1500토큰, 4KB+)의 메인 isolate 파싱이 일으키던 프레임 드롭을 해결했습니다. <code>AnalysisResponseParser</code>의 진입점을 top-level 함수로 추출하고 <code>compute()</code> API로 isolate에 오프로드했습니다. 4KB 미만 작은 응답은 isolate 생성 비용을 피해 메인에서 처리하며, isolate 실행 실패 시 메인 fallback으로 안정성을 보장합니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Architecture</span>
+                    <h3>Cheer Me 7일 알림 큐 재구축 — 멱등 reschedule (v1.4.54)</h3>
+                    <p>단일 시점 reminder를 7일치 일별 큐로 재설계했습니다(+1176/-322 lines). 자가응원 메시지 변경, 사용자 이름 변경, 시간 변경 등 다양한 트리거에서 큐 전체를 멱등적으로 재생성하며, 새로운 <code>requiresCheerMeQueueRebuild()</code> 게이트로 불필요한 재생성을 차단합니다. <code>getRandomMindcareBody()</code> 폴백 로직 정비로 빈 메시지 알림 발생 가능성도 제거했습니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">UX</span>
+                    <h3>일기 목록 낙관적 갱신 — 분석 후 풀스캔 0건 (v1.4.54)</h3>
+                    <p>분석 직후 <code>provider.invalidate()</code>로 SQLite 풀스캔이 발생하여 발생하던 새로고침 깜빡임을 제거했습니다. <code>DiaryListController.addOrUpdateDiary()</code>를 신설해 메모리 상태를 직접 갱신하며, <code>DiaryAnalysisController</code>는 invalidate 대신 이 메서드를 호출하도록 변경되었습니다. 결과적으로 일기 분석 완료 → 목록 화면 표시까지 SQLite I/O가 0회 발생합니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Reliability</span>
+                    <h3>Groq Retry 복원력 회복 — 일시 장애 내성 (v1.4.54)</h3>
+                    <p>이전 리팩토링 과정에서 누락된 retry 로직을 복원했습니다. 5xx 응답과 타임아웃에 대한 지수 백오프 재시도가 다시 활성화되어, Groq API 일시 장애 시에도 분석이 안정적으로 완료됩니다. 테스트 472줄을 전면 재구성하여 retry 시나리오(횟수, 백오프, 최종 실패 등)를 명시적으로 검증합니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Testing</span>
+                    <h3>TDD 사이클 + 1696 그린 — 신규 테스트 +41 (v1.4.54)</h3>
+                    <p>모든 P0/P1 작업을 RED-GREEN-REFACTOR로 진행했습니다. <code>notification_diff_planner_test.dart</code> 8건(동일 plan 0-call 검증), <code>groq_cache_key_test.dart</code> 9건(해시 결정성·정규화), <code>groq_analysis_cache_test.dart</code> 7건(CRUD + LRU + emergency 제외), <code>diary_repository_impl_test.dart</code> +254줄 등 신규 41건을 포함해 1696/1696 통과를 유지하며 <code>flutter analyze</code> 클린입니다.</p>
+                </div>
                 <div class="update-card">
                     <span class="update-tag">Feature</span>
                     <h3>시간대별 맞춤 응원 메시지 — timeAware 모드 완성 (v1.4.53)</h3>
