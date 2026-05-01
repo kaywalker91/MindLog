@@ -78,3 +78,6 @@ android/.bundle/
 
 # FVM Version Cache
 .fvm/
+
+# Harness v2.0 runs
+.claude/harness/runs/
