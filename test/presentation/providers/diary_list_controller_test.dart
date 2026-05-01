@@ -905,5 +905,87 @@ void main() {
         expect(diaries.first.isPinned, true);
       });
     });
+
+    // ── P0-3: 하이브리드 캐싱 (낙관적 추가/수정) ───────────────────────
+    group('addOrUpdateDiary (낙관적 갱신)', () {
+      test('신규 일기 추가 시 DB 풀스캔 없이 목록에 즉시 반영되어야 한다', () async {
+        // Arrange
+        final initial = [
+          DiaryFixtures.analyzed(id: 'diary-1'),
+          DiaryFixtures.analyzed(id: 'diary-2'),
+        ];
+        when(
+          () => mockRepository.getAllDiaries(),
+        ).thenAnswer((_) async => initial);
+        await container.read(diaryListControllerProvider.future);
+
+        clearInteractions(mockRepository);
+        final controller = container.read(diaryListControllerProvider.notifier);
+
+        // Act
+        final newDiary = DiaryFixtures.analyzed(id: 'diary-3-new');
+        controller.addOrUpdateDiary(newDiary);
+
+        // Assert: DB 호출 없이 메모리에서만 갱신
+        verifyNever(() => mockRepository.getAllDiaries());
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
+        expect(diaries.length, 3);
+        expect(
+          diaries.any((d) => d.id == 'diary-3-new'),
+          isTrue,
+        );
+      });
+
+      test('동일 ID 일기 수정 시 교체되어야 한다 (중복 없음)', () async {
+        // Arrange
+        final original = DiaryFixtures.analyzed(
+          id: 'diary-1',
+        ).copyWith(content: '원본 내용');
+        when(
+          () => mockRepository.getAllDiaries(),
+        ).thenAnswer((_) async => [original]);
+        await container.read(diaryListControllerProvider.future);
+
+        final controller = container.read(diaryListControllerProvider.notifier);
+
+        // Act
+        final updated = original.copyWith(content: '수정된 내용');
+        controller.addOrUpdateDiary(updated);
+
+        // Assert
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
+        expect(diaries.length, 1);
+        expect(diaries.first.content, '수정된 내용');
+      });
+
+      test('isPinned 갱신은 정렬 순서를 재반영해야 한다', () async {
+        // Arrange
+        final d1 = DiaryFixtures.analyzed(
+          id: 'diary-1',
+        ).copyWith(createdAt: DateTime(2026, 1, 1));
+        final d2 = DiaryFixtures.analyzed(
+          id: 'diary-2',
+        ).copyWith(createdAt: DateTime(2026, 2, 1));
+        when(
+          () => mockRepository.getAllDiaries(),
+        ).thenAnswer((_) async => [d1, d2]);
+        await container.read(diaryListControllerProvider.future);
+        final controller = container.read(diaryListControllerProvider.notifier);
+
+        // Act: 오래된 d1을 핀 고정으로 갱신
+        controller.addOrUpdateDiary(d1.copyWith(isPinned: true));
+
+        // Assert: d1이 맨 앞으로 이동
+        final diaries = await container.read(
+          diaryListControllerProvider.future,
+        );
+        expect(diaries.first.id, 'diary-1');
+        expect(diaries.first.isPinned, true);
+      });
+    });
   });
 }

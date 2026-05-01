@@ -15,6 +15,10 @@ import '../utils/clock.dart';
 class PromptConstants {
   PromptConstants._();
 
+  /// 캐시 무효화용 프롬프트 버전.
+  /// 시스템 지시·공통 지침·response schema 변경 시 bump하여 기존 캐시 무력화.
+  static const String version = 'v1';
+
   static Random _random = Random();
 
   /// 테스트용 Clock 주입 (기본: SystemClock)

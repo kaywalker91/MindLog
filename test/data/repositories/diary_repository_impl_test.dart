@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/core/errors/exceptions.dart';
 import 'package:mindlog/core/errors/failures.dart';
+import 'package:mindlog/data/dto/analysis_response_dto.dart';
 import 'package:mindlog/data/repositories/diary_repository_impl.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 
@@ -549,6 +550,222 @@ void main() {
           () => repository.markActionCompleted('non-existent'),
           throwsA(isA<DataNotFoundFailure>()),
         );
+      });
+    });
+
+    // ── P0-2: Groq 응답 캐싱 ────────────────────────────────────
+    group('analyzeDiary - Groq 응답 캐싱', () {
+      test('첫 호출은 cache miss → 원격 호출 + 캐시 저장', () async {
+        final diary = Diary(
+          id: 'cache-1',
+          content: '동일 내용 캐싱 테스트',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        mockLocalDataSource.addDiary(diary);
+
+        await repository.analyzeDiary(
+          'cache-1',
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(mockRemoteDataSource.callCount, 1);
+        expect(mockLocalDataSource.groqCacheSize, 1);
+      });
+
+      test('동일 content/character/userName 두 번째 호출은 cache hit → 원격 미호출', () async {
+        final diary1 = Diary(
+          id: 'cache-2a',
+          content: '캐시 동일 내용',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        final diary2 = Diary(
+          id: 'cache-2b',
+          content: '캐시 동일 내용',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        mockLocalDataSource.addDiary(diary1);
+        mockLocalDataSource.addDiary(diary2);
+
+        await repository.analyzeDiary(
+          'cache-2a',
+          character: AiCharacter.warmCounselor,
+        );
+        expect(mockRemoteDataSource.callCount, 1);
+
+        await repository.analyzeDiary(
+          'cache-2b',
+          character: AiCharacter.warmCounselor,
+        );
+
+        // 두 번째 호출은 cache hit → 여전히 1
+        expect(
+          mockRemoteDataSource.callCount,
+          1,
+          reason: '동일 content는 cache hit이어야 한다',
+        );
+      });
+
+      test('character가 다르면 cache miss → 두 번째 호출도 원격', () async {
+        final diary1 = Diary(
+          id: 'cache-3a',
+          content: '같은 내용 다른 캐릭터',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        final diary2 = Diary(
+          id: 'cache-3b',
+          content: '같은 내용 다른 캐릭터',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        mockLocalDataSource.addDiary(diary1);
+        mockLocalDataSource.addDiary(diary2);
+
+        await repository.analyzeDiary(
+          'cache-3a',
+          character: AiCharacter.warmCounselor,
+        );
+        await repository.analyzeDiary(
+          'cache-3b',
+          character: AiCharacter.cheerfulFriend,
+        );
+
+        expect(
+          mockRemoteDataSource.callCount,
+          2,
+          reason: 'character가 다르면 캐시 키도 다르다',
+        );
+      });
+
+      test('content 양끝 공백 차이는 정규화되어 cache hit', () async {
+        final diary1 = Diary(
+          id: 'cache-4a',
+          content: '정규화 테스트',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        final diary2 = Diary(
+          id: 'cache-4b',
+          content: '   정규화   테스트   ',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        mockLocalDataSource.addDiary(diary1);
+        mockLocalDataSource.addDiary(diary2);
+
+        await repository.analyzeDiary(
+          'cache-4a',
+          character: AiCharacter.warmCounselor,
+        );
+        await repository.analyzeDiary(
+          'cache-4b',
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(mockRemoteDataSource.callCount, 1);
+      });
+
+      test('is_emergency=true 응답은 캐시되지 않아 다음 호출도 원격', () async {
+        // 응급 응답 설정
+        mockRemoteDataSource.setMockResponse(
+          const AnalysisResponseDto(
+            keywords: ['응급', '위기', '도움', '지원', '연락'],
+            sentimentScore: 1,
+            empathyMessage: '많이 힘드시군요.',
+            actionItem: '전문가에게 연락하세요.',
+            isEmergency: true,
+            emotionCategory: EmotionCategoryDto(
+              primary: '슬픔',
+              secondary: '절망',
+            ),
+          ),
+        );
+
+        final diary1 = Diary(
+          id: 'cache-5a',
+          content: '위기 표현 내용',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        final diary2 = Diary(
+          id: 'cache-5b',
+          content: '위기 표현 내용',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        mockLocalDataSource.addDiary(diary1);
+        mockLocalDataSource.addDiary(diary2);
+
+        await repository.analyzeDiary(
+          'cache-5a',
+          character: AiCharacter.warmCounselor,
+        );
+        await repository.analyzeDiary(
+          'cache-5b',
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(
+          mockRemoteDataSource.callCount,
+          2,
+          reason: '위기 응답은 캐시하지 않아 매번 재평가',
+        );
+        expect(mockLocalDataSource.groqCacheSize, 0);
+      });
+
+      test('Vision 분석(이미지 포함)도 동일 imagePaths 시 cache hit', () async {
+        final diary1 = Diary(
+          id: 'cache-6a',
+          content: '비전 캐싱',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+          imagePaths: ['/img/a.jpg', '/img/b.jpg'],
+        );
+        final diary2 = Diary(
+          id: 'cache-6b',
+          content: '비전 캐싱',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+          // 순서 다름 — 키 정렬 후 동일해야 함
+          imagePaths: ['/img/b.jpg', '/img/a.jpg'],
+        );
+        mockLocalDataSource.addDiary(diary1);
+        mockLocalDataSource.addDiary(diary2);
+
+        await repository.analyzeDiary(
+          'cache-6a',
+          character: AiCharacter.warmCounselor,
+        );
+        await repository.analyzeDiary(
+          'cache-6b',
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(mockRemoteDataSource.visionRequests.length, 1);
+        expect(mockRemoteDataSource.callCount, 1);
+      });
+
+      test('cache 저장 실패는 분석을 막지 않는다', () async {
+        mockLocalDataSource.shouldThrowOnGroqCache = true;
+
+        final diary = Diary(
+          id: 'cache-7',
+          content: '캐시 실패 회복',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+        );
+        mockLocalDataSource.addDiary(diary);
+
+        final result = await repository.analyzeDiary(
+          'cache-7',
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result.status, DiaryStatus.analyzed);
+        expect(result.analysisResult, isNotNull);
       });
     });
   });

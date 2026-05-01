@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
 import '../../firebase_options.dart';
 import 'analytics_service.dart';
@@ -20,6 +21,10 @@ class FirebaseService {
 
     await CrashlyticsService.initialize();
     await AnalyticsService.initialize();
+
+    // Performance Monitoring: prod에서만 데이터 수집 (debug는 dart:developer Timeline 사용)
+    await FirebasePerformance.instance
+        .setPerformanceCollectionEnabled(!kDebugMode);
 
     if (const bool.fromEnvironment('CRASHLYTICS_SMOKE_TEST')) {
       await CrashlyticsService.recordError(

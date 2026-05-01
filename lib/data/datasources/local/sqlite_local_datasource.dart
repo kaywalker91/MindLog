@@ -8,7 +8,7 @@ import '../../../core/errors/exceptions.dart';
 
 /// SQLite 로컬 데이터 소스
 class SqliteLocalDataSource {
-  static const int _currentVersion = 7;
+  static const int _currentVersion = 8;
   static Database? _database;
 
   /// 테스트용 Database 주입 (인메모리 DB 테스트용)
@@ -100,6 +100,19 @@ class SqliteLocalDataSource {
         value TEXT NOT NULL
       )
     ''');
+
+    // Groq 분석 응답 캐시 (content hash → 응답 JSON)
+    await db.execute('''
+      CREATE TABLE groq_analysis_cache (
+        cache_key TEXT PRIMARY KEY,
+        response_json TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        last_used_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX idx_groq_cache_last_used ON groq_analysis_cache(last_used_at)',
+    );
   }
 
   /// 데이터베이스 마이그레이션
@@ -160,6 +173,21 @@ class SqliteLocalDataSource {
       );
       await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_diaries_is_secret ON diaries(is_secret)',
+      );
+    }
+
+    // 버전 7 → 8: Groq 분석 응답 캐시 테이블 추가 (토큰/네트워크 절감)
+    if (oldVersion < 8) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS groq_analysis_cache (
+          cache_key TEXT PRIMARY KEY,
+          response_json TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          last_used_at INTEGER NOT NULL
+        )
+      ''');
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_groq_cache_last_used ON groq_analysis_cache(last_used_at)',
       );
     }
   }
@@ -351,6 +379,78 @@ class SqliteLocalDataSource {
       await _database!.close();
       _database = null;
     }
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // Groq 분석 응답 캐시 (P0-2: 토큰/네트워크 절감)
+  // ──────────────────────────────────────────────────────────────
+
+  /// 최대 캐시 항목 수 (LRU eviction 임계값)
+  static const int _groqCacheMaxEntries = 1000;
+
+  /// 캐시 hit 시 저장된 응답 JSON 문자열 반환. miss는 null.
+  /// 호출 시 last_used_at을 현재 시각으로 갱신한다.
+  Future<String?> getGroqCachedResponse(String cacheKey) async {
+    return _runDb('Groq 캐시 조회 실패', (db) async {
+      final maps = await db.query(
+        'groq_analysis_cache',
+        columns: ['response_json'],
+        where: 'cache_key = ?',
+        whereArgs: [cacheKey],
+        limit: 1,
+      );
+      if (maps.isEmpty) return null;
+
+      // last_used_at 갱신 (LRU 추적)
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db.update(
+        'groq_analysis_cache',
+        {'last_used_at': now},
+        where: 'cache_key = ?',
+        whereArgs: [cacheKey],
+      );
+
+      return maps.first['response_json'] as String;
+    });
+  }
+
+  /// 응답 JSON 문자열을 캐시에 저장. 키 충돌 시 덮어쓰기.
+  /// 저장 후 항목 수가 [_groqCacheMaxEntries]를 초과하면 가장 오래 안 쓴 것부터 evict.
+  Future<void> putGroqCachedResponse(
+    String cacheKey,
+    String responseJson,
+  ) async {
+    return _runDb('Groq 캐시 저장 실패', (db) async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db.insert('groq_analysis_cache', {
+        'cache_key': cacheKey,
+        'response_json': responseJson,
+        'created_at': now,
+        'last_used_at': now,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+      // LRU eviction
+      final countResult = await db.rawQuery(
+        'SELECT COUNT(*) as c FROM groq_analysis_cache',
+      );
+      final count = (countResult.first['c'] as int?) ?? 0;
+      if (count > _groqCacheMaxEntries) {
+        final excess = count - _groqCacheMaxEntries;
+        await db.execute(
+          'DELETE FROM groq_analysis_cache WHERE cache_key IN '
+          '(SELECT cache_key FROM groq_analysis_cache '
+          'ORDER BY last_used_at ASC LIMIT ?)',
+          [excess],
+        );
+      }
+    });
+  }
+
+  /// 캐시 전체 비우기 (테스트/사용자 요청용)
+  Future<void> clearGroqCache() async {
+    return _runDb('Groq 캐시 비우기 실패', (db) async {
+      await db.delete('groq_analysis_cache');
+    });
   }
 
   /// 날짜 범위로 분석된 일기 조회 (통계용 최적화 쿼리)

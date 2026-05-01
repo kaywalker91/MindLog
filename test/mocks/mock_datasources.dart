@@ -13,24 +13,59 @@ class MockSqliteLocalDataSource extends SqliteLocalDataSource {
   // 메모리 저장소
   final Map<String, Diary> _diaries = {};
   final Map<String, String> _metadata = {};
+  final Map<String, String> _groqCache = {};
 
   // 상태 제어 변수
   bool shouldThrowOnSave = false;
   bool shouldThrowOnGet = false;
   bool shouldThrowOnUpdate = false;
   bool shouldThrowOnDelete = false;
+  bool shouldThrowOnGroqCache = false;
   String? errorMessage;
 
   /// 상태 초기화
   void reset() {
     _diaries.clear();
     _metadata.clear();
+    _groqCache.clear();
     shouldThrowOnSave = false;
     shouldThrowOnGet = false;
     shouldThrowOnUpdate = false;
     shouldThrowOnDelete = false;
+    shouldThrowOnGroqCache = false;
     errorMessage = null;
   }
+
+  // ── Groq 캐시 mock ────────────────────────────────
+  @override
+  Future<String?> getGroqCachedResponse(String cacheKey) async {
+    if (shouldThrowOnGroqCache) {
+      throw CacheException(errorMessage ?? 'Groq 캐시 조회 실패');
+    }
+    return _groqCache[cacheKey];
+  }
+
+  @override
+  Future<void> putGroqCachedResponse(
+    String cacheKey,
+    String responseJson,
+  ) async {
+    if (shouldThrowOnGroqCache) {
+      throw CacheException(errorMessage ?? 'Groq 캐시 저장 실패');
+    }
+    _groqCache[cacheKey] = responseJson;
+  }
+
+  @override
+  Future<void> clearGroqCache() async {
+    if (shouldThrowOnGroqCache) {
+      throw CacheException(errorMessage ?? 'Groq 캐시 비우기 실패');
+    }
+    _groqCache.clear();
+  }
+
+  /// 테스트용: 캐시 항목 수
+  int get groqCacheSize => _groqCache.length;
 
   /// 테스트용 일기 추가
   void addDiary(Diary diary) {
@@ -338,6 +373,10 @@ class MockGroqRemoteDataSource extends GroqRemoteDataSource {
 
   // 호출 추적
   final List<Map<String, dynamic>> analyzeRequests = [];
+  final List<Map<String, dynamic>> visionRequests = [];
+
+  /// 텍스트/Vision 분석 호출 합산 횟수
+  int get callCount => analyzeRequests.length + visionRequests.length;
 
   MockGroqRemoteDataSource() : super('mock-api-key');
 
@@ -348,6 +387,31 @@ class MockGroqRemoteDataSource extends GroqRemoteDataSource {
     mockResponse = null;
     customException = null;
     analyzeRequests.clear();
+    visionRequests.clear();
+  }
+
+  @override
+  Future<AnalysisResponseDto> analyzeDiaryWithImages(
+    String content, {
+    required List<String> imagePaths,
+    required AiCharacter character,
+    String? userName,
+  }) async {
+    visionRequests.add({
+      'content': content,
+      'imagePaths': imagePaths,
+      'character': character,
+      'userName': userName,
+    });
+
+    if (shouldThrow) {
+      if (customException != null) {
+        throw customException!;
+      }
+      throw ApiException(message: errorMessage ?? 'API Error');
+    }
+
+    return mockResponse ?? _defaultResponse();
   }
 
   @override

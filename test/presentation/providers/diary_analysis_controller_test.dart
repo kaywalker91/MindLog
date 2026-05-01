@@ -129,11 +129,13 @@ void main() {
 
     group('Provider Invalidation', () {
       test(
-        'analyzeDiary 성공 후 statisticsProvider와 diaryListControllerProvider를 모두 무효화해야 한다',
+        'analyzeDiary 성공 후 statisticsProvider는 무효화되고 diaryList는 낙관적 갱신되어야 한다',
         () async {
-          // Arrange — 호출 횟수 카운터 (invalidate 후 재빌드 시 mock 재호출 확인)
+          // Arrange — 호출 횟수 카운터
+          // 분석 후: stats는 invalidate(재빌드), diaryList는 addOrUpdateDiary(메모리만 갱신)
           var statsCallCount = 0;
           var diaryCallCount = 0;
+          final analyzedDiary = DiaryFixtures.analyzed();
           when(
             () => mockStatisticsRepository.getStatistics(any()),
           ).thenAnswer((_) async {
@@ -149,7 +151,7 @@ void main() {
               any(),
               imagePaths: any(named: 'imagePaths'),
             ),
-          ).thenAnswer((_) async => DiaryFixtures.analyzed());
+          ).thenAnswer((_) async => analyzedDiary);
 
           // 초기화 (각 1회 호출)
           await container.read(statisticsProvider.future);
@@ -163,65 +165,88 @@ void main() {
           );
           await notifier.analyzeDiary('테스트 내용');
 
-          // invalidate 후 재읽기로 rebuild 유도
           await container.read(statisticsProvider.future);
           await container.read(diaryListControllerProvider.future);
 
-          // Assert — 재빌드 시 mock이 다시 호출되어야 함
+          // Assert: statisticsProvider는 invalidate → 재빌드
           expect(
             statsCallCount,
             greaterThan(initialStatsCount),
             reason: 'statisticsProvider가 무효화되어 재빌드되어야 합니다',
           );
+
+          // Assert: diaryList는 풀스캔 없이 낙관적 갱신
           expect(
             diaryCallCount,
-            greaterThan(initialDiaryCount),
-            reason: 'diaryListControllerProvider가 무효화되어 재빌드되어야 합니다',
+            equals(initialDiaryCount),
+            reason: 'diaryList는 addOrUpdateDiary로 메모리만 갱신 — DB 풀스캔 발생 금지',
+          );
+
+          // Assert: 분석된 diary가 list state에 반영되었는지 확인
+          final list = await container.read(
+            diaryListControllerProvider.future,
+          );
+          expect(
+            list.any((d) => d.id == analyzedDiary.id),
+            isTrue,
+            reason: '분석 완료된 diary가 목록에 즉시 반영되어야 합니다',
           );
         },
       );
 
-      test('safetyBlocked 상태에서도 두 provider를 무효화해야 한다', () async {
-        // Arrange — 호출 횟수 카운터
-        var statsCallCount = 0;
-        var diaryCallCount = 0;
-        when(
-          () => mockStatisticsRepository.getStatistics(any()),
-        ).thenAnswer((_) async {
-          statsCallCount++;
-          return StatisticsFixtures.empty();
-        });
-        when(() => mockDiaryRepository.getAllDiaries()).thenAnswer((_) async {
-          diaryCallCount++;
-          return [];
-        });
-        when(
-          () => mockUseCase.execute(
-            any(),
-            imagePaths: any(named: 'imagePaths'),
-          ),
-        ).thenAnswer((_) async => DiaryFixtures.safetyBlocked());
+      test(
+        'safetyBlocked 상태에서도 statistics는 무효화 + diaryList는 낙관적 갱신',
+        () async {
+          // Arrange — 호출 횟수 카운터
+          var statsCallCount = 0;
+          var diaryCallCount = 0;
+          final blockedDiary = DiaryFixtures.safetyBlocked();
+          when(
+            () => mockStatisticsRepository.getStatistics(any()),
+          ).thenAnswer((_) async {
+            statsCallCount++;
+            return StatisticsFixtures.empty();
+          });
+          when(() => mockDiaryRepository.getAllDiaries()).thenAnswer((_) async {
+            diaryCallCount++;
+            return [];
+          });
+          when(
+            () => mockUseCase.execute(
+              any(),
+              imagePaths: any(named: 'imagePaths'),
+            ),
+          ).thenAnswer((_) async => blockedDiary);
 
-        // 초기화
-        await container.read(statisticsProvider.future);
-        await container.read(diaryListControllerProvider.future);
-        final initialStatsCount = statsCallCount;
-        final initialDiaryCount = diaryCallCount;
+          // 초기화
+          await container.read(statisticsProvider.future);
+          await container.read(diaryListControllerProvider.future);
+          final initialStatsCount = statsCallCount;
+          final initialDiaryCount = diaryCallCount;
 
-        // Act
-        final notifier = container.read(
-          diaryAnalysisControllerProvider.notifier,
-        );
-        await notifier.analyzeDiary('위험 내용');
+          // Act
+          final notifier = container.read(
+            diaryAnalysisControllerProvider.notifier,
+          );
+          await notifier.analyzeDiary('위험 내용');
 
-        // invalidate 후 재읽기로 rebuild 유도
-        await container.read(statisticsProvider.future);
-        await container.read(diaryListControllerProvider.future);
+          await container.read(statisticsProvider.future);
+          await container.read(diaryListControllerProvider.future);
 
-        // Assert
-        expect(statsCallCount, greaterThan(initialStatsCount));
-        expect(diaryCallCount, greaterThan(initialDiaryCount));
-      });
+          // Assert
+          expect(statsCallCount, greaterThan(initialStatsCount));
+          expect(
+            diaryCallCount,
+            equals(initialDiaryCount),
+            reason: 'safetyBlocked에서도 풀스캔 금지 — addOrUpdateDiary 사용',
+          );
+
+          final list = await container.read(
+            diaryListControllerProvider.future,
+          );
+          expect(list.any((d) => d.id == blockedDiary.id), isTrue);
+        },
+      );
 
       test('pending 상태(분석 실패)에서는 provider를 무효화하지 않아야 한다', () async {
         // Arrange

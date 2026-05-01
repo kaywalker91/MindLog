@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/constants/ai_character.dart';
@@ -5,8 +7,10 @@ import '../../core/errors/failures.dart';
 import '../../../domain/entities/diary.dart';
 import '../../../domain/repositories/diary_repository.dart';
 import 'repository_failure_handler.dart';
+import '../datasources/local/groq_cache_key.dart';
 import '../datasources/local/sqlite_local_datasource.dart';
 import '../datasources/remote/groq_remote_datasource.dart';
+import '../dto/analysis_response_dto.dart';
 
 /// 일기 Repository 구현체
 class DiaryRepositoryImpl
@@ -58,18 +62,42 @@ class DiaryRepositoryImpl
         final hasImages =
             effectiveImagePaths != null && effectiveImagePaths.isNotEmpty;
 
-        final analysisDto = hasImages
-            ? await _remoteDataSource.analyzeDiaryWithImages(
-                diary.content,
-                imagePaths: effectiveImagePaths,
+        // 캐시 키: content hash 기반 (일기 ID 무관)
+        // → 임시저장/복원/재시도/동일 내용 작성 시 cache hit
+        final cacheKey = hasImages
+            ? GroqCacheKey.forVision(
+                content: diary.content,
                 character: character,
+                imageSignatures: effectiveImagePaths,
                 userName: userName,
               )
-            : await _remoteDataSource.analyzeDiary(
-                diary.content,
+            : GroqCacheKey.forText(
+                content: diary.content,
                 character: character,
                 userName: userName,
               );
+
+        AnalysisResponseDto? analysisDto = await _readGroqCache(cacheKey);
+
+        if (analysisDto == null) {
+          analysisDto = hasImages
+              ? await _remoteDataSource.analyzeDiaryWithImages(
+                  diary.content,
+                  imagePaths: effectiveImagePaths,
+                  character: character,
+                  userName: userName,
+                )
+              : await _remoteDataSource.analyzeDiary(
+                  diary.content,
+                  character: character,
+                  userName: userName,
+                );
+
+          // 안전: is_emergency=true 응답은 캐시하지 않음 (위기 감지는 매번 재평가)
+          if (!analysisDto.isEmergency) {
+            await _writeGroqCache(cacheKey, analysisDto);
+          }
+        }
 
         final analysisResult = analysisDto.toEntity().copyWith(
           aiCharacterId: character.id,
@@ -186,6 +214,41 @@ class DiaryRepositoryImpl
   }
 
   String _generateId() => const Uuid().v4();
+
+  /// 캐시에서 응답 DTO 복원. miss 또는 손상 시 null.
+  Future<AnalysisResponseDto?> _readGroqCache(String cacheKey) async {
+    try {
+      final cached = await _localDataSource.getGroqCachedResponse(cacheKey);
+      if (cached == null) return null;
+      return AnalysisResponseDto.fromJson(
+        jsonDecode(cached) as Map<String, dynamic>,
+      );
+    } catch (e) {
+      assert(() {
+        debugPrint('[DiaryRepository] Cache read failed: $e');
+        return true;
+      }());
+      return null;
+    }
+  }
+
+  /// 응답 DTO를 캐시에 저장. 실패 시 무시 (분석 결과를 막지 않음).
+  Future<void> _writeGroqCache(
+    String cacheKey,
+    AnalysisResponseDto dto,
+  ) async {
+    try {
+      await _localDataSource.putGroqCachedResponse(
+        cacheKey,
+        jsonEncode(dto.toJson()),
+      );
+    } catch (e) {
+      assert(() {
+        debugPrint('[DiaryRepository] Cache write failed: $e');
+        return true;
+      }());
+    }
+  }
 
   Future<void> _updateDiaryStatusOnFailure(
     String diaryId,

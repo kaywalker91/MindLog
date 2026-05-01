@@ -40,10 +40,25 @@ class DiaryListController extends AsyncNotifier<List<Diary>> {
     return sorted;
   }
 
-  /// 목록 새로고침
+  /// 목록 새로고침 (명시적 재조회 — pull-to-refresh, 데이터 초기화 등)
   Future<void> refresh() async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _fetchDiaries());
+  }
+
+  /// 일기 추가/수정 (낙관적) — DB 풀스캔 없이 메모리 상태만 갱신.
+  ///
+  /// 분석 완료 직후처럼 새 [diary]가 DB에 이미 저장돼 있고 화면 갱신만 필요할 때 사용.
+  /// 동일 ID가 이미 있으면 교체, 없으면 신규 추가 후 정렬.
+  void addOrUpdateDiary(Diary diary) {
+    final current = state.value;
+    if (current == null) {
+      // 아직 로딩 중이면 풀스캔이 끝나면서 자동 반영되므로 별도 작업 불필요
+      return;
+    }
+    final replaced = current.where((d) => d.id != diary.id).toList()
+      ..add(diary);
+    state = AsyncValue.data(_sort(replaced));
   }
 
   /// 일기 상단 고정 토글
