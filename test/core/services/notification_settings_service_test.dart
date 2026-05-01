@@ -1334,5 +1334,170 @@ void main() {
         expect(result, equals(messages[0]));
       });
     });
+
+    group('큐 diff 알고리즘 (P1-1)', () {
+      late List<int> cancelByIdCalls;
+
+      setUp(() {
+        cancelByIdCalls = [];
+        NotificationSettingsService.cancelNotificationByIdOverride = (id) async {
+          cancelByIdCalls.add(id);
+        };
+      });
+
+      List<PendingNotificationRequest> pendingFromScheduleCalls(
+        List<Map<String, dynamic>> calls, {
+        DateTime? baseDate,
+      }) {
+        return [
+          for (var i = 0; i < calls.length; i++)
+            PendingNotificationRequest(
+              NotificationService.dailyReminderId + i,
+              calls[i]['title'] as String?,
+              calls[i]['body'] as String?,
+              calls[i]['payload'] as String?,
+            ),
+        ];
+      }
+
+      test('동일 plan을 두 번 적용하면 두 번째 호출에서 schedule/cancel 호출 0건이어야 한다', () async {
+        // Arrange
+        final messages = [createMessage(0, content: '오늘도 화이팅!')];
+        final settings = createSettings(reminderHour: 19, reminderMinute: 0);
+
+        // 1차 호출: pending 비어있음 → 7건 schedule
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+        expect(scheduleCalls, hasLength(7));
+
+        // pending 시뮬레이션: 1차 호출 결과를 PendingNotification으로 변환
+        final pending = pendingFromScheduleCalls(scheduleCalls);
+        NotificationSettingsService.getPendingNotificationsOverride =
+            () async => pending;
+
+        // 카운터 리셋
+        scheduleCalls.clear();
+        cancelByIdCalls.clear();
+        NotificationSettingsService.analyticsLog = [];
+
+        // Act: 동일 settings/messages로 재호출
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        // Assert: platform channel 호출 0건
+        expect(scheduleCalls, isEmpty);
+        expect(cancelByIdCalls, isEmpty);
+      });
+
+      test('동일 plan 재적용 시 reminder_unchanged analytics 이벤트가 기록되어야 한다', () async {
+        // Arrange
+        final messages = [createMessage(0)];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        final pending = pendingFromScheduleCalls(scheduleCalls);
+        NotificationSettingsService.getPendingNotificationsOverride =
+            () async => pending;
+        scheduleCalls.clear();
+        NotificationSettingsService.analyticsLog = [];
+
+        // Act
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+          source: 'app_start',
+        );
+
+        // Assert
+        final log = NotificationSettingsService.analyticsLog!;
+        final unchangedEvents = log
+            .where((e) => e['event'] == 'reminder_unchanged')
+            .toList();
+        expect(unchangedEvents, hasLength(1));
+        expect(unchangedEvents.first['source'], 'app_start');
+      });
+
+      test('일부 pending이 stale하면 변경된 ID만 cancel + reschedule 해야 한다', () async {
+        // Arrange: 1차 호출로 정상 큐 생성
+        final messages = [createMessage(0)];
+        final settings = createSettings();
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        // 3번째 항목만 다른 payload로 stale 시뮬레이션
+        final originalPending = pendingFromScheduleCalls(scheduleCalls);
+        final stalePending = [
+          for (var i = 0; i < originalPending.length; i++)
+            if (i == 3)
+              PendingNotificationRequest(
+                originalPending[i].id,
+                originalPending[i].title,
+                originalPending[i].body,
+                '{"type":"cheerme","sig":"stale"}',
+              )
+            else
+              originalPending[i],
+        ];
+        NotificationSettingsService.getPendingNotificationsOverride =
+            () async => stalePending;
+
+        scheduleCalls.clear();
+        cancelByIdCalls.clear();
+
+        // Act
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        // Assert: stale 1건만 cancel + reschedule
+        const staleId = NotificationService.dailyReminderId + 3;
+        expect(cancelByIdCalls, equals([staleId]));
+        expect(scheduleCalls, hasLength(1));
+      });
+
+      test('reminder_unchanged 경로에서도 FCM 토픽 관리는 계속 호출되어야 한다', () async {
+        // Arrange
+        final messages = [createMessage(0)];
+        final settings = createSettings(isMindcareTopicEnabled: true);
+
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        final pending = pendingFromScheduleCalls(scheduleCalls);
+        NotificationSettingsService.getPendingNotificationsOverride =
+            () async => pending;
+
+        scheduleCalls.clear();
+        subscribedTopics.clear();
+        unsubscribedTopics.clear();
+
+        // Act
+        await NotificationSettingsService.applySettings(
+          settings,
+          messages: messages,
+        );
+
+        // Assert: 알림 큐는 변경 없음, FCM은 호출됨
+        expect(scheduleCalls, isEmpty);
+        expect(
+          subscribedTopics,
+          contains(NotificationSettingsService.mindcareTopic),
+        );
+      });
+    });
   });
 }

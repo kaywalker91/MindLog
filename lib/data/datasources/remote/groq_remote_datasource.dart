@@ -22,6 +22,13 @@ class GroqRemoteDataSource {
   static const double _backoffMultiplier = 2.0;
   static const Duration _httpTimeout = Duration(seconds: 30);
 
+  /// 응답 파싱을 별도 isolate로 오프로드하는 임계치 (UTF-16 code units)
+  ///
+  /// Vision 응답(1500토큰, ~4KB+)에서 메인 isolate jank를 방지하기 위한 분기.
+  /// 이하 응답은 isolate spawn 비용이 더 크므로 메인에서 직접 파싱한다.
+  @visibleForTesting
+  static const int isolateParsingThresholdChars = 4096;
+
   final String _apiKey;
   final String _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
   final http.Client _client;
@@ -289,7 +296,7 @@ class GroqRemoteDataSource {
       final messageContent = message['content'] as String;
 
       try {
-        final jsonResult = AnalysisResponseParser.parseString(messageContent);
+        final jsonResult = await parseAnalysisResponse(messageContent);
 
         assert(() {
           debugPrint('🖼️ [DEBUG] Vision API response:');
@@ -391,7 +398,7 @@ class GroqRemoteDataSource {
       final messageContent = message['content'] as String;
 
       try {
-        final jsonResult = AnalysisResponseParser.parseString(messageContent);
+        final jsonResult = await parseAnalysisResponse(messageContent);
 
         // 디버그 로그 - action_items 확인
         assert(() {
@@ -493,5 +500,29 @@ class GroqRemoteDataSource {
 
   static Future<void> _defaultSleep(Duration duration) {
     return Future<void>.delayed(duration);
+  }
+
+  /// AI 응답 JSON 파싱 — 큰 응답은 isolate로 오프로드해 jank 방지.
+  ///
+  /// Vision 응답(>4KB)에서 메인 isolate가 점유되면 UI 프레임이 끊긴다.
+  /// 임계치 이하는 isolate spawn 비용 회피 위해 메인에서 직접 파싱.
+  /// `compute()` 자체가 실패해도 (드물게 isolate spawn 불가) 메인 fallback.
+  static Future<Map<String, dynamic>> parseAnalysisResponse(
+    String content,
+  ) async {
+    if (content.length < isolateParsingThresholdChars) {
+      return AnalysisResponseParser.parseString(content);
+    }
+    try {
+      return await compute(parseAnalysisResponseString, content);
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        debugPrint(
+          '[Groq] compute() parse failed (${e.runtimeType}), falling back to main isolate',
+        );
+        debugPrint('$stackTrace');
+      }
+      return AnalysisResponseParser.parseString(content);
+    }
   }
 }

@@ -9,9 +9,11 @@ import 'package:timezone/timezone.dart' as tz;
 import '../../domain/entities/notification_settings.dart';
 import '../../domain/entities/self_encouragement_message.dart';
 import '../constants/notification_messages.dart';
+import '../observability/performance_traces.dart';
 import 'analytics_service.dart';
 import 'crashlytics_service.dart';
 import 'fcm_service.dart';
+import 'notification_diff_planner.dart';
 import 'notification_permission_service.dart';
 import 'notification_service.dart';
 
@@ -101,6 +103,10 @@ class NotificationSettingsService {
   @visibleForTesting
   static Future<void> Function()? cancelCheerMeQueueOverride;
 
+  /// NotificationService.cancelNotification(id) 대체 — diff 기반 cancel 검증용
+  @visibleForTesting
+  static Future<void> Function(int id)? cancelNotificationByIdOverride;
+
   /// NotificationService.getPendingNotifications() 대체
   @visibleForTesting
   static Future<List<PendingNotificationRequest>> Function()?
@@ -148,6 +154,7 @@ class NotificationSettingsService {
     isIgnoringBatteryOverride = null;
     scheduleCheerMeQueueOverride = null;
     cancelCheerMeQueueOverride = null;
+    cancelNotificationByIdOverride = null;
     getPendingNotificationsOverride = null;
     scheduleDailyReminderOverride = null;
     cancelDailyReminderOverride = null;
@@ -286,6 +293,26 @@ class NotificationSettingsService {
     String? userName,
     double? recentEmotionScore,
   }) async {
+    return PerformanceTraces.measure(
+      PerformanceTraces.notificationApplySettings,
+      () => _applySettingsInternal(
+        settings,
+        messages: messages,
+        source: source,
+        userName: userName,
+        recentEmotionScore: recentEmotionScore,
+      ),
+      attributes: {'source': source},
+    );
+  }
+
+  static Future<int> _applySettingsInternal(
+    NotificationSettings settings, {
+    required List<SelfEncouragementMessage> messages,
+    required String source,
+    String? userName,
+    double? recentEmotionScore,
+  }) async {
     var nextIndex = settings.lastDisplayedIndex;
 
     if (settings.isReminderEnabled && messages.isNotEmpty) {
@@ -298,6 +325,28 @@ class NotificationSettingsService {
         pendingNotifications: pendingNotifications,
       );
       nextIndex = plan.nextSequentialCursor;
+      final diff = diffCheerMeQueue(
+        pending: pendingNotifications,
+        plan: plan.notifications,
+      );
+
+      if (diff.isEmpty) {
+        if (kDebugMode) {
+          debugPrint(
+            '[NotificationSettings] ✨ Queue unchanged — skipping platform calls (saved ${NotificationService.cheerMeQueueLength * 2} calls)',
+          );
+        }
+        if (analyticsLog != null) {
+          analyticsLog!.add({
+            'event': 'reminder_unchanged',
+            'source': source,
+            'queue_size': plan.notifications.length,
+          });
+        }
+        await _manageFcmTopics(settings);
+        await _manageWeeklyInsight(settings);
+        return nextIndex;
+      }
 
       if (kDebugMode) {
         debugPrint(
@@ -375,8 +424,14 @@ class NotificationSettingsService {
         );
       }
 
-      final success = await _scheduleCheerMeQueue(
-        plan.notifications,
+      if (kDebugMode) {
+        debugPrint(
+          '[NotificationSettings]   • Diff: cancel=${diff.idsToCancel.length}, schedule=${diff.toSchedule.length}',
+        );
+      }
+
+      final success = await _applyCheerMeQueueDiff(
+        diff,
         scheduleMode: scheduleMode,
       );
 
@@ -465,20 +520,31 @@ class NotificationSettingsService {
     return nextIndex;
   }
 
-  static Future<bool> _scheduleCheerMeQueue(
-    List<CheerMeScheduledNotification> notifications, {
+  static Future<bool> _applyCheerMeQueueDiff(
+    NotificationQueueDiff diff, {
     required AndroidScheduleMode scheduleMode,
   }) async {
+    for (final id in diff.idsToCancel) {
+      if (cancelNotificationByIdOverride != null) {
+        await cancelNotificationByIdOverride!(id);
+      } else if (cancelDailyReminderOverride != null) {
+        // 레거시 단일 cancel override는 ID를 받지 않음 → 호출만 위임
+        await cancelDailyReminderOverride!();
+      } else {
+        await NotificationService.cancelNotification(id);
+      }
+    }
+
     if (scheduleCheerMeQueueOverride != null) {
       return scheduleCheerMeQueueOverride!(
-        notifications: notifications,
+        notifications: diff.toSchedule,
         scheduleMode: scheduleMode,
       );
     }
 
     if (scheduleDailyReminderOverride != null) {
       var success = true;
-      for (final notification in notifications) {
+      for (final notification in diff.toSchedule) {
         final scheduled = await scheduleDailyReminderOverride!(
           hour: notification.scheduledDate.hour,
           minute: notification.scheduledDate.minute,
@@ -492,10 +558,20 @@ class NotificationSettingsService {
       return success;
     }
 
-    return NotificationService.scheduleCheerMeQueue(
-      notifications: notifications,
-      scheduleMode: scheduleMode,
-    );
+    var success = true;
+    for (final notification in diff.toSchedule) {
+      final scheduled = await NotificationService.scheduleOneTimeNotification(
+        id: notification.id,
+        title: notification.title,
+        body: notification.body,
+        scheduledDate: notification.scheduledDate,
+        payload: notification.payload,
+        channel: NotificationService.channelCheerMe,
+        scheduleMode: scheduleMode,
+      );
+      success = success && scheduled;
+    }
+    return success;
   }
 
   static Future<void> _cancelCheerMeQueue() async {

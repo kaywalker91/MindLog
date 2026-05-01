@@ -636,5 +636,66 @@ void main() {
         expect(result['cognitive_pattern'], '');
       });
     });
+
+    group('parseAnalysisResponseString (top-level, isolate-safe) - P1-2', () {
+      test('top-level 함수가 static parseString과 동일한 결과를 반환해야 한다', () {
+        const jsonStr = '''
+        {
+          "keywords": ["감정", "일상"],
+          "sentiment_score": 7,
+          "empathy_message": "오늘 하루 수고하셨어요.",
+          "action_items": ["☀️ 산책하기", "📖 책 읽기"],
+          "energy_level": 6,
+          "is_emergency": false
+        }
+        ''';
+
+        final viaTopLevel = parseAnalysisResponseString(jsonStr);
+        final viaStatic = AnalysisResponseParser.parseString(jsonStr);
+
+        expect(viaTopLevel['keywords'], equals(viaStatic['keywords']));
+        expect(
+          viaTopLevel['sentiment_score'],
+          equals(viaStatic['sentiment_score']),
+        );
+        expect(
+          viaTopLevel['empathy_message'],
+          equals(viaStatic['empathy_message']),
+        );
+        expect(
+          viaTopLevel['action_items'],
+          equals(viaStatic['action_items']),
+        );
+      });
+
+      test('빈 입력에서도 static과 동일하게 ApiException을 던져야 한다', () {
+        expect(
+          () => parseAnalysisResponseString(''),
+          throwsA(isA<ApiException>()),
+        );
+      });
+
+      test('큰 응답(>4KB)도 정상 파싱되어야 한다', () {
+        // 4KB 이상의 응답 시뮬레이션 — empathy_message에 padding
+        final padding = '오늘 하루는 정말 많은 일이 있었습니다. ' * 200; // 약 5KB
+        final jsonStr = '''
+        {
+          "keywords": ["감정", "일상"],
+          "sentiment_score": 7,
+          "empathy_message": "$padding",
+          "action_items": ["☀️ 산책하기"],
+          "energy_level": 6,
+          "is_emergency": false
+        }
+        ''';
+        expect(jsonStr.length, greaterThan(4096));
+
+        final result = parseAnalysisResponseString(jsonStr);
+
+        expect(result['keywords'], isNotEmpty);
+        expect(result['sentiment_score'], 7);
+        expect((result['empathy_message'] as String).isNotEmpty, isTrue);
+      });
+    });
   });
 }

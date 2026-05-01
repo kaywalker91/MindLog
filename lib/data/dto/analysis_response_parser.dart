@@ -3,6 +3,14 @@ import 'package:flutter/foundation.dart';
 import '../../core/errors/exceptions.dart';
 import '../../core/utils/korean_text_filter.dart';
 
+/// Top-level parse entry point — `compute()` 오프로드용
+///
+/// `compute(parseAnalysisResponseString, raw)` 형태로 호출. Static method도
+/// 가능하지만 명시적인 top-level 함수를 두면 의도가 분명해진다.
+Map<String, dynamic> parseAnalysisResponseString(String text) {
+  return AnalysisResponseParser.parseString(text);
+}
+
 /// API 응답 파서 - 다양한 포맷 대응
 class AnalysisResponseParser {
   /// 문자열 기반 파싱 (Groq 등 타 API용)
