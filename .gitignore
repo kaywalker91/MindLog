@@ -81,3 +81,6 @@ android/.bundle/
 
 # Harness v2.0 runs
 .claude/harness/runs/
+
+# Session scratch
+.claude/tmp/

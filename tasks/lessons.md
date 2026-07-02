@@ -135,3 +135,9 @@
 **근본 원인**: `hydrated_riverpod`는 동기 `HydratedNotifier<T>`만 제공. `HydratedAsyncNotifier` 미존재. SharedPreferences.getInstance()는 Future 반환 → 동기 래핑 불가
 **해결책**: Phase 3-2 드롭. 현재 `AsyncNotifier<String?>` 유지 (SharedPrefs 단일 소스, 수 ms 접근, 실질적 문제 없음)
 **예방 규칙**: hydrated_riverpod 도입 시 대상 Notifier가 동기인지 먼저 확인. AsyncNotifier가 필요한 경우 대안 없음 (패키지 미지원). 복잡한 객체(NotificationSettings 등)에만 유의미.
+
+## 2026-07-02 - mocktail 시그니처 확장 시 미갱신 stub은 조용히 통과할 수 있음
+**무엇이 잘못됐나**: `AnalyzeDiaryUseCase.execute()`에 `entryDate` named param 추가 후, `_CountingMock` stub 1곳이 matcher 미갱신 상태로도 테스트가 통과함
+**근본 원인**: mocktail은 stub의 named args와 실제 호출의 named args가 다르면 조용히 미매칭 → MissingStubError가 프로덕션 catch 경로(DiaryAnalysisError)에 흡수되어 테스트가 "기대한 에러 상태"를 우연히 만족
+**해결책**: mock 대상 메서드 시그니처 확장 시 해당 mock의 모든 when/verify 호출부를 grep으로 전수 수정 (`grep -rn "\.execute(" test/`)
+**예방 규칙**: named param 추가 = 모든 stub에 `any(named: '...')` 추가가 세트. 에러 경로 테스트는 `isA<특정Failure>()`로 단언해 MissingStubError 흡수를 구분할 것.
