@@ -15,6 +15,17 @@ if [ ! -f "pubspec.yaml" ]; then
     exit 1
 fi
 
+# 프로젝트 핀 Flutter(fvm) 우선 사용 — PATH의 flutter 버전 드리프트 방지.
+# (CLAUDE.md 규약: "flutter 대신 fvm flutter 사용". bare flutter가 비표준 빌드일 때
+#  테스트 프레임워크 셰이더 불일치 등으로 로컬 게이트가 오탐하는 문제를 방지)
+# 주의: export -f 금지 — fvm은 sh 스크립트라 함수를 export하면 fvm 내부의
+# flutter 호출이 이 함수를 재귀 호출해 fork bomb 발생. 함수는 이 스크립트
+# 본체의 직접 호출에만 적용되며, 하위 프로세스(fvm)로는 상속되지 않아야 한다.
+if command -v fvm >/dev/null 2>&1 && [ -f ".fvmrc" ]; then
+    flutter() { fvm flutter "$@"; }
+    dart() { fvm dart "$@"; }
+fi
+
 require_api_key() {
     if [ -z "$GROQ_API_KEY" ]; then
         echo -e "${YELLOW}Error: GROQ_API_KEY not set.${NC}"
