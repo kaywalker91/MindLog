@@ -28,6 +28,7 @@ void main() {
       () => mockRepository.createDiary(
         any(),
         imagePaths: any(named: 'imagePaths'),
+        createdAt: any(named: 'createdAt'),
       ),
     ).thenAnswer((_) async => DiaryFixtures.pending());
     when(() => mockRepository.updateDiary(any())).thenAnswer((_) async {});
@@ -39,9 +40,7 @@ void main() {
     when(
       () => mockRepository.setDiarySecret(any(), any()),
     ).thenAnswer((_) async {});
-    when(
-      () => mockRepository.getSecretDiaries(),
-    ).thenAnswer((_) async => []);
+    when(() => mockRepository.getSecretDiaries()).thenAnswer((_) async => []);
 
     container = ProviderContainer(
       overrides: [diaryRepositoryProvider.overrideWithValue(mockRepository)],
@@ -98,9 +97,9 @@ void main() {
     group('refresh', () {
       test('목록을 새로고침해야 한다', () async {
         // Arrange
-        when(() => mockRepository.getAllDiaries()).thenAnswer(
-          (_) async => [DiaryFixtures.analyzed(id: 'initial')],
-        );
+        when(
+          () => mockRepository.getAllDiaries(),
+        ).thenAnswer((_) async => [DiaryFixtures.analyzed(id: 'initial')]);
         await container.read(diaryListControllerProvider.future);
 
         // 데이터 변경
@@ -218,11 +217,7 @@ void main() {
               createdAt: now.subtract(const Duration(days: 2)),
               isPinned: false,
             ),
-            DiaryFixtures.analyzed(
-              id: 'new',
-              createdAt: now,
-              isPinned: false,
-            ),
+            DiaryFixtures.analyzed(id: 'new', createdAt: now, isPinned: false),
           ],
         );
         await container.read(diaryListControllerProvider.future);
@@ -250,11 +245,7 @@ void main() {
               createdAt: now.subtract(const Duration(days: 2)),
               isPinned: true,
             ),
-            DiaryFixtures.analyzed(
-              id: 'new',
-              createdAt: now,
-              isPinned: false,
-            ),
+            DiaryFixtures.analyzed(id: 'new', createdAt: now, isPinned: false),
           ],
         );
         await container.read(diaryListControllerProvider.future);
@@ -322,9 +313,9 @@ void main() {
 
       test('존재하지 않는 일기 ID로 토글해도 안전해야 한다', () async {
         // Arrange
-        when(() => mockRepository.getAllDiaries()).thenAnswer(
-          (_) async => [DiaryFixtures.analyzed(id: 'existing')],
-        );
+        when(
+          () => mockRepository.getAllDiaries(),
+        ).thenAnswer((_) async => [DiaryFixtures.analyzed(id: 'existing')]);
         await container.read(diaryListControllerProvider.future);
 
         // Act - 존재하지 않는 ID
@@ -365,9 +356,9 @@ void main() {
 
       test('Repository.deleteDiary가 호출되어야 한다', () async {
         // Arrange
-        when(() => mockRepository.getAllDiaries()).thenAnswer(
-          (_) async => [DiaryFixtures.analyzed(id: 'target-diary')],
-        );
+        when(
+          () => mockRepository.getAllDiaries(),
+        ).thenAnswer((_) async => [DiaryFixtures.analyzed(id: 'target-diary')]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -392,9 +383,9 @@ void main() {
         );
         addTearDown(statsContainer.dispose);
 
-        when(() => mockRepository.getAllDiaries()).thenAnswer(
-          (_) async => [DiaryFixtures.analyzed(id: 'to-delete')],
-        );
+        when(
+          () => mockRepository.getAllDiaries(),
+        ).thenAnswer((_) async => [DiaryFixtures.analyzed(id: 'to-delete')]);
         await statsContainer.read(diaryListControllerProvider.future);
 
         // 초기 로드로 인한 카운트 리셋
@@ -428,9 +419,9 @@ void main() {
 
       test('존재하지 않는 ID 삭제 시에도 에러 없이 동작해야 한다', () async {
         // Arrange
-        when(() => mockRepository.getAllDiaries()).thenAnswer(
-          (_) async => [DiaryFixtures.analyzed(id: 'existing')],
-        );
+        when(
+          () => mockRepository.getAllDiaries(),
+        ).thenAnswer((_) async => [DiaryFixtures.analyzed(id: 'existing')]);
         await container.read(diaryListControllerProvider.future);
 
         // Act - 존재하지 않는 ID
@@ -545,9 +536,9 @@ void main() {
         final diary1 = DiaryFixtures.analyzed(id: 'diary-1');
         final diary2 = DiaryFixtures.analyzed(id: 'diary-2');
         final diary3 = DiaryFixtures.analyzed(id: 'diary-3');
-        when(() => mockRepository.getAllDiaries()).thenAnswer(
-          (_) async => [diary1, diary2, diary3],
-        );
+        when(
+          () => mockRepository.getAllDiaries(),
+        ).thenAnswer((_) async => [diary1, diary2, diary3]);
         await container.read(diaryListControllerProvider.future);
 
         // Act - 연속 소프트 삭제
@@ -597,9 +588,9 @@ void main() {
           createdAt: now.subtract(const Duration(days: 2)),
         );
         final newDiary = DiaryFixtures.analyzed(id: 'new', createdAt: now);
-        when(() => mockRepository.getAllDiaries()).thenAnswer(
-          (_) async => [oldDiary, newDiary],
-        );
+        when(
+          () => mockRepository.getAllDiaries(),
+        ).thenAnswer((_) async => [oldDiary, newDiary]);
         await container.read(diaryListControllerProvider.future);
 
         final controller = container.read(diaryListControllerProvider.notifier);
@@ -630,9 +621,9 @@ void main() {
           createdAt: now,
           isPinned: false,
         );
-        when(() => mockRepository.getAllDiaries()).thenAnswer(
-          (_) async => [pinnedOld, notPinnedNew],
-        );
+        when(
+          () => mockRepository.getAllDiaries(),
+        ).thenAnswer((_) async => [pinnedOld, notPinnedNew]);
         await container.read(diaryListControllerProvider.future);
 
         final controller = container.read(diaryListControllerProvider.notifier);
@@ -932,10 +923,7 @@ void main() {
           diaryListControllerProvider.future,
         );
         expect(diaries.length, 3);
-        expect(
-          diaries.any((d) => d.id == 'diary-3-new'),
-          isTrue,
-        );
+        expect(diaries.any((d) => d.id == 'diary-3-new'), isTrue);
       });
 
       test('동일 ID 일기 수정 시 교체되어야 한다 (중복 없음)', () async {

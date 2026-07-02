@@ -37,16 +37,16 @@ void main() {
       () => mockUseCase.execute(
         any(),
         imagePaths: any(named: 'imagePaths'),
+        entryDate: any(named: 'entryDate'),
       ),
     ).thenAnswer(
-      (invocation) async =>
-          DiaryFixtures.analyzed(content: invocation.positionalArguments[0] as String),
+      (invocation) async => DiaryFixtures.analyzed(
+        content: invocation.positionalArguments[0] as String,
+      ),
     );
 
     // DiaryRepository stubs
-    when(
-      () => mockDiaryRepository.getAllDiaries(),
-    ).thenAnswer((_) async => []);
+    when(() => mockDiaryRepository.getAllDiaries()).thenAnswer((_) async => []);
     when(
       () => mockDiaryRepository.getTodayDiaries(),
     ).thenAnswer((_) async => []);
@@ -54,20 +54,15 @@ void main() {
       () => mockDiaryRepository.createDiary(
         any(),
         imagePaths: any(named: 'imagePaths'),
+        createdAt: any(named: 'createdAt'),
       ),
     ).thenAnswer((_) async => DiaryFixtures.pending());
-    when(
-      () => mockDiaryRepository.updateDiary(any()),
-    ).thenAnswer((_) async {});
-    when(
-      () => mockDiaryRepository.deleteDiary(any()),
-    ).thenAnswer((_) async {});
+    when(() => mockDiaryRepository.updateDiary(any())).thenAnswer((_) async {});
+    when(() => mockDiaryRepository.deleteDiary(any())).thenAnswer((_) async {});
     when(
       () => mockDiaryRepository.toggleDiaryPin(any(), any()),
     ).thenAnswer((_) async {});
-    when(
-      () => mockDiaryRepository.deleteAllDiaries(),
-    ).thenAnswer((_) async {});
+    when(() => mockDiaryRepository.deleteAllDiaries()).thenAnswer((_) async {});
     when(
       () => mockDiaryRepository.setDiarySecret(any(), any()),
     ).thenAnswer((_) async {});
@@ -136,9 +131,9 @@ void main() {
           var statsCallCount = 0;
           var diaryCallCount = 0;
           final analyzedDiary = DiaryFixtures.analyzed();
-          when(
-            () => mockStatisticsRepository.getStatistics(any()),
-          ).thenAnswer((_) async {
+          when(() => mockStatisticsRepository.getStatistics(any())).thenAnswer((
+            _,
+          ) async {
             statsCallCount++;
             return StatisticsFixtures.empty();
           });
@@ -150,6 +145,7 @@ void main() {
             () => mockUseCase.execute(
               any(),
               imagePaths: any(named: 'imagePaths'),
+              entryDate: any(named: 'entryDate'),
             ),
           ).thenAnswer((_) async => analyzedDiary);
 
@@ -183,9 +179,7 @@ void main() {
           );
 
           // Assert: 분석된 diary가 list state에 반영되었는지 확인
-          final list = await container.read(
-            diaryListControllerProvider.future,
-          );
+          final list = await container.read(diaryListControllerProvider.future);
           expect(
             list.any((d) => d.id == analyzedDiary.id),
             isTrue,
@@ -194,59 +188,55 @@ void main() {
         },
       );
 
-      test(
-        'safetyBlocked 상태에서도 statistics는 무효화 + diaryList는 낙관적 갱신',
-        () async {
-          // Arrange — 호출 횟수 카운터
-          var statsCallCount = 0;
-          var diaryCallCount = 0;
-          final blockedDiary = DiaryFixtures.safetyBlocked();
-          when(
-            () => mockStatisticsRepository.getStatistics(any()),
-          ).thenAnswer((_) async {
-            statsCallCount++;
-            return StatisticsFixtures.empty();
-          });
-          when(() => mockDiaryRepository.getAllDiaries()).thenAnswer((_) async {
-            diaryCallCount++;
-            return [];
-          });
-          when(
-            () => mockUseCase.execute(
-              any(),
-              imagePaths: any(named: 'imagePaths'),
-            ),
-          ).thenAnswer((_) async => blockedDiary);
+      test('safetyBlocked 상태에서도 statistics는 무효화 + diaryList는 낙관적 갱신', () async {
+        // Arrange — 호출 횟수 카운터
+        var statsCallCount = 0;
+        var diaryCallCount = 0;
+        final blockedDiary = DiaryFixtures.safetyBlocked();
+        when(() => mockStatisticsRepository.getStatistics(any())).thenAnswer((
+          _,
+        ) async {
+          statsCallCount++;
+          return StatisticsFixtures.empty();
+        });
+        when(() => mockDiaryRepository.getAllDiaries()).thenAnswer((_) async {
+          diaryCallCount++;
+          return [];
+        });
+        when(
+          () => mockUseCase.execute(
+            any(),
+            imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
+          ),
+        ).thenAnswer((_) async => blockedDiary);
 
-          // 초기화
-          await container.read(statisticsProvider.future);
-          await container.read(diaryListControllerProvider.future);
-          final initialStatsCount = statsCallCount;
-          final initialDiaryCount = diaryCallCount;
+        // 초기화
+        await container.read(statisticsProvider.future);
+        await container.read(diaryListControllerProvider.future);
+        final initialStatsCount = statsCallCount;
+        final initialDiaryCount = diaryCallCount;
 
-          // Act
-          final notifier = container.read(
-            diaryAnalysisControllerProvider.notifier,
-          );
-          await notifier.analyzeDiary('위험 내용');
+        // Act
+        final notifier = container.read(
+          diaryAnalysisControllerProvider.notifier,
+        );
+        await notifier.analyzeDiary('위험 내용');
 
-          await container.read(statisticsProvider.future);
-          await container.read(diaryListControllerProvider.future);
+        await container.read(statisticsProvider.future);
+        await container.read(diaryListControllerProvider.future);
 
-          // Assert
-          expect(statsCallCount, greaterThan(initialStatsCount));
-          expect(
-            diaryCallCount,
-            equals(initialDiaryCount),
-            reason: 'safetyBlocked에서도 풀스캔 금지 — addOrUpdateDiary 사용',
-          );
+        // Assert
+        expect(statsCallCount, greaterThan(initialStatsCount));
+        expect(
+          diaryCallCount,
+          equals(initialDiaryCount),
+          reason: 'safetyBlocked에서도 풀스캔 금지 — addOrUpdateDiary 사용',
+        );
 
-          final list = await container.read(
-            diaryListControllerProvider.future,
-          );
-          expect(list.any((d) => d.id == blockedDiary.id), isTrue);
-        },
-      );
+        final list = await container.read(diaryListControllerProvider.future);
+        expect(list.any((d) => d.id == blockedDiary.id), isTrue);
+      });
 
       test('pending 상태(분석 실패)에서는 provider를 무효화하지 않아야 한다', () async {
         // Arrange
@@ -257,6 +247,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenAnswer((_) async => DiaryFixtures.pending());
 
@@ -335,6 +326,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenAnswer((_) async => DiaryFixtures.analyzed());
 
@@ -358,6 +350,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenThrow(const Failure.api(message: 'API 오류'));
 
@@ -381,6 +374,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenThrow(const Failure.safetyBlocked());
 
@@ -401,6 +395,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenThrow(const Failure.network(message: '네트워크 오류'));
 
@@ -423,6 +418,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenAnswer((_) async => DiaryFixtures.pending());
 
@@ -443,6 +439,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenAnswer((_) async => DiaryFixtures.safetyBlocked());
 
@@ -473,6 +470,7 @@ void main() {
           () => mockUseCase.execute(
             testContent,
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).called(1);
       });
@@ -487,6 +485,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenThrow(const Failure.unknown(message: '분석 실패'));
 
@@ -509,6 +508,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenThrow(Exception('일반 예외 발생'));
 
@@ -555,6 +555,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenThrow(const Failure.unknown(message: '분석 실패'));
         await notifier.analyzeDiary('테스트');
@@ -582,6 +583,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenThrow(const SafetyBlockedFailure());
         await notifier.analyzeDiary('테스트');
@@ -626,6 +628,7 @@ void main() {
           () => mockUseCase.execute(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            entryDate: any(named: 'entryDate'),
           ),
         ).thenThrow(const Failure.unknown(message: '분석 실패'));
         await notifier.analyzeDiary('두 번째 일기');

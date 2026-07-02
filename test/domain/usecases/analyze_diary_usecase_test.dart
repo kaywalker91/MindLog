@@ -3,6 +3,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:mindlog/core/constants/ai_character.dart';
 import 'package:mindlog/core/constants/app_constants.dart';
 import 'package:mindlog/core/errors/failures.dart';
+import 'package:mindlog/core/utils/clock.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 import 'package:mindlog/domain/usecases/analyze_diary_usecase.dart';
 
@@ -29,10 +30,12 @@ void main() {
       () => mockRepository.createDiary(
         any(),
         imagePaths: any(named: 'imagePaths'),
+        createdAt: any(named: 'createdAt'),
       ),
     ).thenAnswer(
-      (inv) async =>
-          DiaryFixtures.pending(content: inv.positionalArguments.first as String),
+      (inv) async => DiaryFixtures.pending(
+        content: inv.positionalArguments.first as String,
+      ),
     );
     when(
       () => mockSettingsRepository.getSelectedAiCharacter(),
@@ -86,6 +89,82 @@ void main() {
       });
     });
 
+    group('작성 날짜 (entryDate)', () {
+      final fixedNow = DateTime(2026, 7, 2, 14, 30, 45, 123);
+
+      DateTime capturedCreatedAt() {
+        final captured = verify(
+          () => mockRepository.createDiary(
+            any(),
+            imagePaths: any(named: 'imagePaths'),
+            createdAt: captureAny(named: 'createdAt'),
+          ),
+        ).captured;
+        return captured.last as DateTime;
+      }
+
+      setUp(() {
+        useCase = AnalyzeDiaryUseCase(
+          mockRepository,
+          mockSettingsRepository,
+          clock: FixedClock(fixedNow),
+        );
+      });
+
+      test('entryDate 미지정 시 현재 시각으로 저장되어야 한다', () async {
+        await useCase.execute('오늘 하루도 무사히 지나갔다. 감사한 하루였다.');
+        expect(capturedCreatedAt(), fixedNow);
+      });
+
+      test('오늘 날짜 선택 시 현재 시각 그대로 저장되어야 한다', () async {
+        await useCase.execute(
+          '오늘 하루도 무사히 지나갔다. 감사한 하루였다.',
+          entryDate: DateTime(2026, 7, 2),
+        );
+        expect(capturedCreatedAt(), fixedNow);
+      });
+
+      test('과거 날짜 선택 시 선택 날짜 + 현재 시분초로 저장되어야 한다', () async {
+        await useCase.execute(
+          '며칠 전 일이지만 기록해두고 싶은 하루였다.',
+          entryDate: DateTime(2026, 6, 29),
+        );
+        expect(capturedCreatedAt(), DateTime(2026, 6, 29, 14, 30, 45, 123));
+      });
+
+      test('시각이 포함된 entryDate도 날짜 부분만 사용해야 한다', () async {
+        await useCase.execute(
+          '며칠 전 일이지만 기록해두고 싶은 하루였다.',
+          entryDate: DateTime(2026, 6, 29, 23, 59),
+        );
+        expect(capturedCreatedAt(), DateTime(2026, 6, 29, 14, 30, 45, 123));
+      });
+
+      test('미래 날짜는 ValidationFailure를 던져야 한다', () async {
+        expect(
+          () => useCase.execute(
+            '아직 오지 않은 날의 일기를 미리 써본다.',
+            entryDate: DateTime(2026, 7, 3),
+          ),
+          throwsA(isA<ValidationFailure>()),
+        );
+      });
+
+      test('자정 경계: 화면 진입 시 고정된 어제 날짜는 어제로 저장되어야 한다', () async {
+        // 23:59 화면 진입(기본값 7/2) → 자정 넘겨 00:01에 저장하는 시나리오
+        useCase = AnalyzeDiaryUseCase(
+          mockRepository,
+          mockSettingsRepository,
+          clock: FixedClock(DateTime(2026, 7, 3, 0, 1)),
+        );
+        await useCase.execute(
+          '자정 직전에 쓰기 시작한 오늘의 일기.',
+          entryDate: DateTime(2026, 7, 2),
+        );
+        expect(capturedCreatedAt(), DateTime(2026, 7, 2, 0, 1));
+      });
+    });
+
     group('안전 필터링', () {
       test('자살 키워드가 포함되면 isEmergency가 true여야 한다', () async {
         final result = await useCase.execute('오늘 너무 힘들어서 자살하고 싶다는 생각이 들었다');
@@ -118,8 +197,9 @@ void main() {
 
       test('응급 키워드 감지 시 DB 업데이트가 호출되어야 한다', () async {
         await useCase.execute('살기싫다. 모든게 무의미하다.');
-        final captured =
-            verify(() => mockRepository.updateDiary(captureAny())).captured;
+        final captured = verify(
+          () => mockRepository.updateDiary(captureAny()),
+        ).captured;
         expect(captured, isNotEmpty);
         expect((captured.last as Diary).status, DiaryStatus.safetyBlocked);
       });
@@ -192,6 +272,7 @@ void main() {
           () => mockRepository.createDiary(
             any(),
             imagePaths: any(named: 'imagePaths'),
+            createdAt: any(named: 'createdAt'),
           ),
         ).called(greaterThan(0));
       });

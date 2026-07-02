@@ -7,7 +7,12 @@ abstract class DiaryRepository {
   ///
   /// [content] 일기 내용
   /// [imagePaths] 첨부 이미지 경로 목록 (선택)
-  Future<Diary> createDiary(String content, {List<String>? imagePaths});
+  /// [createdAt] 일기 작성 시각 (선택, 미지정 시 현재 시각)
+  Future<Diary> createDiary(
+    String content, {
+    List<String>? imagePaths,
+    DateTime? createdAt,
+  });
 
   /// 일기 분석 요청
   ///

@@ -56,12 +56,21 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
   ///
   /// [content] 일기 텍스트 내용
   /// [imagePaths] 첨부된 이미지 경로 목록 (선택)
-  Future<void> analyzeDiary(String content, {List<String>? imagePaths}) async {
+  /// [entryDate] 일기가 속할 날짜 (선택, 미지정 시 오늘)
+  Future<void> analyzeDiary(
+    String content, {
+    List<String>? imagePaths,
+    DateTime? entryDate,
+  }) async {
     state = const DiaryAnalysisLoading();
 
     try {
       final useCase = _ref.read(analyzeDiaryUseCaseProvider);
-      final diary = await useCase.execute(content, imagePaths: imagePaths);
+      final diary = await useCase.execute(
+        content,
+        imagePaths: imagePaths,
+        entryDate: entryDate,
+      );
       if (diary.analysisResult == null &&
           diary.status != DiaryStatus.safetyBlocked) {
         state = const DiaryAnalysisError(
@@ -94,9 +103,7 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
         // topKeywordsProvider는 statisticsProvider의 파생이므로 자동 갱신
         _ref.invalidate(statisticsProvider);
         // 일기 목록은 풀스캔 대신 메모리 상태에 직접 반영 (DB는 이미 저장됨)
-        _ref
-            .read(diaryListControllerProvider.notifier)
-            .addOrUpdateDiary(diary);
+        _ref.read(diaryListControllerProvider.notifier).addOrUpdateDiary(diary);
       }
       // Phase 2: 분석 후 알림 트리거 (비동기, 실패해도 분석 결과에 영향 없음)
       if (diary.status == DiaryStatus.analyzed && analysisResult != null) {

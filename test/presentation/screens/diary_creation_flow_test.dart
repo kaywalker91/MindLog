@@ -38,10 +38,18 @@ class _FirebaseFreeNotifier extends DiaryAnalysisNotifier {
   _FirebaseFreeNotifier(this._useCase, Ref ref) : super(ref);
 
   @override
-  Future<void> analyzeDiary(String content, {List<String>? imagePaths}) async {
+  Future<void> analyzeDiary(
+    String content, {
+    List<String>? imagePaths,
+    DateTime? entryDate,
+  }) async {
     state = const DiaryAnalysisLoading();
     try {
-      final diary = await _useCase.execute(content, imagePaths: imagePaths);
+      final diary = await _useCase.execute(
+        content,
+        imagePaths: imagePaths,
+        entryDate: entryDate,
+      );
       if (diary.analysisResult == null &&
           diary.status != DiaryStatus.safetyBlocked) {
         state = const DiaryAnalysisError(
@@ -66,8 +74,11 @@ class _ControllableMock implements AnalyzeDiaryUseCase {
   _ControllableMock(this._completer);
 
   @override
-  Future<Diary> execute(String content, {List<String>? imagePaths}) =>
-      _completer.future;
+  Future<Diary> execute(
+    String content, {
+    List<String>? imagePaths,
+    DateTime? entryDate,
+  }) => _completer.future;
 }
 
 /// 분석 호출 횟수를 추적하는 테스트 전용 Mock
@@ -75,9 +86,13 @@ class _CountingMock extends MockAnalyzeDiaryUseCase {
   int callCount = 0;
 
   @override
-  Future<Diary> execute(String content, {List<String>? imagePaths}) {
+  Future<Diary> execute(
+    String content, {
+    List<String>? imagePaths,
+    DateTime? entryDate,
+  }) {
     callCount++;
-    return super.execute(content, imagePaths: imagePaths);
+    return super.execute(content, imagePaths: imagePaths, entryDate: entryDate);
   }
 }
 
@@ -131,10 +146,9 @@ void main() {
         () => mockUseCase.execute(
           any(),
           imagePaths: any(named: 'imagePaths'),
+          entryDate: any(named: 'entryDate'),
         ),
-      ).thenAnswer(
-        (_) async => DiaryFixtures.analyzed(),
-      );
+      ).thenAnswer((_) async => DiaryFixtures.analyzed());
 
       await tester.pumpWidget(_buildHarness(analyzeUseCase: mockUseCase));
       await tester.pump();
@@ -158,10 +172,9 @@ void main() {
         () => mockUseCase.execute(
           any(),
           imagePaths: any(named: 'imagePaths'),
+          entryDate: any(named: 'entryDate'),
         ),
-      ).thenAnswer(
-        (_) async => DiaryFixtures.analyzed(),
-      );
+      ).thenAnswer((_) async => DiaryFixtures.analyzed());
 
       await tester.pumpWidget(_buildHarness(analyzeUseCase: mockUseCase));
       await tester.pump();
@@ -227,10 +240,9 @@ void main() {
         () => mockUseCase.execute(
           any(),
           imagePaths: any(named: 'imagePaths'),
+          entryDate: any(named: 'entryDate'),
         ),
-      ).thenAnswer(
-        (_) async => DiaryFixtures.analyzed(sentimentScore: 8),
-      );
+      ).thenAnswer((_) async => DiaryFixtures.analyzed(sentimentScore: 8));
 
       await tester.pumpWidget(_buildHarness(analyzeUseCase: mockUseCase));
       await tester.pump();
@@ -258,6 +270,7 @@ void main() {
         () => mockUseCase.execute(
           any(),
           imagePaths: any(named: 'imagePaths'),
+          entryDate: any(named: 'entryDate'),
         ),
       ).thenThrow(const Failure.network(message: '네트워크 연결을 확인해주세요.'));
 
@@ -286,6 +299,7 @@ void main() {
         () => mockUseCase.execute(
           any(),
           imagePaths: any(named: 'imagePaths'),
+          entryDate: any(named: 'entryDate'),
         ),
       ).thenThrow(const SafetyBlockedFailure());
 
@@ -318,10 +332,9 @@ void main() {
         () => mockUseCase.execute(
           any(),
           imagePaths: any(named: 'imagePaths'),
+          entryDate: any(named: 'entryDate'),
         ),
-      ).thenAnswer(
-        (_) async => DiaryFixtures.analyzed(),
-      );
+      ).thenAnswer((_) async => DiaryFixtures.analyzed());
 
       await tester.pumpWidget(_buildHarness(analyzeUseCase: mockUseCase));
       await tester.pump();
@@ -365,6 +378,7 @@ void main() {
         () => mockUseCase.execute(
           any(),
           imagePaths: any(named: 'imagePaths'),
+          entryDate: any(named: 'entryDate'),
         ),
       ).thenThrow(const SafetyBlockedFailure());
 
@@ -416,6 +430,7 @@ void main() {
         () => mock.execute(
           any(),
           imagePaths: any(named: 'imagePaths'),
+          entryDate: any(named: 'entryDate'),
         ),
       ).thenThrow(const Failure.network());
       mock.callCount = 0; // when() 클로저 실행으로 증가된 카운트 초기화
@@ -442,6 +457,106 @@ void main() {
 
       expect(mock.callCount, 2, reason: '재시도 버튼 탭 시 분석이 다시 호출된다');
       expect(find.text('다시 시도하기'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('작성 날짜 선택', () {
+    testWidgets('기본값으로 오늘 칩이 표시된다', (tester) async {
+      _setLargeView(tester);
+      addTearDown(() => _resetView(tester));
+
+      await tester.pumpWidget(_buildHarness());
+      await tester.pump();
+
+      expect(find.byType(ActionChip), findsOneWidget);
+      expect(find.text('오늘'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('날짜 칩 탭 시 DatePicker가 열리고, 변경 없이 확인하면 오늘이 유지된다', (
+      tester,
+    ) async {
+      _setLargeView(tester);
+      addTearDown(() => _resetView(tester));
+
+      await tester.pumpWidget(_buildHarness());
+      await tester.pump();
+
+      await tester.tap(find.byType(ActionChip));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('일기 날짜 선택'), findsOneWidget);
+
+      await tester.tap(find.text('OK'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('오늘'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('과거 날짜 선택 시 칩이 갱신되고 entryDate로 전달된다', (tester) async {
+      _setLargeView(tester);
+      addTearDown(() => _resetView(tester));
+
+      final mockUseCase = MockAnalyzeDiaryUseCase();
+      when(
+        () => mockUseCase.execute(
+          any(),
+          imagePaths: any(named: 'imagePaths'),
+          entryDate: any(named: 'entryDate'),
+        ),
+      ).thenAnswer((_) async => DiaryFixtures.analyzed());
+
+      await tester.pumpWidget(_buildHarness(analyzeUseCase: mockUseCase));
+      await tester.pump();
+
+      // DatePicker 열기 → 이전 달로 이동 → 15일 선택
+      await tester.tap(find.byType(ActionChip));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.tap(find.byTooltip('Previous month'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.tap(find.text('15'));
+      await tester.pump();
+      await tester.tap(find.text('OK'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // 칩이 과거 날짜 표기로 갱신 (오늘 아님)
+      expect(find.text('오늘'), findsNothing);
+      expect(find.textContaining('일 전'), findsOneWidget);
+
+      // 제출 시 선택한 날짜가 entryDate로 전달된다
+      await tester.enterText(find.byType(TextFormField), _validContent);
+      await tester.pump();
+      await tester.tap(find.byType(ElevatedButton));
+      await tester.pump();
+      await tester.pump();
+      // 성공 오버레이 2초 자동 숨김 타이머 소진 (pending timer 방지)
+      await tester.pump(const Duration(seconds: 2));
+
+      final captured = verify(
+        () => mockUseCase.execute(
+          any(),
+          imagePaths: any(named: 'imagePaths'),
+          entryDate: captureAny(named: 'entryDate'),
+        ),
+      ).captured;
+      final entryDate = captured.last as DateTime?;
+      final now = DateTime.now();
+      expect(entryDate, isNotNull);
+      expect(entryDate!.day, 15);
+      expect(
+        entryDate.isBefore(DateTime(now.year, now.month, now.day)),
+        isTrue,
+        reason: '이전 달 15일은 오늘보다 과거여야 한다',
+      );
       expect(tester.takeException(), isNull);
     });
   });

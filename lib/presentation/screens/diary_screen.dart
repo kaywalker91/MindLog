@@ -38,9 +38,18 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
   /// 선택된 이미지 경로 목록
   final List<String> _selectedImages = [];
 
+  /// 화면 진입 시점의 오늘 날짜 (자정 넘김에도 기본값 유지)
+  late final DateTime _screenEntryDay;
+
+  /// 선택된 작성 날짜 (기본: 오늘)
+  late DateTime _selectedDate;
+
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    _screenEntryDay = DateTime(now.year, now.month, now.day);
+    _selectedDate = _screenEntryDay;
     // 화면 진입 시 분석 상태 초기화 (새 일기 작성을 위해)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(diaryAnalysisControllerProvider.notifier).reset();
@@ -81,7 +90,40 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
         .analyzeDiary(
           _textController.text,
           imagePaths: hasImages ? List.from(_selectedImages) : null,
+          entryDate: _selectedDate,
         );
+  }
+
+  bool get _isTodaySelected => _selectedDate == _screenEntryDay;
+
+  String get _dateChipLabel {
+    if (_isTodaySelected) {
+      return '오늘';
+    }
+    final dateText = _selectedDate.year == _screenEntryDay.year
+        ? '${_selectedDate.month}월 ${_selectedDate.day}일'
+        : '${_selectedDate.year}년 ${_selectedDate.month}월 ${_selectedDate.day}일';
+    final daysAgo = _screenEntryDay.difference(_selectedDate).inDays;
+    return daysAgo == 1 ? '어제 ($dateText)' : '$dateText ($daysAgo일 전)';
+  }
+
+  Future<void> _pickEntryDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(
+        _screenEntryDay.year - 5,
+        _screenEntryDay.month,
+        _screenEntryDay.day,
+      ),
+      lastDate: _screenEntryDay,
+      helpText: '일기 날짜 선택',
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _selectedDate = DateTime(picked.year, picked.month, picked.day);
+      });
+    }
   }
 
   void _onImageAdded(String path) {
@@ -308,7 +350,36 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
+
+          // 작성 날짜 선택 칩 (기본: 오늘, 미래 선택 불가)
+          Center(
+            child: ActionChip(
+              avatar: const Icon(
+                Icons.calendar_today_outlined,
+                size: 18,
+                color: AppColors.primary, // design-ok: 아이콘 브랜드 액센트
+              ),
+              label: Text(
+                _dateChipLabel,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: _isTodaySelected
+                      ? colorScheme.onSurfaceVariant
+                      : AppColors.primaryDark,
+                  fontWeight: _isTodaySelected
+                      ? FontWeight.normal
+                      : FontWeight.w600,
+                ),
+              ),
+              side: _isTodaySelected
+                  ? null
+                  : const BorderSide(
+                      color: AppColors.primary, // design-ok: 강조선 브랜드 액센트
+                    ),
+              onPressed: _pickEntryDate,
+            ),
+          ),
+          const SizedBox(height: 16),
 
           // 텍스트 입력 필드
           TextFormField(
@@ -321,24 +392,32 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
             ),
             validator: Validators.validateDiaryContent,
             onChanged: (_) => setState(() {}),
-            buildCounter: (context, {required currentLength, required isFocused, maxLength}) {
-              final len = currentLength;
-              final Color color;
-              if (len >= AppConstants.diaryMaxLength) {
-                color = AppColors.error;
-              } else if (len >= 4500) {
-                color = AppColors.warning;
-              } else {
-                color = Theme.of(context).colorScheme.onSurfaceVariant;
-              }
-              final String formatted = len >= 1000
-                  ? '${len ~/ 1000},${(len % 1000).toString().padLeft(3, '0')}'
-                  : '$len';
-              return Text(
-                '$formatted/5,000',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: color),
-              );
-            },
+            buildCounter:
+                (
+                  context, {
+                  required currentLength,
+                  required isFocused,
+                  maxLength,
+                }) {
+                  final len = currentLength;
+                  final Color color;
+                  if (len >= AppConstants.diaryMaxLength) {
+                    color = AppColors.error;
+                  } else if (len >= 4500) {
+                    color = AppColors.warning;
+                  } else {
+                    color = Theme.of(context).colorScheme.onSurfaceVariant;
+                  }
+                  final String formatted = len >= 1000
+                      ? '${len ~/ 1000},${(len % 1000).toString().padLeft(3, '0')}'
+                      : '$len';
+                  return Text(
+                    '$formatted/5,000',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: color),
+                  );
+                },
           ),
           const SizedBox(height: 16),
 

@@ -29,6 +29,12 @@
 - 사용자는 텍스트로 감정 일기를 작성할 수 있다
 - 최소 10자, 최대 5,000자 유효성 검사 (ValidateDiaryContentUseCase)
 - 작성 완료 시 SQLite에 `status: pending`으로 즉시 저장 (데이터 유실 방지)
+- 사용자는 일기의 작성 날짜를 선택할 수 있다 (기본값: 오늘)
+  - 미래 날짜 선택 불가 — UI(DatePicker `lastDate`)와 도메인(AnalyzeDiaryUseCase `ValidationFailure`) 양쪽에서 차단
+  - 선택 하한: 오늘 기준 5년 전
+  - 기본 날짜는 작성 화면 진입 시점에 고정 (작성 중 자정을 넘겨도 유지)
+  - 과거 날짜 선택 시 `createdAt` = 선택 날짜 + 저장 시점의 시/분/초 (같은 날 복수 일기의 작성 순서 보존)
+  - 별도 entryDate 컬럼 없이 단일 `createdAt` 사용 (DB 스키마 변경 없음)
 
 ### REQ-002: 이미지 첨부
 - 일기에 최대 N장의 이미지를 첨부할 수 있다 (Android Photo Picker)

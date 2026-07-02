@@ -272,11 +272,15 @@ class SqliteLocalDataSource {
     return _runDb('오늘 일기 조회 실패', (db) async {
       final now = DateTime.now();
       final todayStart = DateTime(now.year, now.month, now.day);
+      final tomorrowStart = DateTime(now.year, now.month, now.day + 1);
 
       final maps = await db.query(
         'diaries',
-        where: 'created_at >= ? AND is_secret = 0',
-        whereArgs: [todayStart.toIso8601String()],
+        where: 'created_at >= ? AND created_at < ? AND is_secret = 0',
+        whereArgs: [
+          todayStart.toIso8601String(),
+          tomorrowStart.toIso8601String(),
+        ],
         orderBy: 'is_pinned DESC, created_at DESC',
       );
 

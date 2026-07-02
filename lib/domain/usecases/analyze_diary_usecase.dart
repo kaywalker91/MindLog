@@ -33,13 +33,21 @@ class AnalyzeDiaryUseCase {
   ///
   /// [content] 사용자가 입력한 일기 내용
   /// [imagePaths] 첨부된 이미지 경로 목록 (선택)
+  /// [entryDate] 일기가 속할 날짜 (선택, 미지정 시 오늘) — 시각 부분은 무시됨
   ///
   /// 반환값: 분석이 완료된 Diary 엔티티
-  Future<Diary> execute(String content, {List<String>? imagePaths}) async {
+  Future<Diary> execute(
+    String content, {
+    List<String>? imagePaths,
+    DateTime? entryDate,
+  }) async {
     try {
       // 입력 유효성 검사 (ValidateDiaryContentUseCase에 위임)
       final validationResult = _validateUseCase.execute(content);
       final validatedContent = validationResult.sanitizedContent;
+
+      // 작성 날짜 확정 (미래 날짜 거부, 과거 날짜는 현재 시분초와 병합)
+      final createdAt = _resolveCreatedAt(entryDate);
 
       // 이미지 유효성 검사
       if (imagePaths != null &&
@@ -59,6 +67,7 @@ class AnalyzeDiaryUseCase {
       final diary = await _repository.createDiary(
         validatedContent,
         imagePaths: processedImagePaths,
+        createdAt: createdAt,
       );
       final character = await _settingsRepository.getSelectedAiCharacter();
       final userName = await _settingsRepository.getUserName();
@@ -125,6 +134,41 @@ class AnalyzeDiaryUseCase {
       }
       throw UnknownFailure(message: e.toString());
     }
+  }
+
+  /// 작성 날짜 확정
+  ///
+  /// - [entryDate]가 null이거나 오늘이면 현재 시각 그대로 사용
+  /// - 과거 날짜면 선택 날짜 + 현재 시분초 병합 (같은 날 복수 일기의 작성 순서 보존)
+  /// - 미래 날짜는 [ValidationFailure] — UI(DatePicker)와 별개로 도메인에서도 차단
+  DateTime _resolveCreatedAt(DateTime? entryDate) {
+    final now = _clock.now();
+    if (entryDate == null) {
+      return now;
+    }
+
+    final selectedDay = DateTime(
+      entryDate.year,
+      entryDate.month,
+      entryDate.day,
+    );
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (selectedDay.isAfter(today)) {
+      throw const ValidationFailure(message: '미래 날짜에는 일기를 작성할 수 없습니다.');
+    }
+    if (selectedDay == today) {
+      return now;
+    }
+    return DateTime(
+      selectedDay.year,
+      selectedDay.month,
+      selectedDay.day,
+      now.hour,
+      now.minute,
+      now.second,
+      now.millisecond,
+    );
   }
 
   /// 이미지 처리 (앱 디렉토리로 복사 + 압축)

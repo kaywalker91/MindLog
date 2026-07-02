@@ -26,12 +26,16 @@ class DiaryRepositoryImpl
        _remoteDataSource = remoteDataSource;
 
   @override
-  Future<Diary> createDiary(String content, {List<String>? imagePaths}) async {
+  Future<Diary> createDiary(
+    String content, {
+    List<String>? imagePaths,
+    DateTime? createdAt,
+  }) async {
     return guardFailure('일기 생성 실패', () async {
       final diary = Diary(
         id: _generateId(),
         content: content,
-        createdAt: DateTime.now(),
+        createdAt: createdAt ?? DateTime.now(),
         status: DiaryStatus.pending,
         imagePaths: imagePaths,
       );
@@ -233,10 +237,7 @@ class DiaryRepositoryImpl
   }
 
   /// 응답 DTO를 캐시에 저장. 실패 시 무시 (분석 결과를 막지 않음).
-  Future<void> _writeGroqCache(
-    String cacheKey,
-    AnalysisResponseDto dto,
-  ) async {
+  Future<void> _writeGroqCache(String cacheKey, AnalysisResponseDto dto) async {
     try {
       await _localDataSource.putGroqCachedResponse(
         cacheKey,

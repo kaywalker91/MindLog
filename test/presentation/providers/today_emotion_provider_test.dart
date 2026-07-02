@@ -19,36 +19,25 @@ void main() {
 
   setUp(() {
     mockRepository = MockDiaryRepository();
-    when(
-      () => mockRepository.getAllDiaries(),
-    ).thenAnswer((_) async => []);
-    when(
-      () => mockRepository.getTodayDiaries(),
-    ).thenAnswer((_) async => []);
+    when(() => mockRepository.getAllDiaries()).thenAnswer((_) async => []);
+    when(() => mockRepository.getTodayDiaries()).thenAnswer((_) async => []);
     when(
       () => mockRepository.createDiary(
         any(),
         imagePaths: any(named: 'imagePaths'),
+        createdAt: any(named: 'createdAt'),
       ),
     ).thenAnswer((_) async => DiaryFixtures.pending());
-    when(
-      () => mockRepository.updateDiary(any()),
-    ).thenAnswer((_) async {});
-    when(
-      () => mockRepository.deleteDiary(any()),
-    ).thenAnswer((_) async {});
+    when(() => mockRepository.updateDiary(any())).thenAnswer((_) async {});
+    when(() => mockRepository.deleteDiary(any())).thenAnswer((_) async {});
     when(
       () => mockRepository.toggleDiaryPin(any(), any()),
     ).thenAnswer((_) async {});
-    when(
-      () => mockRepository.deleteAllDiaries(),
-    ).thenAnswer((_) async {});
+    when(() => mockRepository.deleteAllDiaries()).thenAnswer((_) async {});
     when(
       () => mockRepository.setDiarySecret(any(), any()),
     ).thenAnswer((_) async {});
-    when(
-      () => mockRepository.getSecretDiaries(),
-    ).thenAnswer((_) async => []);
+    when(() => mockRepository.getSecretDiaries()).thenAnswer((_) async => []);
 
     container = ProviderContainer(
       overrides: [diaryRepositoryProvider.overrideWithValue(mockRepository)],
