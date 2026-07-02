@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.55] - 2026-07-02
+
+### Added
+- **일기 작성 시 과거 날짜 선택 및 백필 지원** (`lib/presentation/screens/diary_screen.dart`, `lib/domain/usecases/analyze_diary_usecase.dart`, `lib/domain/repositories/diary_repository.dart`, `lib/data/repositories/diary_repository_impl.dart`):
+  - 작성 화면에 날짜 선택 ActionChip 추가 (기본값 "오늘"). 탭 시 DatePicker 표시 (하한: 5년 전, 상한: 오늘, 미래 선택 불가).
+  - 라벨 동적 표시: "오늘" / "어제 (7월 1일)" / "6월 15일 (17일 전)".
+  - `AnalyzeDiaryUseCase.execute()`에 `entryDate` 파라미터 추가. 내부 `_resolveCreatedAt()`에서:
+    - 미지정 또는 오늘 → 현재 시각
+    - 과거 날짜 → 선택한 날짜 + 현재 시:분:초 병합 (동일 날짜의 여러 일기 작성 순서 보존)
+    - 미래 날짜 → `ValidationFailure` (도메인 레벨 차단)
+  - `DiaryRepository.createDiary(createdAt)` 파라미터 지원. Repository/DataSource 레이어에서 `now()` 하드코딩 제거.
+  - `getTodayDiaries()`에 `< 내일 0시` 상한 방어 추가.
+  - DB 스키마 변경 없음 (기존 `createdAt` 필드 활용).
+
+- **KST 타임존 유틸리티** (`lib/core/utils/time_utils.dart`): `getCurrentKstTime()`, `utcToKst()`, `formatIso8601Kst()`. `timezone` 패키지 기반 정확한 한국 시간 처리. 전용 단위 테스트 6건 추가.
+
+### Changed
+- Diary 생성 전체 파이프라인에 `entryDate` 지원 전파 (UI → UseCase → Repository → LocalDataSource).
+- `DiaryScreen` 상태 관리에 `_screenEntryDay` / `_selectedDate` 도입으로 자정 넘김 시에도 기준일 유지.
+
+### Testing
+- 신규 테스트 대거 추가 및 기존 테스트 보강:
+  - UseCase 6건 (날짜 해결 로직, 미래 차단, createdAt 병합)
+  - Widget 테스트 3건 (날짜 칩 렌더링, DatePicker 상호작용, 과거 선택 시 createdAt 전달)
+  - `time_utils_test.dart` 6건
+  - 다수 provider / repository 테스트 리팩토링
+- `scripts/run.sh test-affected`로 12개 affected 테스트 + 전체 스위트 (1,711건) green 확인.
+
+### Chore / Infrastructure
+- **CI 안정화**: `scripts/run.sh` 상단에 fvm shim 추가 (`flutter()` → `fvm flutter`). pre-push hook이 사용자의 PATH flutter(3.41.4 user-branch) 대신 프로젝트 fvm pinned `stable` (3.38.9)을 사용하도록 보호. ink_sparkle.frag 셰이더 디코드 실패 같은 환경 드리프트 버그 차단. (CLAUDE.md "flutter 대신 fvm flutter" 규약 준수)
+- 세션/프로젝트 관리: `tasks/lessons.md`에 mocktail 관련 교훈 기록, `.gitignore` (.claude/tmp/, harness runs/), `.serena/project.yml` 갱신.
+
+---
+
 ## [1.4.54] - 2026-05-02
 
 ### Added
