@@ -260,7 +260,7 @@ class GroqRemoteDataSource {
                 {'role': 'user', 'content': userContent},
               ],
               'temperature': 0.7,
-              'max_tokens': 1500, // Vision 분석은 토큰을 더 많이 사용
+              'max_completion_tokens': 2048,
               'response_format': {'type': 'json_object'},
             }),
           )
@@ -360,7 +360,9 @@ class GroqRemoteDataSource {
                 {'role': 'user', 'content': prompt},
               ],
               'temperature': 0.7,
-              'max_tokens': 1024,
+              'max_completion_tokens': 2048,
+              'reasoning_effort': 'low',
+              'include_reasoning': false,
               'response_format': {'type': 'json_object'},
             }),
           )

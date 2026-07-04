@@ -1,10 +1,14 @@
 {
-  "latestVersion": "1.4.56",
+  "latestVersion": "1.4.57",
   "minSupportedVersion": "1.3.0",
   "forceUpdate": false,
   "androidUrl": "https://play.google.com/store/apps/details?id=com.mindlog.mindlog",
   "iosUrl": null,
   "changelog": {
+    "1.4.57": [
+      "AI 분석 엔진이 업그레이드되었어요! 더 안정적이고 효율적인 모델로 교체했습니다. (텍스트 분석 + 이미지 분석 모두 개선)",
+      "분석 속도와 품질이 향상되었어요. 반드시 업데이트해 주세요. 이전 버전은 7월 17일 이후 AI 분석이 불가능할 수 있습니다."
+    ],
     "1.4.56": [
       "알림 시스템이 더 안정적으로 개선되었어요. 알림 구분 번호(ID)를 중앙에서 관리하고, 자동으로 만드는 알림이 서로 번호가 겹치지 않도록 자동 검사해요.",
       "알림 예약이나 취소 중 일부가 실패해도 다른 알림들은 정상 처리돼요. 전체 알림이 영향을 받는 일이 줄었어요.",

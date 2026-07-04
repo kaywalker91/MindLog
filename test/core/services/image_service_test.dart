@@ -28,10 +28,7 @@ void main() {
   group('ImageService', () {
     group('AppConstants 이미지 설정', () {
       test('groqVisionModel이 올바르게 정의되어 있다', () {
-        expect(
-          AppConstants.groqVisionModel,
-          'meta-llama/llama-4-scout-17b-16e-instruct',
-        );
+        expect(AppConstants.groqVisionModel, 'qwen/qwen3.6-27b');
       });
 
       test('maxImagesPerDiary가 5개로 정의되어 있다', () {

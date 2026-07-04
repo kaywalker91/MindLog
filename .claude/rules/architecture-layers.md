@@ -67,10 +67,11 @@ class MyRepositoryImpl with RepositoryFailureHandler implements MyRepository {
 
 ### Groq API Settings
 - URL: `https://api.groq.com/openai/v1/chat/completions`
-- Model: `llama-3.3-70b-versatile`
-- Temperature: 0.7, Max Tokens: 1024
+- Model: `openai/gpt-oss-120b` (text), `qwen/qwen3.6-27b` (vision)
+- Temperature: 0.7, Max completion tokens: 2048 (reasoning 모델 대응)
 - Retry: 3 attempts, initial delay 1s, backoff 2.0x
 - Circuit Breaker: threshold 5, reset 30s, success threshold 2
+- Text 요청: `reasoning_effort: low`, `include_reasoning: false` (gpt-oss 대응)
 
 ### DTO/Parser Rules
 - `AnalysisResponseDto` maps JSON fields to typed Dart

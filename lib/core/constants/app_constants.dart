@@ -14,11 +14,10 @@ class AppConstants {
   static const int _diaryMaxLength = 5000;
 
   // Groq Model (최신 안정 버전)
-  static const String _groqModel = 'llama-3.3-70b-versatile';
+  static const String _groqModel = 'openai/gpt-oss-120b';
 
   // Groq Vision Model (이미지 분석용)
-  static const String _groqVisionModel =
-      'meta-llama/llama-4-scout-17b-16e-instruct';
+  static const String _groqVisionModel = 'qwen/qwen3.6-27b';
 
   // 이미지 설정
   static const int _maxImagesPerDiary = 5;

@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.57] - 2026-07-04
+
+### Changed (Groq AI Model Migration)
+
+- **텍스트 감정 분석 모델 교체**: `llama-3.3-70b-versatile` → `openai/gpt-oss-120b` (Production 등급, 비용 효율 ↑, 한국어 성능 유지)
+- **비전(이미지 분석) 모델 교체**: `meta-llama/llama-4-scout-17b-16e-instruct` → `qwen/qwen3.6-27b` (폐기 모델 대체, 유일한 비전 지원 후보)
+- Groq 요청 파라미터 대응 (reasoning 모델 특성 반영):
+  - `max_tokens` → `max_completion_tokens: 2048` (텍스트/비전 모두)
+  - 텍스트 요청에만 `reasoning_effort: "low"`, `include_reasoning: false` 추가 (JSON 응답 잘림 방지 + 방어)
+- 관련 코드/테스트/문서 동기화:
+  - `app_constants.dart`, `groq_remote_datasource.dart`
+  - `image_service_test.dart`
+  - CLAUDE.md, `.claude/rules/architecture-layers.md`, `.claude/skills/groq-expert.md`
+- 실 API 검증 완료 (에뮬레이터 + 실제 키): 3개 캐릭터 분석, 위기 감지(`is_emergency`) 경로, JSON 스키마, 한국어 응답 품질, truncation 없음 확인
+- deprecation 대응: 7/17(비전), 8/16(텍스트) 마감 전 조기 릴리스로 미업데이트 사용자 보호
+
+### Notes
+- 캐시 키, 프롬프트, 파서 등은 모델 독립적이라 변경 불필요 (자동 무효화됨)
+- Phase 2 (원격 설정) 는 후속 작업 예정
+
 ## [1.4.56] - 2026-07-04
 
 ### Improved (P1 Notification Defense Completion - P1-3/P1-4)

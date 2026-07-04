@@ -15,8 +15,9 @@ Groq API 통합 및 AI 프롬프트 최적화 (`/groq [action]`)
 ## API 설정
 ```
 URL: https://api.groq.com/openai/v1/chat/completions
-Model: llama-3.3-70b-versatile
-Temperature: 0.7, Max Tokens: 1024
+Model: openai/gpt-oss-120b (text) / qwen/qwen3.6-27b (vision)
+Temperature: 0.7, Max completion tokens: 2048
+  - Text: reasoning_effort: low + include_reasoning: false (gpt-oss 대응)
 재시도: 3회, 초기지연 1초, 백오프 2.0x
 ```
 
