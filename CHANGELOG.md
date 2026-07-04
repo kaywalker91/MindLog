@@ -7,25 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.4.56] - 2026-07-04
 
-### Improved (P1 Notification Defense Completion)
+### Improved (P1 Notification Defense Completion - P1-3/P1-4)
 
-- **P1-3: 알림 ID 중앙화 및 충돌 방어 강화**
-  - `NotificationService`에 `weeklyInsightId=2002`, `safetyFollowupId=2004`, `cbtBaseId=3001`, `cbtIdRange` 중앙 상수 추가 + `generateCbtNotificationId()` 헬퍼.
-  - `scheduleWeeklyInsight()` 내부 하드코딩 제거 → 중앙 상수 사용.
-  - `SafetyFollowupService.notificationId` → `NotificationService.safetyFollowupId` 참조.
-  - `scheduleNextMorning()` 동적 ID 생성 시 `getPendingNotifications()` 기반 충돌 검사 + 범위 내 회피 로직 (최대 20회 perturbation).
-  - 상수값 고정 검증 테스트 + 결정성 테스트 추가 (`notification_service_test.dart`).
+**P1-3: 알림 ID 중앙화 및 충돌 방어 강화 (id-conflict-checker 관점)**
 
-- **P1-4: 시나리오 커버리지 + 추가 레질리언스**
-  - `_applyCheerMeQueueDiff()` cancel/schedule 루프를 per-item try/catch로 강화. 개별 실패 시 나머지 큐 항목 계속 처리 + `Crashlytics` 로깅 (`cheerme_*_partial_failure`) + success 집계.
-  - 신규 테스트: mindcare 메시지 `{name}` 패턴 절대 금지 검증, emotion low(1.0)/high(10.0) 경계 커버, "일부 스케줄 실패 시에도 나머지 진행" resilience 테스트.
-  - 기존 FCM 경계값(null/empty/3.0/3.1/6.0/6.1) + static reset 패턴 보강.
+- `NotificationService`에 모든 고정 ID 중앙 상수화:
+  - `weeklyInsightId = 2002`
+  - `safetyFollowupId = 2004`
+  - `cbtBaseId = 3001`, `cbtIdRange = 1000`
+  - `generateCbtNotificationId(patternName)` 헬퍼 추가 (결정적 해시 기반 생성).
+- `scheduleWeeklyInsight()` 내부 `const weeklyInsightId = 2002` 제거, 중앙 상수 참조로 변경.
+- `SafetyFollowupService.notificationId = NotificationService.safetyFollowupId`로 중앙 참조.
+- `scheduleNextMorning()` (CBT 동적 ID) 에 collision defense 추가:
+  - `getPendingNotifications()` 로 현재 예약 상태 조회.
+  - 고정 ID (daily, fcm, weekly, safety)와 pending ID와 충돌 시 범위 내 perturbation (최대 20회).
+  - pending 조회 실패 시 fail-open (스케줄링 우선).
+- 테스트: `notification_service_test.dart` 에 ID 상수 고정값 검증, generator 결정성 테스트 추가.
+
+**P1-4: 시나리오 커버리지 + 추가 레질리언스 (scenario-tester + resilience)**
+
+- `_applyCheerMeQueueDiff()` 강화:
+  - cancel 루프와 schedule 루프를 per-item try/catch 로 변경.
+  - 실패 시 해당 항목만 스킵, 나머지 계속 처리.
+  - kDebugMode 디버그 로그 + analyticsLog null 시 `CrashlyticsService.recordError` (reason: 'cheerme_*_partial_failure').
+  - success 플래그 집계 유지.
+- 테스트 보강:
+  - `fcm_service_test.dart`: mindcare 메시지 `{name}` 패턴 절대 미포함 검증, low(1.0)/high(10.0) 경계 커버 테스트.
+  - `notification_settings_service_test.dart`: "일부 스케줄 실패 시에도 나머지 진행" resilience 테스트 (override로 2번째 실패 시뮬).
+  - 기존 경계값(null, empty, 3.0/3.1/6.0/6.1) 및 static reset 패턴 보강.
+- NotificationMessages: mindcare 경로는 applyNamePersonalization 호출 안 함 (CheerMe만 허용) 검증 강화.
 
 ### Testing
-- P1-3/P1-4 관련 단위/통합 테스트 10+건 추가. 전체 서비스 테스트 319+ green.
-- `flutter analyze` clean.
+- P1-3/P1-4 관련 신규/보강 테스트 다수 추가. notification_*_test, fcm_service_test, safety_followup_service_test 등 전체 green.
+- `flutter analyze --fatal-infos` clean, format check 통과.
+- `scripts/run.sh quality` 핵심 게이트 (analyze + format + test) 통과 (design-audit 는 pre-existing presentation color 이슈).
+
+### Docs
+- CHANGELOG.md, tasks/lessons.md, docs/til/FCM_IDEMPOTENCY_LOCK.md 에 P1 교훈 및 변경사항 기록.
+- update.json (사용자 릴리스 노트), docs/index.html (GitHub Pages) 업데이트.
 
 ---
 

@@ -96,6 +96,11 @@
             <p class="section-subtitle">v1.4.54까지의 개선 사항을 소개합니다. 3-way LLM 합의(Claude × Gemini × Codex)로 도출한 P0/P1 성능 최적화 묶음 — Firebase Performance 측정 인프라 도입, Groq 응답 SQLite 캐싱(SHA-256 해시·LRU 1000건), 알림 큐 diff 알고리즘으로 platform channel 호출 0-call 최적화, JSON 파싱 isolate 오프로드, Cheer Me 7일 큐 재구축 — 등이 포함됩니다.</p>
             <div class="updates-grid">
                 <div class="update-card">
+                    <span class="update-tag">Reliability &amp; Maintainability</span>
+                    <h3>알림 시스템 방어 강화 완료 (P1-3/P1-4)</h3>
+                    <p>알림 신뢰성을 높이기 위한 엔지니어링 작업 완료. 모든 알림 ID(주간 인사이트 2002, 안전 후속 2004, CBT 동적 3001+)를 NotificationService에 중앙 집중화하여 중복/충돌 위험 제거. 동적 ID 생성 시 pending 알림 검사로 충돌 자동 회피 로직 추가. 큐 적용(_applyCheerMeQueueDiff)에서 per-item 오류 처리로 부분 실패 시에도 나머지 알림 정상 예약 보장 (Crashlytics 로깅 포함). mindcare 알림 {name} 패턴 금지 검증, 감정 경계값/부분 실패 시나리오 테스트 대폭 강화. 장기적으로 사용자 알림 경험의 안정성과 코드 유지보수성을 크게 향상시켰습니다.</p>
+                </div>
+                <div class="update-card">
                     <span class="update-tag">Performance</span>
                     <h3>Groq 응답 SQLite 캐싱 — DB v8 + SHA-256 + LRU (v1.4.54)</h3>
                     <p>3-way LLM 합의 기반 P0 작업으로, 동일 일기 재분석 비용을 0에 가깝게 만들었습니다. <code>groq_analysis_cache</code> 테이블을 신설하고 <code>(model, content, character, userName, imageHashes, promptVersion)</code>을 SHA-256 해시 키로 사용합니다. content는 공백 압축으로 정규화하며, 1000건 임계 시 <code>last_used_at</code> 기반 LRU eviction이 작동합니다. 위기 감지(<code>is_emergency=true</code>) 응답은 캐시 제외로 매번 재평가하여 안전성을 보장하며, <code>PromptConstants.version</code> 변경으로 일괄 무효화 가능한 설계입니다.</p>
