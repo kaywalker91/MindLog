@@ -833,6 +833,54 @@ void main() {
         expect(mockClient.callCount, 1);
       });
 
+      test('Vision 요청에 reasoning_effort none을 포함해야 한다', () async {
+        // qwen3.6-27b 기본 thinking 모드가 completion 예산을 소진해
+        // json_validate_failed(400)이 발생하는 회귀 방지
+        mockClient.setSuccessResponse(createValidApiResponse());
+
+        await dataSource.analyzeDiaryWithImages(
+          '오늘 산책하며 예쁜 꽃을 봤다',
+          imagePaths: [tempImagePath],
+          character: AiCharacter.warmCounselor,
+        );
+
+        final body =
+            jsonDecode(mockClient.calledBodies.first as String)
+                as Map<String, dynamic>;
+        expect(body['reasoning_effort'], 'none');
+        expect(body['response_format'], {'type': 'json_object'});
+      });
+
+      test('이미지가 4장이어도 Vision 요청에는 최대 3장만 포함해야 한다', () async {
+        // qwen3.6-27b는 요청당 이미지 3장 제한 — 초과 시 400
+        mockClient.setSuccessResponse(createValidApiResponse());
+        final extraPaths = List.generate(4, (i) {
+          final path = '${tempDir.path}/test_image_$i.png';
+          File(path).writeAsBytesSync(File(tempImagePath).readAsBytesSync());
+          return path;
+        });
+
+        await dataSource.analyzeDiaryWithImages(
+          '오늘 산책하며 사진을 많이 찍었다',
+          imagePaths: extraPaths,
+          character: AiCharacter.warmCounselor,
+        );
+
+        final body =
+            jsonDecode(mockClient.calledBodies.first as String)
+                as Map<String, dynamic>;
+        final userContent =
+            ((body['messages'] as List)[1] as Map<String, dynamic>)['content']
+                as List;
+        final imageParts = userContent.whereType<Map<String, dynamic>>().where(
+          (part) => part['type'] == 'image_url',
+        );
+        expect(
+          imageParts.length,
+          GroqRemoteDataSource.maxImagesPerVisionRequest,
+        );
+      });
+
       test('API 키가 비어있으면 ApiException을 던져야 한다', () async {
         final emptyKeyDataSource = GroqRemoteDataSource('', client: mockClient);
 

@@ -136,6 +136,11 @@
                     <p>이전 리팩토링 과정에서 누락된 retry 로직을 복원했습니다. 5xx 응답과 타임아웃에 대한 지수 백오프 재시도가 다시 활성화되어, Groq API 일시 장애 시에도 분석이 안정적으로 완료됩니다. 테스트 472줄을 전면 재구성하여 retry 시나리오(횟수, 백오프, 최종 실패 등)를 명시적으로 검증합니다.</p>
                 </div>
                 <div class="update-card">
+                    <span class="update-tag">Bug Fix &amp; Reliability</span>
+                    <h3>Vision API 실측 회귀 수정 — 사진 일기 분석 안정화 (v1.4.58)</h3>
+                    <p>v1.4.57에서 도입한 Qwen Vision 모델(qwen3.6-27b)의 실사용 중 400 오류(json_validate_failed, Too many images)를 실측·재현 후 근본 원인을 분석해 수정했습니다. thinking 모드가 completion 예산을 소진하는 문제 → <code>reasoning_effort: none</code> 적용, Groq 3장 이미지 제한 → datasource 레벨 클램프, 413 TPM 초과 → 사용자 친화적 오류 메시지. TDD로 회귀 테스트 2건을 추가해 API payload 계약을 고정했습니다. 외부 API 제약을 앱 레이어에서 흡수하는 방어적 설계 패턴의 사례입니다.</p>
+                </div>
+                <div class="update-card">
                     <span class="update-tag">Backend &amp; Reliability</span>
                     <h3>AI 모델 마이그레이션 (v1.4.57)</h3>
                     <p>Groq 폐기 모델 대응으로 텍스트 분석 모델을 openai/gpt-oss-120b, 이미지 분석 모델을 qwen/qwen3.6-27b으로 교체. reasoning 모델 특성을 반영해 max_completion_tokens 상향 + 파라미터 최적화(텍스트 전용). 에뮬레이터 실증 테스트로 JSON 품질, 한국어 응답, 위기 감지 경로(is_emergency) 모두 검증 완료. 사용자 영향 최소화 + 비용 효율 향상.</p>

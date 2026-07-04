@@ -72,6 +72,12 @@ class MyRepositoryImpl with RepositoryFailureHandler implements MyRepository {
 - Retry: 3 attempts, initial delay 1s, backoff 2.0x
 - Circuit Breaker: threshold 5, reset 30s, success threshold 2
 - Text 요청: `reasoning_effort: low`, `include_reasoning: false` (gpt-oss 대응)
+- Vision 요청: `reasoning_effort: none` **필수** — qwen3.6 기본 thinking 모드가
+  completion 예산을 소진해 400 `json_validate_failed` 발생 (2026-07-05 실측)
+- Vision 이미지 상한: 요청당 3장 (`maxImagesPerVisionRequest`) — 초과 시 400
+  "Too many images". 앱 저장 한도(5장)와 별개로 datasource에서 클램프
+- Groq 413 = 단일 요청 TPM 한도 초과(`rate_limit_exceeded`) — 무료 티어 8K TPM,
+  고해상도 이미지 3장이면 발생 가능 (재시도 무의미, 요청 축소 필요)
 
 ### DTO/Parser Rules
 - `AnalysisResponseDto` maps JSON fields to typed Dart

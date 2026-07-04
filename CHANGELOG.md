@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.58] - 2026-07-05
+
+### Fixed (Groq Vision API — qwen3.6-27b 실측 회귀 수정)
+
+- **Vision `reasoning_effort: none` 추가** (`groq_remote_datasource.dart`):
+  - qwen/qwen3.6-27b 기본 thinking 모드가 completion 토큰 예산을 추론에 소진 → `response_format: json_object` 검증 실패(400 `json_validate_failed`) 발생.
+  - Vision 요청에만 `reasoning_effort: 'none'` 설정하여 JSON 응답 안정화 (텍스트 gpt-oss-120b 경로는 기존 `low` 유지).
+- **Vision 이미지 상한 클램프** (`maxImagesPerVisionRequest = 3`):
+  - Groq Vision API는 요청당 최대 3장 — 4장 이상 전송 시 400 "Too many images provided".
+  - 앱 저장 한도(5장)와 분리하여 분석 요청에는 앞 3장만 `sublist(0, 3)`으로 전송.
+  - 프롬프트 `imageCount`도 클램프된 개수와 동기화.
+- **413 TPM 한도 오류 메시지** (`_mapHttpStatusToMessage`):
+  - Groq 무료 티어 8K TPM 초과 시 413 `rate_limit_exceeded` 반환 — 고해상도 이미지 3장 조합에서 발생 가능.
+  - 사용자 안내: "요청이 너무 큽니다. 사진 수를 줄여 다시 시도해주세요." (재시도 무의미, 요청 축소 필요).
+
+### Testing
+- `groq_remote_datasource_test.dart` 회귀 테스트 2건 추가:
+  - Vision 요청 body에 `reasoning_effort: none` 포함 검증.
+  - 4장 이미지 입력 시 API payload에 image_url 3개만 포함 검증.
+- `groq_remote_datasource_test.dart` 전체 46건 green.
+
+### Docs
+- `.claude/rules/architecture-layers.md`: Vision `reasoning_effort`, 이미지 상한, 413 TPM 제약 문서화.
+- `docs/update.json`, `docs/index.html` v1.4.58 릴리스 노트 동기화.
+
 ## [1.4.57] - 2026-07-04
 
 ### Changed (Groq AI Model Migration)

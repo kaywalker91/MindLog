@@ -29,6 +29,13 @@ class GroqRemoteDataSource {
   @visibleForTesting
   static const int isolateParsingThresholdChars = 4096;
 
+  /// Vision 모델(qwen3.6-27b)의 요청당 이미지 상한 (Groq 제약)
+  ///
+  /// 초과 전송 시 400 "Too many images provided" — 앱 저장 한도(5장)와
+  /// 무관하게 분석 요청에는 이 개수까지만 포함한다.
+  @visibleForTesting
+  static const int maxImagesPerVisionRequest = 3;
+
   final String _apiKey;
   final String _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
   final http.Client _client;
@@ -217,17 +224,23 @@ class GroqRemoteDataSource {
       );
     }
 
+    // qwen3.6-27b는 요청당 이미지 최대 3장 — 초과 시 400.
+    // 앱은 일기당 5장까지 저장하므로 분석에는 앞의 3장만 사용한다.
+    final visionImagePaths = imagePaths.length > maxImagesPerVisionRequest
+        ? imagePaths.sublist(0, maxImagesPerVisionRequest)
+        : imagePaths;
+
     try {
       final prompt = PromptConstants.createAnalysisPromptWithImages(
         content,
-        imageCount: imagePaths.length,
+        imageCount: visionImagePaths.length,
         character: character,
         userName: userName,
       );
 
       // 이미지를 Base64로 인코딩
       final imageDataUrls = await ImageService.encodeMultipleToBase64DataUrls(
-        imagePaths,
+        visionImagePaths,
       );
 
       // Vision API 메시지 구성
@@ -261,6 +274,9 @@ class GroqRemoteDataSource {
               ],
               'temperature': 0.7,
               'max_completion_tokens': 2048,
+              // qwen3.6은 기본 thinking 모드 — 추론 토큰이 completion 예산을
+              // 소진해 json_object 검증 실패(400 json_validate_failed) 방지
+              'reasoning_effort': 'none',
               'response_format': {'type': 'json_object'},
             }),
           )
@@ -454,6 +470,8 @@ class GroqRemoteDataSource {
       400 => 'Groq API 오류: 잘못된 요청 형식입니다.',
       401 => 'Groq API 오류: API 키 인증에 실패했습니다.',
       403 => 'Groq API 오류: 접근 권한이 없습니다.',
+      // Groq는 단일 요청이 TPM 한도를 초과하면 413(rate_limit_exceeded) 반환
+      413 => 'Groq API 오류: 요청이 너무 큽니다. 사진 수를 줄여 다시 시도해주세요.',
       429 => 'Groq API 오류: 요청 제한을 초과했습니다. 잠시 후 다시 시도해주세요.',
       500 => 'Groq API 오류: 서버 내부 오류가 발생했습니다.',
       502 => 'Groq API 오류: 서버 게이트웨이 오류가 발생했습니다.',
