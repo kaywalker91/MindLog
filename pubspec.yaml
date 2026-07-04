@@ -86,6 +86,12 @@ dependencies:
   talker: ^4.9.3
   talker_riverpod_logger: ^4.9.3
 
+  # Debug / Inspection tooling (Marionette MCP)
+  # Imported in lib/main.dart for bindingInitializer, but guarded by !kReleaseMode.
+  # Tree-shaken from release builds (kReleaseMode is const). Moved to dependencies
+  # to satisfy depend_on_referenced_packages lint while keeping release AAB clean.
+  marionette_flutter: ^0.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -119,7 +125,6 @@ dev_dependencies:
   firebase_analytics_platform_interface: ^4.4.3
   firebase_core_platform_interface: ^6.0.2
   plugin_platform_interface: ^2.1.8
-  marionette_flutter: ^0.3.0
 
 flutter:
   uses-material-design: true
