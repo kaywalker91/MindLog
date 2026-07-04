@@ -20,7 +20,8 @@ class SafetyFollowupService {
 
   // ===== 상수 =====
 
-  static const int notificationId = 2004;
+  // Centralized via NotificationService (P1-3 ID defense)
+  static const int notificationId = NotificationService.safetyFollowupId;
   static const String _prefKey = 'last_emergency_timestamp';
   static const String _followupSentKey = 'safety_followup_sent';
   static const Duration _followupDelay = Duration(hours: 24);

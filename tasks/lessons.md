@@ -28,6 +28,12 @@
 **해결책**: `NotificationMessages.getRandomMindcareBody()` 사용 강제화
 **예방 규칙**: FCM body는 항상 `NotificationMessages.*` 상수에서 가져올 것. 빈 문자열 리터럴 금지.
 
+## 2026-07 - 알림 ID 분산 정의 위험 (P1-3/P1-4)
+**무엇이 잘못됐나**: weekly(2002), safety(2004), CBT(3001+) ID가 서비스별 하드코딩 또는 로컬 const → 중복/충돌 위험, 유지보수 어려움.
+**근본 원인**: ID 정책이 NotificationService에 중앙화되지 않고, 동적 ID 생성에 pending 검사 없음. partial schedule 실패 시 전체 중단.
+**해결책**: NotificationService에 모든 ID 상수 + generateCbt... 헬퍼. scheduleNextMorning에 getPending + 충돌 회피. _applyCheerMeQueueDiff per-item try/catch resilience. mindcare {name} 금지 + 경계 테스트 보강.
+**예방 규칙**: 새 알림 타입 추가 시 반드시 NotificationService 상수 + ID 범위 문서화. 큐 apply 로직은 항상 per-item 실패 허용 + 로깅. notification-audit 스킬 주기적 실행.
+
 ## 2026-02-27 - 테스트 플랫폼 서비스 side effect 미가드 → CI 로그 노이즈
 **무엇이 잘못됐나**: 위젯/프로바이더 테스트에서 플랫폼 서비스(FlutterLocalNotificationsPlugin, NotificationSettingsService) 오버라이드 없이 실제 호출 → `LateInitializationError`, `UnknownFailure` 로그가 CI에 반복 출력 (테스트는 통과)
 **근본 원인**: 위젯 탭이 Controller → UseCase → 실제 플랫폼 서비스 체인을 타는데, 테스트 setUp에서 해당 서비스의 override를 설정하지 않음

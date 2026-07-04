@@ -1340,9 +1340,10 @@ void main() {
 
       setUp(() {
         cancelByIdCalls = [];
-        NotificationSettingsService.cancelNotificationByIdOverride = (id) async {
-          cancelByIdCalls.add(id);
-        };
+        NotificationSettingsService.cancelNotificationByIdOverride =
+            (id) async {
+              cancelByIdCalls.add(id);
+            };
       });
 
       List<PendingNotificationRequest> pendingFromScheduleCalls(
@@ -1393,37 +1394,40 @@ void main() {
         expect(cancelByIdCalls, isEmpty);
       });
 
-      test('동일 plan 재적용 시 reminder_unchanged analytics 이벤트가 기록되어야 한다', () async {
-        // Arrange
-        final messages = [createMessage(0)];
-        final settings = createSettings();
+      test(
+        '동일 plan 재적용 시 reminder_unchanged analytics 이벤트가 기록되어야 한다',
+        () async {
+          // Arrange
+          final messages = [createMessage(0)];
+          final settings = createSettings();
 
-        await NotificationSettingsService.applySettings(
-          settings,
-          messages: messages,
-        );
+          await NotificationSettingsService.applySettings(
+            settings,
+            messages: messages,
+          );
 
-        final pending = pendingFromScheduleCalls(scheduleCalls);
-        NotificationSettingsService.getPendingNotificationsOverride =
-            () async => pending;
-        scheduleCalls.clear();
-        NotificationSettingsService.analyticsLog = [];
+          final pending = pendingFromScheduleCalls(scheduleCalls);
+          NotificationSettingsService.getPendingNotificationsOverride =
+              () async => pending;
+          scheduleCalls.clear();
+          NotificationSettingsService.analyticsLog = [];
 
-        // Act
-        await NotificationSettingsService.applySettings(
-          settings,
-          messages: messages,
-          source: 'app_start',
-        );
+          // Act
+          await NotificationSettingsService.applySettings(
+            settings,
+            messages: messages,
+            source: 'app_start',
+          );
 
-        // Assert
-        final log = NotificationSettingsService.analyticsLog!;
-        final unchangedEvents = log
-            .where((e) => e['event'] == 'reminder_unchanged')
-            .toList();
-        expect(unchangedEvents, hasLength(1));
-        expect(unchangedEvents.first['source'], 'app_start');
-      });
+          // Assert
+          final log = NotificationSettingsService.analyticsLog!;
+          final unchangedEvents = log
+              .where((e) => e['event'] == 'reminder_unchanged')
+              .toList();
+          expect(unchangedEvents, hasLength(1));
+          expect(unchangedEvents.first['source'], 'app_start');
+        },
+      );
 
       test('일부 pending이 stale하면 변경된 ID만 cancel + reschedule 해야 한다', () async {
         // Arrange: 1차 호출로 정상 큐 생성
@@ -1466,6 +1470,42 @@ void main() {
         expect(cancelByIdCalls, equals([staleId]));
         expect(scheduleCalls, hasLength(1));
       });
+
+      test(
+        '일부 스케줄 실패 시에도 나머지는 진행되고 전체 false를 반환해야 한다 (P1-4 resilience)',
+        () async {
+          // Arrange
+          final messages = [createMessage(0)];
+          final settings = createSettings();
+          int callCount = 0;
+          NotificationSettingsService.scheduleDailyReminderOverride =
+              ({
+                required int hour,
+                required int minute,
+                required String title,
+                String? body,
+                String? payload,
+                AndroidScheduleMode? scheduleMode,
+              }) async {
+                callCount++;
+                // 2번째만 실패 시뮬
+                if (callCount == 2) return false;
+                scheduleCalls.add({'id': callCount});
+                return true;
+              };
+
+          // Act
+          await NotificationSettingsService.applySettings(
+            settings,
+            messages: messages,
+          );
+
+          // Assert: 7개 시도, 일부 실패해도 진행 (내부 success=false 로깅)
+          expect(callCount, 7);
+          // scheduleCalls에 성공한 것만 (6개)
+          expect(scheduleCalls.length, 6);
+        },
+      );
 
       test('reminder_unchanged 경로에서도 FCM 토픽 관리는 계속 호출되어야 한다', () async {
         // Arrange

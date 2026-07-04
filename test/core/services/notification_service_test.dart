@@ -339,4 +339,38 @@ void main() {
       expect(cancelCalls.first.arguments, 1001); // _dailyReminderId
     });
   });
+
+  group('P1-3 ID 중앙화 상수 (고정값 검증)', () {
+    test('fcmMindcareId는 항상 2001이어야 한다', () {
+      expect(NotificationService.fcmMindcareId, 2001);
+    });
+
+    test('weeklyInsightId는 항상 2002이어야 한다', () {
+      // P1-3: 중앙화 검증
+      expect(NotificationService.weeklyInsightId, 2002);
+    });
+
+    test('safetyFollowupId는 항상 2004이어야 한다', () {
+      // P1-3: 중앙화 검증
+      expect(NotificationService.safetyFollowupId, 2004);
+    });
+
+    test('cbtBaseId와 범위가 올바르게 정의되어야 한다', () {
+      expect(NotificationService.cbtBaseId, 3001);
+      expect(NotificationService.cbtIdRange, 1000);
+    });
+
+    test('generateCbtNotificationId는 결정적이며 범위 내에 있어야 한다', () {
+      final id1 = NotificationService.generateCbtNotificationId('reframe');
+      final id2 = NotificationService.generateCbtNotificationId('reframe');
+      expect(id1, id2);
+      expect(id1, greaterThanOrEqualTo(NotificationService.cbtBaseId));
+      expect(
+        id1,
+        lessThan(
+          NotificationService.cbtBaseId + NotificationService.cbtIdRange,
+        ),
+      );
+    });
+  });
 }

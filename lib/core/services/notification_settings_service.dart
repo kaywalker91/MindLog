@@ -524,14 +524,28 @@ class NotificationSettingsService {
     NotificationQueueDiff diff, {
     required AndroidScheduleMode scheduleMode,
   }) async {
+    // Resilient cancel: per-item, continue on error (P1-4)
     for (final id in diff.idsToCancel) {
-      if (cancelNotificationByIdOverride != null) {
-        await cancelNotificationByIdOverride!(id);
-      } else if (cancelDailyReminderOverride != null) {
-        // 레거시 단일 cancel override는 ID를 받지 않음 → 호출만 위임
-        await cancelDailyReminderOverride!();
-      } else {
-        await NotificationService.cancelNotification(id);
+      try {
+        if (cancelNotificationByIdOverride != null) {
+          await cancelNotificationByIdOverride!(id);
+        } else if (cancelDailyReminderOverride != null) {
+          await cancelDailyReminderOverride!();
+        } else {
+          await NotificationService.cancelNotification(id);
+        }
+      } catch (e, stack) {
+        if (kDebugMode) {
+          debugPrint('[NotificationSettings] Cancel failed for id=$id: $e');
+        }
+        if (analyticsLog == null) {
+          await CrashlyticsService.recordError(
+            e,
+            stack,
+            reason: 'cheerme_cancel_partial_failure',
+            fatal: false,
+          );
+        }
       }
     }
 
@@ -545,31 +559,66 @@ class NotificationSettingsService {
     if (scheduleDailyReminderOverride != null) {
       var success = true;
       for (final notification in diff.toSchedule) {
-        final scheduled = await scheduleDailyReminderOverride!(
-          hour: notification.scheduledDate.hour,
-          minute: notification.scheduledDate.minute,
-          title: notification.title,
-          body: notification.body,
-          payload: notification.payload,
-          scheduleMode: scheduleMode,
-        );
-        success = success && scheduled;
+        try {
+          final scheduled = await scheduleDailyReminderOverride!(
+            hour: notification.scheduledDate.hour,
+            minute: notification.scheduledDate.minute,
+            title: notification.title,
+            body: notification.body,
+            payload: notification.payload,
+            scheduleMode: scheduleMode,
+          );
+          success = success && scheduled;
+        } catch (e, stack) {
+          if (kDebugMode) {
+            debugPrint(
+              '[NotificationSettings] Schedule failed for ${notification.id}: $e',
+            );
+          }
+          success = false;
+          if (analyticsLog == null) {
+            await CrashlyticsService.recordError(
+              e,
+              stack,
+              reason: 'cheerme_schedule_partial_failure',
+              fatal: false,
+            );
+          }
+        }
       }
       return success;
     }
 
+    // Resilient schedule: per-item try, continue on error (P1-4)
     var success = true;
     for (final notification in diff.toSchedule) {
-      final scheduled = await NotificationService.scheduleOneTimeNotification(
-        id: notification.id,
-        title: notification.title,
-        body: notification.body,
-        scheduledDate: notification.scheduledDate,
-        payload: notification.payload,
-        channel: NotificationService.channelCheerMe,
-        scheduleMode: scheduleMode,
-      );
-      success = success && scheduled;
+      try {
+        final scheduled = await NotificationService.scheduleOneTimeNotification(
+          id: notification.id,
+          title: notification.title,
+          body: notification.body,
+          scheduledDate: notification.scheduledDate,
+          payload: notification.payload,
+          channel: NotificationService.channelCheerMe,
+          scheduleMode: scheduleMode,
+        );
+        success = success && scheduled;
+      } catch (e, stack) {
+        if (kDebugMode) {
+          debugPrint(
+            '[NotificationSettings] Schedule failed for ${notification.id}: $e',
+          );
+        }
+        success = false;
+        if (analyticsLog == null) {
+          await CrashlyticsService.recordError(
+            e,
+            stack,
+            reason: 'cheerme_schedule_partial_failure',
+            fatal: false,
+          );
+        }
+      }
     }
     return success;
   }

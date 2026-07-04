@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Improved (P1 Notification Defense Completion)
+
+- **P1-3: 알림 ID 중앙화 및 충돌 방어 강화**
+  - `NotificationService`에 `weeklyInsightId=2002`, `safetyFollowupId=2004`, `cbtBaseId=3001`, `cbtIdRange` 중앙 상수 추가 + `generateCbtNotificationId()` 헬퍼.
+  - `scheduleWeeklyInsight()` 내부 하드코딩 제거 → 중앙 상수 사용.
+  - `SafetyFollowupService.notificationId` → `NotificationService.safetyFollowupId` 참조.
+  - `scheduleNextMorning()` 동적 ID 생성 시 `getPendingNotifications()` 기반 충돌 검사 + 범위 내 회피 로직 (최대 20회 perturbation).
+  - 상수값 고정 검증 테스트 + 결정성 테스트 추가 (`notification_service_test.dart`).
+
+- **P1-4: 시나리오 커버리지 + 추가 레질리언스**
+  - `_applyCheerMeQueueDiff()` cancel/schedule 루프를 per-item try/catch로 강화. 개별 실패 시 나머지 큐 항목 계속 처리 + `Crashlytics` 로깅 (`cheerme_*_partial_failure`) + success 집계.
+  - 신규 테스트: mindcare 메시지 `{name}` 패턴 절대 금지 검증, emotion low(1.0)/high(10.0) 경계 커버, "일부 스케줄 실패 시에도 나머지 진행" resilience 테스트.
+  - 기존 FCM 경계값(null/empty/3.0/3.1/6.0/6.1) + static reset 패턴 보강.
+
+### Testing
+- P1-3/P1-4 관련 단위/통합 테스트 10+건 추가. 전체 서비스 테스트 319+ green.
+- `flutter analyze` clean.
+
+---
+
 ## [1.4.55] - 2026-07-02
 
 ### Added

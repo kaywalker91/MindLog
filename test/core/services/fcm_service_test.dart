@@ -314,8 +314,9 @@ void main() {
           );
 
           // Assert: 서버 21:00 KST 고정 발송 → 항상 evening 슬롯 제목
-          final eveningTitles =
-              NotificationMessages.getTitlesForSlot(TimeSlot.evening);
+          final eveningTitles = NotificationMessages.getTitlesForSlot(
+            TimeSlot.evening,
+          );
           expect(eveningTitles, contains(result.title));
         });
       });
@@ -359,8 +360,7 @@ void main() {
         expect(result.body, isNot(serverBody));
       });
 
-      test('notification 필드가 있는 경우 핸들러 가드가 동작해야 한다 (skip 로직 검증)',
-          () async {
+      test('notification 필드가 있는 경우 핸들러 가드가 동작해야 한다 (skip 로직 검증)', () async {
         // 가드 조건: message.notification != null → 즉시 return (OS 표시로 위임)
         // buildPersonalizedMessage는 호출되지 않아야 함
         // 이 테스트는 가드 조건이 트리거되면 빌드 로직이 불필요함을 확인
@@ -403,6 +403,37 @@ void main() {
       test('알림 ID는 항상 fcmMindcareId(2001)이어야 한다', () {
         // Assert: 상수값 고정 검증
         expect(NotificationService.fcmMindcareId, 2001);
+      });
+
+      test('마음케어 메시지는 {name} 패턴을 절대 포함하지 않아야 한다 (P1-4)', () async {
+        // P1-4: mindcare (FCM) vs CheerMe (local) 구분
+        FCMService.emotionScoreProvider = () async => 5.0;
+        NotificationMessages.setRandom(MockRandom());
+
+        final result = await FCMService.buildPersonalizedMessage(
+          serverTitle: null,
+          serverBody: null,
+        );
+
+        expect(result.title, isNot(contains('{name}')));
+        expect(result.body, isNot(contains('{name}')));
+        // CheerMe는 {name} 허용하지만 mindcare는 절대 금지
+      });
+
+      test('감정 low(1.0) / high(10.0) 전체 경계 커버 (P1-4)', () async {
+        FCMService.emotionScoreProvider = () async => 1.0;
+        final low = await FCMService.buildPersonalizedMessage(
+          serverTitle: 's',
+          serverBody: 's',
+        );
+        expect(low.title.isNotEmpty && low.body.isNotEmpty, true);
+
+        FCMService.emotionScoreProvider = () async => 10.0;
+        final high = await FCMService.buildPersonalizedMessage(
+          serverTitle: 's',
+          serverBody: 's',
+        );
+        expect(high.title.isNotEmpty && high.body.isNotEmpty, true);
       });
     });
   });

@@ -32,6 +32,21 @@ class NotificationService {
   static const int cheerMeQueueLength = 7;
   static const int fcmMindcareId = 2001;
 
+  // Centralized fixed notification IDs (P1-3 ID defense)
+  static const int weeklyInsightId = 2002;
+  static const int safetyFollowupId = 2004;
+
+  // CBT (Cognitive Behavioral Therapy / cognitive pattern) dynamic range
+  static const int cbtBaseId = 3001;
+  static const int cbtIdRange = 1000;
+
+  /// Generates a stable ID for CBT notifications within the dedicated range.
+  /// Deterministic per patternName. Collision defense added in scheduleNextMorning.
+  static int generateCbtNotificationId(String patternName) {
+    final hash = patternName.hashCode.abs();
+    return cbtBaseId + (hash % cbtIdRange);
+  }
+
   // 알림 채널 ID
   static const String channelCheerMe = 'mindlog_cheerme';
   static const String channelMindcare = 'mindlog_mindcare';
@@ -417,8 +432,7 @@ class NotificationService {
   ///
   /// Returns: true 성공, false 실패
   static Future<bool> scheduleWeeklyInsight({required bool enabled}) async {
-    const weeklyInsightId = 2002;
-
+    // Use centralized ID (P1-3)
     if (!enabled) {
       await cancelNotification(weeklyInsightId);
       return true;
@@ -504,7 +518,30 @@ class NotificationService {
     required String title,
     required String body,
   }) async {
-    final id = 3001 + patternName.hashCode.abs() % 1000;
+    // Use centralized generator + basic collision defense (P1-3)
+    int id = generateCbtNotificationId(patternName);
+
+    // Collision defense: check current pending notifications
+    try {
+      final pending = await getPendingNotifications();
+      final used = pending.map((p) => p.id).toSet();
+      // Also avoid known fixed IDs
+      used.addAll([
+        dailyReminderId,
+        fcmMindcareId,
+        weeklyInsightId,
+        safetyFollowupId,
+      ]);
+
+      int attempts = 0;
+      while (used.contains(id) && attempts < 20) {
+        // Perturb within range for a free slot
+        id = cbtBaseId + ((id + attempts + 1) % cbtIdRange);
+        attempts++;
+      }
+    } catch (_) {
+      // If pending query fails, proceed with generated ID (fail-open for scheduling)
+    }
 
     final now = tz.TZDateTime.now(tz.local);
     final tomorrow = tz.TZDateTime(

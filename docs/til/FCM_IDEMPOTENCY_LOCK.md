@@ -57,6 +57,11 @@ create() → 문서 있음 → ALREADY_EXISTS 에러 (잠금 실패 = 이미 처
 | **alert** | `apns-push-type: alert` | `aps.alert{title, body}` | OS가 자동으로 알림 표시 | `RemoteMessage.notification` |
 | **background** | `apns-push-type: background` | `aps.content-available: 1` | 백그라운드 핸들러만 실행, OS 표시 안 함 | `RemoteMessage.data` only |
 
+### 2026-07 P1: 알림 ID 중앙화 + 큐 레질리언스 교훈
+**P1-3**: ID를 서비스별 하드코딩(weekly 2002, safety 2004, CBT hash) → 충돌 위험. 중앙 `NotificationService` 상수 + `generateCbt...` + pending 검사로 해결.
+**P1-4**: 큐 apply에서 한 번 실패 시 전체 중단 → per-item try/catch + partial success 집계 + Crashlytics. mindcare는 {name} 절대 금지, CheerMe만 허용.
+**예방**: 새 알림 ID 추가 시 NotificationService 상수 필수. schedule loop는 항상 resilient. `notification-audit` 스킬 주기 실행.
+
 **data-only payload 사용 이유**:
 - `notification` 필드가 있으면 OS가 직접 표시 → 클라이언트 개인화(`{name}` 치환) 불가
 - data-only로 보내면 클라이언트가 직접 `flutter_local_notifications`로 표시 → 완전한 제어 가능
