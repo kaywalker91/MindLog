@@ -6,6 +6,7 @@ import 'package:mindlog/data/dto/analysis_response_dto.dart';
 import 'package:mindlog/data/repositories/diary_repository_impl.dart';
 import 'package:mindlog/domain/entities/diary.dart';
 
+import '../../helpers/debug_print_helpers.dart';
 import '../../mocks/mock_datasources.dart';
 
 void main() {
@@ -555,6 +556,8 @@ void main() {
 
     // ── P0-2: Groq 응답 캐싱 ────────────────────────────────────
     group('analyzeDiary - Groq 응답 캐싱', () {
+      setUp(muteDebugPrint);
+      tearDown(restoreDebugPrint);
       test('첫 호출은 cache miss → 원격 호출 + 캐시 저장', () async {
         final diary = Diary(
           id: 'cache-1',

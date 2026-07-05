@@ -132,8 +132,10 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
   /// 1. 인지 패턴 감지 시 → 다음 날 오전 CBT 알림
   /// 2. 감정 트렌드 분석 → 트렌드 알림
   Future<void> _triggerPostAnalysisNotifications(AnalysisResult result) async {
+    if (!mounted) return;
     try {
       await _rescheduleEmotionAwareCheerMe(result.sentimentScore.toDouble());
+      if (!mounted) return;
 
       // 1. 인지 패턴 CBT 알림 (cognitivePattern이 있을 때만)
       if (result.cognitivePattern != null) {
@@ -148,10 +150,12 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
           );
         }
       }
+      if (!mounted) return;
 
       // 2. 감정 트렌드 분석 + 알림
       try {
         final stats = await _ref.read(statisticsProvider.future);
+        if (!mounted) return;
         final trendResult = EmotionTrendService.analyzeTrend(
           stats.dailyEmotions,
         );
@@ -171,14 +175,17 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
   }
 
   Future<void> _rescheduleEmotionAwareCheerMe(double recentEmotionScore) async {
+    if (!mounted) return;
     try {
       final settings = await _ref.read(notificationSettingsProvider.future);
+      if (!mounted) return;
       if (!settings.isReminderEnabled ||
           settings.rotationMode != MessageRotationMode.emotionAware) {
         return;
       }
 
       final messages = await _ref.read(selfEncouragementProvider.future);
+      if (!mounted) return;
       if (messages.isEmpty) return;
 
       await _ref
@@ -202,6 +209,7 @@ class DiaryAnalysisNotifier extends StateNotifier<DiaryAnalysisState> {
   /// IMPORTANT: SafetyBlockedFailure/isEmergency 로직은 절대 수정하지 않음.
   /// 읽기 전용으로 팔로업만 예약합니다.
   Future<void> _scheduleSafetyFollowup() async {
+    if (!mounted) return;
     try {
       await SafetyFollowupService.scheduleFollowup(DateTime.now());
     } catch (e) {

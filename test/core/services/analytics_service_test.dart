@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/services/analytics_service.dart';
 
+import '../../helpers/debug_print_helpers.dart';
 import '../../helpers/firebase_test_helpers.dart';
 
 void main() {
@@ -109,6 +110,9 @@ void main() {
     });
 
     group('logReminderScheduleFailed', () {
+      setUp(muteDebugPrint);
+      tearDown(restoreDebugPrint);
+
       test('reminder_schedule_failed 이벤트 로깅이 에러 없이 완료되어야 한다', () async {
         await expectLater(
           AnalyticsService.logReminderScheduleFailed(

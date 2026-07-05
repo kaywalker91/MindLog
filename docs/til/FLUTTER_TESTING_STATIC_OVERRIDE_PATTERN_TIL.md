@@ -13,6 +13,7 @@
 
 1. **`LateInitializationError`**: `FlutterLocalNotificationsPlugin`이 미초기화 상태에서 `showNotification()` 호출
 2. **`UnknownFailure` 로그**: 실제 `NotificationSchedulerImpl`이 실행되어 플랫폼 채널 실패 → UseCase catch → debugPrint
+3. **`ProviderContainer that was already disposed`**: `unawaited()` post-analysis hook이 tearDown `dispose()` 이후 `_ref.read()` 시도
 
 이는 assertion failure가 아니므로 테스트는 **통과**하지만 CI 로그가 오염된다.
 
@@ -22,6 +23,22 @@
 |------------|---------|------|
 | `[NotificationSettingsController] applySettings failed: UnknownFailure` | 3회 | `NotificationSection` 위젯 탭 → `NotificationSettingsService` 실제 호출 |
 | `[DiaryAnalysis] Emotion trend analysis failed: LateInitializationError` | 7회 | `analyzeDiary()` 성공 → `EmotionTrendNotificationService.notifyTrend()` 실제 호출 |
+| `[DiaryAnalysis] ProviderContainer that was already disposed` | 7회 | `diary_analysis_controller_test` — `unawaited` 후처리 + tearDown race |
+| `[DiaryAnalysis] Emotion-aware Cheer Me reschedule failed: UnknownFailure` | 7회 | `notificationSettingsProvider` mock 누락 |
+
+---
+
+## 해결 사례: DiaryAnalysisNotifier (v1.4.58+)
+
+**파일**: `test/helpers/notification_test_helpers.dart` + `diary_analysis_controller_test.dart`
+
+1. `NotificationSettingsService` 9개 + `EmotionTrend` + `SafetyFollowup` mock
+2. `settingsRepositoryProvider` mock (`getNotificationSettings`, `getSelfEncouragementMessages`)
+3. `SharedPreferences.setMockInitialValues`, `tz.initializeTimeZones()`
+4. tearDown: `drainPostAnalysisSideEffects()` → `container.dispose()`
+5. 프로덕션: `StateNotifier.mounted` 가드 (`diary_analysis_controller.dart`)
+
+**회귀 방지**: `.github/scripts/check-test-log-leakage.sh` (CI + `scripts/run.sh test`)
 
 ---
 
@@ -121,6 +138,19 @@ CI 로그의 에러 메시지는 테스트 실패처럼 취급해야 한다. 통
 
 **참조 테스트 예시**: `test/data/datasources/local/notification_scheduler_impl_test.dart:51-78`
 
+### 3. 의도적 에러 경로 테스트 — debugPrint mute
+
+회복력(resilience) 테스트는 실패 경로 `debugPrint`가 정상이지만 CI 로그를 오염시킨다.
+
+```dart
+import '../../helpers/debug_print_helpers.dart';
+
+setUp(muteDebugPrint);
+tearDown(restoreDebugPrint);
+```
+
+**적용 대상**: `analysis_response_parser_test`, `notification_settings_service_test` (applySettings), `user_name_controller_test` (reschedule 실패), `diary_repository_impl_test` (캐시 실패), `analytics_service_test` (schedule failed)
+
 ---
 
 ## 관련 TIL
@@ -130,5 +160,5 @@ CI 로그의 에러 메시지는 테스트 실패처럼 취급해야 한다. 통
 
 ---
 
-**버전**: 1.0
+**버전**: 1.1 (2026-07-05 — disposed race + leakage CI gate)
 **작성자**: Claude Code

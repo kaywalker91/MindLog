@@ -9,6 +9,23 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# 테스트 실행 + side-effect 로그 leakage 검사
+run_tests_with_leakage_check() {
+    local log_file
+    log_file=$(mktemp)
+    flutter test "$@" > "$log_file" 2>&1
+    local test_exit=$?
+    cat "$log_file"
+    local script_dir
+    script_dir="$(cd "$(dirname "$0")" && pwd)"
+    bash "$script_dir/../.github/scripts/check-test-log-leakage.sh" "$log_file" || {
+        rm -f "$log_file"
+        return 1
+    }
+    rm -f "$log_file"
+    return $test_exit
+}
+
 # 현재 디렉토리가 프로젝트 루트인지 확인
 if [ ! -f "pubspec.yaml" ]; then
     echo -e "${RED}Error: pubspec.yaml not found. Run this script from project root.${NC}"
@@ -75,7 +92,7 @@ case "$1" in
     # Development Commands (no API key required)
     test)
         echo -e "${GREEN}Running tests with coverage...${NC}"
-        flutter test --coverage
+        run_tests_with_leakage_check --coverage
         ;;
 
     test-unit)
@@ -136,7 +153,7 @@ case "$1" in
             if [ "$NO_ANALYZE" = false ]; then
                 flutter analyze --fatal-infos || exit 1
             fi
-            flutter test
+            run_tests_with_leakage_check
             exit $?
         fi
 
@@ -197,7 +214,7 @@ case "$1" in
             if [ "$NO_ANALYZE" = false ]; then
                 flutter analyze --fatal-infos || exit 1
             fi
-            flutter test
+            run_tests_with_leakage_check
             exit $?
         fi
 
@@ -259,7 +276,7 @@ case "$1" in
         bash "$SCRIPT_DIR/design-audit.sh" lib/presentation/ || exit 1
         echo ""
         echo -e "${YELLOW}Step 4/4: Tests${NC}"
-        flutter test --coverage || exit 1
+        run_tests_with_leakage_check --coverage || exit 1
         echo ""
         echo -e "${GREEN}✓ All quality gates passed${NC}"
         ;;

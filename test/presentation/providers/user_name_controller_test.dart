@@ -12,6 +12,7 @@ import 'package:mindlog/presentation/providers/self_encouragement_controller.dar
 import 'package:mindlog/presentation/providers/user_name_controller.dart';
 import 'package:mocktail/mocktail.dart';
 
+import '../../helpers/debug_print_helpers.dart';
 import '../../helpers/mock_fallbacks.dart';
 import '../../mocks/mock_repositories.dart';
 
@@ -278,8 +279,11 @@ void main() {
       late ProviderContainer rescheduleContainer;
 
       setUp(() {
+        muteDebugPrint();
         trackingController = _TrackingNotificationSettingsController();
       });
+
+      tearDown(restoreDebugPrint);
 
       ProviderContainer createRescheduleContainer({
         List<SelfEncouragementMessage> messages = const [],

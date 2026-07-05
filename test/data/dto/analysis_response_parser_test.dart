@@ -2,7 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/errors/exceptions.dart';
 import 'package:mindlog/data/dto/analysis_response_parser.dart';
 
+import '../../helpers/debug_print_helpers.dart';
+
 void main() {
+  setUp(muteDebugPrint);
+  tearDown(restoreDebugPrint);
+
   group('AnalysisResponseParser', () {
     group('parseString - 빈 입력 처리', () {
       test('null 입력 시 ApiException을 던져야 한다', () {

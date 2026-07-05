@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/debug_print_helpers.dart';
 import 'package:mindlog/core/constants/notification_messages.dart';
 import 'package:mindlog/core/services/notification_service.dart';
 import 'package:mindlog/core/services/notification_settings_service.dart';
@@ -404,6 +406,7 @@ void main() {
     late List<String> unsubscribedTopics;
 
     setUp(() {
+      muteDebugPrint();
       NotificationSettingsService.resetForTesting();
       scheduleCalls = [];
       cancelCalled = false;
@@ -455,6 +458,7 @@ void main() {
 
     tearDown(() {
       NotificationSettingsService.resetForTesting();
+      restoreDebugPrint();
     });
 
     group('리마인더 활성화 + 메시지 있음', () {

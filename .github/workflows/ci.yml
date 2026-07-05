@@ -161,7 +161,10 @@ jobs:
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Run Tests with Coverage
-        run: flutter test --coverage --reporter=github
+        run: flutter test --coverage --reporter=github 2>&1 | tee test-output.log
+
+      - name: Check test log leakage
+        run: bash .github/scripts/check-test-log-leakage.sh test-output.log
 
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
