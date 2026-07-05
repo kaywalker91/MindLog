@@ -147,3 +147,21 @@
 **근본 원인**: mocktail은 stub의 named args와 실제 호출의 named args가 다르면 조용히 미매칭 → MissingStubError가 프로덕션 catch 경로(DiaryAnalysisError)에 흡수되어 테스트가 "기대한 에러 상태"를 우연히 만족
 **해결책**: mock 대상 메서드 시그니처 확장 시 해당 mock의 모든 when/verify 호출부를 grep으로 전수 수정 (`grep -rn "\.execute(" test/`)
 **예방 규칙**: named param 추가 = 모든 stub에 `any(named: '...')` 추가가 세트. 에러 경로 테스트는 `isA<특정Failure>()`로 단언해 MissingStubError 흡수를 구분할 것.
+
+## 2026-07-05 - Groq qwen3.6-27b Vision 마이그레이션 400 오류 (v1.4.57 회귀)
+**무엇이 잘못됐나**: v1.4.57 배포 후 이미지 첨부 일기 분석이 전부 400 실패 ("잘못된 요청 형식"). 마이그레이션 문서에는 "실 API 검증 완료"로 기록됐으나 Vision 경로는 실제로 검증되지 않았음
+**근본 원인**: ① qwen3.6은 기본 thinking 모드 — 추론 토큰이 `max_completion_tokens: 2048`을 소진해 최종 JSON이 빈 문자열 → `json_object` 검증 실패 (`json_validate_failed`, `failed_generation:""`). 파라미터 미확정이라 보수적으로 뺀 `reasoning_effort`가 오히려 필수였음 ② qwen3.6은 이미지 3장 제한 (구 llama-4-scout는 5장) — 4~5장 첨부 시 400 "Too many images"
+**해결책**: Vision 요청에 `reasoning_effort: 'none'` 추가 + `maxImagesPerVisionRequest = 3` 클램프 + 413 사용자 메시지. 에뮬레이터 실검증(1장 200 성공) + 유닛 테스트 2건 추가
+**예방 규칙**: 모델 마이그레이션 검증 체크리스트에 "각 경로(텍스트/비전)를 실제 요청 파라미터 그대로" 실행 필수. reasoning 모델 + `response_format` 조합은 반드시 reasoning 출력 억제 방법을 먼저 확정. Groq 413 = 단일 요청 TPM 초과(재시도 무의미)로 해석할 것
+
+## 2026-07-05 - flutter attach hot reload는 attach 이전 수정분을 적용하지 않음
+**무엇이 잘못됐나**: 디버그 로그를 코드에 추가 → `flutter attach` → 'r' 리로드 → "Reloaded 3 of 2281" 성공 메시지에도 로그가 전혀 출력되지 않아 2회 헛수고
+**근본 원인**: attach의 초기 "Syncing files"가 현재 디스크 소스를 리로드 baseline으로 잡음 → attach 시작 전에 이미 수정된 파일은 delta에 포함되지 않음 (기기는 여전히 APK 원본 커널 실행)
+**해결책**: attach 시작 → (연결 후) 파일 수정/재저장 → 'r' 순서로 변경하니 즉시 적용
+**예방 규칙**: 설치된 디버그 APK(dart-define 키 내장)에 attach로 코드를 주입할 때는 반드시 attach 연결 이후에 파일을 수정할 것. 기존 수정분만 있으면 trivial edit(공백 추가)로 파일을 다시 dirty 상태로 만든 뒤 리로드
+
+## 2026-07-05 - unawaited post-analysis hook + tearDown dispose race (CI 로그 노이즈)
+**무엇이 잘못됐나**: CI에서 테스트는 전부 ✅인데 `[DiaryAnalysis] ProviderContainer disposed` ×7, `UnknownFailure` ×7이 반복 출력
+**근본 원인**: `analyzeDiary()` 성공 시 `unawaited(_triggerPostAnalysisNotifications)`가 fire-and-forget 실행 → 테스트 tearDown `container.dispose()`가 먼저 완료 → async 콜백이 disposed Ref에서 `read()` 시도. `notificationSettingsProvider` mock 누락으로 UnknownFailure도 동반
+**해결책**: `notification_test_helpers.dart` (9개 NotificationSettings mock + drain) + `settingsRepositoryProvider` stub + tearDown에서 `drainPostAnalysisSideEffects()` 후 dispose. 프로덕션: `StateNotifier.mounted` 가드. CI: `check-test-log-leakage.sh`
+**예방 규칙**: `unawaited()` 후처리가 있는 Notifier 테스트는 (1) 플랫폼 서비스 static override (2) provider mock (3) tearDown drain 3종 세트. `Ref.mounted`는 Riverpod 2.6.1에 없음 — `StateNotifier.mounted` 사용. 통과한 테스트의 에러 로그도 실패로 취급할 것
