@@ -87,15 +87,17 @@ class ImagePickerSection extends StatelessWidget {
         ),
 
         // 안내 텍스트
-        if (imagePaths.isEmpty) ...[
-          const SizedBox(height: 8),
-          Text(
-            '사진을 첨부하면 AI가 이미지도 함께 분석해요',
-            style: AppTextStyles.label.copyWith(
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ),
+        const SizedBox(height: 8),
+        Text(
+          imagePaths.isEmpty
+              ? '사진을 첨부하면 AI가 대표 사진 1장을 함께 분석해요'
+              : imagePaths.length > AppConstants.maxImagesPerVisionAnalysis
+              ? '첨부 ${imagePaths.length}장 · AI 분석에는 첫 번째 사진 1장만 반영'
+              : '첨부 ${imagePaths.length}장 · AI가 사진과 함께 분석해요',
+          style: AppTextStyles.label.copyWith(
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
           ),
-        ],
+        ),
       ],
     );
   }

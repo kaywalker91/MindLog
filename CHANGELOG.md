@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.59] - 2026-07-05
+
+### Fixed (Groq Vision API — 8K TPM 413/429 실측 대응)
+
+- **Vision API 전송 이미지 상한 1장으로 축소** (`AppConstants.maxImagesPerVisionAnalysis = 1`):
+  - v1.4.58의 3장 클램프 + 768px 다운스케일만으로는 Groq 무료 티어 **8K TPM** 한도에서 2장 이상 첨부 시 413 `rate_limit_exceeded`가 지속 발생 (에뮬레이터 실측: 1장 ✅, 2·4장 ❌ 413).
+  - 저장·갤러리 한도(5장)는 유지하고, `GroqRemoteDataSource`는 **첫 번째 사진 1장만** Vision payload에 포함 (`sublist(0, 1)`).
+  - `maxImagesPerVisionRequest` 상수를 `AppConstants.maxImagesPerVisionAnalysis`에 위임해 단일 SSOT 유지.
+- **Vision API 전송용 별도 다운스케일 파이프라인** (`ImageService.encodeMultipleForVisionApi`):
+  - 저장본(최대 1920px, quality 85)과 분리하여 API 전송 시에만 **384px / JPEG Q55** 임시 파일 생성 (`Directory.systemTemp`).
+  - 인코딩 완료 후 임시 파일 즉시 삭제 — 사용자 갤러리·일기 저장 품질 불변.
+  - 압축 실패(손상 이미지·테스트 더미 바이트) 시 원본 경로 폴백 + debug assert 로그.
+- **413/429 Vision 실패 시 텍스트 분석 폴백** (`DiaryRepositoryImpl`):
+  - `ApiException` statusCode 413(TPM) / 429(RPM) 캐치 → Vision 경로 중단 후 `analyzeDiary()` 텍스트 분석으로 전환.
+  - 첨부 사진은 DB에 그대로 저장; 캐시 키는 `GroqCacheKey.forText()`로 전환해 Vision 해시 캐시 오염 방지.
+  - 기타 API 오류(400, 5xx 등)는 기존과 동일하게 rethrow.
+- **프롬프트 Vision 범위 명시** (`PromptConstants.createAnalysisPromptWithImages`):
+  - `imageCount` 단일 파라미터 → `attachedImageCount` + `analyzedImageCount` 분리.
+  - 첨부 N장·분석 1장 불일치 시 `"AI 이미지 분석에는 대표 사진 1장만 반영됩니다."` 문구 자동 삽입.
+
+### Changed (UI)
+
+- `ImagePickerSection` 안내 문구 상태별 분기:
+  - 0장: `"사진을 첨부하면 AI가 대표 사진 1장을 함께 분석해요"`
+  - 1장: `"첨부 1장 · AI가 사진과 함께 분석해요"`
+  - 2장+: `"첨부 N장 · AI 분석에는 첫 번째 사진 1장만 반영"`
+
+### Testing
+
+- `groq_remote_datasource_test.dart`: Vision payload 1장 클램프·`encodeMultipleForVisionApi` 호출 검증 갱신.
+- `diary_repository_impl_test.dart`: 413/429 Vision 폴백 시나리오 + 텍스트 캐시 키 전환 테스트 추가.
+- `image_service_test.dart`: `encodeToBase64DataUrlForVision` / `encodeMultipleForVisionApi` 단위 테스트 추가.
+- `prompt_constants_vision_test.dart` (신규): `attachedImageCount`/`analyzedImageCount` 프롬프트 문구 검증.
+- `integration_test/groq_vision_emulator_smoke_test.dart` (신규): 에뮬레이터 실 Groq API 1/2/4장 스모크 (1장 제한 후 전 케이스 green).
+- `integration_test/assets/photo_{0..3}.jpg` (신규): 스모크 테스트용 고해상도 샘플 이미지.
+- `mock_datasources.dart`: `visionShouldThrow` / `visionException` mocktail 스텁 추가.
+
+### Docs
+
+- `.claude/rules/architecture-layers.md`: Vision 1장 정책, 384px API 전송, 413/429 폴백 문서화.
+- `docs/update.json`, `docs/index.html` v1.4.59 릴리스 노트 동기화.
+
+### Verified (에뮬레이터 실측)
+
+- API 스모크: 1장 ~1.5s ✅, 2장(클램프→1) ~22.7s ✅, 4장(클램프→1) ~22.7s ✅ (이전 2·4장 413).
+- UI E2E: 안내 문구, 텍스트-only 분석, **사진 2장 + Vision 분석** 성공 (sentiment 8, 413/429 없음).
+
 ## [1.4.58] - 2026-07-05
 
 ### Fixed (Groq Vision API — qwen3.6-27b 실측 회귀 수정)

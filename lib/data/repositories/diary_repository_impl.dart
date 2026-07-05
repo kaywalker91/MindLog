@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/constants/ai_character.dart';
+import '../../core/errors/exceptions.dart';
 import '../../core/errors/failures.dart';
 import '../../../domain/entities/diary.dart';
 import '../../../domain/repositories/diary_repository.dart';
@@ -84,22 +85,49 @@ class DiaryRepositoryImpl
         AnalysisResponseDto? analysisDto = await _readGroqCache(cacheKey);
 
         if (analysisDto == null) {
-          analysisDto = hasImages
-              ? await _remoteDataSource.analyzeDiaryWithImages(
-                  diary.content,
-                  imagePaths: effectiveImagePaths,
+          var cacheKeyToWrite = cacheKey;
+
+          if (hasImages) {
+            try {
+              analysisDto = await _remoteDataSource.analyzeDiaryWithImages(
+                diary.content,
+                imagePaths: effectiveImagePaths,
+                character: character,
+                userName: userName,
+              );
+            } on ApiException catch (e) {
+              // 413 TPM / 429 RPM — 사진은 저장, 분석은 텍스트만 반영
+              if (e.statusCode == 413 || e.statusCode == 429) {
+                assert(() {
+                  debugPrint('Vision API 실패(${e.statusCode}) — 텍스트 분석으로 폴백');
+                  return true;
+                }());
+                cacheKeyToWrite = GroqCacheKey.forText(
+                  content: diary.content,
                   character: character,
                   userName: userName,
-                )
-              : await _remoteDataSource.analyzeDiary(
+                );
+                analysisDto = await _readGroqCache(cacheKeyToWrite);
+                analysisDto ??= await _remoteDataSource.analyzeDiary(
                   diary.content,
                   character: character,
                   userName: userName,
                 );
+              } else {
+                rethrow;
+              }
+            }
+          } else {
+            analysisDto = await _remoteDataSource.analyzeDiary(
+              diary.content,
+              character: character,
+              userName: userName,
+            );
+          }
 
           // 안전: is_emergency=true 응답은 캐시하지 않음 (위기 감지는 매번 재평가)
           if (!analysisDto.isEmergency) {
-            await _writeGroqCache(cacheKey, analysisDto);
+            await _writeGroqCache(cacheKeyToWrite, analysisDto);
           }
         }
 

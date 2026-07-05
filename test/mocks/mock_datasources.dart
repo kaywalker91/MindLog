@@ -367,9 +367,11 @@ class MockPreferencesLocalDataSource extends PreferencesLocalDataSource {
 class MockGroqRemoteDataSource extends GroqRemoteDataSource {
   // 상태 제어 변수
   bool shouldThrow = false;
+  bool visionShouldThrow = false;
   String? errorMessage;
   AnalysisResponseDto? mockResponse;
   Exception? customException;
+  Exception? visionException;
 
   // 호출 추적
   final List<Map<String, dynamic>> analyzeRequests = [];
@@ -383,9 +385,11 @@ class MockGroqRemoteDataSource extends GroqRemoteDataSource {
   /// 상태 초기화
   void reset() {
     shouldThrow = false;
+    visionShouldThrow = false;
     errorMessage = null;
     mockResponse = null;
     customException = null;
+    visionException = null;
     analyzeRequests.clear();
     visionRequests.clear();
   }
@@ -404,7 +408,10 @@ class MockGroqRemoteDataSource extends GroqRemoteDataSource {
       'userName': userName,
     });
 
-    if (shouldThrow) {
+    if (visionShouldThrow || shouldThrow) {
+      if (visionException != null) {
+        throw visionException!;
+      }
       if (customException != null) {
         throw customException!;
       }

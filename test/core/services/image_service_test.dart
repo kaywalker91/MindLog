@@ -35,6 +35,10 @@ void main() {
         expect(AppConstants.maxImagesPerDiary, 5);
       });
 
+      test('maxImagesPerVisionAnalysis가 1개로 정의되어 있다', () {
+        expect(AppConstants.maxImagesPerVisionAnalysis, 1);
+      });
+
       test('maxImageSizeBytes가 4MB로 정의되어 있다', () {
         expect(AppConstants.maxImageSizeBytes, 4 * 1024 * 1024);
       });
@@ -45,6 +49,14 @@ void main() {
 
       test('imageMaxWidth가 1920으로 정의되어 있다', () {
         expect(AppConstants.imageMaxWidth, 1920);
+      });
+
+      test('visionImageMaxWidth가 384로 정의되어 있다', () {
+        expect(AppConstants.visionImageMaxWidth, 384);
+      });
+
+      test('visionCompressQuality가 55로 정의되어 있다', () {
+        expect(AppConstants.visionCompressQuality, 55);
       });
     });
 
@@ -203,6 +215,30 @@ void main() {
           () => ImageService.encodeToBase64DataUrl(nonExistentPath),
           throwsA(isA<ImageProcessingException>()),
         );
+      });
+    });
+
+    group('encodeMultipleForVisionApi', () {
+      test('여러 이미지를 Vision API용 Data URL로 인코딩한다', () async {
+        final files = <File>[];
+        for (int i = 0; i < 2; i++) {
+          final file = File(path.join(tempDir.path, 'vision_$i.jpg'));
+          await file.writeAsBytes([255, 216, 255, i]);
+          files.add(file);
+        }
+
+        final dataUrls = await ImageService.encodeMultipleForVisionApi(
+          files.map((f) => f.path).toList(),
+        );
+
+        expect(dataUrls.length, 2);
+        for (final dataUrl in dataUrls) {
+          expect(
+            dataUrl.startsWith('data:image/jpeg;base64,') ||
+                dataUrl.startsWith('data:image/png;base64,'),
+            true,
+          );
+        }
       });
     });
 

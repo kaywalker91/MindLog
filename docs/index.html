@@ -137,6 +137,11 @@
                 </div>
                 <div class="update-card">
                     <span class="update-tag">Bug Fix &amp; Reliability</span>
+                    <h3>Vision API TPM 한도 대응 — 사진 분석 1장 정책 + 폴백 (v1.4.59)</h3>
+                    <p>Groq 무료 티어 8K TPM 제약으로 2장 이상 사진 첨부 시 413 오류가 재현되는 문제를 에뮬레이터 실측으로 확인한 뒤, <strong>저장(5장)과 API 전송(1장)을 분리</strong>하는 방어적 설계로 해결했습니다. Vision payload는 384px JPEG로 별도 다운스케일하되 저장본 품질은 유지하고, 413/429 실패 시 Repository 레이어에서 텍스트 분석으로 자동 폴백합니다. Clean Architecture 관점에서 DataSource(클램프) → Repository(폴백) → Presentation(안내 문구)로 책임을 계층 분리했으며, integration smoke test + Marionette UI E2E로 검증했습니다. 외부 API 한도를 앱이 흡수하는 실무 패턴 사례입니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Bug Fix &amp; Reliability</span>
                     <h3>Vision API 실측 회귀 수정 — 사진 일기 분석 안정화 (v1.4.58)</h3>
                     <p>v1.4.57에서 도입한 Qwen Vision 모델(qwen3.6-27b)의 실사용 중 400 오류(json_validate_failed, Too many images)를 실측·재현 후 근본 원인을 분석해 수정했습니다. thinking 모드가 completion 예산을 소진하는 문제 → <code>reasoning_effort: none</code> 적용, Groq 3장 이미지 제한 → datasource 레벨 클램프, 413 TPM 초과 → 사용자 친화적 오류 메시지. TDD로 회귀 테스트 2건을 추가해 API payload 계약을 고정했습니다. 외부 API 제약을 앱 레이어에서 흡수하는 방어적 설계 패턴의 사례입니다.</p>
                 </div>

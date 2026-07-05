@@ -554,6 +554,61 @@ void main() {
       });
     });
 
+    group('analyzeDiary - Vision 실패 시 텍스트 폴백', () {
+      setUp(muteDebugPrint);
+      tearDown(restoreDebugPrint);
+
+      test('Vision 413 실패 시 텍스트 분석으로 폴백해야 한다', () async {
+        final diary = Diary(
+          id: 'vision-fallback-413',
+          content: '사진이 있는 일기 내용입니다.',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+          imagePaths: const ['/tmp/photo.jpg'],
+        );
+        mockLocalDataSource.addDiary(diary);
+        mockRemoteDataSource.visionShouldThrow = true;
+        mockRemoteDataSource.visionException = ApiException(
+          message: '요청이 너무 큽니다.',
+          statusCode: 413,
+        );
+
+        final result = await repository.analyzeDiary(
+          'vision-fallback-413',
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result.status, DiaryStatus.analyzed);
+        expect(mockRemoteDataSource.visionRequests.length, 1);
+        expect(mockRemoteDataSource.analyzeRequests.length, 1);
+      });
+
+      test('Vision 429 실패 시 텍스트 분석으로 폴백해야 한다', () async {
+        final diary = Diary(
+          id: 'vision-fallback-429',
+          content: '사진이 있는 일기 내용입니다.',
+          createdAt: DateTime.now(),
+          status: DiaryStatus.pending,
+          imagePaths: const ['/tmp/photo.jpg'],
+        );
+        mockLocalDataSource.addDiary(diary);
+        mockRemoteDataSource.visionShouldThrow = true;
+        mockRemoteDataSource.visionException = ApiException(
+          message: '요청 제한을 초과했습니다.',
+          statusCode: 429,
+        );
+
+        final result = await repository.analyzeDiary(
+          'vision-fallback-429',
+          character: AiCharacter.warmCounselor,
+        );
+
+        expect(result.status, DiaryStatus.analyzed);
+        expect(mockRemoteDataSource.visionRequests.length, 1);
+        expect(mockRemoteDataSource.analyzeRequests.length, 1);
+      });
+    });
+
     // ── P0-2: Groq 응답 캐싱 ────────────────────────────────────
     group('analyzeDiary - Groq 응답 캐싱', () {
       setUp(muteDebugPrint);
@@ -576,40 +631,43 @@ void main() {
         expect(mockLocalDataSource.groqCacheSize, 1);
       });
 
-      test('동일 content/character/userName 두 번째 호출은 cache hit → 원격 미호출', () async {
-        final diary1 = Diary(
-          id: 'cache-2a',
-          content: '캐시 동일 내용',
-          createdAt: DateTime.now(),
-          status: DiaryStatus.pending,
-        );
-        final diary2 = Diary(
-          id: 'cache-2b',
-          content: '캐시 동일 내용',
-          createdAt: DateTime.now(),
-          status: DiaryStatus.pending,
-        );
-        mockLocalDataSource.addDiary(diary1);
-        mockLocalDataSource.addDiary(diary2);
+      test(
+        '동일 content/character/userName 두 번째 호출은 cache hit → 원격 미호출',
+        () async {
+          final diary1 = Diary(
+            id: 'cache-2a',
+            content: '캐시 동일 내용',
+            createdAt: DateTime.now(),
+            status: DiaryStatus.pending,
+          );
+          final diary2 = Diary(
+            id: 'cache-2b',
+            content: '캐시 동일 내용',
+            createdAt: DateTime.now(),
+            status: DiaryStatus.pending,
+          );
+          mockLocalDataSource.addDiary(diary1);
+          mockLocalDataSource.addDiary(diary2);
 
-        await repository.analyzeDiary(
-          'cache-2a',
-          character: AiCharacter.warmCounselor,
-        );
-        expect(mockRemoteDataSource.callCount, 1);
+          await repository.analyzeDiary(
+            'cache-2a',
+            character: AiCharacter.warmCounselor,
+          );
+          expect(mockRemoteDataSource.callCount, 1);
 
-        await repository.analyzeDiary(
-          'cache-2b',
-          character: AiCharacter.warmCounselor,
-        );
+          await repository.analyzeDiary(
+            'cache-2b',
+            character: AiCharacter.warmCounselor,
+          );
 
-        // 두 번째 호출은 cache hit → 여전히 1
-        expect(
-          mockRemoteDataSource.callCount,
-          1,
-          reason: '동일 content는 cache hit이어야 한다',
-        );
-      });
+          // 두 번째 호출은 cache hit → 여전히 1
+          expect(
+            mockRemoteDataSource.callCount,
+            1,
+            reason: '동일 content는 cache hit이어야 한다',
+          );
+        },
+      );
 
       test('character가 다르면 cache miss → 두 번째 호출도 원격', () async {
         final diary1 = Diary(
@@ -680,10 +738,7 @@ void main() {
             empathyMessage: '많이 힘드시군요.',
             actionItem: '전문가에게 연락하세요.',
             isEmergency: true,
-            emotionCategory: EmotionCategoryDto(
-              primary: '슬픔',
-              secondary: '절망',
-            ),
+            emotionCategory: EmotionCategoryDto(primary: '슬픔', secondary: '절망'),
           ),
         );
 

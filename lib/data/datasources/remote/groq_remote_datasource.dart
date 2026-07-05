@@ -29,12 +29,10 @@ class GroqRemoteDataSource {
   @visibleForTesting
   static const int isolateParsingThresholdChars = 4096;
 
-  /// Vision 모델(qwen3.6-27b)의 요청당 이미지 상한 (Groq 제약)
-  ///
-  /// 초과 전송 시 400 "Too many images provided" — 앱 저장 한도(5장)와
-  /// 무관하게 분석 요청에는 이 개수까지만 포함한다.
+  /// Vision API 전송 이미지 상한 — [AppConstants.maxImagesPerVisionAnalysis] 위임
   @visibleForTesting
-  static const int maxImagesPerVisionRequest = 3;
+  static int get maxImagesPerVisionRequest =>
+      AppConstants.maxImagesPerVisionAnalysis;
 
   final String _apiKey;
   final String _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
@@ -224,8 +222,7 @@ class GroqRemoteDataSource {
       );
     }
 
-    // qwen3.6-27b는 요청당 이미지 최대 3장 — 초과 시 400.
-    // 앱은 일기당 5장까지 저장하므로 분석에는 앞의 3장만 사용한다.
+    // Groq 8K TPM — 복수 이미지 시 413. 저장(5장)과 별도로 대표 1장만 전송.
     final visionImagePaths = imagePaths.length > maxImagesPerVisionRequest
         ? imagePaths.sublist(0, maxImagesPerVisionRequest)
         : imagePaths;
@@ -233,13 +230,14 @@ class GroqRemoteDataSource {
     try {
       final prompt = PromptConstants.createAnalysisPromptWithImages(
         content,
-        imageCount: visionImagePaths.length,
+        attachedImageCount: imagePaths.length,
+        analyzedImageCount: visionImagePaths.length,
         character: character,
         userName: userName,
       );
 
-      // 이미지를 Base64로 인코딩
-      final imageDataUrls = await ImageService.encodeMultipleToBase64DataUrls(
+      // Vision API 전송용 다운스케일 후 Base64 인코딩 (8K TPM 413 방지)
+      final imageDataUrls = await ImageService.encodeMultipleForVisionApi(
         visionImagePaths,
       );
 

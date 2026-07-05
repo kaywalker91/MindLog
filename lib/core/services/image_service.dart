@@ -168,6 +168,37 @@ class ImageService {
     return Future.wait(imagePaths.map((path) => encodeToBase64DataUrl(path)));
   }
 
+  /// Vision API 전송용 단일 이미지 Base64 Data URL 인코딩
+  ///
+  /// 저장본(최대 1920px)과 별도로 API 페이로드만 768px JPEG로 축소하여
+  /// Groq 8K TPM 한도(413) 초과를 방지한다. 임시 파일은 인코딩 후 삭제한다.
+  static Future<String> encodeToBase64DataUrlForVision(String imagePath) async {
+    String? tempPath;
+    try {
+      final preparedPath = await _prepareVisionPayloadPath(imagePath);
+      if (preparedPath != imagePath) {
+        tempPath = preparedPath;
+      }
+      return await encodeToBase64DataUrl(preparedPath);
+    } catch (e) {
+      if (e is ImageProcessingException) rethrow;
+      throw ImageProcessingException('Vision API용 이미지 인코딩 실패: $e');
+    } finally {
+      if (tempPath != null) {
+        await deleteImage(tempPath);
+      }
+    }
+  }
+
+  /// Vision API 전송용 다중 이미지 Base64 Data URL 인코딩
+  static Future<List<String>> encodeMultipleForVisionApi(
+    List<String> imagePaths,
+  ) async {
+    return Future.wait(
+      imagePaths.map((path) => encodeToBase64DataUrlForVision(path)),
+    );
+  }
+
   /// 일기 관련 이미지 전체 삭제
   ///
   /// [diaryId] 일기 고유 ID
@@ -221,6 +252,43 @@ class ImageService {
   }
 
   // ===== Private Helper Methods =====
+
+  /// Vision API 전송용 임시 JPEG 생성 (원본 파일은 변경하지 않음)
+  static Future<String> _prepareVisionPayloadPath(String imagePath) async {
+    final file = File(imagePath);
+    if (!await file.exists()) {
+      throw ImageProcessingException('인코딩할 이미지 파일을 찾을 수 없습니다.');
+    }
+
+    final outPath = p.join(
+      Directory.systemTemp.path,
+      'vision_${DateTime.now().microsecondsSinceEpoch}_'
+      '${p.basenameWithoutExtension(imagePath)}.jpg',
+    );
+
+    try {
+      final compressed = await FlutterImageCompress.compressAndGetFile(
+        imagePath,
+        outPath,
+        quality: AppConstants.visionCompressQuality,
+        minWidth: AppConstants.visionImageMaxWidth,
+        minHeight: AppConstants.visionImageMaxWidth,
+        format: CompressFormat.jpeg,
+      );
+
+      // 손상·비표준 이미지는 원본 경로로 폴백 (테스트 더미 바이트 등)
+      if (compressed != null) {
+        return compressed.path;
+      }
+    } catch (e) {
+      assert(() {
+        debugPrint('Vision downscale skipped, using original: $e');
+        return true;
+      }());
+    }
+
+    return imagePath;
+  }
 
   /// 압축 파일 경로 생성
   static String _getCompressedPath(String originalPath) {

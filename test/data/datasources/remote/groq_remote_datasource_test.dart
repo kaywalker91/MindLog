@@ -12,6 +12,8 @@ import 'package:mindlog/data/datasources/remote/groq_remote_datasource.dart';
 import '../../../mocks/mock_http_client.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late GroqRemoteDataSource dataSource;
   late MockHttpClient mockClient;
 
@@ -801,7 +803,7 @@ void main() {
       late String tempImagePath;
 
       setUp(() {
-        // ImageService.encodeMultipleToBase64DataUrls는 compute()로
+        // ImageService.encodeMultipleForVisionApi는 compute()로
         // 실제 파일을 읽으므로 유효한 PNG 임시 파일이 필요
         tempDir = Directory.systemTemp.createTempSync('mindlog_test_');
         tempImagePath = '${tempDir.path}/test_image.png';
@@ -851,8 +853,8 @@ void main() {
         expect(body['response_format'], {'type': 'json_object'});
       });
 
-      test('이미지가 4장이어도 Vision 요청에는 최대 3장만 포함해야 한다', () async {
-        // qwen3.6-27b는 요청당 이미지 3장 제한 — 초과 시 400
+      test('이미지가 4장이어도 Vision 요청에는 대표 1장만 포함해야 한다', () async {
+        // Groq 8K TPM — 복수 이미지 413 방지를 위해 API에는 1장만 전송
         mockClient.setSuccessResponse(createValidApiResponse());
         final extraPaths = List.generate(4, (i) {
           final path = '${tempDir.path}/test_image_$i.png';
@@ -879,6 +881,12 @@ void main() {
           imageParts.length,
           GroqRemoteDataSource.maxImagesPerVisionRequest,
         );
+        expect(GroqRemoteDataSource.maxImagesPerVisionRequest, 1);
+
+        final promptText =
+            (userContent.first as Map<String, dynamic>)['text'] as String;
+        expect(promptText, contains('4장의 사진을 첨부'));
+        expect(promptText, contains('대표 사진 1장만 반영'));
       });
 
       test('API 키가 비어있으면 ApiException을 던져야 한다', () async {
