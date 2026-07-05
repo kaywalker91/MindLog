@@ -160,6 +160,12 @@
 **해결책**: attach 시작 → (연결 후) 파일 수정/재저장 → 'r' 순서로 변경하니 즉시 적용
 **예방 규칙**: 설치된 디버그 APK(dart-define 키 내장)에 attach로 코드를 주입할 때는 반드시 attach 연결 이후에 파일을 수정할 것. 기존 수정분만 있으면 trivial edit(공백 추가)로 파일을 다시 dirty 상태로 만든 뒤 리로드
 
+## 2026-07-05 - Groq Vision 8K TPM: 3장 클램프만으로는 413 지속 (v1.4.59)
+**무엇이 잘못됐나**: v1.4.58(3장 클램프 + reasoning_effort:none) 배포 후에도 2~4장 첨부 시 413 "요청이 너무 큽니다" 반복. 연속 테스트 시 429도 발생
+**근본 원인**: Groq 무료 티어 **8K TPM** — 이미지 1장도 고해상도 Base64면 수천 토큰. 768/512/384px 다운스케일만으로는 **2장 이상 합산 시 413** (에뮬레이터 실측: 1장 ✅, 2·4장 ❌). 429는 30 RPM 연속 호출 소진
+**해결책**: 저장 5장 / **API 전송 1장**(첫 번째만) + API용 384px/Q55 임시 JPEG + 413/429 시 텍스트 분석 폴백(사진 저장 유지). UI·프롬프트에 "대표 1장" 명시
+**예방 규칙**: Vision TPM 한도는 "장수 제한"과 "픽셀 다운스케일"을 **둘 다** 적용해야 함. 저장 품질과 API payload는 반드시 분리. 외부 API 한도는 Repository 폴백으로 UX 보호
+
 ## 2026-07-05 - unawaited post-analysis hook + tearDown dispose race (CI 로그 노이즈)
 **무엇이 잘못됐나**: CI에서 테스트는 전부 ✅인데 `[DiaryAnalysis] ProviderContainer disposed` ×7, `UnknownFailure` ×7이 반복 출력
 **근본 원인**: `analyzeDiary()` 성공 시 `unawaited(_triggerPostAnalysisNotifications)`가 fire-and-forget 실행 → 테스트 tearDown `container.dispose()`가 먼저 완료 → async 콜백이 disposed Ref에서 `read()` 시도. `notificationSettingsProvider` mock 누락으로 UnknownFailure도 동반
