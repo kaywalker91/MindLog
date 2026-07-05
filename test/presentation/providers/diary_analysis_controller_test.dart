@@ -1,18 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/errors/failures.dart';
-import 'package:mindlog/core/services/emotion_trend_notification_service.dart';
 import 'package:mindlog/domain/entities/diary.dart';
+import 'package:mindlog/domain/entities/notification_settings.dart';
 import 'package:mindlog/presentation/providers/diary_analysis_controller.dart';
 import 'package:mindlog/presentation/providers/diary_list_controller.dart';
 import 'package:mindlog/presentation/providers/infra_providers.dart';
 import 'package:mindlog/presentation/providers/statistics_providers.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart' as tz_data;
 
 import '../../fixtures/diary_fixtures.dart';
 import '../../fixtures/statistics_fixtures.dart';
 import '../../helpers/firebase_test_helpers.dart';
 import '../../helpers/mock_fallbacks.dart';
+import '../../helpers/notification_test_helpers.dart';
 import '../../mocks/mock_repositories.dart';
 import '../../mocks/mock_usecases.dart';
 
@@ -21,16 +24,22 @@ void main() {
   late MockAnalyzeDiaryUseCase mockUseCase;
   late MockStatisticsRepository mockStatisticsRepository;
   late MockDiaryRepository mockDiaryRepository;
+  late MockSettingsRepository mockSettingsRepository;
 
   setUpAll(() {
     setupFirebaseCoreMocks();
     registerMockFallbackValues();
+    tz_data.initializeTimeZones();
   });
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    setupDiaryAnalysisSideEffectMocks();
+
     mockUseCase = MockAnalyzeDiaryUseCase();
     mockStatisticsRepository = MockStatisticsRepository();
     mockDiaryRepository = MockDiaryRepository();
+    mockSettingsRepository = MockSettingsRepository();
 
     // Default stub: return an analyzed diary
     when(
@@ -87,13 +96,15 @@ void main() {
       ),
     ).thenAnswer((_) async => {});
 
-    EmotionTrendNotificationService.showNotificationOverride =
-        ({
-          required String title,
-          required String body,
-          String? payload,
-          String channel = '',
-        }) async {};
+    when(
+      () => mockSettingsRepository.getNotificationSettings(),
+    ).thenAnswer((_) async => NotificationSettings.defaults());
+    when(
+      () => mockSettingsRepository.getSelfEncouragementMessages(),
+    ).thenAnswer((_) async => []);
+    when(
+      () => mockSettingsRepository.setNotificationSettings(any()),
+    ).thenAnswer((_) async {});
 
     container = ProviderContainer(
       overrides: [
@@ -102,14 +113,16 @@ void main() {
           mockStatisticsRepository,
         ),
         diaryRepositoryProvider.overrideWithValue(mockDiaryRepository),
+        settingsRepositoryProvider.overrideWithValue(mockSettingsRepository),
       ],
     );
-    addTearDown(container.dispose);
+    addTearDown(() async {
+      await drainPostAnalysisSideEffects();
+      container.dispose();
+    });
   });
 
-  tearDown(() {
-    EmotionTrendNotificationService.resetForTesting();
-  });
+  tearDown(teardownDiaryAnalysisSideEffectMocks);
 
   group('DiaryAnalysisNotifier', () {
     group('초기 상태', () {
