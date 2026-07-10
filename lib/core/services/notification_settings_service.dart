@@ -1,75 +1,26 @@
-import 'dart:convert';
-import 'dart:math';
-
-import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../domain/entities/notification_settings.dart';
 import '../../domain/entities/self_encouragement_message.dart';
-import '../constants/notification_messages.dart';
 import '../observability/performance_traces.dart';
 import 'analytics_service.dart';
+import 'cheerme/cheer_me_message_selector.dart';
+import 'cheerme/cheer_me_queue_planner.dart';
+import 'cheerme/cheer_me_types.dart';
 import 'crashlytics_service.dart';
 import 'fcm_service.dart';
 import 'notification_diff_planner.dart';
 import 'notification_permission_service.dart';
 import 'notification_service.dart';
 
-class CheerMeQueuePlan {
-  const CheerMeQueuePlan({
-    required this.notifications,
-    required this.nextSequentialCursor,
-    required this.signature,
-  });
+export 'cheerme/cheer_me_types.dart' show CheerMeQueuePlan;
 
-  final List<CheerMeScheduledNotification> notifications;
-  final int nextSequentialCursor;
-  final String signature;
-
-  CheerMeScheduledNotification? get firstNotification =>
-      notifications.isEmpty ? null : notifications.first;
-}
-
-class _IndexedMessage {
-  const _IndexedMessage({required this.index, required this.message});
-
-  final int index;
-  final SelfEncouragementMessage message;
-}
-
-class _CheerMeSelection {
-  const _CheerMeSelection({required this.index, required this.message});
-
-  final int index;
-  final SelfEncouragementMessage message;
-}
-
-class _ParsedCheerMePayload {
-  const _ParsedCheerMePayload({
-    required this.id,
-    required this.payload,
-    required this.title,
-    required this.body,
-    required this.version,
-    required this.signature,
-    required this.scheduledFor,
-    required this.sequenceCursor,
-    required this.messageId,
-  });
-
-  final int id;
-  final String payload;
-  final String? title;
-  final String? body;
-  final int? version;
-  final String? signature;
-  final DateTime? scheduledFor;
-  final int? sequenceCursor;
-  final String? messageId;
-}
-
+/// Facade: applySettings / permission / FCM + Cheer Me queue delegation.
+///
+/// Pure selection/queue algorithms live under `cheerme/`.
+/// Keep `@visibleForTesting` static overrides for existing test adapters.
 class NotificationSettingsService {
   NotificationSettingsService._();
 
@@ -692,86 +643,14 @@ class NotificationSettingsService {
     List<PendingNotificationRequest> pendingNotifications = const [],
     tz.TZDateTime? now,
   }) {
-    final sortedMessages = [...messages]
-      ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
-    final signature = _buildCheerMeSignature(
+    return CheerMeQueuePlanner.buildPlan(
       settings,
-      sortedMessages,
-      userName,
-    );
-
-    if (sortedMessages.isEmpty) {
-      return CheerMeQueuePlan(
-        notifications: const [],
-        nextSequentialCursor: settings.lastDisplayedIndex,
-        signature: signature,
-      );
-    }
-
-    final currentTime = now ?? tz.TZDateTime.now(tz.local);
-    final firstScheduledDate = _nextReminderDate(settings, currentTime);
-    final parsedPending = _parsePendingCheerMeNotifications(
-      pendingNotifications,
-    );
-
-    var rollingCursor = _resolveSequentialStartCursor(
-      settings,
-      sortedMessages,
-      parsedPending,
-    );
-
-    final notifications = <CheerMeScheduledNotification>[];
-    for (var i = 0; i < NotificationService.cheerMeQueueLength; i++) {
-      final scheduledDate = firstScheduledDate.add(Duration(days: i));
-      final selection = _selectMessageForSchedule(
-        settings,
-        sortedMessages,
-        scheduledDate: scheduledDate,
-        signature: signature,
-        recentEmotionScore: recentEmotionScore,
-        sequentialCursor: rollingCursor,
-      );
-
-      final title = _selectCheerMeTitle(
-        userName,
-        '${signature}_${scheduledDate.toIso8601String()}_${selection.index}',
-      );
-      final body = NotificationMessages.applyNamePersonalization(
-        selection.message.content,
-        userName,
-      );
-      final payload = _buildCheerMePayload(
-        scheduledDate: scheduledDate,
-        sequenceCursor: selection.index,
-        messageId: selection.message.id,
-        signature: signature,
-      );
-
-      notifications.add(
-        CheerMeScheduledNotification(
-          id: NotificationService.cheerMeNotificationIds[i],
-          title: title,
-          body: body,
-          scheduledDate: scheduledDate,
-          payload: payload,
-        ),
-      );
-
-      if (settings.rotationMode == MessageRotationMode.sequential) {
-        rollingCursor = NotificationSettings.nextIndex(
-          selection.index,
-          sortedMessages.length,
-        );
-      }
-    }
-
-    return CheerMeQueuePlan(
-      notifications: notifications,
-      nextSequentialCursor:
-          settings.rotationMode == MessageRotationMode.sequential
-          ? rollingCursor
-          : settings.lastDisplayedIndex,
-      signature: signature,
+      messages: messages,
+      payloadVersion: cheerMePayloadVersion,
+      userName: userName,
+      recentEmotionScore: recentEmotionScore,
+      pendingNotifications: pendingNotifications,
+      now: now,
     );
   }
 
@@ -781,46 +660,13 @@ class NotificationSettingsService {
     required List<PendingNotificationRequest> pendingNotifications,
     String? userName,
   }) {
-    if (!settings.isReminderEnabled || messages.isEmpty) {
-      return false;
-    }
-
-    final cheerMePending = pendingNotifications
-        .where(
-          (notification) => NotificationService.isCheerMeId(notification.id),
-        )
-        .toList();
-
-    if (cheerMePending.length != NotificationService.cheerMeQueueLength) {
-      return true;
-    }
-
-    if (cheerMePending.map((item) => item.id).toSet().length !=
-        NotificationService.cheerMeQueueLength) {
-      return true;
-    }
-
-    final expectedSignature = _buildCheerMeSignature(
+    return CheerMeQueuePlanner.requiresRebuild(
       settings,
-      [...messages]..sort((a, b) => a.displayOrder.compareTo(b.displayOrder)),
-      userName,
+      messages: messages,
+      pendingNotifications: pendingNotifications,
+      payloadVersion: cheerMePayloadVersion,
+      userName: userName,
     );
-
-    for (final notification in cheerMePending) {
-      if (notification.title?.contains('{name}') ?? false) {
-        return true;
-      }
-
-      final parsed = _parseCheerMePayload(notification);
-      if (parsed == null ||
-          parsed.version != cheerMePayloadVersion ||
-          parsed.signature != expectedSignature ||
-          parsed.scheduledFor == null) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   static Future<CheerMeScheduledNotification?> loadNextCheerMePreview(
@@ -840,7 +686,9 @@ class NotificationSettingsService {
       pendingNotifications: pendingNotifications,
       userName: userName,
     )) {
-      final pendingPreview = _buildPreviewFromPending(pendingNotifications);
+      final pendingPreview = CheerMeQueuePlanner.buildPreviewFromPending(
+        pendingNotifications,
+      );
       if (pendingPreview != null) {
         return pendingPreview;
       }
@@ -856,317 +704,9 @@ class NotificationSettingsService {
     return plan.firstNotification;
   }
 
-  static CheerMeScheduledNotification? _buildPreviewFromPending(
-    List<PendingNotificationRequest> pendingNotifications,
-  ) {
-    final parsed = _parsePendingCheerMeNotifications(pendingNotifications);
-    if (parsed.isEmpty) return null;
-
-    final earliest = parsed.firstWhere(
-      (item) => item.scheduledFor != null,
-      orElse: () => parsed.first,
-    );
-
-    if (earliest.scheduledFor == null ||
-        earliest.title == null ||
-        earliest.body == null) {
-      return null;
-    }
-
-    return CheerMeScheduledNotification(
-      id: earliest.id,
-      title: earliest.title!,
-      body: earliest.body!,
-      scheduledDate: tz.TZDateTime.from(earliest.scheduledFor!, tz.local),
-      payload: earliest.payload,
-    );
-  }
-
-  static List<_ParsedCheerMePayload> _parsePendingCheerMeNotifications(
-    List<PendingNotificationRequest> pendingNotifications,
-  ) {
-    final parsed =
-        pendingNotifications
-            .where(
-              (notification) =>
-                  NotificationService.isCheerMeId(notification.id),
-            )
-            .map(_parseCheerMePayload)
-            .whereType<_ParsedCheerMePayload>()
-            .toList()
-          ..sort((a, b) {
-            final aTime = a.scheduledFor;
-            final bTime = b.scheduledFor;
-            if (aTime == null && bTime == null) {
-              return a.id.compareTo(b.id);
-            }
-            if (aTime == null) return 1;
-            if (bTime == null) return -1;
-            return aTime.compareTo(bTime);
-          });
-    return parsed;
-  }
-
-  static _ParsedCheerMePayload? _parseCheerMePayload(
-    PendingNotificationRequest notification,
-  ) {
-    final rawPayload = notification.payload;
-    if (rawPayload == null || rawPayload.isEmpty) {
-      return null;
-    }
-
-    try {
-      final decoded = jsonDecode(rawPayload);
-      if (decoded is! Map<String, dynamic>) return null;
-      if (decoded['type']?.toString() != 'cheerme') return null;
-
-      final version = decoded['v'] is int
-          ? decoded['v'] as int
-          : int.tryParse(decoded['v']?.toString() ?? '');
-      final sequenceCursor = decoded['sequenceCursor'] is int
-          ? decoded['sequenceCursor'] as int
-          : int.tryParse(decoded['sequenceCursor']?.toString() ?? '');
-
-      return _ParsedCheerMePayload(
-        id: notification.id,
-        payload: rawPayload,
-        title: notification.title,
-        body: notification.body,
-        version: version,
-        signature: decoded['signature']?.toString(),
-        scheduledFor: DateTime.tryParse(
-          decoded['scheduledFor']?.toString() ?? '',
-        ),
-        sequenceCursor: sequenceCursor,
-        messageId: decoded['messageId']?.toString(),
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  static int _resolveSequentialStartCursor(
-    NotificationSettings settings,
-    List<SelfEncouragementMessage> messages,
-    List<_ParsedCheerMePayload> pendingNotifications,
-  ) {
-    if (settings.rotationMode != MessageRotationMode.sequential ||
-        messages.isEmpty) {
-      return settings.lastDisplayedIndex;
-    }
-
-    if (pendingNotifications.isNotEmpty) {
-      final earliest = pendingNotifications.first;
-      if (earliest.messageId != null) {
-        final messageIndex = messages.indexWhere(
-          (message) => message.id == earliest.messageId,
-        );
-        if (messageIndex >= 0) {
-          return messageIndex;
-        }
-      }
-    }
-
-    return NotificationSettings.currentIndex(
-      settings.lastDisplayedIndex,
-      messages.length,
-    );
-  }
-
-  static tz.TZDateTime _nextReminderDate(
-    NotificationSettings settings,
-    tz.TZDateTime now,
-  ) {
-    var scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      settings.reminderHour,
-      settings.reminderMinute,
-    );
-
-    if (!scheduledDate.isAfter(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
-    return scheduledDate;
-  }
-
-  static _CheerMeSelection _selectMessageForSchedule(
-    NotificationSettings settings,
-    List<SelfEncouragementMessage> messages, {
-    required tz.TZDateTime scheduledDate,
-    required String signature,
-    required int sequentialCursor,
-    double? recentEmotionScore,
-  }) {
-    switch (settings.rotationMode) {
-      case MessageRotationMode.random:
-        return _selectDeterministicRandomMessage(
-          messages,
-          seed: 'random_${signature}_${scheduledDate.toIso8601String()}',
-        );
-      case MessageRotationMode.sequential:
-        final index = NotificationSettings.currentIndex(
-          sequentialCursor,
-          messages.length,
-        );
-        return _CheerMeSelection(index: index, message: messages[index]);
-      case MessageRotationMode.emotionAware:
-        return _selectDeterministicEmotionAwareMessage(
-          messages,
-          recentEmotionScore,
-          seed: 'emotion_${signature}_${scheduledDate.toIso8601String()}',
-        );
-      case MessageRotationMode.timeAware:
-        return _selectDeterministicTimeAwareMessage(
-          messages,
-          scheduledDate,
-          seed: 'time_${signature}_${scheduledDate.toIso8601String()}',
-        );
-    }
-  }
-
-  static _CheerMeSelection _selectDeterministicRandomMessage(
-    List<SelfEncouragementMessage> messages, {
-    required String seed,
-  }) {
-    final index = _stableModulo(seed, messages.length);
-    return _CheerMeSelection(index: index, message: messages[index]);
-  }
-
-  static _CheerMeSelection _selectDeterministicTimeAwareMessage(
-    List<SelfEncouragementMessage> messages,
-    DateTime scheduledDate, {
-    required String seed,
-  }) {
-    final category = _timeCategory(scheduledDate.hour);
-    final filtered = <_IndexedMessage>[];
-
-    for (var i = 0; i < messages.length; i++) {
-      if (messages[i].timeCategory == category) {
-        filtered.add(_IndexedMessage(index: i, message: messages[i]));
-      }
-    }
-
-    final pool = filtered.isEmpty
-        ? [
-            for (var i = 0; i < messages.length; i++)
-              _IndexedMessage(index: i, message: messages[i]),
-          ]
-        : filtered;
-
-    final selected = pool[_stableModulo(seed, pool.length)];
-    return _CheerMeSelection(index: selected.index, message: selected.message);
-  }
-
-  static _CheerMeSelection _selectDeterministicEmotionAwareMessage(
-    List<SelfEncouragementMessage> messages,
-    double? recentEmotionScore, {
-    required String seed,
-  }) {
-    if (recentEmotionScore == null) {
-      return _selectDeterministicRandomMessage(messages, seed: seed);
-    }
-
-    final weights = <int>[];
-    for (final msg in messages) {
-      if (msg.writtenEmotionScore == null) {
-        weights.add(1);
-      } else {
-        final distance = (msg.writtenEmotionScore! - recentEmotionScore).abs();
-        if (distance <= 1.0) {
-          weights.add(3);
-        } else if (distance <= 3.0) {
-          weights.add(2);
-        } else {
-          weights.add(1);
-        }
-      }
-    }
-
-    final totalWeight = weights.fold(0, (sum, value) => sum + value);
-    var pick = _stableModulo(seed, totalWeight);
-    for (var i = 0; i < messages.length; i++) {
-      if (pick < weights[i]) {
-        return _CheerMeSelection(index: i, message: messages[i]);
-      }
-      pick -= weights[i];
-    }
-
-    return _CheerMeSelection(
-      index: messages.length - 1,
-      message: messages.last,
-    );
-  }
-
-  static String _buildCheerMeSignature(
-    NotificationSettings settings,
-    List<SelfEncouragementMessage> messages,
-    String? userName,
-  ) {
-    final payload = jsonEncode({
-      'v': cheerMePayloadVersion,
-      'queueLength': NotificationService.cheerMeQueueLength,
-      'reminderHour': settings.reminderHour,
-      'reminderMinute': settings.reminderMinute,
-      'rotationMode': settings.rotationMode.name,
-      'userName': userName ?? '',
-      'timezone': tz.local.name,
-      'messages': [
-        for (final message in messages)
-          {
-            'id': message.id,
-            'content': message.content,
-            'displayOrder': message.displayOrder,
-            'timeCategory': message.timeCategory,
-            'writtenEmotionScore': message.writtenEmotionScore,
-          },
-      ],
-    });
-    return sha1.convert(utf8.encode(payload)).toString();
-  }
-
-  static String _buildCheerMePayload({
-    required tz.TZDateTime scheduledDate,
-    required int sequenceCursor,
-    required String messageId,
-    required String signature,
-  }) {
-    return jsonEncode({
-      'type': 'cheerme',
-      'v': cheerMePayloadVersion,
-      'scheduledFor': scheduledDate.toIso8601String(),
-      'sequenceCursor': sequenceCursor,
-      'messageId': messageId,
-      'signature': signature,
-    });
-  }
-
-  static String _selectCheerMeTitle(String? userName, String seed) {
-    final templates = NotificationMessages.cheerMeTitles;
-    final index = _stableModulo(seed, templates.length);
-    return NotificationMessages.applyNamePersonalization(
-      templates[index],
-      userName,
-    );
-  }
-
-  static int _stableModulo(String seed, int length) {
-    if (length <= 1) return 0;
-    final digest = sha1.convert(utf8.encode(seed)).bytes;
-    var value = 0;
-    for (final byte in digest.take(4)) {
-      value = (value << 8) + byte;
-    }
-    return value % length;
-  }
-
-  /// 설정에 따라 메시지 선택
+  /// 설정에 따라 메시지 선택 (legacy Random 경로 — seed 사용 금지).
   ///
   /// [messages]는 이미 displayOrder 순으로 정렬된 상태로 전달되어야 합니다.
-  /// (SelfEncouragementController에서 정렬 후 전달)
   @visibleForTesting
   static SelfEncouragementMessage? selectMessage(
     NotificationSettings settings,
@@ -1174,89 +714,16 @@ class NotificationSettingsService {
     double? recentEmotionScore,
     DateTime? now,
   }) {
-    if (messages.isEmpty) return null;
-
-    switch (settings.rotationMode) {
-      case MessageRotationMode.random:
-        return messages[Random().nextInt(messages.length)];
-      case MessageRotationMode.sequential:
-        final index = NotificationSettings.currentIndex(
-          settings.lastDisplayedIndex,
-          messages.length,
-        );
-        return messages[index];
-      case MessageRotationMode.emotionAware:
-        return _selectEmotionAwareMessage(messages, recentEmotionScore);
-      case MessageRotationMode.timeAware:
-        return _selectTimeAwareMessage(messages, now);
-    }
-  }
-
-  /// 시간대 기반 메시지 선택
-  ///
-  /// morning(5-11), afternoon(12-17), evening(18-23, 0-4)
-  /// 매칭 메시지 없으면 전체 풀 폴백
-  static SelfEncouragementMessage _selectTimeAwareMessage(
-    List<SelfEncouragementMessage> messages,
-    DateTime? now,
-  ) {
-    final hour = (now ?? DateTime.now()).hour;
-    final category = _timeCategory(hour);
-    final filtered = messages
-        .where((message) => message.timeCategory == category)
-        .toList();
-    final pool = filtered.isEmpty ? messages : filtered;
-    return pool[Random().nextInt(pool.length)];
+    return CheerMeMessageSelector.selectMessage(
+      settings,
+      messages,
+      recentEmotionScore: recentEmotionScore,
+      now: now,
+    );
   }
 
   /// 시간(0-23)을 시간대 카테고리 문자열로 변환
   @visibleForTesting
-  static String timeCategory(int hour) => _timeCategory(hour);
-
-  static String _timeCategory(int hour) {
-    if (hour >= 5 && hour <= 11) return 'morning';
-    if (hour >= 12 && hour <= 17) return 'afternoon';
-    return 'evening';
-  }
-
-  /// 감정 기반 가중치 메시지 선택
-  ///
-  /// writtenEmotionScore와 recentEmotionScore의 거리 기반 가중치:
-  /// - 거리 ≤ 1.0 → 3배 (매우 유사한 감정)
-  /// - 거리 ≤ 3.0 → 2배 (비슷한 감정)
-  /// - 그 외 → 1배 (기본)
-  /// - writtenEmotionScore 없는 메시지 → 1배
-  /// - recentEmotionScore 없으면 → 랜덤 폴백
-  static SelfEncouragementMessage _selectEmotionAwareMessage(
-    List<SelfEncouragementMessage> messages,
-    double? recentEmotionScore,
-  ) {
-    if (recentEmotionScore == null) {
-      return messages[Random().nextInt(messages.length)];
-    }
-
-    final weights = <int>[];
-    for (final msg in messages) {
-      if (msg.writtenEmotionScore == null) {
-        weights.add(1);
-      } else {
-        final distance = (msg.writtenEmotionScore! - recentEmotionScore).abs();
-        if (distance <= 1.0) {
-          weights.add(3);
-        } else if (distance <= 3.0) {
-          weights.add(2);
-        } else {
-          weights.add(1);
-        }
-      }
-    }
-
-    final totalWeight = weights.fold(0, (sum, value) => sum + value);
-    var pick = Random().nextInt(totalWeight);
-    for (var i = 0; i < messages.length; i++) {
-      pick -= weights[i];
-      if (pick < 0) return messages[i];
-    }
-    return messages.last;
-  }
+  static String timeCategory(int hour) =>
+      CheerMeMessageSelector.timeCategory(hour);
 }
