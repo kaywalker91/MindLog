@@ -171,3 +171,9 @@
 **근본 원인**: `analyzeDiary()` 성공 시 `unawaited(_triggerPostAnalysisNotifications)`가 fire-and-forget 실행 → 테스트 tearDown `container.dispose()`가 먼저 완료 → async 콜백이 disposed Ref에서 `read()` 시도. `notificationSettingsProvider` mock 누락으로 UnknownFailure도 동반
 **해결책**: `notification_test_helpers.dart` (9개 NotificationSettings mock + drain) + `settingsRepositoryProvider` stub + tearDown에서 `drainPostAnalysisSideEffects()` 후 dispose. 프로덕션: `StateNotifier.mounted` 가드. CI: `check-test-log-leakage.sh`
 **예방 규칙**: `unawaited()` 후처리가 있는 Notifier 테스트는 (1) 플랫폼 서비스 static override (2) provider mock (3) tearDown drain 3종 세트. `Ref.mounted`는 Riverpod 2.6.1에 없음 — `StateNotifier.mounted` 사용. 통과한 테스트의 에러 로그도 실패로 취급할 것
+
+## 2026-07-11 - RTK 래핑이 git diff --stat/--numstat 출력을 손상시킴
+**무엇이 잘못됐나**: push 대상 17커밋 규모 파악을 위해 `git diff --stat origin/main..HEAD` 실행 → 출력이 통째로 비었고, `--numstat`는 `1 files, +0 -0`이라는 허위 집계를 반환. `--name-only`도 파일 목록 대신 잘린 한 줄만 출력
+**근본 원인**: PreToolUse hook이 Bash 명령을 `rtk`로 자동 래핑하는데, `git diff`의 스트리밍/페이지네이션 출력을 rtk가 정상 캡처하지 못해 stdout이 손상·유실됨 (`git log`, `git status`는 정상)
+**해결책**: `rtk proxy git diff --numstat origin/main..HEAD` 로 래핑 회피 → 정상 결과(57 files, +2949 -2433). 이후 diff 계열은 전부 `rtk proxy` 경유로 재확인
+**예방 규칙**: `git diff`(특히 `--stat`/`--numstat`/`--name-only`) 결과가 비거나 `+0 -0`이면 손상 의심 → 즉시 `rtk proxy git diff ...`로 재실행. 변경 규모 집계는 rtk 결과를 신뢰하지 말고 proxy로 검증. (`git log`/`git status`/`git show --stat`은 영향 없음)
