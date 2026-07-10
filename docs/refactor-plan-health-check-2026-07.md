@@ -670,8 +670,13 @@ S0 이전에는 lint 실패가 정상임을 인지; S0 완료 후부터 “lint 
 - [x] `DiaryInputForm` 분리 (overlay 로컬 유지)
 - [x] diagnostic `isCheerMeId`
 
-### S5+
-- [ ] 가중치 DRY, seed/RNG 분리 선택기
+### S5
+- [x] 가중치 DRY (`CheerMeWeight`)
+- [x] seed/RNG 분리 선택기 (`CheerMeMessageSelector`)
+- [x] QueuePlanner + types + facade delegate
+- [x] static override / public API 유지, 기존 알림 테스트 green
+
+### S3 / S6
 - [ ] S3 / S6은 백로그
 
 ---
