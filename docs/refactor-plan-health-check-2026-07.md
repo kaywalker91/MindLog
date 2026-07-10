@@ -652,11 +652,12 @@ S0 이전에는 lint 실패가 정상임을 인지; S0 완료 후부터 “lint 
 - [x] 잔존 import 0 (심볼명 포함 교차 검증)
 - [x] lint green + arch-smoke 통과
 
-### S2 (요지)
-- [ ] secret DI 이동
-- [ ] onboarding Repository + UseCase 2 + UI 연결
-- [ ] SE UseCase 5 (Reorder 포함) + 컨트롤러 Repo 직접 호출 0
-- [ ] presentation → data import 0
+### S2 ✅ (2026-07-10 완료)
+- [x] secret DI 이동 (S2-A)
+- [x] onboarding Repository + UseCase 2 + UI 연결 (S2-B, TDD)
+- [x] SE UseCase 5 (Reorder 신설 포함) + 컨트롤러 Repo 직접 호출 0 (S2-C)
+- [x] presentation → data import 0 + prefs 직접 생성 0 (arch-smoke --strict PASS)
+- [x] 전체 테스트 1722건 green
 
 ### S1-B
 - [ ] `formatDetailDateTime` 등 출력 호환 API + 골든 테스트
