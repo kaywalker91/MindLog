@@ -275,8 +275,9 @@ case "$1" in
         echo -e "${YELLOW}Step 1/5: Static analysis${NC}"
         flutter analyze --fatal-infos || exit 1
         echo ""
-        echo -e "${YELLOW}Step 2/5: Architecture smoke${NC}"
-        bash "$SCRIPT_DIR/arch-smoke.sh" || exit 1
+        echo -e "${YELLOW}Step 2/5: Architecture smoke (strict)${NC}"
+        # S2 완료로 presentation→data / prefs 직접 생성 0 달성 → 회귀 차단용 strict 승격
+        bash "$SCRIPT_DIR/arch-smoke.sh" --strict || exit 1
         echo ""
         echo -e "${YELLOW}Step 3/5: Format check${NC}"
         dart format --set-exit-if-changed . || exit 1
