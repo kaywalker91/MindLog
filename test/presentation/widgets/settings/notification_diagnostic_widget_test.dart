@@ -134,6 +134,24 @@ void main() {
         expect(find.text('제외됨'), findsOneWidget);
         expect(find.text('Asia/Seoul'), findsOneWidget);
       });
+
+      testWidgets('Cheer Me 큐 1001–1007 전체를 예약 수로 세어야 한다', (tester) async {
+        NotificationDiagnosticService.collectOverride = () async => createData(
+          pendingNotifications: [
+            (id: 1001, title: 'Cheer Me 1'),
+            (id: 1003, title: 'Cheer Me 3'),
+            (id: 1007, title: 'Cheer Me 7'),
+            (id: 2001, title: 'Mindcare'), // not Cheer Me
+          ],
+        );
+
+        await tester.pumpWidget(buildTestWidget());
+        await tester.pumpAndSettle();
+
+        // isCheerMeId: 1001, 1003, 1007 → 3 (not just id==1001)
+        expect(find.text('3개 예약됨'), findsOneWidget);
+        expect(find.text('1개 예약됨'), findsNothing);
+      });
     });
 
     group('문제 있는 상태', () {

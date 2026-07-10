@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/services/notification_diagnostic_service.dart';
 import '../../../core/services/notification_permission_service.dart';
+import '../../../core/services/notification_service.dart';
 
 /// 진단 위젯 전용 색상 상수 (design-ok: diagnostic-only private tokens)
 class _DiagnosticColors {
@@ -277,7 +278,7 @@ class _DiagnosticContent extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final tokens = _DiagnosticVisualTokens.of(colorScheme);
     final cheerMeCount = data.pendingNotifications
-        .where((n) => n.id == 1001)
+        .where((n) => NotificationService.isCheerMeId(n.id))
         .length;
 
     return Padding(
