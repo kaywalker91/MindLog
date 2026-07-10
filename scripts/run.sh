@@ -252,6 +252,12 @@ case "$1" in
         flutter analyze --fatal-infos
         ;;
 
+    arch-smoke)
+        echo -e "${GREEN}Running architecture smoke gate...${NC}"
+        SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+        bash "$SCRIPT_DIR/arch-smoke.sh" "${@:2}"
+        ;;
+
     format)
         echo -e "${GREEN}Formatting code...${NC}"
         dart format .
@@ -264,18 +270,21 @@ case "$1" in
 
     quality)
         echo -e "${GREEN}Running full quality gates...${NC}"
+        SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
         echo ""
-        echo -e "${YELLOW}Step 1/4: Static analysis${NC}"
+        echo -e "${YELLOW}Step 1/5: Static analysis${NC}"
         flutter analyze --fatal-infos || exit 1
         echo ""
-        echo -e "${YELLOW}Step 2/4: Format check${NC}"
+        echo -e "${YELLOW}Step 2/5: Architecture smoke${NC}"
+        bash "$SCRIPT_DIR/arch-smoke.sh" || exit 1
+        echo ""
+        echo -e "${YELLOW}Step 3/5: Format check${NC}"
         dart format --set-exit-if-changed . || exit 1
         echo ""
-        echo -e "${YELLOW}Step 3/4: Design audit${NC}"
-        SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+        echo -e "${YELLOW}Step 4/5: Design audit${NC}"
         bash "$SCRIPT_DIR/design-audit.sh" lib/presentation/ || exit 1
         echo ""
-        echo -e "${YELLOW}Step 4/4: Tests${NC}"
+        echo -e "${YELLOW}Step 5/5: Tests${NC}"
         run_tests_with_leakage_check --coverage || exit 1
         echo ""
         echo -e "${GREEN}✓ All quality gates passed${NC}"
@@ -318,9 +327,11 @@ case "$1" in
         echo "                    --no-analyze  Skip flutter analyze"
         echo "  test-health     Run test health report (stale tests, coverage gaps)"
         echo "  lint            Run static analysis (flutter analyze)"
+        echo "  arch-smoke      Run architecture invariant gate (refactor-plan §0-B)"
+        echo "                    --strict   Treat S2-target violations as failures"
         echo "  format          Format all Dart code"
         echo "  format-check    Check code formatting without changes"
-        echo "  quality         Run full quality gates (lint + format + design-audit + test)"
+        echo "  quality         Run full quality gates (lint + arch-smoke + format + design-audit + test)"
         echo "  clean           Clean and reinstall dependencies"
         echo "  deps            Install dependencies (flutter pub get)"
         echo "  outdated        Check for outdated packages"
