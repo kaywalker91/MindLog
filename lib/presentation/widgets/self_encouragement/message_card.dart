@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/notification_messages.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/date_formatter.dart';
 import '../../../domain/entities/self_encouragement_message.dart';
 import '../../providers/user_name_controller.dart';
 
@@ -374,35 +375,8 @@ class _MessageCardState extends ConsumerState<MessageCard> {
     };
   }
 
-  /// 날짜 포맷팅 (static 헬퍼로 now 계산 최소화)
+  /// 날짜 포맷팅 (상대 작성일 — DateFormatter 단일 진입점)
   static String _formatDate(DateTime date) {
-    return _DateFormatter.format(date);
-  }
-}
-
-/// 날짜 포맷팅 헬퍼 (리빌드마다 DateTime.now() 재계산 방지)
-class _DateFormatter {
-  static DateTime? _cachedNow;
-  static int? _cachedNowDay;
-
-  static String format(DateTime date) {
-    final now = DateTime.now();
-    // 같은 날 내에서는 캐시된 now 사용
-    if (_cachedNow == null || _cachedNowDay != now.day) {
-      _cachedNow = now;
-      _cachedNowDay = now.day;
-    }
-
-    final diff = _cachedNow!.difference(date);
-
-    if (diff.inDays == 0) {
-      return '오늘 작성';
-    } else if (diff.inDays == 1) {
-      return '어제 작성';
-    } else if (diff.inDays < 7) {
-      return '${diff.inDays}일 전 작성';
-    } else {
-      return '${date.month}월 ${date.day}일 작성';
-    }
+    return DateFormatter.formatRelativeWritten(date);
   }
 }

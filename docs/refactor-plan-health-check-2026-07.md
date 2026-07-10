@@ -659,10 +659,11 @@ S0 이전에는 lint 실패가 정상임을 인지; S0 완료 후부터 “lint 
 - [x] presentation → data import 0 + prefs 직접 생성 0 (arch-smoke --strict PASS)
 - [x] 전체 테스트 1722건 green
 
-### S1-B
-- [ ] `formatDetailDateTime` 등 출력 호환 API + 골든 테스트
-- [ ] `now` 주입 상대 날짜 테스트
-- [ ] 호출부 교체 (억지 매핑 없음)
+### S1-B ✅ (2026-07-10 완료)
+- [x] `formatDetailDateTime`/`formatListDate`/`formatChartShort`/`formatChartTooltip`/`formatRelativeWritten` 출력 호환 API + 골든 테스트 9건
+- [x] `now` 주입 상대 날짜 테스트 (formatRelativeWritten)
+- [x] 호출부 5파일 교체 + day_cell param 제거 (억지 매핑 없음) — 인라인 DateFormat **0**
+- [x] 전체 1731건 green (ko_KR 로케일 초기화 테스트 3곳 보정)
 
 ### S4
 - [ ] reminder permission coordinator

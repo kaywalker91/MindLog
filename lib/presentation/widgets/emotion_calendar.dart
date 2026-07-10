@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_durations.dart';
-import 'package:intl/intl.dart';
 import 'emotion_calendar/emotion_calendar.dart';
 
 /// 감정 달력 위젯 (월간 캘린더 UI)
@@ -39,8 +38,6 @@ class _EmotionCalendarState extends State<EmotionCalendar> {
   static const double _emojiSize = 16.0;
   static const double _dateFontSize = 12.0;
   static const int _initialPageIndex = 1000;
-
-  static final DateFormat _tooltipFormatter = DateFormat('yyyy년 M월 d일');
 
   late DateTime _initialMonth;
   late DateTime _focusedMonth;
@@ -251,7 +248,6 @@ class _EmotionCalendarState extends State<EmotionCalendar> {
       isToday: isToday,
       isFuture: isFuture,
       onTap: widget.onDayTap,
-      tooltipFormatter: _tooltipFormatter,
       emojiSize: _emojiSize,
       dateFontSize: _dateFontSize,
     );

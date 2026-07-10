@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:mindlog/core/theme/app_theme.dart';
 import 'package:mindlog/core/theme/statistics_theme_tokens.dart';
 import 'package:mindlog/domain/entities/statistics.dart';
@@ -9,6 +9,11 @@ import 'package:mindlog/presentation/widgets/emotion_calendar/day_cell.dart';
 import 'package:mindlog/presentation/widgets/statistics/heatmap_card.dart';
 
 void main() {
+  setUpAll(() async {
+    // DayCell 툴팁이 DateFormatter.formatDate(ko_KR) 를 사용
+    await initializeDateFormatting('ko_KR');
+  });
+
   group('Statistics visual states', () {
     testWidgets('기간 칩 선택/비선택 색상이 토큰과 일치해야 한다', (tester) async {
       const selectedPeriod = StatisticsPeriod.week;
@@ -77,7 +82,6 @@ void main() {
                   isToday: true,
                   isFuture: false,
                   onTap: null,
-                  tooltipFormatter: DateFormat('yyyy년 M월 d일'),
                   emojiSize: 16,
                   dateFontSize: 12,
                 ),

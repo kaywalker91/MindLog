@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:mindlog/core/errors/failures.dart';
 import 'package:mindlog/core/theme/app_theme.dart';
 import 'package:mindlog/domain/entities/statistics.dart';
@@ -50,9 +51,11 @@ Widget _buildHarness({
 }
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
     // flutter_animate 타이머 자동 재시작 비활성화 (테스트 환경 타이머 누수 방지)
     Animate.restartOnHotReload = false;
+    // EmotionCalendar/DayCell 툴팁이 DateFormatter.formatDate(ko_KR) 를 사용
+    await initializeDateFormatting('ko_KR');
   });
 
   group('StatisticsScreen', () {

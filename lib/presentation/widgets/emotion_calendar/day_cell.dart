@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../../core/accessibility/app_accessibility.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/statistics_theme_tokens.dart';
+import '../../../core/utils/date_formatter.dart';
 
 /// 개별 날짜 셀 위젯 (마이크로 인터랙션 지원)
 /// 성능 최적화를 위해 const 생성자와 == 연산자 오버라이드 구현
@@ -13,7 +13,6 @@ class DayCell extends StatefulWidget {
   final bool isToday;
   final bool isFuture;
   final void Function(DateTime)? onTap;
-  final DateFormat tooltipFormatter;
   final double emojiSize;
   final double dateFontSize;
 
@@ -25,7 +24,6 @@ class DayCell extends StatefulWidget {
     required this.isToday,
     required this.isFuture,
     required this.onTap,
-    required this.tooltipFormatter,
     required this.emojiSize,
     required this.dateFontSize,
   });
@@ -230,7 +228,7 @@ class _DayCellState extends State<DayCell> {
 
   /// 친근한 툴팁 메시지
   String _getTooltipMessage() {
-    final dateStr = widget.tooltipFormatter.format(widget.date);
+    final dateStr = DateFormatter.formatDate(widget.date);
 
     // 오늘 + 미기록 특별 메시지
     if (widget.isToday && widget.score == null) {

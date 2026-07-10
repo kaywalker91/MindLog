@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:mindlog/presentation/widgets/emotion_calendar.dart';
 
 void main() {
+  setUpAll(() async {
+    // DayCell 툴팁이 DateFormatter.formatDate(ko_KR) 를 사용
+    await initializeDateFormatting('ko_KR');
+  });
+
   group('EmotionCalendar', () {
     group('이모지 매핑 테스트', () {
       testWidgets('점수 1-2는 씨앗(🌱)을 표시해야 한다', (tester) async {

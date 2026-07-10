@@ -1,14 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../core/theme/statistics_theme_tokens.dart';
+import '../../core/utils/date_formatter.dart';
 import '../../domain/entities/statistics.dart';
 
 /// 감정 점수 라인 차트 위젯 (하늘색 단일 색조)
 class EmotionLineChart extends StatelessWidget {
-  // DateFormat 인스턴스 재사용 (생성 비용 최적화)
-  static final DateFormat _shortDateFormatter = DateFormat('M/d');
-  static final DateFormat _tooltipDateFormatter = DateFormat('M월 d일');
 
   final List<DailyEmotion> dailyEmotions;
   final StatisticsPeriod period;
@@ -67,7 +64,7 @@ class EmotionLineChart extends StatelessWidget {
                       return Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
-                          _shortDateFormatter.format(date),
+                          DateFormatter.formatChartShort(date),
                           style: TextStyle(color: axisColor, fontSize: 10),
                         ),
                       );
@@ -148,7 +145,7 @@ class EmotionLineChart extends StatelessWidget {
                     if (index >= 0 && index < sortedEmotions.length) {
                       final emotion = sortedEmotions[index];
                       return LineTooltipItem(
-                        '${_tooltipDateFormatter.format(emotion.date)}\n'
+                        '${DateFormatter.formatChartTooltip(emotion.date)}\n'
                         '평균 ${emotion.averageScore.toStringAsFixed(1)}점',
                         TextStyle(
                           color: statsTokens.chartTooltipForeground,

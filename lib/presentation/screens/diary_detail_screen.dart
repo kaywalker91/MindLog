@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../core/accessibility/app_accessibility.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/date_formatter.dart';
 import '../../core/utils/responsive_utils.dart';
 import '../../domain/entities/diary.dart';
 import '../widgets/delete_diary_dialog.dart';
@@ -14,12 +14,6 @@ import '../widgets/sos_card.dart';
 
 /// 일기 상세 조회 화면
 class DiaryDetailScreen extends ConsumerWidget {
-  // DateFormat 인스턴스 재사용 (생성 비용 최적화)
-  static final DateFormat _dateFormatter = DateFormat(
-    'yyyy년 MM월 dd일 (E) a hh:mm',
-    'ko_KR',
-  );
-
   final Diary diary;
 
   const DiaryDetailScreen({super.key, required this.diary});
@@ -54,7 +48,7 @@ class DiaryDetailScreen extends ConsumerWidget {
               children: [
                 // 날짜 표시
                 Text(
-                  _dateFormatter.format(diary.createdAt),
+                  DateFormatter.formatDetailDateTime(diary.createdAt),
                   style: AppTextStyles.bodySmall.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

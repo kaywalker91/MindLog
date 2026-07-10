@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../../core/accessibility/app_accessibility.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/date_formatter.dart';
 import '../../../domain/entities/diary.dart';
 import '../../extensions/diary_display_extension.dart';
 import '../../providers/providers.dart';
@@ -14,8 +14,6 @@ import '../diary_image_indicator.dart';
 
 /// 일기 목록 아이템 카드
 class DiaryItemCard extends ConsumerWidget {
-  static final DateFormat _dateFormatter = DateFormat('MM월 dd일 (E)', 'ko_KR');
-
   final Diary diary;
 
   const DiaryItemCard({super.key, required this.diary});
@@ -107,7 +105,7 @@ class DiaryItemCard extends ConsumerWidget {
           Row(
             children: [
               Text(
-                _dateFormatter.format(diary.createdAt),
+                DateFormatter.formatListDate(diary.createdAt),
                 style: AppTextStyles.bodySmall.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.bold,
