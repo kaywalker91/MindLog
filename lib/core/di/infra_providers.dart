@@ -4,12 +4,15 @@ import 'package:mindlog/core/services/app_logger.dart';
 import 'package:talker/talker.dart';
 import 'package:mindlog/core/network/circuit_breaker.dart';
 import 'package:mindlog/data/datasources/local/preferences_local_datasource.dart';
+import 'package:mindlog/data/datasources/local/secure_storage_datasource.dart';
 import 'package:mindlog/data/datasources/local/sqlite_local_datasource.dart';
 import 'package:mindlog/data/datasources/remote/groq_remote_datasource.dart';
 import 'package:mindlog/data/repositories/diary_repository_impl.dart';
+import 'package:mindlog/data/repositories/secret_pin_repository_impl.dart';
 import 'package:mindlog/data/repositories/settings_repository_impl.dart';
 import 'package:mindlog/data/repositories/statistics_repository_impl.dart';
 import 'package:mindlog/domain/repositories/diary_repository.dart';
+import 'package:mindlog/domain/repositories/secret_pin_repository.dart';
 import 'package:mindlog/domain/repositories/settings_repository.dart';
 import 'package:mindlog/domain/repositories/statistics_repository.dart';
 import 'package:mindlog/domain/usecases/analyze_diary_usecase.dart';
@@ -39,6 +42,18 @@ final preferencesLocalDataSourceProvider = Provider<PreferencesLocalDataSource>(
   (ref) {
     return PreferencesLocalDataSource();
   },
+);
+
+/// SecureStorage 데이터 소스 Provider (비밀일기 PIN 저장 전용)
+final secureStorageDataSourceProvider = Provider<SecureStorageDataSource>(
+  (_) => SecureStorageDataSource(),
+);
+
+/// SecretPinRepository Provider
+final secretPinRepositoryProvider = Provider<SecretPinRepository>(
+  (ref) => SecretPinRepositoryImpl(
+    storage: ref.watch(secureStorageDataSourceProvider),
+  ),
 );
 
 /// 서킷 브레이커 Provider

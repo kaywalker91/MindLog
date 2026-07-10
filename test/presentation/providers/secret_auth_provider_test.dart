@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/domain/usecases/secret/verify_secret_pin_usecase.dart';
+import 'package:mindlog/presentation/providers/infra_providers.dart';
 import 'package:mindlog/presentation/providers/secret_auth_provider.dart';
 import 'package:mindlog/presentation/providers/secret_diary_providers.dart';
 import 'package:mocktail/mocktail.dart';

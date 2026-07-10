@@ -1,10 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mindlog/data/datasources/local/secure_storage_datasource.dart';
-import 'package:mindlog/data/repositories/secret_pin_repository_impl.dart';
 import 'package:mindlog/domain/entities/diary.dart';
-import 'package:mindlog/domain/repositories/secret_pin_repository.dart';
 import 'package:mindlog/domain/usecases/secret/delete_secret_pin_usecase.dart';
 import 'package:mindlog/domain/usecases/secret/get_secret_diaries_usecase.dart';
 import 'package:mindlog/domain/usecases/secret/has_secret_pin_usecase.dart';
@@ -14,20 +11,10 @@ import 'package:mindlog/domain/usecases/secret/verify_secret_pin_usecase.dart';
 import 'package:mindlog/presentation/providers/providers.dart';
 
 // ──────────────────────────────────────────────
-// Infrastructure (DataSource → Repository)
+// Infrastructure
 // ──────────────────────────────────────────────
-
-/// SecureStorage DataSource Provider
-final secureStorageDataSourceProvider = Provider<SecureStorageDataSource>(
-  (_) => SecureStorageDataSource(),
-);
-
-/// SecretPinRepository Provider
-final secretPinRepositoryProvider = Provider<SecretPinRepository>(
-  (ref) => SecretPinRepositoryImpl(
-    storage: ref.watch(secureStorageDataSourceProvider),
-  ),
-);
+// secureStorageDataSourceProvider / secretPinRepositoryProvider 는
+// core/di/infra_providers.dart 로 이전 (providers.dart 배럴 경유 접근).
 
 // ──────────────────────────────────────────────
 // UseCase Providers (PIN 관련)
