@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.60] - 2026-07-11
+
+> **Health Check 리팩토링 (S0~S5).** 사용자 화면·동작 변화 없는 내부 구조 개선 릴리스.
+> 57파일 · +2,949 / −2,433 · 게이트: `flutter analyze` 클린 · `arch-smoke --strict` 통과 · **1,748 테스트 그린**.
+
+### Added
+
+- **아키텍처 불변식 게이트** (`scripts/arch-smoke.sh`, S0):
+  - 2단 구조 — (1) 즉시 실패 불변식: `domain` 순수 Dart(Flutter import 0), `SafetyBlockedFailure` 존재, `safetyFollowupId=2004` 유지, `NotificationService.isCheerMeId` 헬퍼 유지 / (2) S2 목표 지표: `presentation → data` import 카운트, `PreferencesLocalDataSource()` 직접 생성 카운트.
+  - `rg`는 대화형 zsh 함수라 `#!/bin/bash` 하에서 미동작 → **POSIX `grep`** 으로 구현.
+  - `./scripts/run.sh arch-smoke` 등록 + `quality` Step 2/5에 편입, `--strict` 승격으로 레이어 위반 회귀를 머지 전 차단.
+- **`DateFormatter` 신규 API 5종** (`lib/core/utils/date_formatter.dart`, S1-B): `formatDetailDateTime` / `formatListDate` / `formatChartShort` / `formatChartTooltip` / `formatRelativeWritten(now 주입)` — 호출부 실측 패턴 1:1 복원. 골든 테스트 9건으로 출력 문자열(요일·오전오후·제로패딩) 고정.
+- **onboarding domain API** (S2-B): `SettingsRepository.isOnboardingCompleted` / `setOnboardingCompleted` + `GetOnboardingCompletedUseCase` / `CompleteOnboardingUseCase` (TDD). splash/onboarding 화면이 `PreferencesLocalDataSource`를 직접 생성하던 레이어 위반 해소.
+- **`ReorderSelfEncouragementMessagesUseCase`** (S2-C): 자가응원 5번째 UseCase 신설(TDD) — 빈 리스트 `ValidationFailure` + `Failure` 전파.
+- **`ReminderToggleCoordinator`** (`lib/presentation/services/`, S4): 정확 알람·배터리 최적화 권한 오케스트레이션을 `NotificationSection`에서 분리. sealed `ReminderEnableResult`(NeedExactAlarm / NeedBattery / Enabled+warnings / Disabled / Failed) — 위젯은 결과로 dialog/SnackBar **표시만**.
+- **`DiaryInputForm` 위젯** (`lib/presentation/widgets/diary/`, S4): `DiaryScreen`에서 입력 UI 분리. 네트워크 오버레이·햅틱·2초 성공 타이머는 위젯 로컬 State 유지(분석 컨트롤러 이전 금지).
+- **`cheerme/` 모듈 4종** (`lib/core/services/cheerme/`, S5): `CheerMeWeight`(감정 거리→가중치, 순수) / `CheerMeMessageSelector`(seed 결정론 vs `Random` 레거시 경로 분리) / `CheerMeQueuePlanner`(plan/signature/payload/rebuild) / `cheer_me_types.dart`(`CheerMeQueuePlan` 등). 단위 테스트 `cheer_me_weight_test.dart` 추가.
+
+### Changed
+
+- **레이어 경계 강제 — `presentation → data` import 0 달성** (S2):
+  - secret pin infra(`secureStorageDataSourceProvider` / `secretPinRepositoryProvider`)를 `core/di/infra_providers.dart`(조립 루트)로 이전, `secret_diary_providers.dart`는 UseCase provider만 유지.
+  - onboarding·SE 경로 domain 경유 전환. `quality` Step 2를 `--strict`로 승격.
+- **자가응원 컨트롤러 → UseCase 위임** (S2-C): build/add/update/delete/reorder 전부 `UseCase.execute()` 경유. 중복 validation(빈 내용·길이·개수) 제거 → UseCase 담당. **계약 보존**: `ValidationFailure`만 catch해 UI용 `bool(false)`로 변환, 영속화 오류(`CacheFailure` 등)는 전파. `SettingsRepository` import 제거 → 컨트롤러 Repository 직접 호출 **0건**.
+- **`NotificationSettingsService` facade 분해** (S5): 1,262줄 God class → 얇은 facade **729줄**. `applySettings` / 권한 / FCM / `@visibleForTesting` static override는 facade 유지, `CheerMeQueuePlan`은 facade에서 `export`해 기존 import 경로 보존. deterministic(seed/SHA1)·legacy(`Random`) 경로 **통합하지 않고 분리만** — RNG 의미 보존.
+- **날짜 포맷 단일 진입점** (S1-B): 호출부 5파일(diary_detail / diary_item_card / emotion_line_chart / emotion_calendar day_cell / message_card `_DateFormatter`) 인라인 `DateFormat` 제거 → production 인라인 `DateFormat` **0건**.
+
+### Removed
+
+- **데드코드 10파일 삭제** (production 8 + test 2, S1-A) — 심볼명·배럴 import 전수 교차 검증 후 삭제:
+  - `widgets/emotion_garden.dart`(+test), `widgets/activity_heatmap.dart`(statistics heatmap_card 대체), `widgets/settings_components.dart`(settings/ 대체), `widgets/delete_all_diaries_dialog.dart`(data_management_section 인라인), `widgets/common/expandable_text.dart`, `widgets/settings/settings.dart`(미사용 배럴), `core/constants/app_changelog.dart`(원격 JSON 전환), `core/utils/time_utils.dart`(+test).
+
+### Fixed
+
+- **diagnostic Cheer Me pending 카운트** (S4): `id==1001`만 세어 1002–1007을 누락하던 것을 `NotificationService.isCheerMeId`로 전체 큐 범위(1001–1007) 반영.
+- **`prompt_constants` lint** (S0): `'${visionScopeNote}'` 뒤 문자가 한글이라 보간 브레이스 불필요(`unnecessary_brace_in_string_interps`) → `--fatal-infos` 게이트 실패. `'$visionScopeNote'`로 교정, 출력 문자열 불변.
+
+---
+
 ## [1.4.59] - 2026-07-05
 
 ### Fixed (Groq Vision API — 8K TPM 413/429 실측 대응)

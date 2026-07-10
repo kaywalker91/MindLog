@@ -93,8 +93,28 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.54까지의 개선 사항을 소개합니다. 3-way LLM 합의(Claude × Gemini × Codex)로 도출한 P0/P1 성능 최적화 묶음 — Firebase Performance 측정 인프라 도입, Groq 응답 SQLite 캐싱(SHA-256 해시·LRU 1000건), 알림 큐 diff 알고리즘으로 platform channel 호출 0-call 최적화, JSON 파싱 isolate 오프로드, Cheer Me 7일 큐 재구축 — 등이 포함됩니다.</p>
+            <p class="section-subtitle">v1.4.60에서는 <strong>사용자 화면 변화 없이 코드 건강도만 끌어올리는 Health Check 리팩토링</strong>을 진행했습니다 — 아키텍처 경계를 코드로 강제하는 자동 게이트 도입, 1,200줄 규모 God Class 분해, 날짜 포맷 중복 제거, 데드코드 정리(57파일 변경 · 1,748 테스트 그린). 아래에는 이전 v1.4.54까지의 성능 최적화 묶음(3-way LLM 합의로 도출한 Groq 응답 SQLite 캐싱·알림 큐 diff 알고리즘·JSON 파싱 isolate 오프로드 등)도 함께 소개합니다.</p>
             <div class="updates-grid">
+                <div class="update-card">
+                    <span class="update-tag">Architecture Governance</span>
+                    <h3>아키텍처 불변식 자동 게이트 — arch-smoke --strict (v1.4.60)</h3>
+                    <p>리팩토링이 아키텍처를 서서히 무너뜨리는 것을 막기 위해, 레이어 경계 규칙을 <strong>실행 가능한 게이트</strong>로 고정했습니다. 화면(presentation) 코드가 데이터 계층을 직접 참조하지 않는지, 위기 감지 안전장치(SafetyBlockedFailure·안전 알림 ID)가 유지되는지를 매 품질 검사마다 자동 검증하고, 위반 시 머지 전에 실패로 드러납니다. 규칙을 '문서'가 아니라 '코드'로 강제해, 팀이 커지거나 시간이 지나도 설계 원칙이 흐트러지지 않도록 했습니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Clean Architecture</span>
+                    <h3>레이어 경계 강제 — 화면→데이터 직접 결합 0 (v1.4.60)</h3>
+                    <p>일부 화면이 데이터 저장 계층을 직접 만들고 호출하던 결합을 제거했습니다. 비밀 일기 인증·온보딩 완료 상태 등을 도메인 UseCase 경유로 전환하고, 객체 조립은 의존성 주입(DI) 루트 한 곳으로 모았습니다. 결과적으로 화면은 <em>'무엇을'</em> 할지만 알고 <em>'어떻게'</em> 저장하는지는 몰라도 되는 구조가 되어, 데이터 소스 교체와 테스트가 쉬워졌습니다. (화면→데이터 직접 import·직접 생성 모두 0건)</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Maintainability</span>
+                    <h3>1,200줄 God Class 분해 — 알림 서비스 모듈화 (v1.4.60)</h3>
+                    <p>하나로 뭉쳐 있던 알림 설정 서비스(1,262줄)를 역할별 모듈로 나눴습니다. 감정 거리 기반 응원 가중치, 메시지 선택(결정론/레거시 경로), 7일 알림 큐 계획을 각각 독립 파일로 분리하고, 기존 진입점은 얇은 facade(729줄)로 남겨 <strong>호출하는 쪽 코드 변경 없이 내부만 재구성</strong>했습니다. 응원 메시지 랜덤 로직의 미묘한 동작(동일 조건이면 항상 같은 메시지가 나오는 seed 결정성)은 골든 테스트로 그대로 보존했습니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Code Quality</span>
+                    <h3>날짜 포맷 단일 진입점 + 데드코드 정리 (v1.4.60)</h3>
+                    <p>5개 파일에 흩어져 있던 날짜 포맷 코드를 <code>DateFormatter</code> 한 곳으로 통합했습니다. 화면에 보이는 글자가 한 글자도 바뀌지 않도록 골든 테스트 9건으로 먼저 고정한 뒤 중복 코드를 제거해, 요일·오전/오후 표기 같은 규칙을 한 곳에서만 관리하게 됐습니다. 또한 실제로 쓰이지 않는 위젯·유틸 10개 파일을 전수 교차 검증 후 삭제했습니다. 이번 릴리스 전체는 사용자 화면·동작 변화 없이 유지보수성만 끌어올린 내부 개선입니다.</p>
+                </div>
                 <div class="update-card">
                     <span class="update-tag">Reliability &amp; Maintainability</span>
                     <h3>알림 시스템 방어 강화 완료 (P1-3/P1-4)</h3>
