@@ -666,9 +666,9 @@ S0 이전에는 lint 실패가 정상임을 인지; S0 완료 후부터 “lint 
 - [x] 전체 1731건 green (ko_KR 로케일 초기화 테스트 3곳 보정)
 
 ### S4
-- [ ] reminder permission coordinator
-- [ ] `DiaryInputForm` 분리 (overlay 로컬 유지)
-- [ ] diagnostic `isCheerMeId`
+- [x] reminder permission coordinator (`ReminderToggleCoordinator` + sealed `ReminderEnableResult`)
+- [x] `DiaryInputForm` 분리 (overlay 로컬 유지)
+- [x] diagnostic `isCheerMeId`
 
 ### S5+
 - [ ] 가중치 DRY, seed/RNG 분리 선택기
