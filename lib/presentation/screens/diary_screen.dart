@@ -10,15 +10,14 @@ import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/responsive_utils.dart';
-import '../../core/utils/validators.dart';
 import '../providers/diary_analysis_controller.dart';
 import '../providers/diary_list_controller.dart';
+import '../widgets/diary/diary_input_form.dart';
 import '../widgets/result_card.dart';
 import '../widgets/sos_card.dart';
 import '../widgets/loading_indicator.dart';
 import '../widgets/mindlog_app_bar.dart';
 import '../widgets/network_status_overlay.dart';
-import '../widgets/image_picker_section.dart';
 
 /// 일기 작성 화면
 class DiaryScreen extends ConsumerStatefulWidget {
@@ -328,122 +327,17 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
   }
 
   Widget _buildInputForm(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 인트로 텍스트
-          Text(
-            '오늘 하루는 어떠셨나요?',
-            style: AppTextStyles.headline.copyWith(
-              color: colorScheme.onSurface,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '마음 속 이야기를 자유롭게 적어보세요.',
-            style: AppTextStyles.bodySmall.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-
-          // 작성 날짜 선택 칩 (기본: 오늘, 미래 선택 불가)
-          Center(
-            child: ActionChip(
-              avatar: const Icon(
-                Icons.calendar_today_outlined,
-                size: 18,
-                color: AppColors.primary, // design-ok: 아이콘 브랜드 액센트
-              ),
-              label: Text(
-                _dateChipLabel,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: _isTodaySelected
-                      ? colorScheme.onSurfaceVariant
-                      : AppColors.primaryDark,
-                  fontWeight: _isTodaySelected
-                      ? FontWeight.normal
-                      : FontWeight.w600,
-                ),
-              ),
-              side: _isTodaySelected
-                  ? null
-                  : const BorderSide(
-                      color: AppColors.primary, // design-ok: 강조선 브랜드 액센트
-                    ),
-              onPressed: _pickEntryDate,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // 텍스트 입력 필드
-          TextFormField(
-            controller: _textController,
-            maxLines: 8,
-            maxLength: AppConstants.diaryMaxLength,
-            decoration: const InputDecoration(
-              hintText: AppStrings.diaryHint,
-              alignLabelWithHint: true,
-            ),
-            validator: Validators.validateDiaryContent,
-            onChanged: (_) => setState(() {}),
-            buildCounter:
-                (
-                  context, {
-                  required currentLength,
-                  required isFocused,
-                  maxLength,
-                }) {
-                  final len = currentLength;
-                  final Color color;
-                  if (len >= AppConstants.diaryMaxLength) {
-                    color = AppColors.error;
-                  } else if (len >= 4500) {
-                    color = AppColors.warning;
-                  } else {
-                    color = Theme.of(context).colorScheme.onSurfaceVariant;
-                  }
-                  final String formatted = len >= 1000
-                      ? '${len ~/ 1000},${(len % 1000).toString().padLeft(3, '0')}'
-                      : '$len';
-                  return Text(
-                    '$formatted/5,000',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: color),
-                  );
-                },
-          ),
-          const SizedBox(height: 16),
-
-          // 이미지 선택 섹션
-          ImagePickerSection(
-            imagePaths: _selectedImages,
-            onImageAdded: _onImageAdded,
-            onImageRemoved: _onImageRemoved,
-          ),
-          const SizedBox(height: 24),
-
-          // 제출 버튼
-          ElevatedButton(
-            onPressed:
-                _textController.text.trim().length >=
-                    AppConstants.diaryMinLength
-                ? _onSubmit
-                : null,
-            child: Text(
-              _selectedImages.isNotEmpty
-                  ? '${AppStrings.submitButton} (사진 ${_selectedImages.length}장 포함)'
-                  : AppStrings.submitButton,
-            ),
-          ),
-        ],
-      ),
+    return DiaryInputForm(
+      formKey: _formKey,
+      textController: _textController,
+      dateChipLabel: _dateChipLabel,
+      isTodaySelected: _isTodaySelected,
+      selectedImagePaths: _selectedImages,
+      onPickDate: _pickEntryDate,
+      onImageAdded: _onImageAdded,
+      onImageRemoved: _onImageRemoved,
+      onSubmit: _onSubmit,
+      onTextChanged: () => setState(() {}),
     );
   }
 
