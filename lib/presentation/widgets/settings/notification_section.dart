@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/analytics_service.dart';
-import '../../../core/services/notification_permission_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../domain/entities/notification_settings.dart';
@@ -11,6 +10,7 @@ import '../../../domain/entities/self_encouragement_message.dart';
 import '../../../domain/entities/statistics.dart';
 import '../../providers/providers.dart';
 import '../../router/app_router.dart';
+import '../../services/reminder_toggle_coordinator.dart';
 import '../mindcare_welcome_dialog.dart';
 import '../weekly_insight_guide_dialog.dart';
 import 'message_rotation_mode_sheet.dart';
@@ -200,68 +200,47 @@ class NotificationSection extends ConsumerWidget {
     WidgetRef ref,
     bool enabled,
   ) async {
-    if (!enabled) {
-      await ref
+    final coordinator = ReminderToggleCoordinator(
+      updateReminderEnabled: (value) => ref
           .read(notificationSettingsProvider.notifier)
-          .updateReminderEnabled(false);
-      return;
-    }
+          .updateReminderEnabled(value),
+    );
 
-    final canScheduleExact =
-        await NotificationPermissionService.canScheduleExactAlarms();
+    var result = await coordinator.setEnabled(enabled);
 
-    if (!canScheduleExact && context.mounted) {
-      final shouldContinue = await ExactAlarmPermissionDialog.show(context);
-
-      if (shouldContinue == true) {
-        await NotificationPermissionService.requestExactAlarmPermission();
-        await NotificationPermissionService.markExactAlarmPrompted();
-
-        if (context.mounted) {
-          final nowCanSchedule =
-              await NotificationPermissionService.canScheduleExactAlarms();
-          if (!nowCanSchedule && context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('알람이 정확한 시간에 울리지 않을 수 있습니다.'),
-                duration: Duration(seconds: 4),
+    while (true) {
+      if (!context.mounted) return;
+      switch (result) {
+        case NeedExactAlarmPrompt():
+          final shouldContinue = await ExactAlarmPermissionDialog.show(context);
+          if (!context.mounted) return;
+          result = await coordinator.onExactAlarmPromptResult(shouldContinue);
+        case NeedBatteryPrompt():
+          final shouldDisable = await BatteryOptimizationDialog.show(context);
+          if (!context.mounted) return;
+          result = await coordinator.onBatteryPromptResult(shouldDisable);
+        case ReminderEnabled(:final warnings):
+          if (!context.mounted) return;
+          final messenger = ScaffoldMessenger.of(context);
+          for (final message in warnings) {
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(message),
+                duration: Duration(
+                  seconds:
+                      message ==
+                          ReminderToggleCoordinator.batteryWarningMessage
+                      ? 5
+                      : 4,
+                ),
               ),
             );
           }
-        }
+          return;
+        case ReminderDisabled():
+        case ReminderEnableFailed():
+          return;
       }
-    }
-
-    if (context.mounted) {
-      final isIgnoringBattery =
-          await NotificationPermissionService.isIgnoringBatteryOptimizations();
-
-      if (!isIgnoringBattery && context.mounted) {
-        final shouldDisable = await BatteryOptimizationDialog.show(context);
-
-        if (shouldDisable == true && context.mounted) {
-          await NotificationPermissionService.requestDisableBatteryOptimization();
-
-          if (context.mounted) {
-            final nowIgnoring =
-                await NotificationPermissionService.isIgnoringBatteryOptimizations();
-            if (!nowIgnoring && context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('배터리 최적화가 활성화되어 있어 알람이 전달되지 않을 수 있습니다.'),
-                  duration: Duration(seconds: 5),
-                ),
-              );
-            }
-          }
-        }
-      }
-    }
-
-    if (context.mounted) {
-      await ref
-          .read(notificationSettingsProvider.notifier)
-          .updateReminderEnabled(true);
     }
   }
 
