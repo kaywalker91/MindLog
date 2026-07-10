@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../core/errors/failures.dart';
 import '../../domain/entities/notification_settings.dart';
 import '../../domain/entities/self_encouragement_message.dart';
-import '../../domain/repositories/settings_repository.dart';
 import 'providers.dart';
 
 /// 개인 응원 메시지 관리 Controller
@@ -14,14 +14,9 @@ class SelfEncouragementController
     extends AsyncNotifier<List<SelfEncouragementMessage>> {
   @override
   FutureOr<List<SelfEncouragementMessage>> build() async {
-    final repository = ref.read(settingsRepositoryProvider);
-    final messages = await repository.getSelfEncouragementMessages();
-    // displayOrder 순으로 정렬
-    messages.sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
-    return messages;
+    // UseCase가 displayOrder 순 정렬까지 담당
+    return ref.read(getSelfEncouragementMessagesUseCaseProvider).execute();
   }
-
-  SettingsRepository get _repository => ref.read(settingsRepositoryProvider);
 
   double? _currentEmotionScore() =>
       ref.read(todayEmotionProvider).sentimentScore?.toDouble();
@@ -41,42 +36,33 @@ class SelfEncouragementController
   }
 
   /// 새 메시지 추가
+  ///
+  /// 유효성 검사(빈 내용·길이·개수 제한)는 UseCase가 담당하며,
+  /// 컨트롤러는 실패를 UI용 bool로 변환하고 낙관적 상태·리스케줄만 오케스트레이션한다.
   Future<bool> addMessage(String content, {String? timeCategory}) async {
-    final trimmed = content.trim();
-    if (trimmed.isEmpty) {
-      if (kDebugMode) {
-        debugPrint('[SelfEncouragement] Empty message rejected');
-      }
-      return false;
-    }
-
-    if (trimmed.length > SelfEncouragementMessage.maxContentLength) {
-      if (kDebugMode) {
-        debugPrint('[SelfEncouragement] Message too long: ${trimmed.length}');
-      }
-      return false;
-    }
-
     final current = state.valueOrNull ?? [];
-    if (current.length >= SelfEncouragementMessage.maxMessageCount) {
-      if (kDebugMode) {
-        debugPrint('[SelfEncouragement] Max message count reached');
-      }
-      return false;
-    }
-
     final writtenEmotionScore = _currentEmotionScore();
 
     final message = SelfEncouragementMessage(
       id: const Uuid().v4(),
-      content: trimmed,
+      content: content.trim(),
       createdAt: DateTime.now(),
       displayOrder: current.length,
       timeCategory: timeCategory,
       writtenEmotionScore: writtenEmotionScore,
     );
 
-    await _repository.addSelfEncouragementMessage(message);
+    try {
+      await ref
+          .read(addSelfEncouragementMessageUseCaseProvider)
+          .execute(message);
+    } on ValidationFailure catch (e) {
+      // 검증 실패는 UI용 bool(false)로 변환. 영속화 오류(CacheFailure 등)는 전파.
+      if (kDebugMode) {
+        debugPrint('[SelfEncouragement] Add rejected: ${e.message}');
+      }
+      return false;
+    }
 
     final updated = [...current, message];
     state = AsyncValue.data(updated);
@@ -99,13 +85,6 @@ class SelfEncouragementController
     String content, {
     String? timeCategory,
   }) async {
-    final trimmed = content.trim();
-    if (trimmed.isEmpty) return false;
-
-    if (trimmed.length > SelfEncouragementMessage.maxContentLength) {
-      return false;
-    }
-
     final current = state.valueOrNull ?? [];
     final index = current.indexWhere((m) => m.id == id);
     if (index == -1) return false;
@@ -113,12 +92,23 @@ class SelfEncouragementController
     final currentEmotionScore = _currentEmotionScore();
 
     final updated = current[index].copyWith(
-      content: trimmed,
+      content: content.trim(),
       timeCategory: timeCategory,
       writtenEmotionScore:
           current[index].writtenEmotionScore ?? currentEmotionScore,
     );
-    await _repository.updateSelfEncouragementMessage(updated);
+
+    try {
+      await ref
+          .read(updateSelfEncouragementMessageUseCaseProvider)
+          .execute(updated);
+    } on ValidationFailure catch (e) {
+      // 검증 실패는 UI용 bool(false)로 변환. 영속화 오류(CacheFailure 등)는 전파.
+      if (kDebugMode) {
+        debugPrint('[SelfEncouragement] Update rejected: ${e.message}');
+      }
+      return false;
+    }
 
     final newList = [...current];
     newList[index] = updated;
@@ -141,7 +131,9 @@ class SelfEncouragementController
     final current = state.valueOrNull ?? [];
     final deletedIndex = current.indexWhere((m) => m.id == id);
 
-    await _repository.deleteSelfEncouragementMessage(id);
+    await ref
+        .read(deleteSelfEncouragementMessageUseCaseProvider)
+        .execute(id);
 
     // displayOrder 재정렬
     final remaining = current.where((m) => m.id != id).toList();
@@ -222,7 +214,9 @@ class SelfEncouragementController
 
     // 저장
     final orderedIds = reordered.map((m) => m.id).toList();
-    await _repository.reorderSelfEncouragementMessages(orderedIds);
+    await ref
+        .read(reorderSelfEncouragementMessagesUseCaseProvider)
+        .execute(orderedIds);
     await _rescheduleCheerMe(
       reordered,
       recentEmotionScore: _currentEmotionScore(),

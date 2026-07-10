@@ -26,6 +26,11 @@ import 'package:mindlog/domain/repositories/notification_scheduler.dart';
 import 'package:mindlog/domain/usecases/apply_notification_settings_usecase.dart';
 import 'package:mindlog/domain/usecases/complete_onboarding_usecase.dart';
 import 'package:mindlog/domain/usecases/get_onboarding_completed_usecase.dart';
+import 'package:mindlog/domain/usecases/self_encouragement/add_self_encouragement_message_usecase.dart';
+import 'package:mindlog/domain/usecases/self_encouragement/delete_self_encouragement_message_usecase.dart';
+import 'package:mindlog/domain/usecases/self_encouragement/get_self_encouragement_messages_usecase.dart';
+import 'package:mindlog/domain/usecases/self_encouragement/reorder_self_encouragement_messages_usecase.dart';
+import 'package:mindlog/domain/usecases/self_encouragement/update_self_encouragement_message_usecase.dart';
 import 'package:mindlog/domain/usecases/validate_diary_content_usecase.dart';
 
 /// 인프라 의존성 Provider 모음
@@ -182,6 +187,48 @@ final completeOnboardingUseCaseProvider = Provider<CompleteOnboardingUseCase>((
 ) {
   return CompleteOnboardingUseCase(ref.watch(settingsRepositoryProvider));
 });
+
+// === 개인 응원 메시지 UseCase Provider (5종) ===
+
+/// GetSelfEncouragementMessagesUseCase Provider
+final getSelfEncouragementMessagesUseCaseProvider =
+    Provider<GetSelfEncouragementMessagesUseCase>((ref) {
+      return GetSelfEncouragementMessagesUseCase(
+        ref.watch(settingsRepositoryProvider),
+      );
+    });
+
+/// AddSelfEncouragementMessageUseCase Provider
+final addSelfEncouragementMessageUseCaseProvider =
+    Provider<AddSelfEncouragementMessageUseCase>((ref) {
+      return AddSelfEncouragementMessageUseCase(
+        ref.watch(settingsRepositoryProvider),
+      );
+    });
+
+/// UpdateSelfEncouragementMessageUseCase Provider
+final updateSelfEncouragementMessageUseCaseProvider =
+    Provider<UpdateSelfEncouragementMessageUseCase>((ref) {
+      return UpdateSelfEncouragementMessageUseCase(
+        ref.watch(settingsRepositoryProvider),
+      );
+    });
+
+/// DeleteSelfEncouragementMessageUseCase Provider
+final deleteSelfEncouragementMessageUseCaseProvider =
+    Provider<DeleteSelfEncouragementMessageUseCase>((ref) {
+      return DeleteSelfEncouragementMessageUseCase(
+        ref.watch(settingsRepositoryProvider),
+      );
+    });
+
+/// ReorderSelfEncouragementMessagesUseCase Provider
+final reorderSelfEncouragementMessagesUseCaseProvider =
+    Provider<ReorderSelfEncouragementMessagesUseCase>((ref) {
+      return ReorderSelfEncouragementMessagesUseCase(
+        ref.watch(settingsRepositoryProvider),
+      );
+    });
 
 /// DB 복원 후 Provider 캐시 무효화
 ///
