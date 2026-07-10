@@ -646,11 +646,11 @@ S0 이전에는 lint 실패가 정상임을 인지; S0 완료 후부터 “lint 
 - [x] `./scripts/run.sh lint` exit 0 ("No issues found!")
 - [x] 아키텍처 스모크 명령 스크립트 고정 (`scripts/arch-smoke.sh` + `run.sh arch-smoke` + `quality` Step 2/5)
 
-### S1-A
-- [ ] production 8파일 삭제
-- [ ] test 2파일 삭제 (`emotion_garden_test`, `time_utils_test`)
-- [ ] 잔존 import 0
-- [ ] lint green
+### S1-A ✅ (2026-07-10 완료)
+- [x] production 8파일 삭제
+- [x] test 2파일 삭제 (`emotion_garden_test`, `time_utils_test`)
+- [x] 잔존 import 0 (심볼명 포함 교차 검증)
+- [x] lint green + arch-smoke 통과
 
 ### S2 (요지)
 - [ ] secret DI 이동
