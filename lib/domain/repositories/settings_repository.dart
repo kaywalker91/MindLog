@@ -8,6 +8,12 @@ abstract class SettingsRepository {
   Future<NotificationSettings> getNotificationSettings();
   Future<void> setNotificationSettings(NotificationSettings settings);
 
+  /// 온보딩 완료 여부 조회 (미완료 시 false)
+  Future<bool> isOnboardingCompleted();
+
+  /// 온보딩 완료 상태 저장
+  Future<void> setOnboardingCompleted();
+
   /// 유저 이름 조회 (미설정 시 null)
   Future<String?> getUserName();
 

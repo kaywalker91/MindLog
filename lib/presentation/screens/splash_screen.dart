@@ -6,7 +6,7 @@ import '../../core/accessibility/app_accessibility.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
-import '../../data/datasources/local/preferences_local_datasource.dart';
+import '../providers/providers.dart';
 import '../router/app_router.dart';
 import '../widgets/splash_animation_widget.dart';
 
@@ -49,8 +49,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   Future<void> _checkOnboardingAndNavigate() async {
     // 온보딩 완료 여부 확인
-    _isOnboardingCompleted = await PreferencesLocalDataSource()
-        .isOnboardingCompleted();
+    _isOnboardingCompleted = await ref
+        .read(getOnboardingCompletedUseCaseProvider)
+        .execute();
 
     // 2초 후 자동으로 적절한 화면으로 이동
     await Future.delayed(const Duration(seconds: 2));

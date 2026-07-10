@@ -7,7 +7,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/services/analytics_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../data/datasources/local/preferences_local_datasource.dart';
+import '../providers/providers.dart';
 import '../router/app_router.dart';
 
 /// 온보딩 페이지 데이터
@@ -102,7 +102,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   Future<void> _completeOnboarding() async {
     await AnalyticsService.logEvent('onboarding_completed');
-    await PreferencesLocalDataSource().setOnboardingCompleted();
+    await ref.read(completeOnboardingUseCaseProvider).execute();
     if (mounted) {
       context.goHome();
     }

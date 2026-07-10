@@ -246,6 +246,7 @@ class MockPreferencesLocalDataSource extends PreferencesLocalDataSource {
   String? _userName;
   String? _lastSeenAppVersion;
   String? _dismissedUpdateVersion;
+  bool _onboardingCompleted = false;
 
   // 상태 제어 변수
   bool shouldThrowOnGet = false;
@@ -259,9 +260,26 @@ class MockPreferencesLocalDataSource extends PreferencesLocalDataSource {
     _userName = null;
     _lastSeenAppVersion = null;
     _dismissedUpdateVersion = null;
+    _onboardingCompleted = false;
     shouldThrowOnGet = false;
     shouldThrowOnSet = false;
     errorMessage = null;
+  }
+
+  @override
+  Future<bool> isOnboardingCompleted() async {
+    if (shouldThrowOnGet) {
+      throw CacheException(errorMessage ?? '온보딩 완료 여부 조회 실패');
+    }
+    return _onboardingCompleted;
+  }
+
+  @override
+  Future<void> setOnboardingCompleted() async {
+    if (shouldThrowOnSet) {
+      throw CacheException(errorMessage ?? '온보딩 완료 저장 실패');
+    }
+    _onboardingCompleted = true;
   }
 
   @override

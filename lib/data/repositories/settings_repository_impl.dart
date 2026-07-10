@@ -46,6 +46,22 @@ class SettingsRepositoryImpl
   }
 
   @override
+  Future<bool> isOnboardingCompleted() async {
+    return guardFailure(
+      '온보딩 완료 여부 조회 실패',
+      _localDataSource.isOnboardingCompleted,
+    );
+  }
+
+  @override
+  Future<void> setOnboardingCompleted() async {
+    return guardFailure(
+      '온보딩 완료 저장 실패',
+      _localDataSource.setOnboardingCompleted,
+    );
+  }
+
+  @override
   Future<String?> getUserName() async {
     return guardFailure('유저 이름 조회 실패', _localDataSource.getUserName);
   }

@@ -24,6 +24,8 @@ import 'package:mindlog/domain/usecases/set_selected_ai_character_usecase.dart';
 import 'package:mindlog/core/services/notification_scheduler_impl.dart';
 import 'package:mindlog/domain/repositories/notification_scheduler.dart';
 import 'package:mindlog/domain/usecases/apply_notification_settings_usecase.dart';
+import 'package:mindlog/domain/usecases/complete_onboarding_usecase.dart';
+import 'package:mindlog/domain/usecases/get_onboarding_completed_usecase.dart';
 import 'package:mindlog/domain/usecases/validate_diary_content_usecase.dart';
 
 /// 인프라 의존성 Provider 모음
@@ -164,6 +166,21 @@ final applyNotificationSettingsUseCaseProvider =
 /// GetStatisticsUseCase Provider
 final getStatisticsUseCaseProvider = Provider<GetStatisticsUseCase>((ref) {
   return GetStatisticsUseCase(ref.watch(statisticsRepositoryProvider));
+});
+
+/// GetOnboardingCompletedUseCase Provider
+final getOnboardingCompletedUseCaseProvider =
+    Provider<GetOnboardingCompletedUseCase>((ref) {
+      return GetOnboardingCompletedUseCase(
+        ref.watch(settingsRepositoryProvider),
+      );
+    });
+
+/// CompleteOnboardingUseCase Provider
+final completeOnboardingUseCaseProvider = Provider<CompleteOnboardingUseCase>((
+  ref,
+) {
+  return CompleteOnboardingUseCase(ref.watch(settingsRepositoryProvider));
 });
 
 /// DB 복원 후 Provider 캐시 무효화

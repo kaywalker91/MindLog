@@ -156,6 +156,36 @@ void main() {
       });
     });
 
+    group('Onboarding', () {
+      test('미완료 시 false를 반환해야 한다', () async {
+        // Act
+        final result = await repository.isOnboardingCompleted();
+
+        // Assert
+        expect(result, false);
+      });
+
+      test('완료 저장 후 true를 반환해야 한다', () async {
+        // Act
+        await repository.setOnboardingCompleted();
+        final result = await repository.isOnboardingCompleted();
+
+        // Assert
+        expect(result, true);
+      });
+
+      test('조회 실패 시 CacheFailure를 던져야 한다', () async {
+        // Arrange
+        mockDataSource.shouldThrowOnGet = true;
+
+        // Act & Assert
+        expect(
+          () => repository.isOnboardingCompleted(),
+          throwsA(isA<CacheFailure>()),
+        );
+      });
+    });
+
     group('User Name', () {
       test('미설정 시 null을 반환해야 한다', () async {
         // Act
