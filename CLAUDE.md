@@ -2,6 +2,9 @@
 
 AI 감정 일기 분석 앱 — Flutter + Clean Architecture + Riverpod
 
+> **Canonical AI rules**: [`docs/ai-guidelines.md`](docs/ai-guidelines.md)  
+> **Codex entry**: [`AGENTS.md`](AGENTS.md)
+
 ## Tech Stack
 
 | Category | Technology | Version |
