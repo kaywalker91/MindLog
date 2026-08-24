@@ -93,8 +93,18 @@
     <section id="updates" class="updates">
         <div class="container">
             <h2 class="section-title">최근 개선</h2>
-            <p class="section-subtitle">v1.4.60에서는 <strong>사용자 화면 변화 없이 코드 건강도만 끌어올리는 Health Check 리팩토링</strong>을 진행했습니다 — 아키텍처 경계를 코드로 강제하는 자동 게이트 도입, 1,200줄 규모 God Class 분해, 날짜 포맷 중복 제거, 데드코드 정리(57파일 변경 · 1,748 테스트 그린). 아래에는 이전 v1.4.54까지의 성능 최적화 묶음(3-way LLM 합의로 도출한 Groq 응답 SQLite 캐싱·알림 큐 diff 알고리즘·JSON 파싱 isolate 오프로드 등)도 함께 소개합니다.</p>
+            <p class="section-subtitle">v1.4.61에서는 <strong>여러 차례 수정했는데도 재발하던 알림 버그의 진짜 원인을 찾아 해결</strong>했습니다 — 클라이언트만 보던 시야를 서버까지 넓혀 근본 원인을 규명하고, 회귀를 놓쳤던 기존 테스트의 구조적 결함까지 함께 고쳤습니다. v1.4.60에서는 <strong>사용자 화면 변화 없이 코드 건강도만 끌어올리는 Health Check 리팩토링</strong>을 진행했습니다 — 아키텍처 경계를 코드로 강제하는 자동 게이트 도입, 1,200줄 규모 God Class 분해, 날짜 포맷 중복 제거, 데드코드 정리(57파일 변경 · 1,748 테스트 그린). 아래에는 이전 v1.4.54까지의 성능 최적화 묶음(3-way LLM 합의로 도출한 Groq 응답 SQLite 캐싱·알림 큐 diff 알고리즘·JSON 파싱 isolate 오프로드 등)도 함께 소개합니다.</p>
             <div class="updates-grid">
+                <div class="update-card">
+                    <span class="update-tag">Root Cause Analysis</span>
+                    <h3>재발하던 알림 버그의 근본 원인 규명 — 클라이언트 너머 서버까지 (v1.4.61)</h3>
+                    <p>푸시 알림에 <code>{name}님</code>이라는 치환되지 않은 문구가 간헐적으로 노출되는 문제가 여러 차례 수정에도 재발했습니다. 원인은 <strong>고친 곳과 터지는 곳이 서로 다른 시스템에 있었다는 점</strong>이었습니다. 과거 수정들은 모두 앱(클라이언트) 문구만 정리했지만, 실제 발신원인 서버(Cloud Functions)의 알림 템플릿에는 개인화 문구가 그대로 남아 있었고, 앱은 특정 조건에서 서버 문구를 손대지 않고 그대로 표시하는 구조였습니다. 증상이 전체 발송의 약 14%에서만, 그것도 특정 조건에서만 나타나 재현이 어려웠던 이유까지 코드 근거로 특정한 뒤 발신원을 고쳤습니다. <strong>서로 다른 세 개의 AI 모델로 독립 교차 진단을 수행해</strong> 결론을 검증하고, 놓친 누출 경로가 없는지 전수 확인했습니다.</p>
+                </div>
+                <div class="update-card">
+                    <span class="update-tag">Test Quality</span>
+                    <h3>&quot;통과하지만 아무것도 검증하지 않던&quot; 테스트 교체 (v1.4.61)</h3>
+                    <p>이 버그를 막았어야 할 테스트는 이미 존재했지만, <strong>문제가 될 수 없는 입력만 넣고 검사</strong>하고 있어 항상 통과했습니다. 겉보기엔 초록불이지만 실제로는 아무것도 보장하지 않는 상태였습니다. 이번에는 알림 문구 후보를 무작위가 아닌 <strong>전수 순회</strong>로 검증하고, 미래에 추가될 다른 형태의 치환 문구까지 함께 차단하도록 규칙을 일반화했습니다. 나아가 <strong>새 테스트를 수정 전 코드에 실행해 실제로 15건이 실패하는지 확인</strong>하는 절차를 거쳐, 이 테스트가 다시 공허해지지 않았음을 증명했습니다. 테스트가 있다는 사실보다 <em>그 테스트가 실패할 수 있는가</em>를 검증하는 것이 회귀 방지의 핵심이라는 점을 반영한 작업입니다.</p>
+                </div>
                 <div class="update-card">
                     <span class="update-tag">Architecture Governance</span>
                     <h3>아키텍처 불변식 자동 게이트 — arch-smoke --strict (v1.4.60)</h3>

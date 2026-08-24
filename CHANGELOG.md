@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.61] - 2026-08-24
+
+> **FCM 마음케어 푸시의 `{name}` 리터럴 노출 수정.** grok·agy·codex 3자 교차 진단으로 근본 원인 확정.
+> 서버 템플릿 4건 교체 + 회귀 테스트 신설 · Functions 테스트 34건 그린 · `eslint` / `tsc --noEmit` rc=0.
+
+### Fixed
+
+- **FCM 마음케어 알림 제목에 `{name}님` 플레이스홀더가 치환되지 않고 리터럴로 노출되던 버그** (`functions/src/config/constants.ts`):
+  - **근본 원인 — 발신원과 수정 지점의 불일치.** `MESSAGES_BY_SLOT`은 시간대별 제목 1건씩(총 4건)에 `{name}님, ...` 템플릿을 유지하고 있었고, 주석은 "클라이언트에서 이름으로 치환"을 전제하고 있었다. 그러나 `ad6d021`(2026-02-06, "FCM 마음케어 알림에서 userName 개인화 제거")이 클라이언트 치환 경로(`userNameProvider`, `applyNameToMessage`)를 삭제하면서 **Dart 템플릿만 정리하고 서버 템플릿은 손대지 않았다.** 이후 `FCMService.buildPersonalizedMessage()`는 이름과 달리 `applyNamePersonalization`을 한 번도 호출하지 않는다.
+  - **누출 경로.** `fcm_service.dart:198` — `avgScore == null` 분기에서 `serverTitle`을 그대로 표시. `avgScore != null`이면 클라이언트 감정 메시지 풀로 통째 교체되므로 증상이 나타나지 않아 재현이 산발적이었다. 추가로 `EmotionScoreService.getRecentAverageScore()`가 SQLite 예외를 삼키고 `null`을 반환하므로(`emotion_score_service.dart:59-64`), 최근 일기가 있어도 백그라운드 isolate의 DB 접근 실패 시 동일 분기로 유입된다.
+  - **노출 빈도.** 라이브 발송 슬롯은 evening 단독(`scheduled.ts` → `getEveningMessage()` → `getMessageByTimeSlot("evening")`). evening 풀 7건 중 1건이 `{name}` 보유 → 발송의 약 14%. morning/afternoon/night의 `{name}` 3건은 현재 호출 경로가 없어 dead였으나 슬롯 확장 시 즉시 활성화되는 상태였다.
+  - **조치.** 4건 모두 비개인화 문구로 교체 — `기분 좋은 아침이에요` / `잠깐 숨 고르는 시간이에요` / `오늘 하루, 고생 많으셨어요` / `하루를 잘 마무리했어요`. body는 전부 보존.
+  - 접두사만 제거하지 않은 이유: 단순 제거 시 morning·afternoon·evening은 각 풀의 0번 제목과 충돌하고, **night는 2번 항목과 title·body가 완전히 중복**되어 기존 `should have unique message titles` 테스트를 깬다.
+  - `MESSAGES_BY_SLOT` 상단 주석을 "`{name}` 템플릿 지원" → **"플레이스홀더 금지 (spec.md REQ-073)"** 로 교체. 토픽 브로드캐스트라 수신자 이름을 알 수 없다는 사유, 클라이언트 폴백 경로, 불변식 테스트 위치를 명시해 재도입을 차단.
+  - `docs/spec.md` REQ-073("FCM Mindcare 메시지: `{name}` 패턴 제거")을 서버가 위반하고 있던 상태를 해소.
+
+### Added
+
+- **`functions/src/__tests__/constants.test.ts`** (신규) — 마음케어 메시지 상수 불변식 테스트:
+  - 4개 슬롯 전체 title/body에 대해 `{name}` 리터럴 및 **모든 중괄호 플레이스홀더**(`/\{[a-zA-Z_][a-zA-Z0-9_]*\}/`) 금지 — `{userName}` 등 미래 변형까지 차단.
+  - 과거 실제 노출된 제목 4건을 문자열 리터럴로 고정해 재도입 금지.
+  - `getMessageByTimeSlot()`을 `Math.random` 목킹으로 **인덱스 전수 순회** 검증 — 확률적으로만 새는 문구를 결정론적으로 포착.
+  - 그 전수 순회가 실제로 풀 전체를 덮었는지 확인하는 메타 테스트 추가(스윕 자체의 공허화 방지).
+  - 슬롯별 제목 중복 금지 검증을 evening 전용에서 4개 슬롯 전체로 확대.
+- **`functions/src/__tests__/firestore.service.test.ts`** — 프로덕션 진입점 `getEveningMessage()`에 대한 evening 풀 전수 순회 `{name}` 금지 테스트 추가. `scheduledEveningNotification`이 실제로 호출하는 경로를 직접 검증.
+
+### Changed
+
+- **AI 에이전트 가이드라인 정본화**:
+  - `docs/ai-guidelines.md` (신규) — 모델 중립 정본. 빌드/검증 명령, 하드 룰, 코딩 전 절차를 단일 소스로 통합. 세션 상태·PR 번호 등 휘발성 이력은 제외.
+  - `AGENTS.md` (신규) — Codex/멀티에이전트 진입점. 정본 문서로의 포인터 + 하드 룰 요약.
+  - `CLAUDE.md` — 상단에 정본(`docs/ai-guidelines.md`) 및 Codex 진입점(`AGENTS.md`) 포인터 추가.
+- `.claude/settings.json` — deny 규칙을 `Write(...)` → `Edit(...)` 로 정정. 기존 규칙은 keystore·`key.properties`·`google-services.json`·`.env*` 에 대한 **편집** 경로를 실제로 막지 못하고 있었다.
+- `.serena/project.yml` — Serena 스키마 마이그레이션(`languages:` → `language_servers:`) 및 주석 블록 갱신.
+- `.claude/progress/current.md`, `tasks/lessons.md` — v1.4.60 릴리스 마무리 동기화 및 RTK 래핑이 `git diff --stat/--numstat` 출력을 손상시키는 교훈 기록 (commit `10471b7`).
+
+### Notes
+
+- **본 릴리스는 서버(Cloud Functions) 수정이므로 `firebase deploy --only functions` 재배포 후에야 효력이 발생한다.** `functions/lib/`는 gitignore 대상이며 `firebase.json` predeploy가 `npm run lint && npm run build`를 수행하므로 `src`에서 재컴파일된다.
+- **클라이언트 측 sanitize는 본 릴리스 범위에 미포함.** 정기 발송 경로는 서버 수정만으로 차단되지만, `functions/src/functions/http.ts`의 수동 발송(커스텀 title)과 `fcm_service.dart:299-306` background handler catch 폴백(원본 `serverTitle` 사용)은 여전히 열려 있다. 표시 직전 단일 지점 sanitize는 후속 과제.
+- 기존 `{name}` 관련 테스트가 회귀를 놓친 이유: `{name}`이 없는 입력(`'서버 제목'`, `'좋은 하루'`)으로 `{name}` 부재를 검증하는 **공허한(vacuous) 테스트**였다. 이번 신규 테스트는 수정 전 코드에 대해 15건 실패함을 확인해 비공허성을 검증했다.
+
 ## [1.4.60] - 2026-07-11
 
 > **Health Check 리팩토링 (S0~S5).** 사용자 화면·동작 변화 없는 내부 구조 개선 릴리스.
