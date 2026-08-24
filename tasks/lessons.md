@@ -177,3 +177,15 @@
 **근본 원인**: PreToolUse hook이 Bash 명령을 `rtk`로 자동 래핑하는데, `git diff`의 스트리밍/페이지네이션 출력을 rtk가 정상 캡처하지 못해 stdout이 손상·유실됨 (`git log`, `git status`는 정상)
 **해결책**: `rtk proxy git diff --numstat origin/main..HEAD` 로 래핑 회피 → 정상 결과(57 files, +2949 -2433). 이후 diff 계열은 전부 `rtk proxy` 경유로 재확인
 **예방 규칙**: `git diff`(특히 `--stat`/`--numstat`/`--name-only`) 결과가 비거나 `+0 -0`이면 손상 의심 → 즉시 `rtk proxy git diff ...`로 재실행. 변경 규모 집계는 rtk 결과를 신뢰하지 말고 proxy로 검증. (`git log`/`git status`/`git show --stat`은 영향 없음)
+
+## 2026-08-24 - 클라이언트만 3번 고친 {name} 리터럴 노출 — 발신원은 서버였다 (v1.4.61)
+**무엇이 잘못됐나**: FCM 마음케어 푸시에 `{name}님, ...` 리터럴이 간헐 노출. 커밋 이력상 최소 3회(`c4e6630`, `ad6d021`, `8df7464`) 수정했는데도 재발. 사용자 체감 "몇 번이나 고친 것 같은데 아직도 이러네"
+**근본 원인**: **고친 곳과 터지는 곳이 다른 레포 절반에 있었다.** `68d46bb`(v1.4.34)가 서버 `functions/src/config/constants.ts`의 `MESSAGES_BY_SLOT`에 `{name}님` 템플릿 4개를 추가. 이후 `ad6d021`이 "마음케어 템플릿 24개에서 {name} 제거"라는 커밋 메시지로 **Dart 템플릿만** 정리하고 클라 치환 로직(`userNameProvider`, `applyNameToMessage`)까지 삭제 — 서버는 무손. 결과적으로 `buildPersonalizedMessage()`는 이름과 달리 `applyNamePersonalization`을 한 번도 호출하지 않게 됐고, `avgScore == null` 분기(`fcm_service.dart:198`)가 serverTitle을 그대로 통과시킴. 라이브 슬롯은 evening 단독, 풀 7건 중 1건 → 발송의 약 14%만 발현되어 재현이 산발적
+**증폭 요인**: `EmotionScoreService.getRecentAverageScore()`가 SQLite 예외를 삼키고 `null` 반환(`emotion_score_service.dart:59-64`) → 최근 일기가 있어도 백그라운드 isolate DB 실패 시 같은 분기로 유입
+**왜 테스트가 못 잡았나**: `{name}` 금지 테스트가 **공허(vacuous)** 했다. `serverTitle: '서버 제목'` / `'좋은 하루'` 처럼 `{name}`이 없는 입력을 넣고 `{name}` 부재를 검증 → 항상 통과. Functions 쪽엔 플레이스홀더 금지 검사가 아예 없었음
+**해결책**: 서버 템플릿 4건을 비개인화 문구로 교체(단순 접두사 제거는 night 항목이 기존 2번과 완전 중복되어 uniqueness 테스트 위반) + `MESSAGES_BY_SLOT` 주석을 "금지 + 사유"로 교체 + `functions/src/__tests__/constants.test.ts` 신설(4슬롯 전수, 모든 중괄호 플레이스홀더 정규식, 과거 노출 제목 재도입 금지, `Math.random` 목킹 인덱스 전수 순회, 스윕 비공허성 메타 검증). `firebase deploy --only functions`로 배포 완료
+**예방 규칙**:
+1. **증상이 재발하면 수정 지점이 아니라 발신원을 의심하라.** 클라/서버 양쪽에 같은 문자열 자산이 있으면 "정본이 어디인가"부터 확정. 토픽 브로드캐스트 FCM은 수신자별 개인화가 원천 불가 → 문구 정본은 서버
+2. **새 회귀 테스트는 수정 전 코드에서 실패하는지 반드시 확인하라.** 이번엔 `git show HEAD:...`로 되돌려 15건 실패를 확인한 뒤 복구했다. "테스트가 있다"가 아니라 "그 테스트가 실패할 수 있는가"가 회귀 방지의 기준
+3. 랜덤 풀에서 뽑는 문구는 샘플링이 아니라 **인덱스 전수 순회**로 검증. 확률적 발현(1/7)은 무작위 테스트를 통과해버린다
+4. 커밋 메시지의 "제거 완료" 주장은 범위를 명시하라. `ad6d021`은 Dart만 고쳤으면서 범위를 특정하지 않아 이후 세 번의 오진을 유발했다
