@@ -43,16 +43,18 @@ export type TimeSlot = "morning" | "afternoon" | "evening" | "night";
 
 /** 시간대별 마음케어 메시지
  *
- * {name} 템플릿 지원:
- * - "{name}님, " → 클라이언트에서 이름으로 치환 (이름 없으면 제거)
- * - "{name}" → 클라이언트에서 이름으로 치환 (이름 없으면 제거)
+ * 금지: {name} 등 개인화 플레이스홀더 (spec.md REQ-073)
+ * - 마음케어는 FCM 토픽 브로드캐스트라 수신자 이름을 알 수 없다.
+ * - 클라이언트는 감정 데이터가 없으면 서버 제목/본문을 그대로 표시하므로
+ *   (fcm_service.dart buildPersonalizedMessage), 여기 남은 {name}은 리터럴로 노출된다.
+ * - 이름 개인화가 필요하면 Cheer Me 로컬 알림 채널을 사용할 것.
  *
- * 주의: 모든 메시지에 {name}을 넣을 필요 없음 (일부만 개인화)
+ * 불변식 테스트: __tests__/constants.test.ts
  */
 export const MESSAGES_BY_SLOT: Record<TimeSlot, ReadonlyArray<{ title: string; body: string }>> = {
   morning: [
     { title: "좋은 아침이에요", body: "오늘 하루도 당신을 응원해요 ☀️" },
-    { title: "{name}님, 좋은 아침이에요", body: "오늘 하루도 힘내세요 ☀️" },
+    { title: "기분 좋은 아침이에요", body: "오늘 하루도 힘내세요 ☀️" },
     { title: "새로운 하루가 시작됐어요", body: "작은 것에도 감사하는 하루 되세요 🌱" },
     { title: "오늘도 힘내세요", body: "좋은 일이 기다리고 있을 거예요 💪" },
     { title: "활기찬 하루 되세요", body: "가볍게 스트레칭으로 시작해보세요 🌿" },
@@ -60,7 +62,7 @@ export const MESSAGES_BY_SLOT: Record<TimeSlot, ReadonlyArray<{ title: string; b
   ],
   afternoon: [
     { title: "잠시 쉬어가요", body: "깊게 숨을 쉬어보세요 🌿" },
-    { title: "{name}님, 잠시 쉬어가요", body: "오늘 자신에게 친절해보세요 💚" },
+    { title: "잠깐 숨 고르는 시간이에요", body: "오늘 자신에게 친절해보세요 💚" },
     { title: "마음 한 스푼", body: "오늘 자신에게 친절해보세요 💚" },
     { title: "오후도 파이팅", body: "충분히 쉬어도 괜찮아요 ☕" },
     { title: "잠깐 여유를 가져봐요", body: "작은 행복을 발견해보세요 🌸" },
@@ -68,7 +70,7 @@ export const MESSAGES_BY_SLOT: Record<TimeSlot, ReadonlyArray<{ title: string; b
   ],
   evening: [
     { title: "오늘 하루는 어떠셨나요?", body: "잠시 멈추고 마음을 돌아봐요 💙" },
-    { title: "{name}님, 오늘 하루는 어떠셨나요?", body: "당신의 이야기를 들려주세요 💭" },
+    { title: "오늘 하루, 고생 많으셨어요", body: "당신의 이야기를 들려주세요 💭" },
     { title: "당신의 하루를 기록해보세요", body: "작은 기록이 큰 변화를 만들어요 ✨" },
     { title: "오늘의 감정은 어떤가요?", body: "마음을 글로 표현해보세요 📝" },
     { title: "잠깐, 오늘 하루 괜찮았나요?", body: "당신의 이야기를 들려주세요 💭" },
@@ -77,7 +79,7 @@ export const MESSAGES_BY_SLOT: Record<TimeSlot, ReadonlyArray<{ title: string; b
   ],
   night: [
     { title: "편안한 밤 되세요", body: "푹 쉬고 내일 만나요 🌙" },
-    { title: "{name}님, 오늘도 수고했어요", body: "좋은 꿈 꾸세요 ✨" },
+    { title: "하루를 잘 마무리했어요", body: "좋은 꿈 꾸세요 ✨" },
     { title: "오늘도 수고했어요", body: "좋은 꿈 꾸세요 ✨" },
     { title: "좋은 꿈 꾸세요", body: "내일은 더 좋은 하루가 될 거예요 💫" },
     { title: "고요한 밤이에요", body: "따뜻한 잠자리 되세요 🌟" },

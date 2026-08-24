@@ -85,6 +85,22 @@ describe("Firestore Service - Timezone Handling", () => {
 
       expect(matchingMessage).toBeDefined();
     });
+
+    it("should never expose an unresolved {name} placeholder", () => {
+      // 회귀 방지: 서버 문구에 남은 {name}이 클라이언트에서 치환되지 않고
+      // 푸시 알림에 리터럴로 노출된 버그 (spec.md REQ-073).
+      // getEveningMessage()는 scheduledEveningNotification이 실제로 호출하는 경로다.
+      const poolSize = DEFAULT_EVENING_MESSAGES.length;
+
+      for (let index = 0; index < poolSize; index++) {
+        jest.spyOn(Math, "random").mockReturnValue(index / poolSize);
+
+        const message = getEveningMessage();
+
+        expect(message.title).not.toContain("{name}");
+        expect(message.body).not.toContain("{name}");
+      }
+    });
   });
 
   describe("DEFAULT_EVENING_MESSAGES", () => {
