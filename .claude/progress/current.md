@@ -1,8 +1,8 @@
-# 현재 작업: v1.4.63 프로덕션 승격 대기 (앱 내 방침 화면 육안 대조 필요)
+# 현재 작업: v1.4.63 프로덕션 검토 중 (Play 자동 게시 대기)
 
 ## 현재 작업
 
-**v1.4.63(versionCode 71) Internal 출시 완료 → 프로덕션 승격 대기.**
+**v1.4.63(versionCode 71) 프로덕션 승격 제출 완료 — Play 검토 중.** 사전 검사 통과 후 검토로 전송되며, 「관리형 게시」가 꺼져 있어 **검토 통과 시 자동 게시**된다. 출시 범위는 「전체 출시」(100%) — 1개국·설치 0.00% 규모에선 단계적 출시 실익이 없어 그대로 진행. 문제 발견 시 프로덕션 트랙에서 「출시 중단」 가능.
 
 asset 검증은 기기 없이 종결했다 — `flutter build bundle` rc=0, 번들 내 `build/flutter_assets/docs/legal/privacy-policy.md` 가 저장소 원본과 **SHA256 완전 일치**(`2bd36259…`), 55행 = 정정된 이름 전송 문장. `privacy_policy_screen.dart:31` 이 정확히 그 경로를 `rootBundle.loadString` 하며 이번 릴리스에서 미변경.
 
@@ -12,18 +12,17 @@ asset 검증은 기기 없이 종결했다 — `flutter build bundle` rc=0, 번�
 
 ## 완료된 항목 (이번 세션)
 
-시작은 "Play 심사가 멈춰 있는데 오류인가?" 였고, **심사 정체는 오류가 아니었으나 조사 과정에서 실제 결함 3건**이 나와 전부 처리했다.
+시작은 "v1.4.63 착수할까?" 였고, 릴리스 + 프로덕션 승격까지 마쳤다.
 
 | 작업 | 결과 |
 |------|------|
-| 심사 정체 진단 | grok · agy · codex 3자 교차 검토. **오류 아님 — 정상 대기**로 판정. CD run `32728374194` success, 실패 스텝 0건 |
-| 🔴 인증 없는 엔드포인트 제거 | `http.ts` 삭제(215줄). `sendMindcareNotification`/`addMindcareMessage`/`getMindcareStatus` 가 `cors:true` + 인증 0줄. 앱 호출부 0건 확인 후 삭제 → **프로덕션 반영, 404 확인** |
-| 🔴 온보딩 거짓 고지 수정 | `onboarding_screen.dart:61` "외부로 전송되지 않으니 안심하세요" → 실제로는 **저장=분석**이라 모든 일기 본문이 Groq(미국) 전송. 정반대 고지였음 |
-| 🔴 개인정보 처리방침 전면 재작성 | 기존은 `App Privacy Policy Generator` 템플릿 원문. Groq/Firebase 언급 0건, "익명화된 데이터만 전송"이라 명시 |
-| 게시 | Google Sites(Play 등록 URL) 임베드 교체 ✅ · GitHub Pages `docs/privacy-policy.html` 신규 ✅ (13섹션·표3개 잘림 없음 검증) |
-| Data safety | `docs/legal/play-data-safety.md` 정답표 작성. CSV 782행 생성 → 사용자가 가져오기·저장·**검토 요청 제출 완료** |
-| 릴리스 | `1.4.61+69` → **`1.4.62+70`**. CD run `32851680602` ✅ Internal track 업로드 성공 |
-| 커밋 | `4acadb4` `07d3658` `681468d` + 문서 수정분. 1,748 테스트 그린 · analyze rc=0 · Functions tsc/eslint rc=0 · jest 34 |
+| 🔴 위기상담 번호 109 통일 | 핸드오프엔 5파일이었으나 실제 **lib 6곳 + test 4곳**. `app_strings` `safety_constants` `prompt_constants` `analyze_diary_usecase`(2) `help_dialog`(2). **조사 교정 필수** — `help_dialog` 는 번호와 조사가 별도 `TextSpan` 이라 번호만 바꾸면 "109으로" 노출 |
+| 🔴 방침 asset 재빌드 | `pubspec.yaml` 변경으로 CD 트리거 → versionCode 71 에 정정본 반영. **검증은 기기 없이 종결** — `flutter build bundle` 후 번들 파일이 저장소 원본과 SHA256 일치(`2bd36259…`) |
+| 릴리스 | `1.4.62+70` → **`1.4.63+71`**. 커밋 `1dd9ad8`. CD run `32854926836` ✅ Internal 출시 |
+| 프로덕션 승격 | 1.4.61(69) → **1.4.63(71)** 제출, 검토 중. **70 은 프로덕션에 나간 적 없음** — 틀린 고지 문구는 내부 테스터만 노출 |
+| 출시 노트 | `ko/changelogs/71.txt`(314자) · `en-US/71.txt`(494자) 신규. v1.4.62+63 합본. **커밋 `f0e1068` 푸시 보류** |
+| Health apps declaration | 백로그 오기 정정 — **원래 완료 상태였다**. 「정신 및 행동 건강」 항목만 추가(앱이 CBT 기법·인지왜곡 분류·위기 감지를 실제 구현). 2단계 지역별 요구사항은 현재 없음 |
+| 품질 | analyze rc=0 · **1,748 테스트 그린**(영향 118건 선행) · pre-push 훅 재실행 통과 |
 
 ## 다음 단계
 
@@ -55,4 +54,4 @@ asset 검증은 기기 없이 종결했다 — `flutter build bundle` rc=0, 번�
 - `.claude/settings.local.json.bak-allowwrite-20260721` — 로컬 권한 백업, 의도적으로 미추적 유지
 
 ## 마지막 업데이트
-2026-08-25 / v1.4.63 릴리스(109 통일 + 방침 asset 재빌드, CD success) · Health apps declaration 은 원래 완료 상태였음(백로그 오기 정정)
+2026-08-25 / v1.4.63 릴리스 + 프로덕션 승격 제출 · 세션 `f0e1068`
