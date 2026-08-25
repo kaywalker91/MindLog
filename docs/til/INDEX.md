@@ -2,7 +2,7 @@
 
 **생성일**: 2026-01-21
 **주제**: Groq Vision API 통합 학습 자료
-**총 14개 문서 / ~20,500 단어**
+**총 15개 문서 / ~22,000 단어**
 
 ---
 
@@ -24,7 +24,8 @@ docs/til/
 ├── A11Y_THEME_AWARE_COLOR_MIGRATION_PATTERN_TIL.md [접근성 theme-aware 색상 마이그레이션]
 ├── MEMORY_ARCHIVING_LIFECYCLE_TIL.md [메모리 7레이어 아카이빙 수명주기]
 ├── SESSION_WRAP_PROCESS_AUDIT_TIL.md [멀티 문서 동기화 갭 분석 방법론]
-└── LIVING_DOCUMENT_ARCHIVE_PATTERN_TIL.md [리빙 문서 성장 억제 — Rolling Window + Append-Only Archive]
+├── LIVING_DOCUMENT_ARCHIVE_PATTERN_TIL.md [리빙 문서 성장 억제 — Rolling Window + Append-Only Archive]
+└── FLUTTER_ASSET_BUNDLE_VERIFICATION_TIL.md [기기 없이 asset 번들링 검증 — build bundle + 해시 대조]
 ```
 
 ---
@@ -612,6 +613,11 @@ iOS 이해: 핵심 학습 3 (5분)
 **추천**: SESSION_WRAP_PROCESS_AUDIT_TIL.md
 **소요시간**: 15분
 **내용**: G-1~G-7 갭 분석 결과, Last-Mile 파일 누락 안티패턴, 갭 발견 방법론
+
+### 시나리오 21: "고친 asset이 앱에 실제로 실렸는지 어떻게 확인하나요?"
+**추천**: FLUTTER_ASSET_BUNDLE_VERIFICATION_TIL.md
+**소요시간**: 10분
+**내용**: `flutter build bundle` + SHA256 대조로 기기 없이 검증, AAB 내부 경로(`base/assets/flutter_assets/`) 직접 조회, 선언→번들→로드 3단계 체인. `AssetManifest.json` 은 최신 Flutter에 없다(`.bin`)
 
 ---
 
