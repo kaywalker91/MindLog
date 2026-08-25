@@ -1,7 +1,14 @@
-# 현재 작업: 없음 (세션 종료 — v1.4.62 릴리스 + 개인정보 고지 정합화)
+# 현재 작업: v1.4.63 프로덕션 승격 대기 (앱 내 방침 화면 육안 대조 필요)
 
 ## 현재 작업
-없음 (세션 종료)
+
+**v1.4.63(versionCode 71) Internal 출시 완료 → 프로덕션 승격 대기.**
+
+asset 검증은 기기 없이 종결했다 — `flutter build bundle` rc=0, 번들 내 `build/flutter_assets/docs/legal/privacy-policy.md` 가 저장소 원본과 **SHA256 완전 일치**(`2bd36259…`), 55행 = 정정된 이름 전송 문장. `privacy_policy_screen.dart:31` 이 정확히 그 경로를 `rootBundle.loadString` 하며 이번 릴리스에서 미변경.
+
+**프로덕션은 아직 1.4.61(versionCode 69).** 방침 문구가 틀렸던 **versionCode 70 은 프로덕션에 나간 적이 없다** — 내부 테스터만 노출됐고 71 승격 시 건너뛴다. 따라서 프로덕션 사용자 기준 릴리스 노트는 **v1.4.62 + v1.4.63 합본**이어야 한다.
+
+승격 방식: `fastlane deploy_production` **사용 금지**(`Fastfile:85` 가 `build` 를 먼저 호출해 AAB 를 새로 빌드 → versionCode 71 중복 + 로컬 GROQ_API_KEY + 미검증 아티팩트). Play Console 에서 **Internal → 프로덕션 승격**(같은 아티팩트 이동), 단계적 출시 20% 로 시작.
 
 ## 완료된 항목 (이번 세션)
 
@@ -22,13 +29,13 @@
 
 | 우선순위 | 작업 | 이유 |
 |----------|------|------|
-| **High** | **v1.4.63 앱 빌드 — 앱 내 방침 asset 갱신** | ⚠️ **versionCode 70 AAB에 틀린 문장이 들어갔다.** `docs/legal/privacy-policy.md` 는 pubspec asset 인데, 수정본은 CD 이후에 커밋됐고 `cd.yml` `paths-ignore` 가 `docs/**` 를 제외해 재빌드되지 않았다. 앱 내 방침 화면만 "이름은 전송 안 됨"으로 표시된다(웹은 정상). **프로덕션 승격 전 반드시 수정** |
-| **High** | **위기상담 번호 `1393` → `109` 통일** | `sos_card.dart` 만 통합번호 109. `app_strings.dart` `safety_constants.dart` `prompt_constants.dart` `analyze_diary_usecase.dart` 는 구번호 1393. **위기 경로에서 안 받는 번호 안내 소지**. 위 High 건과 같은 빌드에 묶을 것 |
-| Medium | Play Console **Health apps declaration** | 정신·행동 건강 범주. 미완료 |
-| Medium | 스토어 설명 비의료기기 면책 문구 | `ko/full_description.txt` 에 의료·진단·전문가 관련 문구 grep 0건 |
+| **High** | **v1.4.63 앱 내 방침 화면 육안 대조 → 프로덕션 승격** | 위 두 High(방침 asset 재빌드 · 109 통일)는 커밋 `1dd9ad8` + CD `32854926836` success 로 **완료**. 남은 건 화면 검증뿐 |
+| Medium | `cd.yml` `paths-ignore` 근본 수정 | 방침 asset 함정이 아직 살아 있다. `paths-ignore` 는 `!` 부정 패턴 미지원 → (a) `paths` 화이트리스트 전환 (b) asset 을 `docs/` 밖으로 이동 (c) 방침 수정 시 버전 범프 강제 체크 |
+| Medium | `dart format` 드리프트 43파일 | `ci.yml:115` 가 `--set-exit-if-changed .` 검사 → **PR 여는 순간 실패**. `cd.yml` 은 미검사라 main 직push 로는 안 드러남. v1.4.63 변경분 9파일은 클린(교집합 0) |
 | Medium | `action_item_preview` Analytics 전송 중단 검토 | AI 행동 제안 앞 50자를 전송 중. 방침에 적느니 끊는 편이 낫다 |
 | Medium | 방침 URL을 GitHub Pages 로 이전 | Google Sites 임베드가 9,482자로 한도(~1만자)에 근접. 다음 문단 추가 시 넘칠 가능성 |
 | Medium | Cloud Functions Node.js 20 → 22+ | **2026-10-30 decommission** |
+| Low | 스토어 설명 비의료기기 면책 문구 | `android/fastlane/metadata/android/ko/full_description.txt`(263B)에 치료·진단·의료·효과 문구 **0건** 재확인 → 충돌할 주장 자체가 없어 선택적 하드닝. Medium 과대평가였음 |
 | Low | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` 직접 요청 재검토 | inexact 알람 폴백이 있는데도 요청. Play 정책상 허용 사례 아닐 가능성 (codex 지적) |
 | Low | AI 생성 콘텐츠 인앱 신고 기능 | 생성형 AI 정책 적용 시 요구될 수 있음 |
 | Low | Groq API 키 AAB 내장 → 서버 프록시 | `--dart-define` 은 바이너리에서 회수 가능 |
@@ -37,6 +44,7 @@
 
 ## 주의사항
 
+- **백로그의 Play Console 상태는 콘솔에서 확인한 것만 적을 것.** 이 파일은 `Health apps declaration` 을 "미완료"로 적어 뒀으나 **실제로는 이미 제출돼 있었다**(2026-08-25 확인). 콘솔을 안 열고 추정으로 적은 항목이었고, 그 탓에 불필요한 확인 작업이 발생했다. 2단계 「지역별 요구사항」은 현재 아무것도 요구하지 않는다
 - **`docs/legal/privacy-policy.md` 는 문서가 아니라 앱 asset이다** (`pubspec.yaml:136`, `privacy_policy_screen.dart:32` 가 `rootBundle` 로 읽음). 그런데 `cd.yml` `paths-ignore` 가 `docs/**` 를 제외하므로 **이 파일만 고치면 앱에 반영되지 않는다.** 반드시 앱 코드 변경과 같은 빌드에 실어야 한다. ← 이번 세션에서 실제로 당한 함정
 - **저장 = 분석이다.** `diary_screen.dart:64` `_onSubmit()` → `_startAnalysis()` 가 유일 경로. `DiaryRepository.createDiary()` 는 인터페이스에만 있고 presentation 호출 0건. "분석 안 하면 전송 안 된다"는 **거짓**
 - **이름/애칭도 Groq 로 전송된다** (`prompt_constants.dart:361-367`). 캐시 키에만 쓰이는 게 아니라 프롬프트 본문에 삽입된다. Play 의 `Name` 정의는 애칭(nickname)을 명시적으로 포함하므로 신고 대상
@@ -47,4 +55,4 @@
 - `.claude/settings.local.json.bak-allowwrite-20260721` — 로컬 권한 백업, 의도적으로 미추적 유지
 
 ## 마지막 업데이트
-2026-08-25 / v1.4.62 릴리스 · 엔드포인트 하드닝 · 개인정보 고지 정합화 · Data safety 제출
+2026-08-25 / v1.4.63 릴리스(109 통일 + 방침 asset 재빌드, CD success) · Health apps declaration 은 원래 완료 상태였음(백로그 오기 정정)

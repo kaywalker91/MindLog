@@ -1,0 +1,4 @@
+• Updated the crisis helpline to 109, the current number in Korea.
+• Rewrote the privacy policy to match how your data is actually handled — see item by item what stays on your device and what leaves it. (Settings > Privacy Policy)
+• Corrected the first-run notice: your diary is stored on your device without an account, but its contents are sent encrypted to the analysis server when AI analyzes it.
+• Removed unused admin features from the notification server. Notifications work as before.
