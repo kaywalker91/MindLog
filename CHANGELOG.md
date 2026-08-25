@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.62] - 2026-08-25
+
+> **개인정보 고지와 실제 데이터 처리의 불일치 해소 + 인증 없이 공개돼 있던 관리자 HTTP 엔드포인트 제거.**
+> Play Store 심사 정체 원인을 조사하던 중 grok·agy·codex 3자 교차 검토로 발견한 실제 결함 2건을 처리했다. (심사 정체 자체는 오류가 아닌 정상 대기로 판정 — CD 런 `32728374194` success, 실패 스텝 0건)
+> `flutter analyze` rc=0 · Flutter 테스트 **1,748건 그린** · Functions `tsc --noEmit` rc=0 · `eslint` rc=0 · Jest 34건 그린.
+
+### Security
+
+- **인증 없이 공개돼 있던 관리자용 Cloud Functions HTTP 엔드포인트 3종 제거** (`functions/src/functions/http.ts` 삭제, 215줄):
+  - 대상: `sendMindcareNotification`, `addMindcareMessage`, `getMindcareStatus`
+  - **문제.** 세 함수 모두 `onRequest`에 `cors: true`(전체 허용)만 지정했을 뿐 인증·App Check 검증 코드가 없었다. 파일 상단 주석이 이미 "Firebase App Check 또는 API Key 인증 **권장** / 현재는 기본 보안만 적용 (프로덕션에서 강화 필요)"라고 미구현 상태를 자인하고 있었다. IAM에서 비인증 호출을 차단해 두지 않았다면 임의의 제3자가 `mindlog_mindcare` 토픽 **전체 구독자에게 푸시를 발송**하거나(`sendMindcareNotification`은 요청 본문의 `title`/`body`를 검증 없이 그대로 FCM에 전달) Firestore 메시지 풀에 임의 문구를 주입할 수 있었다. 후자는 v1.4.61에서 제거한 `{name}` 리터럴을 **서버 코드 밖에서 재주입**할 수 있는 경로이기도 했다.
+  - **삭제 판단 근거.** `lib/` 전수 grep 결과 앱이 이 엔드포인트를 호출하는 코드 0건, 저장소 내 스크립트·문서의 호출 흔적도 0건 — 순수 관리자용이며 제거해도 클라이언트에 영향이 없음을 확인한 뒤 삭제했다.
+  - `functions/src/index.ts`에서 export 3건 제거. v1.4.61의 `{name}` 재발 방지 주석과 같은 방식으로, **삭제 사유와 재도입 시 필수 조건**(App Check 또는 시크릿 헤더 인증 + CORS 도메인 제한)을 헤더 주석에 명시해 무방비 재도입을 차단.
+  - **프로덕션 반영 완료.** `firebase functions:delete sendMindcareNotification addMindcareMessage getMindcareStatus --region asia-northeast3` 실행. 이후 `firebase functions:list`에서 `scheduledEveningNotification` 단독 잔존 확인, 삭제된 엔드포인트 실호출 시 **HTTP 404** 확인. 저녁 21:00 KST 발송 스케줄은 영향 없음.
+  - 삭제로 호출부가 사라진 서비스 함수(`addMessage`, `getStats`, `checkIfSentToday`, `markAsSent`)와 타입(`ApiResponse`)은 인증을 갖춘 관리자 API 재도입 가능성을 고려해 존치. `fcm.service.ts`의 `sendToTopic`은 이번 변경과 무관한 기존 데드코드.
+
+### Fixed
+
+- **온보딩 3페이지의 사실과 다른 데이터 처리 고지 수정** (`lib/presentation/screens/onboarding_screen.dart:61`):
+  - 기존 문구 — `모든 일기는 기기에만 저장돼요.\n외부로 전송되지 않으니 안심하세요.`
+  - **실제 동작.** `diary_screen.dart`의 `_onSubmit()` → `_startAnalysis()` → `AnalyzeDiaryUseCase` 가 유일한 일기 저장 경로이며, 저장과 AI 분석이 분리돼 있지 않다. `DiaryRepository.createDiary()`는 인터페이스에만 존재하고 presentation 호출 0건이다. 즉 **저장하는 모든 일기의 본문이 예외 없이 Groq API(미국)로 전송**되고, 사진 첨부 시 첫 1장이 함께 전송된다(`groq_remote_datasource.dart:240,249`).
+  - 따라서 기존 문구는 부정확한 정도가 아니라 **실제와 정반대**였다. 앱이 사용자에게 직접 거짓을 고지하는 상태로, 개인정보처리방침 불일치보다 무거운 문제.
+  - 신규 문구 — `일기는 계정 없이 기기에 보관돼요.\nAI 분석 순간에만 암호화되어 전송돼요.` (계정 부재·기기 보관이라는 사실은 유지하면서 전송 사실을 명시)
+
+### Changed
+
+- **개인정보 처리방침 전면 재작성.** 기존 문서는 `App Privacy Policy Generator` 템플릿 원문 그대로였다. MindLog와 무관한 서술(IP 주소·방문 페이지·체류 시간 수집, 마케팅 프로모션 연락)을 담고 있었고 `Groq`·`Firebase`·`Analytics`·`Crashlytics` 문자열이 **전문에 단 한 건도 없었으며**, 무엇보다 "집계되고 익명화된 데이터만 주기적으로 외부 서비스로 전송"이라고 명시해 실제와 반대되는 고지를 하고 있었다.
+  - `docs/privacy-policy.html` **신규** — GitHub Pages 게시본(`kaywalker91.github.io/MindLog/privacy-policy.html`). 13개 섹션, 목차 앵커, 기존 `docs/style.css` 디자인 토큰 재사용.
+  - `docs/legal/privacy-policy.md` 재작성 — `pubspec.yaml:136` assets에 등록되어 앱 내 방침 화면(`privacy_policy_screen.dart:32`)이 `rootBundle.loadString()`으로 읽는 자산. 웹판의 표 3개는 목록으로 변환했다. `flutter_markdown_plus`의 `MarkdownStyleSheet`에 표 스타일 정의가 없고 기존 방침에 표가 0개였던 점을 고려한 조치로, 좁은 화면에서의 가로 오버플로를 회피한다.
+  - Play Console 등록 URL(Google Sites)의 임베드 HTML도 동일 내용으로 교체 완료(임베드 문서 9,482자, 13섹션·표 3개 잘림 없이 반영 확인). **심사 진행 중인 v1.4.61에 영향을 주지 않기 위해 Play Console 설정 자체는 변경하지 않았다.**
+  - 코드 근거로 확정한 실제 데이터 흐름을 항목별로 명시: (a) Groq — 일기 본문·사진 1장, (b) Firebase Analytics — 감정 점수·에너지 수준·행동 제안 문구 앞 50자(`analytics_service.dart:72-74, 90-92`), (c) Crashlytics/Performance — 릴리스 빌드 한정 수집(`firebase_service.dart:22, 26-27`), (d) FCM 등록 토큰, (e) 기기 내 저장 — SQLite·앱 문서 디렉터리·secure storage·SharedPreferences.
+  - 국외 이전(미국) 내역을 수탁자·항목·시점별로 별도 항목화. Play `Data safety` 신고와 대조 가능한 형태로 구성.
+  - **의료기기 아님 고지**와 위기상담 안내(109 / 1577-0199)를 독립 섹션으로 추가 — Play Health apps 정책 대응.
+  - 아동 기준 연령을 국내 만 14세 / 해외 현지 법령(예: 미국 만 13세)으로 분리 표기.
+
+### Notes
+
+- 위기상담 번호가 코드베이스 내에서 불일치한다. `sos_card.dart`는 2024-01-01 통합 번호 `109`를 쓰지만 `app_strings.dart`, `safety_constants.dart`, `prompt_constants.dart`, `analyze_diary_usecase.dart`는 구번호 `1393`을 사용한다. 이번 릴리스에서는 방침 문서에만 `109`를 반영했고 코드 통일은 후속 과제로 남긴다.
+
 ## [1.4.61] - 2026-08-24
 
 > **FCM 마음케어 푸시의 `{name}` 리터럴 노출 수정.** grok·agy·codex 3자 교차 진단으로 근본 원인 확정.
