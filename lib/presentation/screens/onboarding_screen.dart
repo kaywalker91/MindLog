@@ -58,7 +58,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _OnboardingPage(
       icon: Icons.lock_outline_rounded,
       title: '당신만의 공간이에요',
-      description: '모든 일기는 기기에만 저장돼요.\n외부로 전송되지 않으니 안심하세요.',
+      description: '일기는 계정 없이 기기에 보관돼요.\nAI 분석 순간에만 암호화되어 전송돼요.',
       iconColor: AppColors.primary,
     ),
   ];
