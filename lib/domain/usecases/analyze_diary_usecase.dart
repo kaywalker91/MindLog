@@ -81,9 +81,9 @@ class AnalyzeDiaryUseCase {
           ).take(5).toList(),
           sentimentScore: 1,
           empathyMessage: SafetyConstants.emergencyMessage,
-          actionItem: '전문 상담사와 대화해 보세요. 1393(자살예방상담전화)으로 연락할 수 있습니다.',
+          actionItem: '전문 상담사와 대화해 보세요. 109(자살예방상담전화)로 연락할 수 있습니다.',
           actionItems: [
-            '🚀 지금 바로 1393에 전화해보세요',
+            '🚀 지금 바로 109에 전화해보세요',
             '☀️ 가까운 사람에게 연락해보세요',
             '📅 전문 상담 예약을 고려해보세요',
           ],

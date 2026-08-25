@@ -187,7 +187,7 @@ void main() {
 
       test('응급 상황 시 적절한 action_item이 설정되어야 한다', () async {
         final result = await useCase.execute('세상에서 사라지고싶다는 생각이 든다');
-        expect(result.analysisResult?.actionItem, contains('1393'));
+        expect(result.analysisResult?.actionItem, contains('109'));
       });
 
       test('응급 상황 시 sentimentScore가 1이어야 한다', () async {

@@ -181,7 +181,7 @@ void main() {
           'keywords': ['테스트'],
           'sentiment_score': 1,
           'empathy_message': '힘드시겠어요',
-          'action_item': '1393 전화',
+          'action_item': '109 전화',
           'is_emergency': true,
         };
 

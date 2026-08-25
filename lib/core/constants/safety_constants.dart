@@ -75,7 +75,7 @@ class SafetyConstants {
 
   /// SOS 카드에 표시할 긴급 연락처
   static const Map<String, String> emergencyContacts = {
-    '자살예방상담전화': '1393',
+    '자살예방상담전화': '109',
     '정신건강위기상담전화': '1577-0199',
     '생명의전화': '1588-9191',
     '청소년전화': '1388',

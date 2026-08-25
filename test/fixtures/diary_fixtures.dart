@@ -63,7 +63,7 @@ class DiaryFixtures {
       keywords: ['힘듦', '지침', '고통'],
       sentimentScore: 1,
       empathyMessage: '지금 많이 힘드시군요. 당신의 고통이 느껴집니다.',
-      actionItem: '자살예방상담전화 1393으로 연락해주세요.',
+      actionItem: '자살예방상담전화 109로 연락해주세요.',
       analyzedAt: createdAt ?? testNow,
       isEmergency: true,
     ),

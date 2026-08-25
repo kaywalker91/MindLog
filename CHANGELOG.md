@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.63] - 2026-08-25
+
+> **v1.4.62(versionCode 70) AAB에 실리지 못한 개인정보 처리방침 asset을 재빌드로 반영하고, 앱 안에서 두 개로 갈려 있던 긴급 상담전화 번호를 현행 109로 통일했다.**
+> `flutter analyze` rc=0 · Flutter 테스트 **1,748건 그린**(영향 테스트 118건 별도 선행 검증).
+
+### Fixed
+
+- **앱 내 개인정보 처리방침 화면이 구버전 문구를 표시하던 문제 해소** (재빌드로 asset 갱신):
+  - **원인.** `docs/legal/privacy-policy.md`는 문서처럼 보이지만 `pubspec.yaml:136`에 선언된 **앱 번들 asset**이다. 그런데 `cd.yml`의 `paths-ignore`가 `"**.md"`와 `"docs/**"`를 모두 제외하고 있어, v1.4.62 CD가 돈 **이후** 이 파일만 수정한 커밋은 배포 파이프라인을 트리거하지 못했다. 결과적으로 웹 게시본(GitHub Pages / Google Sites)에는 수정본이 반영됐지만, **앱 내 방침 화면만** 이름 전송에 관한 옛 서술을 계속 표시했다.
+  - **조치.** 이번 릴리스는 `pubspec.yaml`(paths-ignore 대상 아님)을 변경하므로 CD가 정상 트리거되며, 번들에 현재 `privacy-policy.md`(55행 — 이름 또는 애칭 설정 시 그 값도 함께 전송됨)가 실린다.
+  - **미해결 잔여 위험.** `cd.yml`의 paths-ignore는 이번 커밋에서 손대지 않았다. 방침 파일만 단독 수정하는 다음 커밋에서 **동일한 누락이 재발**한다. 대응 방침은 `memory/privacy-policy-is-an-app-asset.md` 참조.
+
+- **긴급 상담전화 번호를 109로 통일** (앱 안에 1393과 109가 공존하던 문제):
+  - **문제.** `sos_card.dart:23-24`는 이미 `자살예방 통합 상담전화 (2024년 1월 1일부터 109로 통합)` 주석과 함께 `109`를 쓰고 있었으나, 나머지 5개 파일은 통합 전 번호 `1393`을 그대로 유지하고 있었다. 즉 **같은 앱 안에서 SOS 카드는 109로, 도움말 다이얼로그와 AI 응급 응답은 1393으로** 안내하는 상태였다. 위기 상황에서 노출되는 정보라 불일치 자체가 위험 요소다.
+  - 변경 대상 6곳 — `core/constants/app_strings.dart:30`(`sosHotline`), `core/constants/safety_constants.dart:78`(`emergencyContacts` 맵), `core/constants/prompt_constants.dart:293`(Groq 프롬프트의 Emergency Detection 지시문), `domain/usecases/analyze_diary_usecase.dart:84,86`(사전 안전 필터링이 생성하는 `actionItem`·`actionItems`), `presentation/widgets/help_dialog.dart:245`.
+  - **조사(助詞) 동반 교정.** `1393으로`(받침 ㅁ) → `109로`(받침 없음). `help_dialog.dart`는 번호와 조사가 별도 `TextSpan`으로 분리돼 있어 `text: '으로 연락해주세요...'` → `text: '로 연락해주세요...'`까지 함께 고쳤다. 번호만 치환하면 "109으로"가 노출된다.
+  - **`1577-0199`(정신건강 상담전화)는 변경하지 않았다.** `sos_card.dart:27`과 게시된 개인정보 처리방침(`docs/legal/privacy-policy.md:156`) 양쪽이 109와 **별개 회선으로 병기**하고 있어, 저장소 내 정본 표기를 따랐다.
+  - 테스트 4곳 동반 갱신 — `safety_constants_test.dart:188`, `diary_fixtures.dart:66`, `analysis_response_dto_test.dart:184`, `analyze_diary_usecase_test.dart:190`.
+
+### Changed
+
+- `docs/update.json` — `latestVersion` `1.4.63`, 사용자용 변경 요약 2건 추가. (앱이 `app_constants.dart:10`의 URL로 원격 조회하는 파일)
+
+### Known Issues
+
+- `dart format --set-exit-if-changed .` 이 저장소 전역 **43개 파일**에서 rc=1을 반환한다(이번 변경분 9개 파일은 전부 포맷 클린 — 교집합 0건). 기존 드리프트이며 `cd.yml`은 format을 검사하지 않아 배포에는 영향이 없으나, `ci.yml:115`가 검사하므로 **PR 경로에서는 실패**한다. 릴리스 커밋 비대화를 피하기 위해 이번에는 분리했다.
+
+---
+
 ## [1.4.62] - 2026-08-25
 
 > **개인정보 고지와 실제 데이터 처리의 불일치 해소 + 인증 없이 공개돼 있던 관리자 HTTP 엔드포인트 제거.**

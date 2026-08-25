@@ -242,13 +242,13 @@ class _HelpSosCard extends StatelessWidget {
                     children: [
                       const TextSpan(text: '힘든 순간엔 '),
                       TextSpan(
-                        text: '자살예방상담전화 1393',
+                        text: '자살예방상담전화 109',
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      const TextSpan(text: '으로 연락해주세요. 전문 상담사가 24시간 도움을 드립니다.'),
+                      const TextSpan(text: '로 연락해주세요. 전문 상담사가 24시간 도움을 드립니다.'),
                     ],
                   ),
                 ),

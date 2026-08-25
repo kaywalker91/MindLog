@@ -185,7 +185,7 @@ void main() {
     group('emergencyContacts', () {
       test('긴급 연락처가 정의되어 있어야 한다', () {
         expect(SafetyConstants.emergencyContacts, isNotEmpty);
-        expect(SafetyConstants.emergencyContacts['자살예방상담전화'], '1393');
+        expect(SafetyConstants.emergencyContacts['자살예방상담전화'], '109');
         expect(SafetyConstants.emergencyContacts['정신건강위기상담전화'], '1577-0199');
       });
     });
