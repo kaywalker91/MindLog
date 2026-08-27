@@ -1,4 +1,4 @@
-# 현재 작업: 일기 임시저장(Draft) — Phase 1·2·3 + D-1 완료, 결함 3건 미수정
+# 현재 작업: 일기 임시저장(Draft) — Phase 1·2·3 + D-1·D-3 완료, 결함 3건 미수정
 
 ## 현재 작업
 
@@ -35,7 +35,6 @@
 | 우선순위 | 작업 | 이유 |
 |----------|------|------|
 | **High** | **결함 D-2 — 복원 지연 중 입력이 기존 초안에 덮어써짐** | `DiaryDraftLoading` 동안 입력 UI는 열려 있는데 `onChanged`가 조기 반환(`diary_draft_controller.dart:153`), 이후 `_applyRestoredDraft`가 `_textController.text` 교체 |
-| **High** | **결함 D-3 — 테스트 공허/누락 5건** | agy 트리아지 **[지금수정]**: 프로덕션 변경 0, 회귀 안전망 확보. 과거 날짜 복원 미검증(클램프 테스트가 공허하게 통과), 배너 색상 부정 단언, `restore()` Failure 분기, onPause/PopScope flush, 이미지 복원 |
 | Medium | 결함 D-5 — TTL 만료 시 `__draft__` 파일 잔류 | grok 재대조 발견. `GetDiaryDraftUseCase`가 `clearDraft()`(prefs)만 호출 — 순수 Dart라 `ImageService` 호출 불가(구조적). 다음 터미널 분석·배너 [삭제] 때 정리되므로 누수는 유한 |
 | Low | 결함 D-4 — `SaveDiaryDraftUseCase` 미래 날짜 미검증 | agy 트리아지 **[불필요]**: DatePicker `lastDate` + 복원 클램프 + `AnalyzeDiaryUseCase` 검증으로 3중 방어. 초안에 예외를 넣으면 자동저장이 조용히 멈출 위험이 오히려 큼 |
 | Medium | `feat/diary-draft` → main PR | **`dart format` 드리프트 43파일이 `ci.yml:115` 에서 PR 즉시 실패시킨다** (이전 세션 이월). PR 전 해결 필요 |
@@ -96,6 +95,26 @@
 
 검증(에뮬레이터): 2장 첨부 → 첫 장 제거 시 `image_0.jpg`만 삭제 · 재추가는 `image_2.jpg` 생성으로
 `image_1.jpg` 보존 · 배너 [삭제] 시 `__draft__` 디렉토리 소멸. `flutter analyze` rc=0, `flutter test` 1810건 통과.
+
+### D-3 수정 (테스트 5건, `62affc4`)
+
+프로덕션 코드 변경 없음. 1810 → **1814건**.
+
+| 항목 | 문제 | 조치 |
+|------|------|------|
+| 배너 색상 | `isNot(AppColors.primary)` 부정 단언 — 색 누락·오지정도 통과 | 문구별 지정 토큰 긍정 단언 (onSurface / onSurfaceVariant / error) |
+| 케이스 f (미래→오늘 클램프) | `_selectedDate` 기본값이 이미 '오늘' → 날짜 복원을 통째로 지워도 통과 | 케이스 **g**(과거 날짜 복원) 추가로 공백 차단 |
+| 이미지 복원 | 미검증 | **h** — 실제 임시 PNG 2장으로 `Image.file` 예외 회피 |
+| 백그라운드 flush | 미검증 | **i** — enterText 후 200ms만 경과시켜 800ms 디바운스와 분리 |
+| `restore()` Failure 분기 | 미검증 | **j** — 상태 + 이후 입력이 저장까지 도달하는지까지 확인 |
+
+**돌연변이 검증 통과** — 해당 프로덕션 로직을 각각 제거하면 5건 모두 실패한다
+(M1 날짜복원 · M2 이미지복원 · M3 lifecycle배선 · M4 제목색 · M5 Absent전환).
+M4는 1차 시도에서 앵커 불일치로 돌연변이가 **적용되지 않은 채** "통과"가 나왔다 —
+돌연변이 검증은 적용 성공 여부를 먼저 확인해야 한다.
+
+미이관: PopScope flush 는 위젯 테스트 하네스에 GoRouter 가 없어 `context.pop()` 이 던진다.
+에뮬레이터 검증으로만 확인된 상태.
 
 ### 3사 위임 결과
 
