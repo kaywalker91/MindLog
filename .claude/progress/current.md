@@ -1,67 +1,51 @@
-# 현재 작업: 일기 임시저장(Draft) — Phase 1·2·3 + D-1·D-3 완료, 결함 2건 미수정
+# 현재 작업: 없음 — v1.4.64(일기 임시저장) 배포 완료
 
 ## 이어받는 사람에게 (3줄 요약)
 
-1. 기능은 **끝났고 검증도 끝났다**. analyze rc=0 · test 1814건 통과 · 에뮬레이터 실기 7종 확인.
-   로컬 커밋 16건이 `feat/diary-draft` 에 쌓여 있고 **푸시 승인만 남았다**.
-   (초안 작업 11건 + 포맷 1건 + 기록 1건 + 이전 v1.4.63 세션 3건 `f0e1068`·`ef5fd22`·`a422bba` 도 아직 원격에 없다 — 푸시하면 함께 올라간다.)
-2. ~~`dart format` 전역 드리프트~~ → **해결됨** (`87f5b29`, 2026-08-28). 실측 **53파일**(52 아님)을
-   단일 전용 커밋으로 정리했고 `dart format --set-exit-if-changed .` rc=0 확인. PR 차단 요인 없음.
-3. 남은 결함은 **D-2**(복원 경합, 창 <50ms)와 **D-5**(TTL 만료 시 이미지 파일 잔류, 구조적) 둘뿐.
-   둘 다 데이터 유실이 아니며 급하지 않다. 「설계 판정」 4건은 되돌리지 말 것.
+1. **일기 임시저장(REQ-006)은 설계·구현·검증·릴리스까지 전부 끝났다.** v1.4.64+72 가 Play Internal 트랙에
+   업로드됐고(CD run `33122480912` success), **미푸시 커밋 0건**. 이어받을 미완 작업 없음.
+2. **남은 결함은 D-2**(복원 경합, 창 <50ms)**와 D-5**(TTL 만료 시 `__draft__` 이미지 잔류, 구조적) **둘뿐.**
+   둘 다 데이터 유실이 아니다. 「설계 판정」 4건은 되돌리지 말 것.
+3. **Play Console 출시 노트가 비어 있다.** `Fastfile` 4개 레인 전부 `skip_upload_changelogs: true` 라
+   커밋해 둔 `72.txt` 가 업로드되지 않았다 — 아래 「다음 단계」 참조. 사용자 안내(`docs/update.json`)는 정상 반영됨.
 
-## 현재 작업
+## 현재 상태
 
-**브랜치 `feat/diary-draft` (main 아님). `origin/main` 대비 16건 앞섬, 전부 로컬 — 아직 푸시 안 함.**
+**`origin/main` = `0a9505d` · `pubspec.yaml` = `1.4.64+72` · 워킹트리 클린 · 미푸시 0건.**
+(`.claude/settings.local.json.bak-allowwrite-20260721` 은 세션 전부터 있던 untracked 백업 파일)
+
+| 파이프라인 | 결과 |
+|-----------|------|
+| CI (PR #4) | 4/4 SUCCESS — Setup · **Analyze & Format** · Tests · Build Verification |
+| 머지 | MERGED — **머지 커밋 `0a9505d`** (부모 `1dd9ad8` + `87d437b`). main 최초의 머지 커밋으로, 그전까지 선형이던 히스토리가 여기서 갈라진다 · `mergedAt` 2026-08-27T22:26Z |
+| CD `33122480912` | success — headSha `0a9505d` 빌드. `Successfully finished the upload to Google Play` (Internal, AAB 52.6MB) |
+| GitHub Pages | success — `docs/index.html` 카드 3건 반영 |
+
+`ci.yml` 은 로컬보다 엄격하다: `flutter analyze --fatal-infos` + **build_runner 재생성 이후** format 검사.
+생성 파일은 `.gitignore` 대상이라 CI 가 매번 새로 만든다 — 로컬 검증 시 이 두 가지를 같이 맞춰야 한다.
+
+## 이번 세션 완료
 
 | 커밋 | 내용 |
 |------|------|
-| `ab0f6f4` | Phase 1 — domain/data 레이어 |
-| `34b3842` | Phase 2 — 자동저장·복원 UI 연결 |
-| `9314968` | Phase 1·2 핸드오프 기록 |
-| `918b042` | Phase 3 — `docs/spec.md` REQ-006 명세 |
-| `ecbef57` | **D-1 수정** — `__draft__` 고아 이미지 정리 (유일한 프로덕션 변경) |
-| `fd44cbe` | 에뮬레이터 검증 기록 |
-| `ce1b9fc` | REQ-006 을 D-1 수정 후 실제와 맞춤 + TTL 고아 명시 |
-| `62affc4` | **D-3 수정** — 테스트 공허/누락 5건 보강 |
-| `287ec4e` | D-3 결과 기록 |
+| `87f5b29` | `dart format` 전역 드리프트 **53파일** 정리 (원인: Dart 3.7+ tall-style 규칙 변화). PR 차단 요인 해소 |
+| `16a7591` | progress 갱신 + 커밋 수 정정 |
+| `87d437b` | v1.4.64 릴리스 문서 3종 + 버전 범프 |
 
-작성 중 유실을 막는 초안 기능. REQ-001(제출 시 pending 저장)이 보호하지 못하는 **제출 이전** 구간을 담당한다.
-설계는 grok·agy·codex 3안을 대조해 확정했고, 갈린 쟁점은 코드로 판정했다(아래 「설계 판정」).
+릴리스 문서는 독자별로 분리해 작성 — `CHANGELOG.md`(개발자, 설계 판단 근거까지) ·
+`docs/update.json`(사용자 안내 4건) · `docs/index.html`(채용담당자용 카드 3건) ·
+`android/fastlane/.../72.txt`(ko·en-US, Play 500자 한도 내 — **다만 업로드되지 않음**, 아래 참조).
 
-## 완료된 항목
-
-### Phase 1 — domain/data (`ab0f6f4`)
-- `DiaryDraft`(freezed) + `DiaryDraftRepository` + UseCase 3종(save/get/clear)
-- `DiaryDraftRepositoryImpl` (`with RepositoryFailureHandler`), `PreferencesLocalDataSource` 에 JSON 단일 슬롯 추가
-- `AppConstants.diaryDraftDebounce`(800ms) / `diaryDraftTtl`(7일)
-- **DB 스키마 무변경** — `_currentVersion` 8 유지
-- 테스트 34건 (save 12 · get 6 · clear 4 · repo impl 12)
-
-### Phase 2 — presentation (`34b3842`)
-- `DiaryDraftController` — 디바운스/flush/discard, 복원 전 선점 저장 차단, revision 직렬화
-- `DiaryDraftBanner` — 복원 안내 + [삭제]/닫기
-- `DiaryScreen` — PopScope·AppLifecycleListener **신규 도입**(이 화면에 없던 것), 이미지 `__draft__` 승격
-- 테스트 28건 (컨트롤러 13 · 배너 9 · 화면 플로우 6)
-
-### 품질 게이트 (최종, 2026-08-28)
-`fvm flutter analyze` → **No issues found!** (rc=0) · `fvm flutter test` → **1814건 전부 통과** (`[E]` 0건)
-
-`fvm dart format --output=none --set-exit-if-changed .` → **rc=0** (`87f5b29` 이후). 3개 게이트 전부 통과.
-
-### 전역 포맷 정리 (`87f5b29`, 2026-08-28)
-- `fvm dart format .` → 53파일 (lib 22 · test 30 · integration_test 1), 생성 파일 0건, 로직 변경 없음
-- 원인: Dart 3.7+ tall-style 포맷터 규칙 차이 (인자를 여러 줄로 펼침) — 방치가 아님
-- 검증: format rc=0 · analyze rc=0(No issues found!) · test **1814건 전부 통과**([E] 0건)
+게이트: `dart format` rc=0 · `analyze --fatal-infos` rc=0 · `test` **1814건 전부 통과**.
 
 ## 다음 단계
 
 | 우선순위 | 작업 | 이유 |
 |----------|------|------|
-| **High** | **결함 D-2 — 복원 지연 중 입력이 기존 초안에 덮어써짐** | `DiaryDraftLoading` 동안 입력 UI는 열려 있는데 `onChanged`가 조기 반환(`diary_draft_controller.dart:153`), 이후 `_applyRestoredDraft`가 `_textController.text` 교체 |
-| Medium | 결함 D-5 — TTL 만료 시 `__draft__` 파일 잔류 | grok 재대조 발견. `GetDiaryDraftUseCase`가 `clearDraft()`(prefs)만 호출 — 순수 Dart라 `ImageService` 호출 불가(구조적). 다음 터미널 분석·배너 [삭제] 때 정리되므로 누수는 유한 |
-| Low | 결함 D-4 — `SaveDiaryDraftUseCase` 미래 날짜 미검증 | agy 트리아지 **[불필요]**: DatePicker `lastDate` + 복원 클램프 + `AnalyzeDiaryUseCase` 검증으로 3중 방어. 초안에 예외를 넣으면 자동저장이 조용히 멈출 위험이 오히려 큼 |
-| **High** | `feat/diary-draft` → main 푸시·PR | 선행 조건(포맷) 해소됨 — 남은 건 사용자 푸시 승인뿐 |
+| **High** | **결함 D-2 — 복원 지연 중 입력이 복원본에 덮어써짐** | `DiaryDraftLoading` 동안 입력 UI 는 열려 있는데 `_canSave`(`diary_draft_controller.dart:153`)가 `onChanged`(`:74`)를 조기 반환시키고, 뒤이어 `_applyRestoredDraft`(`diary_screen.dart:238`)가 `_textController.text` 를 교체. 창 <50ms |
+| **High** | **`skip_upload_changelogs` 결정** | `android/fastlane/Fastfile` 4개 레인 전부 `skip_upload_metadata: true` + `skip_upload_changelogs: true` → CD 가 AAB 만 올린다. 출시 노트를 CD 로 내보내려면 플래그를 끄고, 아니면 Play Console 수기 입력. **배포 파이프라인 동작 변경이라 사용자 판단 대기 중** |
+| Medium | 결함 D-5 — TTL 만료 시 `__draft__` 파일 잔류 | `GetDiaryDraftUseCase` 는 순수 Dart라 `ImageService` 호출 불가(구조적) — 만료 시 prefs 슬롯만 삭제. 다음 배너 [삭제]·터미널 분석에서 정리되므로 누수는 유한 |
+| Low | 결함 D-4 — 미래 날짜 미검증 | **[불필요] 판정 유지.** DatePicker `lastDate` + 복원 클램프 + `AnalyzeDiaryUseCase` 3중 방어. 초안에 예외를 넣으면 자동저장이 조용히 멈출 위험이 더 큼 |
 | Medium | `cd.yml` `paths-ignore` 근본 수정 (이월) | 방침 asset 함정이 아직 살아 있음. `paths` 화이트리스트 전환 등 |
 | Medium | Cloud Functions Node.js 20 → 22+ (이월) | **2026-10-30 decommission** |
 | Medium | `action_item_preview` Analytics 전송 중단 검토 (이월) | AI 행동 제안 앞 50자 전송 중 |
@@ -71,7 +55,7 @@
 | Low | AI 생성 콘텐츠 인앱 신고 기능 (이월) | |
 | Low | Groq API 키 서버 프록시 (이월) | |
 
-> v1.4.63 프로덕션 승격은 이전 세션 건. 상태 확인 필요 시 `docs/tasks/history.md` 참조.
+**확인 필요(미확인)**: Play Console Internal 트랙에 versionCode 72 도착 여부. 업로드 성공 로그는 있으나 콘솔은 열어보지 않았다.
 
 ## 설계 판정 (3안이 갈렸고 코드로 결론낸 것 — 되돌리지 말 것)
 
@@ -163,5 +147,5 @@ M4는 1차 시도에서 앵커 불일치로 돌연변이가 **적용되지 않�
 
 ## 마지막 업데이트
 
-2026-08-28 · 브랜치 `feat/diary-draft` · `origin/main` 대비 16건, **푸시 안 함** · 워킹트리 클린
-(`.claude/settings.local.json.bak-allowwrite-20260721` 은 세션 전부터 있던 untracked 백업 파일)
+2026-08-28 · `origin/main` `0a9505d` · v1.4.64+72 Play Internal 업로드 완료 · **미푸시 0건** · 워킹트리 클린
+· 에뮬레이터 `emulator-5554` 종료됨 (연결 기기 0)
