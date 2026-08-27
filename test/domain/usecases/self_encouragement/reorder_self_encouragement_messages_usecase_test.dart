@@ -44,9 +44,7 @@ void main() {
         () => useCase.execute(<String>[]),
         throwsA(isA<ValidationFailure>()),
       );
-      verifyNever(
-        () => mockRepository.reorderSelfEncouragementMessages(any()),
-      );
+      verifyNever(() => mockRepository.reorderSelfEncouragementMessages(any()));
     });
 
     test('Repository CacheFailure를 그대로 전파해야 한다', () async {
@@ -56,10 +54,7 @@ void main() {
       ).thenThrow(const CacheFailure(message: '저장 실패'));
 
       // Act & Assert
-      expect(
-        () => useCase.execute(['a']),
-        throwsA(isA<CacheFailure>()),
-      );
+      expect(() => useCase.execute(['a']), throwsA(isA<CacheFailure>()));
     });
   });
 }

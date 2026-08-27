@@ -155,7 +155,10 @@ void main() {
       /// 각 테마에서 문구별로 **지정된 토큰과 같은지**를 단언한다.
       /// 이전 버전은 `isNot(AppColors.primary)` 부정 단언이라, 색이 누락되거나
       /// 엉뚱한 값으로 바뀌어도 통과했다.
-      Future<void> expectTokenColors(WidgetTester tester, ThemeData theme) async {
+      Future<void> expectTokenColors(
+        WidgetTester tester,
+        ThemeData theme,
+      ) async {
         await tester.pumpWidget(
           buildTestWidget(
             savedAt: DateTime.now().subtract(const Duration(minutes: 5)),

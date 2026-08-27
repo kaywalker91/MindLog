@@ -184,15 +184,13 @@ void main() {
       final diff = diffCheerMeQueue(pending: pending, plan: plan);
 
       // Assert
-      final expectedIds = changeIndices
-          .map((i) => NotificationService.dailyReminderId + i)
-          .toList()
-        ..sort();
+      final expectedIds =
+          changeIndices
+              .map((i) => NotificationService.dailyReminderId + i)
+              .toList()
+            ..sort();
       expect(diff.idsToCancel, equals(expectedIds));
-      expect(
-        diff.toSchedule.map((n) => n.id).toList(),
-        equals(expectedIds),
-      );
+      expect(diff.toSchedule.map((n) => n.id).toList(), equals(expectedIds));
     });
   });
 }

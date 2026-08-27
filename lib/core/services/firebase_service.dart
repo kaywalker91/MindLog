@@ -23,8 +23,9 @@ class FirebaseService {
     await AnalyticsService.initialize();
 
     // Performance Monitoring: prod에서만 데이터 수집 (debug는 dart:developer Timeline 사용)
-    await FirebasePerformance.instance
-        .setPerformanceCollectionEnabled(!kDebugMode);
+    await FirebasePerformance.instance.setPerformanceCollectionEnabled(
+      !kDebugMode,
+    );
 
     if (const bool.fromEnvironment('CRASHLYTICS_SMOKE_TEST')) {
       await CrashlyticsService.recordError(

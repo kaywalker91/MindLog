@@ -43,8 +43,7 @@ void main() {
         imagePaths: any(named: 'imagePaths'),
       ),
     ).thenAnswer((_) async => DiaryFixtures.pending());
-    when(() => mockDiaryRepository.updateDiary(any()))
-        .thenAnswer((_) async {});
+    when(() => mockDiaryRepository.updateDiary(any())).thenAnswer((_) async {});
     when(
       () => mockDiaryRepository.analyzeDiary(
         any(),
@@ -53,10 +52,12 @@ void main() {
         imagePaths: any(named: 'imagePaths'),
       ),
     ).thenAnswer((_) async => DiaryFixtures.analyzed());
-    when(() => mockSettingsRepository.getSelectedAiCharacter())
-        .thenAnswer((_) async => AiCharacter.warmCounselor);
-    when(() => mockSettingsRepository.getUserName())
-        .thenAnswer((_) async => null);
+    when(
+      () => mockSettingsRepository.getSelectedAiCharacter(),
+    ).thenAnswer((_) async => AiCharacter.warmCounselor);
+    when(
+      () => mockSettingsRepository.getUserName(),
+    ).thenAnswer((_) async => null);
 
     container = ProviderContainer(
       overrides: [
@@ -83,8 +84,9 @@ void main() {
           imagePaths: any(named: 'imagePaths'),
         ),
       ).thenAnswer((_) async => analyzedDiary);
-      when(() => mockDiaryRepository.getAllDiaries())
-          .thenAnswer((_) async => [analyzedDiary]);
+      when(
+        () => mockDiaryRepository.getAllDiaries(),
+      ).thenAnswer((_) async => [analyzedDiary]);
 
       // Act - 일기 분석
       final analyzeUseCase = container.read(analyzeDiaryUseCaseProvider);
@@ -132,12 +134,12 @@ void main() {
       final result2 = await analyzeUseCase.execute(
         '두 번째 일기입니다. 친구를 만나서 즐거웠습니다.',
       );
-      final result3 =
-          await analyzeUseCase.execute('세 번째 일기입니다. 맛있는 저녁을 먹었어요.');
+      final result3 = await analyzeUseCase.execute('세 번째 일기입니다. 맛있는 저녁을 먹었어요.');
 
       // Mock에 작성된 일기들 추가 (실제 앱에서는 Repository가 자동 관리)
-      when(() => mockDiaryRepository.getAllDiaries())
-          .thenAnswer((_) async => [result1, result2, result3]);
+      when(
+        () => mockDiaryRepository.getAllDiaries(),
+      ).thenAnswer((_) async => [result1, result2, result3]);
 
       // Refresh to get latest
       await container.read(diaryListControllerProvider.notifier).refresh();
@@ -179,8 +181,9 @@ void main() {
     test('응급 키워드 감지 시 safetyBlocked 상태가 되어야 한다', () async {
       // Arrange
       const emergencyContent = '너무 힘들어서 자살하고 싶다는 생각이 들었다.';
-      when(() => mockDiaryRepository.updateDiary(any()))
-          .thenAnswer((_) async {});
+      when(
+        () => mockDiaryRepository.updateDiary(any()),
+      ).thenAnswer((_) async {});
       when(
         () => mockDiaryRepository.createDiary(
           any(),
@@ -191,7 +194,9 @@ void main() {
       // The use case creates a safetyBlocked diary from the pending one
       // We capture the updateDiary call to track the saved state
       Diary? savedDiary;
-      when(() => mockDiaryRepository.updateDiary(any())).thenAnswer((inv) async {
+      when(() => mockDiaryRepository.updateDiary(any())).thenAnswer((
+        inv,
+      ) async {
         savedDiary = inv.positionalArguments[0] as Diary;
       });
 
@@ -211,7 +216,9 @@ void main() {
       // Arrange
       const emergencyContent = '살고 싶지 않다는 생각이 계속 든다.';
       Diary? savedDiary;
-      when(() => mockDiaryRepository.updateDiary(any())).thenAnswer((inv) async {
+      when(() => mockDiaryRepository.updateDiary(any())).thenAnswer((
+        inv,
+      ) async {
         savedDiary = inv.positionalArguments[0] as Diary;
       });
 
@@ -220,8 +227,9 @@ void main() {
       final diary = await analyzeUseCase.execute(emergencyContent);
 
       // Mock에 safetyBlocked 일기 추가
-      when(() => mockDiaryRepository.getAllDiaries())
-          .thenAnswer((_) async => [diary]);
+      when(
+        () => mockDiaryRepository.getAllDiaries(),
+      ).thenAnswer((_) async => [diary]);
 
       await container.read(diaryListControllerProvider.notifier).refresh();
       final diaries = await container.read(diaryListControllerProvider.future);
@@ -304,10 +312,12 @@ void main() {
 
       // Act - 각 캐릭터로 분석 (응급 상황은 UseCase에서 직접 처리하므로 캐릭터 반영됨)
       for (final character in AiCharacter.values) {
-        when(() => mockSettingsRepository.getSelectedAiCharacter())
-            .thenAnswer((_) async => character);
-        when(() => mockDiaryRepository.updateDiary(any()))
-            .thenAnswer((_) async {});
+        when(
+          () => mockSettingsRepository.getSelectedAiCharacter(),
+        ).thenAnswer((_) async => character);
+        when(
+          () => mockDiaryRepository.updateDiary(any()),
+        ).thenAnswer((_) async {});
 
         final analyzeUseCase = AnalyzeDiaryUseCase(
           mockDiaryRepository,
@@ -325,8 +335,9 @@ void main() {
     test('설정된 AI 캐릭터가 Repository에 전달되어야 한다', () async {
       // Arrange
       const content = '오늘 정말 좋은 하루였다. 새로운 것을 배워서 기쁘다.';
-      when(() => mockSettingsRepository.getSelectedAiCharacter())
-          .thenAnswer((_) async => AiCharacter.cheerfulFriend);
+      when(
+        () => mockSettingsRepository.getSelectedAiCharacter(),
+      ).thenAnswer((_) async => AiCharacter.cheerfulFriend);
 
       // Act
       final analyzeUseCase = container.read(analyzeDiaryUseCaseProvider);
@@ -382,8 +393,9 @@ void main() {
     test('새로고침 후 모든 일기가 복구되어야 한다', () async {
       // Arrange - 기존 일기 설정
       final weekDiaries = DiaryFixtures.weekOfDiaries();
-      when(() => mockDiaryRepository.getAllDiaries())
-          .thenAnswer((_) async => weekDiaries);
+      when(
+        () => mockDiaryRepository.getAllDiaries(),
+      ).thenAnswer((_) async => weekDiaries);
 
       // Act
       final diaries = await container.read(diaryListControllerProvider.future);
@@ -392,8 +404,9 @@ void main() {
       expect(diaries.length, 7);
 
       // Simulate error
-      when(() => mockDiaryRepository.getAllDiaries())
-          .thenThrow(Exception('DB Error'));
+      when(
+        () => mockDiaryRepository.getAllDiaries(),
+      ).thenThrow(Exception('DB Error'));
 
       // Act - 에러 상태에서 새로고침 시도
       try {
@@ -403,8 +416,9 @@ void main() {
       }
 
       // 에러 복구 후 다시 시도
-      when(() => mockDiaryRepository.getAllDiaries())
-          .thenAnswer((_) async => weekDiaries);
+      when(
+        () => mockDiaryRepository.getAllDiaries(),
+      ).thenAnswer((_) async => weekDiaries);
       await container.read(diaryListControllerProvider.notifier).refresh();
       final recoveredDiaries = await container.read(
         diaryListControllerProvider.future,
@@ -430,8 +444,9 @@ void main() {
           createdAt: now.subtract(const Duration(days: 1)),
         ),
       ];
-      when(() => mockDiaryRepository.getAllDiaries())
-          .thenAnswer((_) async => diaries);
+      when(
+        () => mockDiaryRepository.getAllDiaries(),
+      ).thenAnswer((_) async => diaries);
 
       // Act
       final result = await container.read(diaryListControllerProvider.future);
@@ -453,8 +468,9 @@ void main() {
           isPinned: true,
         ),
       ];
-      when(() => mockDiaryRepository.getAllDiaries())
-          .thenAnswer((_) async => diaries);
+      when(
+        () => mockDiaryRepository.getAllDiaries(),
+      ).thenAnswer((_) async => diaries);
 
       // Act
       final result = await container.read(diaryListControllerProvider.future);
@@ -467,8 +483,9 @@ void main() {
     test('혼합 상태의 일기들이 모두 표시되어야 한다', () async {
       // Arrange
       final mixedDiaries = DiaryFixtures.mixed();
-      when(() => mockDiaryRepository.getAllDiaries())
-          .thenAnswer((_) async => mixedDiaries);
+      when(
+        () => mockDiaryRepository.getAllDiaries(),
+      ).thenAnswer((_) async => mixedDiaries);
 
       // Act
       final result = await container.read(diaryListControllerProvider.future);

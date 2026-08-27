@@ -15,7 +15,6 @@ Diary _makeSecretDiary(String id) => Diary(
   isSecret: true,
 );
 
-
 void main() {
   late DeleteSecretPinUseCase useCase;
   late MockSecretPinRepository mockPinRepository;
@@ -52,13 +51,8 @@ void main() {
 
       test('should unset all secret diaries when PIN is deleted', () async {
         // Arrange — 비밀일기 2개 (getSecretDiaries는 비밀일기만 반환)
-        when(
-          () => mockDiaryRepository.getSecretDiaries(),
-        ).thenAnswer(
-          (_) async => [
-            _makeSecretDiary('d1'),
-            _makeSecretDiary('d2'),
-          ],
+        when(() => mockDiaryRepository.getSecretDiaries()).thenAnswer(
+          (_) async => [_makeSecretDiary('d1'), _makeSecretDiary('d2')],
         );
 
         // Act
@@ -67,12 +61,8 @@ void main() {
         // Assert
         verify(() => mockPinRepository.deletePin()).called(1);
         // 비밀일기 2개 각각 해제 호출됨
-        verify(
-          () => mockDiaryRepository.setDiarySecret('d1', false),
-        ).called(1);
-        verify(
-          () => mockDiaryRepository.setDiarySecret('d2', false),
-        ).called(1);
+        verify(() => mockDiaryRepository.setDiarySecret('d1', false)).called(1);
+        verify(() => mockDiaryRepository.setDiarySecret('d2', false)).called(1);
       });
 
       test('should work when there are no secret diaries', () async {
@@ -86,9 +76,7 @@ void main() {
 
         // Assert
         verify(() => mockPinRepository.deletePin()).called(1);
-        verifyNever(
-          () => mockDiaryRepository.setDiarySecret(any(), any()),
-        );
+        verifyNever(() => mockDiaryRepository.setDiarySecret(any(), any()));
       });
     });
 

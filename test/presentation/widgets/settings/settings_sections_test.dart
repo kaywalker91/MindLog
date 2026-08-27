@@ -192,11 +192,13 @@ void main() {
 
     setUp(() {
       mockSettingsRepo = MockSettingsRepository();
-      when(() => mockSettingsRepo.getSelectedAiCharacter())
-          .thenAnswer((_) async => AiCharacter.warmCounselor);
+      when(
+        () => mockSettingsRepo.getSelectedAiCharacter(),
+      ).thenAnswer((_) async => AiCharacter.warmCounselor);
       when(() => mockSettingsRepo.getUserName()).thenAnswer((_) async => null);
-      when(() => mockSettingsRepo.getNotificationSettings())
-          .thenAnswer((_) async => NotificationSettings.defaults());
+      when(
+        () => mockSettingsRepo.getNotificationSettings(),
+      ).thenAnswer((_) async => NotificationSettings.defaults());
       container = ProviderContainer(
         overrides: [
           settingsRepositoryProvider.overrideWithValue(mockSettingsRepo),
@@ -232,8 +234,9 @@ void main() {
 
     testWidgets('AI 캐릭터 라벨이 올바르게 표시되어야 한다', (tester) async {
       // Arrange
-      when(() => mockSettingsRepo.getSelectedAiCharacter())
-          .thenAnswer((_) async => AiCharacter.realisticCoach);
+      when(
+        () => mockSettingsRepo.getSelectedAiCharacter(),
+      ).thenAnswer((_) async => AiCharacter.realisticCoach);
 
       // Act
       await tester.pumpWidget(
@@ -260,40 +263,48 @@ void main() {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
       mockSettingsRepo = MockSettingsRepository();
-      when(() => mockSettingsRepo.getSelectedAiCharacter())
-          .thenAnswer((_) async => AiCharacter.warmCounselor);
+      when(
+        () => mockSettingsRepo.getSelectedAiCharacter(),
+      ).thenAnswer((_) async => AiCharacter.warmCounselor);
       when(() => mockSettingsRepo.getUserName()).thenAnswer((_) async => null);
-      when(() => mockSettingsRepo.getNotificationSettings())
-          .thenAnswer((_) async => NotificationSettings.defaults());
-      when(() => mockSettingsRepo.setNotificationSettings(any()))
-          .thenAnswer((_) async {});
-      when(() => mockSettingsRepo.setSelectedAiCharacter(any()))
-          .thenAnswer((_) async {});
-      when(() => mockSettingsRepo.setUserName(any()))
-          .thenAnswer((_) async {});
-      when(() => mockSettingsRepo.getSelfEncouragementMessages())
-          .thenAnswer((_) async => []);
-      when(() => mockSettingsRepo.getLastSeenAppVersion())
-          .thenAnswer((_) async => null);
-      when(() => mockSettingsRepo.getDismissedUpdateVersion())
-          .thenAnswer((_) async => null);
-      when(() => mockSettingsRepo.getDismissedUpdateTimestamp())
-          .thenAnswer((_) async => null);
+      when(
+        () => mockSettingsRepo.getNotificationSettings(),
+      ).thenAnswer((_) async => NotificationSettings.defaults());
+      when(
+        () => mockSettingsRepo.setNotificationSettings(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockSettingsRepo.setSelectedAiCharacter(any()),
+      ).thenAnswer((_) async {});
+      when(() => mockSettingsRepo.setUserName(any())).thenAnswer((_) async {});
+      when(
+        () => mockSettingsRepo.getSelfEncouragementMessages(),
+      ).thenAnswer((_) async => []);
+      when(
+        () => mockSettingsRepo.getLastSeenAppVersion(),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockSettingsRepo.getDismissedUpdateVersion(),
+      ).thenAnswer((_) async => null);
+      when(
+        () => mockSettingsRepo.getDismissedUpdateTimestamp(),
+      ).thenAnswer((_) async => null);
 
       NotificationSettingsService.resetForTesting();
-      NotificationSettingsService.areNotificationsEnabledOverride =
-          () async => true;
-      NotificationSettingsService.canScheduleExactAlarmsOverride =
-          () async => true;
+      NotificationSettingsService.areNotificationsEnabledOverride = () async =>
+          true;
+      NotificationSettingsService.canScheduleExactAlarmsOverride = () async =>
+          true;
       NotificationSettingsService.isIgnoringBatteryOverride = () async => true;
-      NotificationSettingsService.scheduleDailyReminderOverride = ({
-        required int hour,
-        required int minute,
-        required String title,
-        String? body,
-        String? payload,
-        dynamic scheduleMode,
-      }) async => true;
+      NotificationSettingsService.scheduleDailyReminderOverride =
+          ({
+            required int hour,
+            required int minute,
+            required String title,
+            String? body,
+            String? payload,
+            dynamic scheduleMode,
+          }) async => true;
       NotificationSettingsService.cancelDailyReminderOverride = () async {};
       NotificationSettingsService.subscribeToTopicOverride = (_) async {};
       NotificationSettingsService.unsubscribeFromTopicOverride = (_) async {};

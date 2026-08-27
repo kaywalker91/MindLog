@@ -162,10 +162,7 @@ void main() {
       final result = await coordinator.setEnabled(true);
 
       expect(result, isA<ReminderEnableFailed>());
-      expect(
-        (result as ReminderEnableFailed).error,
-        isA<StateError>(),
-      );
+      expect((result as ReminderEnableFailed).error, isA<StateError>());
     });
   });
 }

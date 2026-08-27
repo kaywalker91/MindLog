@@ -35,7 +35,9 @@ class DiaryDraftBanner extends StatelessWidget {
             : AppColors.primaryLight.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.35), // design-ok: 강조선 브랜드 액센트
+          color: AppColors.primary.withValues(
+            alpha: 0.35,
+          ), // design-ok: 강조선 브랜드 액센트
         ),
       ),
       child: Row(

@@ -26,9 +26,8 @@ void main() {
   }
 
   DiaryDraft capturedSavedDraft() {
-    return verify(
-      () => mockRepository.saveDraft(captureAny()),
-    ).captured.single as DiaryDraft;
+    return verify(() => mockRepository.saveDraft(captureAny())).captured.single
+        as DiaryDraft;
   }
 
   setUpAll(() {
@@ -44,17 +43,12 @@ void main() {
   setUp(() {
     mockRepository = MockDiaryDraftRepository();
     storedDraft = null;
-    useCase = SaveDiaryDraftUseCase(
-      mockRepository,
-      clock: FixedClock(now),
-    );
+    useCase = SaveDiaryDraftUseCase(mockRepository, clock: FixedClock(now));
 
     when(() => mockRepository.saveDraft(any())).thenAnswer((inv) async {
       storedDraft = inv.positionalArguments.first as DiaryDraft;
     });
-    when(
-      () => mockRepository.getDraft(),
-    ).thenAnswer((_) async => storedDraft);
+    when(() => mockRepository.getDraft()).thenAnswer((_) async => storedDraft);
     when(() => mockRepository.clearDraft()).thenAnswer((_) async {
       storedDraft = null;
     });
@@ -162,11 +156,7 @@ void main() {
       test('시드된 초안에서 빈 내용 + 빈 이미지 리스트는 clearDraft를 호출해야 한다', () async {
         storedDraft = seededDraft();
 
-        await useCase.execute(
-          '',
-          entryDate: entryDate,
-          imagePaths: const [],
-        );
+        await useCase.execute('', entryDate: entryDate, imagePaths: const []);
 
         verify(() => mockRepository.clearDraft()).called(1);
         verifyNever(() => mockRepository.saveDraft(any()));

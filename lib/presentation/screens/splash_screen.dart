@@ -115,7 +115,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               child: LayoutBuilder(
                 builder: (context, constraints) => SingleChildScrollView(
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: SizedBox(
@@ -131,7 +133,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                             // 앱 이름
                             Text(
                                   AppConstants.appName,
-                                  style: Theme.of(context).textTheme.headlineLarge
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineLarge
                                       ?.copyWith(
                                         color: colorScheme.onSurface,
                                         fontWeight: FontWeight.w700,
@@ -140,7 +144,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                   textAlign: TextAlign.center,
                                 )
                                 .animate(controller: _animationController)
-                                .fadeIn(delay: const Duration(milliseconds: 150))
+                                .fadeIn(
+                                  delay: const Duration(milliseconds: 150),
+                                )
                                 .slideY(begin: 0.2, end: 0),
 
                             // 부제목
@@ -154,7 +160,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                   textAlign: TextAlign.center,
                                 )
                                 .animate(controller: _animationController)
-                                .fadeIn(delay: const Duration(milliseconds: 250))
+                                .fadeIn(
+                                  delay: const Duration(milliseconds: 250),
+                                )
                                 .slideY(begin: 0.2, end: 0),
 
                             // 점 3개 wave 로딩 인디케이터
@@ -180,22 +188,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           children: List.generate(3, (i) {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary,
-                ),
-              )
-                  .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .moveY(
-                    begin: 0,
-                    end: -6,
-                    delay: Duration(milliseconds: i * 150),
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeInOut,
-                  ),
+              child:
+                  Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.primary,
+                        ),
+                      )
+                      .animate(onPlay: (c) => c.repeat(reverse: true))
+                      .moveY(
+                        begin: 0,
+                        end: -6,
+                        delay: Duration(milliseconds: i * 150),
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                      ),
             );
           }),
         )

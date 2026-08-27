@@ -45,7 +45,10 @@ class LoadingIndicator extends StatefulWidget {
   /// 분석용 기본 로테이션 메시지
   static const List<LoadingMessage> analysisMessages = [
     LoadingMessage(message: '일기를 저장하는 중...', subMessage: '소중한 기록을 보관하고 있어요'),
-    LoadingMessage(message: 'AI가 감정을 분석하는 중...', subMessage: '당신의 이야기를 천천히 들어볼게요'),
+    LoadingMessage(
+      message: 'AI가 감정을 분석하는 중...',
+      subMessage: '당신의 이야기를 천천히 들어볼게요',
+    ),
     LoadingMessage(message: '거의 다 됐어요', subMessage: '따뜻한 마음 케어를 준비하고 있어요'),
   ];
 

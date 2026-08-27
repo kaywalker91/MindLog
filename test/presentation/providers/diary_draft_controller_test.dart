@@ -47,7 +47,6 @@ void main() {
       ),
     ).thenAnswer((_) async {});
     when(() => mockClear.execute()).thenAnswer((_) async {});
-
   });
 
   /// ProviderContainer 는 반드시 fakeAsync 존 **안에서** 만들어야 한다.

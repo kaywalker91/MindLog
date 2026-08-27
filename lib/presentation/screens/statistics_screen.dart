@@ -60,14 +60,19 @@ class _StatisticsScreenState extends ConsumerState<StatisticsScreen> {
               ref.invalidate(statisticsProvider);
             },
             color: Theme.of(context).colorScheme.primary,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.only(
                 left: 16,
                 right: 16,
                 top: 12,
-                bottom: ResponsiveUtils.bottomSafeAreaPadding(context, extra: 32),
+                bottom: ResponsiveUtils.bottomSafeAreaPadding(
+                  context,
+                  extra: 32,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

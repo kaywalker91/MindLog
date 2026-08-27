@@ -667,10 +667,7 @@ void main() {
           viaTopLevel['empathy_message'],
           equals(viaStatic['empathy_message']),
         );
-        expect(
-          viaTopLevel['action_items'],
-          equals(viaStatic['action_items']),
-        );
+        expect(viaTopLevel['action_items'], equals(viaStatic['action_items']));
       });
 
       test('빈 입력에서도 static과 동일하게 ApiException을 던져야 한다', () {
@@ -683,7 +680,8 @@ void main() {
       test('큰 응답(>4KB)도 정상 파싱되어야 한다', () {
         // 4KB 이상의 응답 시뮬레이션 — empathy_message에 padding
         final padding = '오늘 하루는 정말 많은 일이 있었습니다. ' * 200; // 약 5KB
-        final jsonStr = '''
+        final jsonStr =
+            '''
         {
           "keywords": ["감정", "일상"],
           "sentiment_score": 7,

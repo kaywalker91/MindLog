@@ -15,10 +15,7 @@ void main() {
   final updatedAt = DateTime(2026, 8, 20, 12);
   const seededContent = 'TTL경계검증초안내용';
 
-  DiaryDraft seededDraft({
-    DateTime? at,
-    List<String>? imagePaths,
-  }) {
+  DiaryDraft seededDraft({DateTime? at, List<String>? imagePaths}) {
     return DiaryDraft(
       content: seededContent,
       entryDate: DateTime(2026, 8, 20),
@@ -81,7 +78,10 @@ void main() {
           justBeforeExpiry.difference(updatedAt) < AppConstants.diaryDraftTtl,
           isTrue,
         );
-        expect(draft.isExpired(justBeforeExpiry, AppConstants.diaryDraftTtl), isFalse);
+        expect(
+          draft.isExpired(justBeforeExpiry, AppConstants.diaryDraftTtl),
+          isFalse,
+        );
 
         stubDraft(draft);
         useCase = GetDiaryDraftUseCase(
@@ -125,10 +125,7 @@ void main() {
         );
         clearInteractions(mockRepository);
 
-        await expectLater(
-          useCase.execute(),
-          throwsA(isA<CacheFailure>()),
-        );
+        await expectLater(useCase.execute(), throwsA(isA<CacheFailure>()));
         verifyNever(() => mockRepository.clearDraft());
       });
 
@@ -138,10 +135,7 @@ void main() {
         ).thenAnswer((_) async => throw Exception('unexpected'));
         clearInteractions(mockRepository);
 
-        await expectLater(
-          useCase.execute(),
-          throwsA(isA<UnknownFailure>()),
-        );
+        await expectLater(useCase.execute(), throwsA(isA<UnknownFailure>()));
       });
     });
   });

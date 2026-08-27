@@ -202,9 +202,9 @@ class _DiaryListScreenState extends ConsumerState<DiaryListScreen> {
               const SizedBox(height: 20),
               Text(
                 '아직 작성된 일기가 없어요',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               Text(

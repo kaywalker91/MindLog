@@ -135,13 +135,19 @@ class _DayCellState extends State<DayCell> {
                 Semantics(
                   label: _getLabelForScore(widget.score!),
                   excludeSemantics: true,
-                  child: Text(emoji, style: TextStyle(fontSize: widget.emojiSize)),
+                  child: Text(
+                    emoji,
+                    style: TextStyle(fontSize: widget.emojiSize),
+                  ),
                 ),
               ] else if (isTodayNoRecord) ...[
                 Semantics(
                   label: '오늘',
                   excludeSemantics: true,
-                  child: Text('✨', style: TextStyle(fontSize: widget.emojiSize - 2)),
+                  child: Text(
+                    '✨',
+                    style: TextStyle(fontSize: widget.emojiSize - 2),
+                  ),
                 ),
               ],
             ],

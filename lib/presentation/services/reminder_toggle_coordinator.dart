@@ -70,8 +70,7 @@ class ReminderToggleCoordinator {
            NotificationPermissionService.requestDisableBatteryOptimization;
 
   static const exactAlarmWarningMessage = '알람이 정확한 시간에 울리지 않을 수 있습니다.';
-  static const batteryWarningMessage =
-      '배터리 최적화가 활성화되어 있어 알람이 전달되지 않을 수 있습니다.';
+  static const batteryWarningMessage = '배터리 최적화가 활성화되어 있어 알람이 전달되지 않을 수 있습니다.';
 
   final Future<void> Function(bool enabled) _updateReminderEnabled;
   final Future<bool> Function() _canScheduleExactAlarms;

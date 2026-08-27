@@ -301,10 +301,7 @@ void main() {
 
       final tomorrow = DateTime.now().add(const Duration(days: 1));
       when(() => mockGetDraft.execute()).thenAnswer(
-        (_) async => _draft(
-          entryDate: tomorrow,
-          updatedAt: DateTime.now(),
-        ),
+        (_) async => _draft(entryDate: tomorrow, updatedAt: DateTime.now()),
       );
 
       await pumpDiaryScreen(tester);
@@ -326,8 +323,7 @@ void main() {
         now.day,
       ).subtract(const Duration(days: 3));
       when(() => mockGetDraft.execute()).thenAnswer(
-        (_) async =>
-            _draft(entryDate: threeDaysAgo, updatedAt: DateTime.now()),
+        (_) async => _draft(entryDate: threeDaysAgo, updatedAt: DateTime.now()),
       );
 
       await pumpDiaryScreen(tester);

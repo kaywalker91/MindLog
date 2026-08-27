@@ -11,10 +11,8 @@ class GetDiaryDraftUseCase {
   final DiaryDraftRepository _repository;
   final Clock _clock;
 
-  GetDiaryDraftUseCase(
-    this._repository, {
-    Clock clock = const SystemClock(),
-  }) : _clock = clock;
+  GetDiaryDraftUseCase(this._repository, {Clock clock = const SystemClock()})
+    : _clock = clock;
 
   Future<DiaryDraft?> execute() async {
     try {

@@ -63,9 +63,9 @@ void main() {
 
       test('Repository 에러 시 예외를 전파해야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.getSelectedAiCharacter(),
-        ).thenAnswer((_) async => throw const Failure.cache(message: '캐릭터 조회 실패'));
+        when(() => mockRepository.getSelectedAiCharacter()).thenAnswer(
+          (_) async => throw const Failure.cache(message: '캐릭터 조회 실패'),
+        );
 
         // Act & Assert
         await expectLater(useCase.execute(), throwsA(isA<CacheFailure>()));

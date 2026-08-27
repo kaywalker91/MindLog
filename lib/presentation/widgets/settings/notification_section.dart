@@ -228,8 +228,7 @@ class NotificationSection extends ConsumerWidget {
                 content: Text(message),
                 duration: Duration(
                   seconds:
-                      message ==
-                          ReminderToggleCoordinator.batteryWarningMessage
+                      message == ReminderToggleCoordinator.batteryWarningMessage
                       ? 5
                       : 4,
                 ),

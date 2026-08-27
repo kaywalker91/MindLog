@@ -41,9 +41,6 @@ class DiaryDraftRepositoryImpl
 
   @override
   Future<void> clearDraft() async {
-    return guardFailure(
-      '일기 초안 삭제 실패',
-      _localDataSource.clearDiaryDraft,
-    );
+    return guardFailure('일기 초안 삭제 실패', _localDataSource.clearDiaryDraft);
   }
 }

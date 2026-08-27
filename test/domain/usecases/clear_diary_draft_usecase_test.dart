@@ -16,9 +16,7 @@ void main() {
     storedDraft = null;
     useCase = ClearDiaryDraftUseCase(mockRepository);
 
-    when(
-      () => mockRepository.getDraft(),
-    ).thenAnswer((_) async => storedDraft);
+    when(() => mockRepository.getDraft()).thenAnswer((_) async => storedDraft);
     when(() => mockRepository.clearDraft()).thenAnswer((_) async {
       storedDraft = null;
     });
@@ -60,10 +58,7 @@ void main() {
         );
         clearInteractions(mockRepository);
 
-        await expectLater(
-          useCase.execute(),
-          throwsA(isA<CacheFailure>()),
-        );
+        await expectLater(useCase.execute(), throwsA(isA<CacheFailure>()));
       });
 
       test('일반 Exception은 UnknownFailure로 감싸 던져야 한다', () async {
@@ -72,10 +67,7 @@ void main() {
         ).thenAnswer((_) async => throw Exception('unexpected'));
         clearInteractions(mockRepository);
 
-        await expectLater(
-          useCase.execute(),
-          throwsA(isA<UnknownFailure>()),
-        );
+        await expectLater(useCase.execute(), throwsA(isA<UnknownFailure>()));
       });
     });
   });

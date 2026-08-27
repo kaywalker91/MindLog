@@ -13,10 +13,8 @@ class SaveDiaryDraftUseCase {
   final DiaryDraftRepository _repository;
   final Clock _clock;
 
-  SaveDiaryDraftUseCase(
-    this._repository, {
-    Clock clock = const SystemClock(),
-  }) : _clock = clock;
+  SaveDiaryDraftUseCase(this._repository, {Clock clock = const SystemClock()})
+    : _clock = clock;
 
   Future<void> execute(
     String content, {
@@ -24,8 +22,9 @@ class SaveDiaryDraftUseCase {
     List<String>? imagePaths,
   }) async {
     final trimmedContent = content.trim();
-    final normalizedImagePaths =
-        (imagePaths != null && imagePaths.isNotEmpty) ? imagePaths : null;
+    final normalizedImagePaths = (imagePaths != null && imagePaths.isNotEmpty)
+        ? imagePaths
+        : null;
 
     if (trimmedContent.isEmpty && normalizedImagePaths == null) {
       try {

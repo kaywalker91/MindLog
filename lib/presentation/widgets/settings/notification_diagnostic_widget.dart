@@ -79,7 +79,9 @@ class _DiagnosticVisualTokens {
         alpha: isDark ? 0.67 : 0.42,
       ),
       tileTitleForeground: colorScheme.onSurface,
-      neutralIconForeground: colorScheme.onSurfaceVariant.withValues(alpha: 0.86),
+      neutralIconForeground: colorScheme.onSurfaceVariant.withValues(
+        alpha: 0.86,
+      ),
       neutralIconBackground: colorScheme.surfaceContainer.withValues(
         alpha: isDark ? 0.86 : 1.0,
       ),
@@ -110,7 +112,9 @@ class _DiagnosticVisualTokens {
       chipNeutralBackground: colorScheme.surfaceContainerHigh.withValues(
         alpha: isDark ? 0.82 : 1.0,
       ),
-      chipNeutralForeground: colorScheme.onSurfaceVariant.withValues(alpha: 0.90),
+      chipNeutralForeground: colorScheme.onSurfaceVariant.withValues(
+        alpha: 0.90,
+      ),
       actionBackground: colorScheme.surfaceContainerHigh.withValues(
         alpha: isDark ? 0.71 : 0.59,
       ),
