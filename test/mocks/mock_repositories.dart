@@ -1,4 +1,5 @@
 import 'package:mocktail/mocktail.dart';
+import 'package:mindlog/domain/repositories/diary_draft_repository.dart';
 import 'package:mindlog/domain/repositories/diary_repository.dart';
 import 'package:mindlog/domain/repositories/secret_pin_repository.dart';
 import 'package:mindlog/domain/repositories/settings_repository.dart';
@@ -14,3 +15,5 @@ class MockSettingsRepositoryWithMessages extends Mock
 class MockSecretPinRepository extends Mock implements SecretPinRepository {}
 
 class MockStatisticsRepository extends Mock implements StatisticsRepository {}
+
+class MockDiaryDraftRepository extends Mock implements DiaryDraftRepository {}

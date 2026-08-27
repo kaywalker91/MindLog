@@ -7,10 +7,12 @@ import 'package:mindlog/data/datasources/local/preferences_local_datasource.dart
 import 'package:mindlog/data/datasources/local/secure_storage_datasource.dart';
 import 'package:mindlog/data/datasources/local/sqlite_local_datasource.dart';
 import 'package:mindlog/data/datasources/remote/groq_remote_datasource.dart';
+import 'package:mindlog/data/repositories/diary_draft_repository_impl.dart';
 import 'package:mindlog/data/repositories/diary_repository_impl.dart';
 import 'package:mindlog/data/repositories/secret_pin_repository_impl.dart';
 import 'package:mindlog/data/repositories/settings_repository_impl.dart';
 import 'package:mindlog/data/repositories/statistics_repository_impl.dart';
+import 'package:mindlog/domain/repositories/diary_draft_repository.dart';
 import 'package:mindlog/domain/repositories/diary_repository.dart';
 import 'package:mindlog/domain/repositories/secret_pin_repository.dart';
 import 'package:mindlog/domain/repositories/settings_repository.dart';
@@ -24,8 +26,11 @@ import 'package:mindlog/domain/usecases/set_selected_ai_character_usecase.dart';
 import 'package:mindlog/core/services/notification_scheduler_impl.dart';
 import 'package:mindlog/domain/repositories/notification_scheduler.dart';
 import 'package:mindlog/domain/usecases/apply_notification_settings_usecase.dart';
+import 'package:mindlog/domain/usecases/clear_diary_draft_usecase.dart';
 import 'package:mindlog/domain/usecases/complete_onboarding_usecase.dart';
+import 'package:mindlog/domain/usecases/get_diary_draft_usecase.dart';
 import 'package:mindlog/domain/usecases/get_onboarding_completed_usecase.dart';
+import 'package:mindlog/domain/usecases/save_diary_draft_usecase.dart';
 import 'package:mindlog/domain/usecases/self_encouragement/add_self_encouragement_message_usecase.dart';
 import 'package:mindlog/domain/usecases/self_encouragement/delete_self_encouragement_message_usecase.dart';
 import 'package:mindlog/domain/usecases/self_encouragement/get_self_encouragement_messages_usecase.dart';
@@ -229,6 +234,28 @@ final reorderSelfEncouragementMessagesUseCaseProvider =
         ref.watch(settingsRepositoryProvider),
       );
     });
+
+/// DiaryDraftRepository Provider
+final diaryDraftRepositoryProvider = Provider<DiaryDraftRepository>((ref) {
+  return DiaryDraftRepositoryImpl(
+    ref.watch(preferencesLocalDataSourceProvider),
+  );
+});
+
+/// SaveDiaryDraftUseCase Provider
+final saveDiaryDraftUseCaseProvider = Provider<SaveDiaryDraftUseCase>((ref) {
+  return SaveDiaryDraftUseCase(ref.watch(diaryDraftRepositoryProvider));
+});
+
+/// GetDiaryDraftUseCase Provider
+final getDiaryDraftUseCaseProvider = Provider<GetDiaryDraftUseCase>((ref) {
+  return GetDiaryDraftUseCase(ref.watch(diaryDraftRepositoryProvider));
+});
+
+/// ClearDiaryDraftUseCase Provider
+final clearDiaryDraftUseCaseProvider = Provider<ClearDiaryDraftUseCase>((ref) {
+  return ClearDiaryDraftUseCase(ref.watch(diaryDraftRepositoryProvider));
+});
 
 /// DB 복원 후 Provider 캐시 무효화
 ///
