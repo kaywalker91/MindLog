@@ -1,13 +1,29 @@
-# 현재 작업: 일기 임시저장(Draft) — Phase 1·2·3 + D-1·D-3 완료, 결함 3건 미수정
+# 현재 작업: 일기 임시저장(Draft) — Phase 1·2·3 + D-1·D-3 완료, 결함 2건 미수정
+
+## 이어받는 사람에게 (3줄 요약)
+
+1. 기능은 **끝났고 검증도 끝났다**. analyze rc=0 · test 1814건 통과 · 에뮬레이터 실기 7종 확인.
+   로컬 커밋 8건이 `feat/diary-draft` 에 쌓여 있고 **푸시 승인만 남았다**.
+2. **PR 을 열기 전 반드시** `dart format` 전역 드리프트(52파일)를 단일 커밋으로 해결할 것.
+   안 하면 `ci.yml:115` 에서 즉시 실패한다. 원인은 방치가 아니라 포맷터 tall-style 마이그레이션이다.
+3. 남은 결함은 **D-2**(복원 경합, 창 <50ms)와 **D-5**(TTL 만료 시 이미지 파일 잔류, 구조적) 둘뿐.
+   둘 다 데이터 유실이 아니며 급하지 않다. 「설계 판정」 4건은 되돌리지 말 것.
 
 ## 현재 작업
 
-**브랜치 `feat/diary-draft` (main 아님). 커밋 2건, 아직 푸시 안 함.**
+**브랜치 `feat/diary-draft` (main 아님). 커밋 8건, 전부 로컬 — 아직 푸시 안 함.**
 
 | 커밋 | 내용 |
 |------|------|
 | `ab0f6f4` | Phase 1 — domain/data 레이어 |
 | `34b3842` | Phase 2 — 자동저장·복원 UI 연결 |
+| `9314968` | Phase 1·2 핸드오프 기록 |
+| `918b042` | Phase 3 — `docs/spec.md` REQ-006 명세 |
+| `ecbef57` | **D-1 수정** — `__draft__` 고아 이미지 정리 (유일한 프로덕션 변경) |
+| `fd44cbe` | 에뮬레이터 검증 기록 |
+| `ce1b9fc` | REQ-006 을 D-1 수정 후 실제와 맞춤 + TTL 고아 명시 |
+| `62affc4` | **D-3 수정** — 테스트 공허/누락 5건 보강 |
+| `287ec4e` | D-3 결과 기록 |
 
 작성 중 유실을 막는 초안 기능. REQ-001(제출 시 pending 저장)이 보호하지 못하는 **제출 이전** 구간을 담당한다.
 설계는 grok·agy·codex 3안을 대조해 확정했고, 갈린 쟁점은 코드로 판정했다(아래 「설계 판정」).
@@ -27,8 +43,10 @@
 - `DiaryScreen` — PopScope·AppLifecycleListener **신규 도입**(이 화면에 없던 것), 이미지 `__draft__` 승격
 - 테스트 28건 (컨트롤러 13 · 배너 9 · 화면 플로우 6)
 
-### 품질 게이트
-`fvm flutter analyze` → **No issues found!** (rc=0) · `fvm flutter test` → **1810건 전부 통과** (`[E]` 0건)
+### 품질 게이트 (최종, 2026-08-28)
+`fvm flutter analyze` → **No issues found!** (rc=0) · `fvm flutter test` → **1814건 전부 통과** (`[E]` 0건)
+
+`dart format` 은 **통과하지 못한다** — 아래 「다음 단계」의 포맷 항목 참조.
 
 ## 다음 단계
 
@@ -37,8 +55,8 @@
 | **High** | **결함 D-2 — 복원 지연 중 입력이 기존 초안에 덮어써짐** | `DiaryDraftLoading` 동안 입력 UI는 열려 있는데 `onChanged`가 조기 반환(`diary_draft_controller.dart:153`), 이후 `_applyRestoredDraft`가 `_textController.text` 교체 |
 | Medium | 결함 D-5 — TTL 만료 시 `__draft__` 파일 잔류 | grok 재대조 발견. `GetDiaryDraftUseCase`가 `clearDraft()`(prefs)만 호출 — 순수 Dart라 `ImageService` 호출 불가(구조적). 다음 터미널 분석·배너 [삭제] 때 정리되므로 누수는 유한 |
 | Low | 결함 D-4 — `SaveDiaryDraftUseCase` 미래 날짜 미검증 | agy 트리아지 **[불필요]**: DatePicker `lastDate` + 복원 클램프 + `AnalyzeDiaryUseCase` 검증으로 3중 방어. 초안에 예외를 넣으면 자동저장이 조용히 멈출 위험이 오히려 큼 |
-| Medium | `feat/diary-draft` → main PR | **`dart format` 드리프트 43파일이 `ci.yml:115` 에서 PR 즉시 실패시킨다** (이전 세션 이월). PR 전 해결 필요 |
-| Medium | `__draft__` 이미지 고아 파일 정리 | 현재는 터미널 상태에서만 삭제. 앱이 강제 종료되면 남는다. 앱 시작 시 청소 루틴 검토 |
+| **High** | **`dart format` 드리프트 — PR 차단** | 2026-08-28 실측 **52파일**(이전 기록 43은 낡음). 원인은 방치가 아니라 **Dart 3.7+ tall-style 포맷터 마이그레이션** — 다중행 생성자를 한 줄로 접는다. `ci.yml:115` 의 `dart format --set-exit-if-changed .` 가 레포 전역을 보므로 **일부만 고치면 불일치만 생기고 CI 는 여전히 실패**한다. 전역 `dart format .` 을 **단일 전용 커밋**으로 처리할 것 (52파일이라 사용자 판단 필요) |
+| Medium | `feat/diary-draft` → main PR | 위 포맷 항목 해결이 선행 조건 |
 | Medium | `cd.yml` `paths-ignore` 근본 수정 (이월) | 방침 asset 함정이 아직 살아 있음. `paths` 화이트리스트 전환 등 |
 | Medium | Cloud Functions Node.js 20 → 22+ (이월) | **2026-10-30 decommission** |
 | Medium | `action_item_preview` Analytics 전송 중단 검토 (이월) | AI 행동 제안 앞 50자 전송 중 |
@@ -140,4 +158,5 @@ M4는 1차 시도에서 앵커 불일치로 돌연변이가 **적용되지 않�
 
 ## 마지막 업데이트
 
-2026-08-27 · 브랜치 `feat/diary-draft` · 커밋 `ab0f6f4`, `34b3842`, `9314968` (푸시 안 함) · Phase 3 spec.md 미커밋
+2026-08-28 · 브랜치 `feat/diary-draft` · 로컬 커밋 8건, **푸시 안 함** · 워킹트리 클린
+(`.claude/settings.local.json.bak-allowwrite-20260721` 은 세션 전부터 있던 untracked 백업 파일)
