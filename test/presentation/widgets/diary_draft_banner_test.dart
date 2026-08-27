@@ -139,64 +139,60 @@ void main() {
     });
 
     group('테마 렌더링 및 디자인 토큰 단언 (케이스 d)', () {
-      testWidgets('라이트 테마에서 렌더되고 텍스트 색이 AppColors.primary가 아님을 단언한다', (
-        tester,
-      ) async {
+      /// 배너 내 특정 문구의 실제 렌더 색을 뽑는다.
+      Color? colorOf(WidgetTester tester, String text) {
+        return tester
+            .widget<Text>(
+              find.descendant(
+                of: find.byType(DiaryDraftBanner),
+                matching: find.text(text),
+              ),
+            )
+            .style
+            ?.color;
+      }
+
+      /// 각 테마에서 문구별로 **지정된 토큰과 같은지**를 단언한다.
+      /// 이전 버전은 `isNot(AppColors.primary)` 부정 단언이라, 색이 누락되거나
+      /// 엉뚱한 값으로 바뀌어도 통과했다.
+      Future<void> expectTokenColors(WidgetTester tester, ThemeData theme) async {
         await tester.pumpWidget(
           buildTestWidget(
             savedAt: DateTime.now().subtract(const Duration(minutes: 5)),
-            theme: ThemeData.light(useMaterial3: true),
+            theme: theme,
           ),
         );
         await pumpSafely(tester);
 
         expect(find.byType(DiaryDraftBanner), findsOneWidget);
 
-        final textWidgets = tester.widgetList<Text>(
-          find.descendant(
-            of: find.byType(DiaryDraftBanner),
-            matching: find.byType(Text),
-          ),
-        );
+        final colorScheme = Theme.of(
+          tester.element(find.byType(DiaryDraftBanner)),
+        ).colorScheme;
 
-        expect(textWidgets.isNotEmpty, isTrue);
-        for (final text in textWidgets) {
-          expect(
-            text.style?.color,
-            isNot(equals(AppColors.primary)),
-            reason: '배너 내 모든 텍스트의 색상은 AppColors.primary여서는 안 됩니다',
-          );
-        }
+        expect(
+          colorOf(tester, '이전에 작성하던 내용을 불러왔어요'),
+          colorScheme.onSurface,
+          reason: '제목은 colorScheme.onSurface 를 써야 한다',
+        );
+        expect(
+          colorOf(tester, '5분 전'),
+          colorScheme.onSurfaceVariant,
+          reason: '저장 시각은 colorScheme.onSurfaceVariant 를 써야 한다',
+        );
+        expect(
+          colorOf(tester, '삭제'),
+          AppColors.error,
+          reason: '삭제 액션은 AppColors.error 를 써야 한다',
+        );
+      }
+
+      testWidgets('라이트 테마에서 문구별 지정 토큰 색이 적용된다', (tester) async {
+        await expectTokenColors(tester, ThemeData.light(useMaterial3: true));
       });
 
-      testWidgets('다크 테마에서 렌더되고 텍스트 색이 AppColors.primary가 아님을 단언한다', (
-        tester,
-      ) async {
-        await tester.pumpWidget(
-          buildTestWidget(
-            savedAt: DateTime.now().subtract(const Duration(minutes: 5)),
-            theme: ThemeData.dark(useMaterial3: true),
-          ),
-        );
-        await pumpSafely(tester);
-
-        expect(find.byType(DiaryDraftBanner), findsOneWidget);
-
-        final textWidgets = tester.widgetList<Text>(
-          find.descendant(
-            of: find.byType(DiaryDraftBanner),
-            matching: find.byType(Text),
-          ),
-        );
-
-        expect(textWidgets.isNotEmpty, isTrue);
-        for (final text in textWidgets) {
-          expect(
-            text.style?.color,
-            isNot(equals(AppColors.primary)),
-            reason: '배너 내 모든 텍스트의 색상은 AppColors.primary여서는 안 됩니다',
-          );
-        }
+      testWidgets('다크 테마에서 문구별 지정 토큰 색이 적용된다', (tester) async {
+        await expectTokenColors(tester, ThemeData.dark(useMaterial3: true));
       });
     });
   });

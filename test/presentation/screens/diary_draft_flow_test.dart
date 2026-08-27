@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -72,13 +75,35 @@ DiaryDraft _draft({
   String content = _restoredContent,
   DateTime? entryDate,
   DateTime? updatedAt,
+  List<String>? imagePaths,
 }) {
   final now = DateTime.now();
   return DiaryDraft(
     content: content,
     entryDate: entryDate ?? DateTime(now.year, now.month, now.day),
     updatedAt: updatedAt ?? now.subtract(const Duration(minutes: 3)),
+    imagePaths: imagePaths,
   );
+}
+
+/// 1x1 투명 PNG — Image.file 이 디코드에 실패해 예외를 흘리지 않도록 실제 파일을 쓴다.
+final _onePixelPng = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+);
+
+/// 복원 대상 이미지를 실제 파일로 만들어 경로를 돌려준다.
+List<String> _writeTempImages(WidgetTester tester, int count) {
+  final dir = Directory.systemTemp.createTempSync('draft_restore_images');
+  addTearDown(() {
+    if (dir.existsSync()) {
+      dir.deleteSync(recursive: true);
+    }
+  });
+  return List<String>.generate(count, (i) {
+    final file = File('${dir.path}/image_$i.png')
+      ..writeAsBytesSync(_onePixelPng);
+    return file.path;
+  });
 }
 
 /// flutter_animate 무한 루프를 피하기 위해 pumpAndSettle 대신 고정 프레임을 돌린다.
@@ -288,6 +313,76 @@ void main() {
       expect(find.byType(DiaryDraftBanner), findsOneWidget);
       expect(find.text('오늘'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('g: 과거 날짜 초안을 복원하면 날짜 칩에 그 과거 날짜가 반영되어야 한다', (tester) async {
+      _setLargeView(tester);
+      addTearDown(() => _resetView(tester));
+
+      final now = DateTime.now();
+      final threeDaysAgo = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(const Duration(days: 3));
+      when(() => mockGetDraft.execute()).thenAnswer(
+        (_) async =>
+            _draft(entryDate: threeDaysAgo, updatedAt: DateTime.now()),
+      );
+
+      await pumpDiaryScreen(tester);
+
+      // 케이스 f(미래→오늘 클램프)는 _selectedDate 기본값이 이미 '오늘'이라
+      // 날짜 복원 로직을 통째로 지워도 통과한다. 이 케이스가 그 공백을 막는다.
+      expect(find.text('오늘'), findsNothing);
+      expect(find.textContaining('3일 전'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('h: 이미지가 포함된 초안을 복원하면 폼에 이미지가 복원되어야 한다', (tester) async {
+      _setLargeView(tester);
+      addTearDown(() => _resetView(tester));
+
+      final paths = _writeTempImages(tester, 2);
+      when(() => mockGetDraft.execute()).thenAnswer(
+        (_) async => _draft(imagePaths: paths, updatedAt: DateTime.now()),
+      );
+
+      await pumpDiaryScreen(tester);
+
+      expect(_textOf(tester), _restoredContent);
+      expect(find.textContaining('첨부 2장'), findsOneWidget);
+    });
+
+    testWidgets('i: 디바운스 만료 전 백그라운드 전환에도 초안이 즉시 저장되어야 한다', (tester) async {
+      _setLargeView(tester);
+      addTearDown(() => _resetView(tester));
+
+      await pumpDiaryScreen(tester);
+
+      const typed = '백그라운드 전환 저장 확인용 본문';
+      await tester.enterText(find.byType(TextFormField), typed);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 여기까지의 저장 호출은 관심 밖 — 이후 호출만 flush 로 귀속시킨다.
+      clearInteractions(mockSaveDraft);
+
+      // 라이프사이클 전이는 inactive -> hidden -> paused 순서만 허용된다.
+      // 화면은 onHide/onPause 둘 다 flush 에 연결해 두었으므로 호출은 1회 이상이다.
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // enterText 이후 총 200ms 만 흘렀으므로 800ms 디바운스는 만료될 수 없다.
+      // 즉 이 호출은 AppLifecycleListener 의 flush 말고는 나올 곳이 없다.
+      verify(
+        () => mockSaveDraft.execute(
+          typed,
+          entryDate: any(named: 'entryDate'),
+          imagePaths: any(named: 'imagePaths'),
+        ),
+      ).called(greaterThanOrEqualTo(1));
     });
   });
 }

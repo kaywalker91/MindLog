@@ -297,6 +297,42 @@ void main() {
       });
     });
 
+    test('j. restore 중 Failure가 나면 Loading에 갇히지 않고 Absent가 된다', () {
+      fakeAsync((async) {
+        openContainer();
+        when(() => mockGet.execute()).thenAnswer(
+          (_) async => throw const CacheFailure(message: '초안 조회 실패'),
+        );
+
+        expect(
+          container.read(diaryDraftControllerProvider),
+          isA<DiaryDraftLoading>(),
+        );
+
+        unawaited(controller().restore());
+        async.flushMicrotasks();
+
+        expect(
+          container.read(diaryDraftControllerProvider),
+          isA<DiaryDraftAbsent>(),
+        );
+
+        // 상태만 보면 부족하다 — Loading 에 갇히면 _canSave 가 false 로 남아
+        // 자동저장이 영영 돌지 않는다. 잠금이 실제로 풀렸는지까지 확인한다.
+        controller().onChanged(content: '복원 실패 후 입력', entryDate: entryDate);
+        async.elapse(AppConstants.diaryDraftDebounce);
+        async.flushMicrotasks();
+
+        verify(
+          () => mockSave.execute(
+            '복원 실패 후 입력',
+            entryDate: entryDate,
+            imagePaths: null,
+          ),
+        ).called(1);
+      });
+    });
+
     test('h. dismissBanner는 clear 없이 Absent 상태로만 바꾼다', () {
       fakeAsync((async) {
         openContainer();
