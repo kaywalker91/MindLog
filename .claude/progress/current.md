@@ -1,4 +1,4 @@
-# 현재 작업: 일기 임시저장(Draft) — Phase 1·2 완료, Phase 3 남음
+# 현재 작업: 일기 임시저장(Draft) — Phase 1·2·3 + D-1 완료, 결함 3건 미수정
 
 ## 현재 작업
 
@@ -34,8 +34,9 @@
 
 | 우선순위 | 작업 | 이유 |
 |----------|------|------|
-| **High** | **Phase 3 — `docs/spec.md` 에 REQ-006 추가** | 스펙 미반영 상태. REQ-005 뒤, REQ-006~009 미사용 확인됨. 문구 초안은 아래 「REQ-006 초안」 |
-| **High** | **실기기 수동 검증** | 자동 테스트로 못 잡는 것: 앱 강제 종료 후 재진입 복원, 백그라운드 전환 flush, 실제 이미지 첨부 후 복원 |
+| **High** | **결함 D-2 — 복원 지연 중 입력이 기존 초안에 덮어써짐** | `DiaryDraftLoading` 동안 입력 UI는 열려 있는데 `onChanged`가 조기 반환(`diary_draft_controller.dart:153`), 이후 `_applyRestoredDraft`가 `_textController.text` 교체 |
+| Medium | 결함 D-3 — 테스트 공허/누락 5건 | agy 갭 분석: 과거 날짜 복원 미검증(클램프 테스트가 공허), 배너 색상 부정 단언, `restore()` Failure 분기, onPause/PopScope flush, 이미지 복원 |
+| Medium | 결함 D-4 — `SaveDiaryDraftUseCase` 미래 날짜 미검증 | `AnalyzeDiaryUseCase`는 `ValidationFailure`로 막는데 초안은 UI 클램프에만 의존 |
 | Medium | `feat/diary-draft` → main PR | **`dart format` 드리프트 43파일이 `ci.yml:115` 에서 PR 즉시 실패시킨다** (이전 세션 이월). PR 전 해결 필요 |
 | Medium | `__draft__` 이미지 고아 파일 정리 | 현재는 터미널 상태에서만 삭제. 앱이 강제 종료되면 남는다. 앱 시작 시 청소 루틴 검토 |
 | Medium | `cd.yml` `paths-ignore` 근본 수정 (이월) | 방침 asset 함정이 아직 살아 있음. `paths` 화이트리스트 전환 등 |
@@ -62,18 +63,51 @@
 - **`build_runner`/`flutter` 는 샌드박스에서 실행조차 안 된다** — `flutter/bin/cache/engine.stamp: Operation not permitted`. 에러 한 줄만 남아 "이슈 없음" 처럼 보인다.
 - `docs/spec.md` 090번대는 UX 품질 구간(실부여 최댓값 REQ-096, 099는 구간 상한) — 신규 REQ 에 쓰지 말 것.
 
-## REQ-006 초안 (Phase 3에서 `docs/spec.md` REQ-005 뒤에 삽입)
+## Phase 3 결과 (2026-08-27)
 
-```
-### REQ-006: 일기 임시저장(Draft)
-- 작성 중 본문·작성일·첨부 이미지를 단일 초안 슬롯에 자동 저장한다
-  (텍스트 800ms 디바운스, 이미지·날짜 변경 및 화면 이탈·백그라운드 전환 시 즉시)
-- 10자 미만도 저장한다 (10자는 제출 게이트이지 초안 게이트가 아님). 공백뿐이면 기존 초안을 삭제한다
-- 재진입 시 복원하고 배너로 [삭제]를 제공한다. 경로가 유효하지 않은 이미지는 복원에서 제외한다
-- 분석 성공·안전차단·명시 삭제·7일 경과 시 폐기한다. 분석 실패 시에는 유지한다
-- REQ-001(제출 시 pending 저장)과 분리된 제출 이전 구간의 유실 방지책이다
-```
+`docs/spec.md` REQ-006 반영 완료 (+33 / -3). 섹션 헤더 `REQ-001 ~ REQ-006`, 화면 매핑표 DiaryScreen, UseCase 목록 19→22 동기화.
+
+### 에뮬레이터 실기 검증 (Pixel_7_Test, debug 빌드)
+
+증거는 전부 온디바이스 `shared_prefs/FlutterSharedPreferences.xml` 직접 판독 + 스크린샷.
+
+| 시나리오 | 결과 | 증거 |
+|----------|------|------|
+| 자동저장이 디스크에 기록 | PASS | `flutter.draft_diary_entry` JSON (content/entryDate/updatedAt/imagePaths) |
+| 작성 중 강제 종료 → 재진입 복원 | PASS | `am force-stop` 후 재기동, 배너 「이전에 작성하던 내용을 불러왔어요」 + 본문 31자 복원 |
+| 백그라운드 전환 flush (디바운스 만료 전) | PASS | HOME 직후 `updatedAt` 21:29:57 → 21:31:16 갱신 |
+| 화면 이탈(PopScope) flush | PASS | 입력→뒤로가기→즉시 force-stop 조건에서 `updatedAt` 갱신(디바운스 불가 구간) |
+| 이미지 `__draft__` 승격 | PASS | `app_flutter/diary_images/__draft__/image_0.jpg` (100,226 B) + 초안 `imagePaths` 기록 |
+| 강제 종료 후 이미지 복원 | PASS | 재진입 시 썸네일 1/5 + 「마음 털어놓기 (사진 1장 포함)」 |
+| 배너 [삭제] 후 이미지 파일 정리 | FAIL → **수정 후 PASS** | 수정 전: 초안 키는 0개인데 `__draft__/image_0.jpg` 잔류. 수정 후: `__draft__` 디렉토리 자체 소멸 |
+
+미검증: TTL 7일 만료(시각 조작 필요), 안전차단 경로(실제 위기 문구 필요).
+
+### D-1 수정 (`lib/presentation/screens/diary_screen.dart`, +43/-6)
+
+- `_onDraftDelete`: `ImageService.deleteDiaryImages('__draft__')` 추가
+- `_onImageRemoved`: 제거된 경로가 `__draft__` 승격본이고 목록에 남은 참조가 없을 때만 `deleteImage`.
+  승격 실패로 폴백한 **picker 원본 경로는 사용자 파일이라 삭제하지 않는다**
+- 파일명 인덱스를 목록 길이 → **단조 증가**(`_draftImageSeq`)로 교체.
+  기존 방식은 삭제 후 재추가 시 남아 있던 승격본을 덮어써 두 목록 항목이 같은 파일을 가리켰다
+  (고아 파일을 지우기 시작하면 이 충돌이 곧 데이터 유실이 되므로 함께 고침)
+- 복원 시 `_nextDraftImageSeq()` 로 복원된 `image_N` 뒤 번호에서 이어받는다
+
+검증(에뮬레이터): 2장 첨부 → 첫 장 제거 시 `image_0.jpg`만 삭제 · 재추가는 `image_2.jpg` 생성으로
+`image_1.jpg` 보존 · 배너 [삭제] 시 `__draft__` 디렉토리 소멸. `flutter analyze` rc=0, `flutter test` 1810건 통과.
+
+### 3사 위임 결과
+
+- **codex** (코드 결함): 확정 3건 — D-1 고아 파일, D-2 복원 경합, 백그라운드 flush 가 `unawaited` 라 저장 완료 전 프로세스 종료 가능. out-of-order 덮어쓰기는 「미확인」으로 반려(`_operationTail` 직렬화가 실제로 막음).
+  - 단, codex 의 「PopScope `didPop == true` 로 flush 누락」은 **반려**: `canPop: false` 라 시스템 뒤로가기·AppBar 백버튼(`Navigator.maybePop`) 모두 핸들러를 탄다. 남는 위험은 외부에서 `context.pop()` 을 직접 부르는 경로뿐이고 현재 그런 호출은 없다.
+- **grok** (스펙 적대적 검토): 5건 반영 — trim 규칙, 공백 본문+이미지 케이스, TTL 판정 시점(타이머 아님), 죽은 경로의 저장본 미갱신, isSecret 미저장·PIN 미보호.
+- **agy** (스펙↔구현↔테스트 갭): 8건. 그중 D-3(공허/누락 테스트 5건)과 D-4(미래 날짜)를 다음 단계에 등재.
+
+### 부수 관찰 (미확정)
+
+- 배너 제목 「이전에 작성하던 내용을 불러왔어요」가 2줄로 접히며 「요」만 다음 줄로 떨어진다 (`DiaryDraftBanner` 폭 제약).
+- 백그라운드 복귀 후 폼 텍스트가 직전 편집 이전 상태로 되돌아간 정황이 1회 있었다. `adb shell input text` 의 IME 상태 복원 아티팩트일 가능성이 커 **제품 결함으로 단정하지 않는다**. 디스크 기록은 매 단계 최신이었다.
 
 ## 마지막 업데이트
 
-2026-08-27 · session cfbbb749 · 브랜치 `feat/diary-draft` · 커밋 `ab0f6f4`, `34b3842` (푸시 안 함)
+2026-08-27 · 브랜치 `feat/diary-draft` · 커밋 `ab0f6f4`, `34b3842`, `9314968` (푸시 안 함) · Phase 3 spec.md 미커밋
