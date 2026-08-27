@@ -23,7 +23,7 @@
 
 ---
 
-## REQ-001 ~ REQ-005: 일기 작성 & 저장
+## REQ-001 ~ REQ-006: 일기 작성 & 저장
 
 ### REQ-001: 일기 작성
 - 사용자는 텍스트로 감정 일기를 작성할 수 있다
@@ -54,6 +54,33 @@
 ### REQ-005: 일기 삭제
 - 일기를 삭제할 수 있다 (낙관적 업데이트 → 즉시 UI 반영)
 - 삭제 후 `statisticsProvider` + `diaryListControllerProvider` 동시 invalidate
+
+### REQ-006: 일기 임시저장(Draft)
+- 작성 중인 본문·작성 날짜·첨부 이미지를 단일 초안 슬롯에 자동 저장한다 (SharedPreferences JSON 1건, DB 스키마 변경 없음)
+- 저장 시점
+  - 본문 입력: 800ms 디바운스 (`AppConstants.diaryDraftDebounce`)
+  - 날짜 변경 / 이미지 추가·삭제 / 화면 이탈(PopScope) / 백그라운드 전환(`AppLifecycleListener` onPause·onHide): 즉시 flush
+- 최소 글자 수 제한 없음 — 10자는 REQ-001의 제출 게이트이지 초안 게이트가 아니다
+  - 본문은 trim 후 저장한다
+  - trim 후 본문이 비고 **첨부 이미지도 없으면** 저장 대신 기존 초안을 삭제한다
+  - 공백 본문이라도 이미지가 있으면 `content: ""`로 저장한다
+  - 최대 5,000자 초과 시 `ValidationFailure` (기존 초안을 덮어쓰지 않음)
+  - 새 저장은 확인 없이 기존 슬롯을 덮어쓴다 (슬롯은 항상 1개)
+- 첨부 이미지는 선택 즉시 `__draft__` diaryId로 앱 디렉토리에 승격한다 (picker 캐시 경로는 다음 실행에 소멸)
+- 복원 (작성 화면 진입 시 1회)
+  - 조회 시점에 파일이 존재하지 않는 이미지 경로는 **복원 결과에서만** 제외한다 — 저장된 초안 자체는 갱신하지 않는다 (전부 없으면 이미지 없음으로 복원)
+  - `updatedAt` 기준 7×24시간(`AppConstants.diaryDraftTtl`) 경과 시 삭제하고 복원하지 않는다
+  - TTL 판정은 별도 타이머가 아니라 `GetDiaryDraftUseCase` 조회 시점에만 수행한다 — 앱을 열지 않으면 만료 초안이 저장소에 남을 수 있다
+  - 복원된 날짜가 화면 진입일보다 미래면 진입일로 클램프한다 (REQ-001 미래 날짜 금지 유지)
+  - 복원 조회가 끝나기 전에는 자동 저장을 잠근다 (빈 폼이 기존 초안을 덮어쓰는 것을 막는다)
+- 복원 배너: [삭제] = 초안 폐기 + 폼 초기화 / 닫기 = 배너만 숨김 (초안 유지)
+- 폐기 시점: 분석 성공 · 안전차단(SafetyBlocked) · 사용자의 명시적 삭제 · TTL 만료
+  - 폐기 시 `__draft__` 이미지 파일도 함께 삭제한다
+    - ⚠️ 현재 구현은 분석 터미널 경로(`_discardDraftOnTerminalAnalysis`)에서만 파일을 지운다. 배너 [삭제]·이미지 개별 제거·복사 중 이탈에서는 파일이 남는다 (에뮬레이터 재현 확인)
+  - 분석 **실패**(`DiaryAnalysisError`)에는 유지한다 (재시도 대비)
+  - 안전차단은 AnalyzeDiaryUseCase가 본문을 이미 DB에 저장한 뒤 도달하는 상태이므로, 초안 폐기가 유실이 아니다
+- 보안 경계: 초안은 `isSecret`을 저장하지 않으며 PIN 보호도 받지 않는다 (SharedPreferences 평문 1키). 비밀 여부는 제출 후 Diary에서 토글한다 (REQ-032)
+- REQ-001(제출 시 `pending` 저장)이 보호하지 못하는 **제출 이전** 구간의 유실 방지책이다
 
 ---
 
@@ -297,7 +324,7 @@ AI 응답 JSON:
 | SplashScreen | `/` | - |
 | OnboardingScreen | `/onboarding` | REQ-080 |
 | MainScreen | `/main` | - |
-| DiaryScreen | `/diary` | REQ-001, REQ-002 |
+| DiaryScreen | `/diary` | REQ-001, REQ-002, REQ-006 |
 | DiaryListScreen | `/diary/list` | REQ-003 |
 | DiaryDetailScreen | `/diary/:id` | REQ-004 |
 | StatisticsScreen | `/statistics` | REQ-020~023 |
@@ -311,7 +338,7 @@ AI 응답 JSON:
 
 ---
 
-## UseCase 목록 (19 UseCases)
+## UseCase 목록 (22 UseCases)
 
 | UseCase | 레이어 | 연관 REQ |
 |---------|--------|---------|
@@ -334,6 +361,9 @@ AI 응답 JSON:
 | VerifySecretPinUseCase | Domain | REQ-031 |
 | HasSecretPinUseCase | Domain | REQ-035 |
 | DeleteSecretPinUseCase | Domain | REQ-034 |
+| SaveDiaryDraftUseCase | Domain | REQ-006 |
+| GetDiaryDraftUseCase | Domain | REQ-006 |
+| ClearDiaryDraftUseCase | Domain | REQ-006 |
 
 ---
 
