@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.64] - 2026-08-28
+
+> **작성 도중 앱을 벗어나면 글이 통째로 사라지던 구간을 없앴다 — 제출 이전(pre-submit) 자동 임시저장 도입.**
+> 기존 `REQ-001`(제출 시 pending 저장)은 `_onSubmit()` 진입 이후만 보호했다. 즉 **사용자가 가장 오래 머무는 구간인 작성 중**은 어떤 영속화도 없었고, 프로세스 종료·강제 백그라운드 회수·뒤로가기가 곧 전량 유실이었다. 이번 릴리스가 그 구간을 담당한다.
+> `flutter analyze` rc=0 · `dart format --set-exit-if-changed .` **rc=0** · Flutter 테스트 **1,814건 그린**(신규 +66) · 에뮬레이터 실기 검증 7종.
+
+### Added
+
+- **일기 임시저장(Draft) — `REQ-006`** (`docs/spec.md`에 명세 추가):
+
+  **domain / data**
+  - `DiaryDraft`(freezed) — `content` · `entryDate` · `updatedAt` · `imagePaths?`. 파생 게터 `hasImages`, `isExpired(now, ttl)`.
+  - `DiaryDraftRepository`(domain 인터페이스) / `DiaryDraftRepositoryImpl`(`with RepositoryFailureHandler`).
+  - `PreferencesLocalDataSource` — SharedPreferences **JSON 단일 슬롯**. 초안은 항상 1건만 존재하므로 테이블을 만들지 않았다. **DB 스키마 무변경 — `_currentVersion` 8 유지**(마이그레이션 리스크 0).
+  - UseCase 3종:
+    - `SaveDiaryDraftUseCase` — 본문·이미지가 **모두** 비면 저장 대신 기존 초안을 삭제한다(빈 폼이 초안으로 남지 않게). **최소 글자 수를 적용하지 않는다** — 10자 제한은 *제출* 게이트이지 *초안* 게이트가 아니며, 여기 적용하면 9자까지 쓴 글이 보호되지 않는다. 최대 초과 시에만 `ValidationFailure`.
+    - `GetDiaryDraftUseCase` — TTL **7일** 경과 시 조회 시점에 `clearDraft()` 후 `null` 반환(별도 청소 스케줄러 없음).
+    - `ClearDiaryDraftUseCase`.
+  - `AppConstants.diaryDraftTtl`(7일) / `diaryDraftDebounce`(800ms).
+
+  **presentation**
+  - `DiaryDraftController`(`StateNotifier`) + sealed `DiaryDraftState`(`Loading` / `Absent` / `Restored`):
+    - **800ms 디바운스** + `_operationTail` 직렬화 + `_revision` 카운터. 늦게 도착한 저장이 최신 입력을 덮어쓰는 경합을 revision 비교로 차단한다.
+    - **복원 완료 전 저장 잠금** — `DiaryDraftLoading` 동안 `_canSave`(`:153`)가 `onChanged`(`:74`)를 조기 반환시킨다. 이게 없으면 화면 진입 직후의 빈 폼이 디스크의 기존 초안을 선점 저장으로 지운다.
+    - 복원 **실패 시 `DiaryDraftAbsent`로 폴백** — 조회 오류가 새 일기 작성을 영구히 잠그지 않도록. 실패는 삼키지 않고 `_logFailure`로 남긴다.
+  - `DiaryDraftBanner` — 복원 안내 + [삭제] / 닫기.
+  - `DiaryScreen` — **`PopScope`와 `AppLifecycleListener`(`onPause`/`onHide`)를 이 화면에 처음 도입**했다(기존에 없던 것). 뒤로가기·백그라운드 전환 양쪽에서 `_flushDraft()`로 디바운스를 건너뛰고 즉시 기록한다. `PopScope`에는 flush 중 재진입으로 인한 중복 pop 가드를 두었다.
+  - **이미지 즉시 승격** — picker가 돌려주는 경로는 OS 캐시라 다음 실행에 사라진다. 그대로 초안에 적으면 복원 시 깨진 경로만 남으므로, 선택 즉시 `__draft__` 디렉토리로 복사한다(`image_<n>.<ext>`, 단조 증가 인덱스로 파일명 충돌 회피).
+
+  **테스트 +66건** — UseCase 34(save 12 · get 6 · clear 4 · repo impl 12) · 컨트롤러 13 · 배너 9 · 화면 플로우 6, 그리고 아래 D-3 보강분.
+
+### Fixed
+
+- **초안 폐기 시 `__draft__` 고아 이미지가 남던 문제** (D-1, `ecbef57` — 이번 릴리스의 유일한 프로덕션 동작 수정): 배너 [삭제]와 제출 승격 경로에서 참조가 끊긴 `__draft__` 파일을 함께 정리한다. 수정 후 실제 동작에 맞춰 `docs/spec.md`의 REQ-006 폐기 범위 서술도 정정했다(`ce1b9fc`).
+
+### Changed
+
+- **`dart format` 전역 드리프트 53개 파일 정리** (`87f5b29`):
+  - **원인은 방치가 아니라 Dart 3.7+ tall-style 포맷터 규칙 변화**다. 새 포맷터는 인자를 더 적극적으로 여러 줄에 펼치므로(`Border.all(color: x)` → 3줄), 이전 규칙으로 정렬된 파일이 손대지 않아도 드리프트로 잡힌다.
+  - `ci.yml:115`의 `dart format --set-exit-if-changed .`은 **저장소 전역**을 검사한다. 변경분만 고치면 CI는 계속 실패하고 포맷 불일치만 늘어나므로 **단일 전용 커밋으로 분리**했다.
+  - 내역: lib 22 · test 30 · integration_test 1. **생성 파일(`.g.dart`/`.freezed.dart`) 0건**(build_runner 재생성과 충돌하지 않음), 로직 변경 0건.
+  - v1.4.63 Known Issues의 "전역 43개 파일" 항목을 **해소**한다. 실측은 43도 52도 아닌 **53**이었다 — 그 사이 커밋들이 드리프트를 더 만들었다.
+- **테스트 공허(vacuous)·누락 5건 보강** (D-3, `62affc4`): "X가 없어야 한다"를 X가 없는 입력으로 검증해 **항상 통과하던** 단언들을 실제로 실패할 수 있는 형태로 교체했다.
+- `docs/update.json` — `latestVersion` `1.4.64`, 사용자용 변경 요약 4건 추가. (앱이 `app_constants.dart:10`의 URL로 원격 조회하는 파일)
+- `docs/index.html` — 최근 개선 카드 2건 추가.
+- 문서 — TIL 「기기 없이 Flutter asset 번들링 검증하기」 및 `tasks/lessons.md` 3건. v1.4.63 세션에서 커밋됐으나 원격에 올라가지 못한 잔여분이 이번 푸시에 동반된다.
+
+### Known Issues
+
+- **D-2 — 복원 지연 중 입력 경합**(미수정, 창 <50ms): `DiaryDraftLoading` 동안 입력 UI는 열려 있는데 `_canSave`가 저장을 막고, 뒤이어 `_applyRestoredDraft`(`diary_screen.dart:238`)가 `_textController.text`를 통째로 교체한다. 즉 **복원 조회가 끝나기 전 몇 글자를 친 경우 그 입력이 복원본으로 덮인다.** 초안 데이터 자체는 유실되지 않으며(디스크 값이 살아남는 쪽), 창이 좁아 이번 릴리스에서는 다루지 않았다.
+- **D-5 — TTL 만료 시 `__draft__` 이미지 파일 잔류**(구조적): `GetDiaryDraftUseCase`는 순수 Dart라 `ImageService`(Flutter 의존)를 호출할 수 없어, 만료 처리는 SharedPreferences 슬롯만 지운다. 파일은 다음 배너 [삭제] 또는 터미널 분석 경로에서 정리되므로 누수는 유한하나 즉시 회수되지는 않는다.
+- **D-4 — `SaveDiaryDraftUseCase` 미래 날짜 미검증**은 [불필요]로 판정했다. DatePicker `lastDate` + 복원 시 클램프 + `AnalyzeDiaryUseCase` 검증의 3중 방어가 이미 있고, 초안 경로에 예외를 추가하면 **자동저장이 조용히 멈추는** 쪽이 더 큰 위험이다.
+- `cd.yml`의 `paths-ignore` 근본 수정(v1.4.63에서 제기)은 이번에도 이월했다.
+
+---
+
 ## [1.4.63] - 2026-08-25
 
 > **v1.4.62(versionCode 70) AAB에 실리지 못한 개인정보 처리방침 asset을 재빌드로 반영하고, 앱 안에서 두 개로 갈려 있던 긴급 상담전화 번호를 현행 109로 통일했다.**
