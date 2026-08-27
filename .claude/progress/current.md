@@ -35,8 +35,9 @@
 | 우선순위 | 작업 | 이유 |
 |----------|------|------|
 | **High** | **결함 D-2 — 복원 지연 중 입력이 기존 초안에 덮어써짐** | `DiaryDraftLoading` 동안 입력 UI는 열려 있는데 `onChanged`가 조기 반환(`diary_draft_controller.dart:153`), 이후 `_applyRestoredDraft`가 `_textController.text` 교체 |
-| Medium | 결함 D-3 — 테스트 공허/누락 5건 | agy 갭 분석: 과거 날짜 복원 미검증(클램프 테스트가 공허), 배너 색상 부정 단언, `restore()` Failure 분기, onPause/PopScope flush, 이미지 복원 |
-| Medium | 결함 D-4 — `SaveDiaryDraftUseCase` 미래 날짜 미검증 | `AnalyzeDiaryUseCase`는 `ValidationFailure`로 막는데 초안은 UI 클램프에만 의존 |
+| **High** | **결함 D-3 — 테스트 공허/누락 5건** | agy 트리아지 **[지금수정]**: 프로덕션 변경 0, 회귀 안전망 확보. 과거 날짜 복원 미검증(클램프 테스트가 공허하게 통과), 배너 색상 부정 단언, `restore()` Failure 분기, onPause/PopScope flush, 이미지 복원 |
+| Medium | 결함 D-5 — TTL 만료 시 `__draft__` 파일 잔류 | grok 재대조 발견. `GetDiaryDraftUseCase`가 `clearDraft()`(prefs)만 호출 — 순수 Dart라 `ImageService` 호출 불가(구조적). 다음 터미널 분석·배너 [삭제] 때 정리되므로 누수는 유한 |
+| Low | 결함 D-4 — `SaveDiaryDraftUseCase` 미래 날짜 미검증 | agy 트리아지 **[불필요]**: DatePicker `lastDate` + 복원 클램프 + `AnalyzeDiaryUseCase` 검증으로 3중 방어. 초안에 예외를 넣으면 자동저장이 조용히 멈출 위험이 오히려 큼 |
 | Medium | `feat/diary-draft` → main PR | **`dart format` 드리프트 43파일이 `ci.yml:115` 에서 PR 즉시 실패시킨다** (이전 세션 이월). PR 전 해결 필요 |
 | Medium | `__draft__` 이미지 고아 파일 정리 | 현재는 터미널 상태에서만 삭제. 앱이 강제 종료되면 남는다. 앱 시작 시 청소 루틴 검토 |
 | Medium | `cd.yml` `paths-ignore` 근본 수정 (이월) | 방침 asset 함정이 아직 살아 있음. `paths` 화이트리스트 전환 등 |
@@ -102,6 +103,16 @@
   - 단, codex 의 「PopScope `didPop == true` 로 flush 누락」은 **반려**: `canPop: false` 라 시스템 뒤로가기·AppBar 백버튼(`Navigator.maybePop`) 모두 핸들러를 탄다. 남는 위험은 외부에서 `context.pop()` 을 직접 부르는 경로뿐이고 현재 그런 호출은 없다.
 - **grok** (스펙 적대적 검토): 5건 반영 — trim 규칙, 공백 본문+이미지 케이스, TTL 판정 시점(타이머 아님), 죽은 경로의 저장본 미갱신, isSecret 미저장·PIN 미보호.
 - **agy** (스펙↔구현↔테스트 갭): 8건. 그중 D-3(공허/누락 테스트 5건)과 D-4(미래 날짜)를 다음 단계에 등재.
+
+### 최종 검토 라운드 (D-1 수정 후)
+
+- **grok**: 갭 문구 3경우를 갈라 판정 — 배너 [삭제]/개별 제거는 [사실아님](해소), 승격 복사 중 이탈만 [여전히사실].
+  추가로 **TTL 만료 시 파일 잔류**(D-5)를 찾아냄. spec `ce1b9fc` 로 반영.
+- **agy**: D-2 [이슈등록](복원 창 <50ms로 재현 희박) · D-3 [지금수정] · D-4 [불필요].
+  단, **「셰이더 크래시로 CI 실패」 주장은 반려** — 테스트 로그에 `ink_sparkle` 언급 0회, 1810건 전부 통과.
+- **codex**: 2회 연속 리포트 미산출(탐색 로그만 98KB, 재시도는 헤더만). 5개 검토 항목은 직접 확인:
+  원본 파일 삭제 위험 없음(`/__draft__/` 가드) · `contains` 가드 유효(첫 await 전 동기 실행) ·
+  `_nextDraftImageSeq` 호출됨(누락 시 복원본 덮어씀) · `!mounted` 고아 확정 · 두 unawaited 경합 없음(자원 분리).
 
 ### 부수 관찰 (미확정)
 
