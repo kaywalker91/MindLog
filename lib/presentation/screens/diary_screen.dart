@@ -56,6 +56,13 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
   /// picker 캐시 경로를 앱 디렉토리로 승격할 때 쓰는 초안 전용 diaryId
   static const _draftImageDiaryId = '__draft__';
 
+  /// `image_N` 파일명에서 N 을 뽑는다.
+  static final _draftImageIndexPattern = RegExp(r'^image_(\d+)\.');
+
+  /// `__draft__` 파일명에 쓰는 단조 증가 인덱스.
+  /// 목록 길이를 쓰면 삭제 후 재추가 시 앞서 승격한 파일을 덮어쓴다.
+  int _draftImageSeq = 0;
+
   List<String>? get _draftImagePaths =>
       _selectedImages.isEmpty ? null : List<String>.from(_selectedImages);
 
@@ -166,7 +173,7 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
       storedPath = await ImageService.copyToAppDirectory(
         sourcePath: path,
         diaryId: _draftImageDiaryId,
-        index: _selectedImages.length,
+        index: _draftImageSeq++,
       );
     } catch (_) {
       // 승격 실패 시 원본 경로로 폴백 — 사용자 흐름은 막지 않는다.
@@ -183,12 +190,26 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
   }
 
   void _onImageRemoved(int index) {
-    if (index >= 0 && index < _selectedImages.length) {
-      setState(() {
-        _selectedImages.removeAt(index);
-      });
-      unawaited(_flushDraft());
+    if (index < 0 || index >= _selectedImages.length) {
+      return;
     }
+
+    final removedPath = _selectedImages[index];
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+    unawaited(_deletePromotedImage(removedPath));
+    unawaited(_flushDraft());
+  }
+
+  /// 승격본은 이 화면만 참조하므로 목록에서 빠지면 파일도 지운다.
+  /// 승격 실패로 폴백한 picker 원본 경로는 사용자 파일이라 건드리지 않는다.
+  Future<void> _deletePromotedImage(String path) async {
+    if (!path.contains('/$_draftImageDiaryId/') ||
+        _selectedImages.contains(path)) {
+      return;
+    }
+    await ImageService.deleteImage(path);
   }
 
   void _flushDraftOnBackground() {
@@ -229,11 +250,27 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
         ..clear()
         ..addAll(draft.imagePaths ?? const <String>[]);
     });
+    _draftImageSeq = _nextDraftImageSeq(_selectedImages);
+  }
+
+  /// 복원된 `image_N` 뒤 번호에서 이어받아 기존 승격본 덮어쓰기를 막는다.
+  static int _nextDraftImageSeq(List<String> paths) {
+    var next = 0;
+    for (final path in paths) {
+      final match = _draftImageIndexPattern.firstMatch(path.split('/').last);
+      final index = match == null ? null : int.tryParse(match.group(1)!);
+      if (index != null && index >= next) {
+        next = index + 1;
+      }
+    }
+    return next;
   }
 
   void _onDraftDelete() {
     unawaited(ref.read(diaryDraftControllerProvider.notifier).discard());
+    unawaited(ImageService.deleteDiaryImages(_draftImageDiaryId));
     _textController.clear();
+    _draftImageSeq = 0;
     setState(() {
       _selectedImages.clear();
       _selectedDate = _screenEntryDay;
