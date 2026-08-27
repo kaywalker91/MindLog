@@ -3,15 +3,16 @@
 ## 이어받는 사람에게 (3줄 요약)
 
 1. 기능은 **끝났고 검증도 끝났다**. analyze rc=0 · test 1814건 통과 · 에뮬레이터 실기 7종 확인.
-   로컬 커밋 8건이 `feat/diary-draft` 에 쌓여 있고 **푸시 승인만 남았다**.
-2. **PR 을 열기 전 반드시** `dart format` 전역 드리프트(52파일)를 단일 커밋으로 해결할 것.
-   안 하면 `ci.yml:115` 에서 즉시 실패한다. 원인은 방치가 아니라 포맷터 tall-style 마이그레이션이다.
+   로컬 커밋 16건이 `feat/diary-draft` 에 쌓여 있고 **푸시 승인만 남았다**.
+   (초안 작업 11건 + 포맷 1건 + 기록 1건 + 이전 v1.4.63 세션 3건 `f0e1068`·`ef5fd22`·`a422bba` 도 아직 원격에 없다 — 푸시하면 함께 올라간다.)
+2. ~~`dart format` 전역 드리프트~~ → **해결됨** (`87f5b29`, 2026-08-28). 실측 **53파일**(52 아님)을
+   단일 전용 커밋으로 정리했고 `dart format --set-exit-if-changed .` rc=0 확인. PR 차단 요인 없음.
 3. 남은 결함은 **D-2**(복원 경합, 창 <50ms)와 **D-5**(TTL 만료 시 이미지 파일 잔류, 구조적) 둘뿐.
    둘 다 데이터 유실이 아니며 급하지 않다. 「설계 판정」 4건은 되돌리지 말 것.
 
 ## 현재 작업
 
-**브랜치 `feat/diary-draft` (main 아님). 커밋 8건, 전부 로컬 — 아직 푸시 안 함.**
+**브랜치 `feat/diary-draft` (main 아님). `origin/main` 대비 16건 앞섬, 전부 로컬 — 아직 푸시 안 함.**
 
 | 커밋 | 내용 |
 |------|------|
@@ -46,7 +47,12 @@
 ### 품질 게이트 (최종, 2026-08-28)
 `fvm flutter analyze` → **No issues found!** (rc=0) · `fvm flutter test` → **1814건 전부 통과** (`[E]` 0건)
 
-`dart format` 은 **통과하지 못한다** — 아래 「다음 단계」의 포맷 항목 참조.
+`fvm dart format --output=none --set-exit-if-changed .` → **rc=0** (`87f5b29` 이후). 3개 게이트 전부 통과.
+
+### 전역 포맷 정리 (`87f5b29`, 2026-08-28)
+- `fvm dart format .` → 53파일 (lib 22 · test 30 · integration_test 1), 생성 파일 0건, 로직 변경 없음
+- 원인: Dart 3.7+ tall-style 포맷터 규칙 차이 (인자를 여러 줄로 펼침) — 방치가 아님
+- 검증: format rc=0 · analyze rc=0(No issues found!) · test **1814건 전부 통과**([E] 0건)
 
 ## 다음 단계
 
@@ -55,8 +61,7 @@
 | **High** | **결함 D-2 — 복원 지연 중 입력이 기존 초안에 덮어써짐** | `DiaryDraftLoading` 동안 입력 UI는 열려 있는데 `onChanged`가 조기 반환(`diary_draft_controller.dart:153`), 이후 `_applyRestoredDraft`가 `_textController.text` 교체 |
 | Medium | 결함 D-5 — TTL 만료 시 `__draft__` 파일 잔류 | grok 재대조 발견. `GetDiaryDraftUseCase`가 `clearDraft()`(prefs)만 호출 — 순수 Dart라 `ImageService` 호출 불가(구조적). 다음 터미널 분석·배너 [삭제] 때 정리되므로 누수는 유한 |
 | Low | 결함 D-4 — `SaveDiaryDraftUseCase` 미래 날짜 미검증 | agy 트리아지 **[불필요]**: DatePicker `lastDate` + 복원 클램프 + `AnalyzeDiaryUseCase` 검증으로 3중 방어. 초안에 예외를 넣으면 자동저장이 조용히 멈출 위험이 오히려 큼 |
-| **High** | **`dart format` 드리프트 — PR 차단** | 2026-08-28 실측 **52파일**(이전 기록 43은 낡음). 원인은 방치가 아니라 **Dart 3.7+ tall-style 포맷터 마이그레이션** — 다중행 생성자를 한 줄로 접는다. `ci.yml:115` 의 `dart format --set-exit-if-changed .` 가 레포 전역을 보므로 **일부만 고치면 불일치만 생기고 CI 는 여전히 실패**한다. 전역 `dart format .` 을 **단일 전용 커밋**으로 처리할 것 (52파일이라 사용자 판단 필요) |
-| Medium | `feat/diary-draft` → main PR | 위 포맷 항목 해결이 선행 조건 |
+| **High** | `feat/diary-draft` → main 푸시·PR | 선행 조건(포맷) 해소됨 — 남은 건 사용자 푸시 승인뿐 |
 | Medium | `cd.yml` `paths-ignore` 근본 수정 (이월) | 방침 asset 함정이 아직 살아 있음. `paths` 화이트리스트 전환 등 |
 | Medium | Cloud Functions Node.js 20 → 22+ (이월) | **2026-10-30 decommission** |
 | Medium | `action_item_preview` Analytics 전송 중단 검토 (이월) | AI 행동 제안 앞 50자 전송 중 |
@@ -158,5 +163,5 @@ M4는 1차 시도에서 앵커 불일치로 돌연변이가 **적용되지 않�
 
 ## 마지막 업데이트
 
-2026-08-28 · 브랜치 `feat/diary-draft` · 로컬 커밋 8건, **푸시 안 함** · 워킹트리 클린
+2026-08-28 · 브랜치 `feat/diary-draft` · `origin/main` 대비 16건, **푸시 안 함** · 워킹트리 클린
 (`.claude/settings.local.json.bak-allowwrite-20260721` 은 세션 전부터 있던 untracked 백업 파일)
