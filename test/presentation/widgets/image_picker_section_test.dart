@@ -44,10 +44,7 @@ void main() {
           find.text('0/${AppConstants.maxImagesPerDiary}'),
           findsOneWidget,
         );
-        expect(
-          find.text('사진을 첨부하면 AI가 대표 사진 1장을 함께 분석해요'),
-          findsOneWidget,
-        );
+        expect(find.text('사진을 첨부하면 AI가 대표 사진 1장을 함께 분석해요'), findsOneWidget);
       });
 
       testWidgets('추가 버튼이 표시된다', (tester) async {
@@ -130,30 +127,21 @@ void main() {
         );
 
         // Assert
-        expect(
-          find.text('첨부 1장 · AI가 사진과 함께 분석해요'),
-          findsOneWidget,
-        );
+        expect(find.text('첨부 1장 · AI가 사진과 함께 분석해요'), findsOneWidget);
       });
 
       testWidgets('이미지 2장 이상일 때 1장 분석 안내가 표시된다', (tester) async {
         // Arrange & Act
         await tester.pumpWidget(
           buildTestWidget(
-            imagePaths: [
-              '/fake/path/image1.jpg',
-              '/fake/path/image2.jpg',
-            ],
+            imagePaths: ['/fake/path/image1.jpg', '/fake/path/image2.jpg'],
             onImageAdded: (_) {},
             onImageRemoved: (_) {},
           ),
         );
 
         // Assert
-        expect(
-          find.text('첨부 2장 · AI 분석에는 첫 번째 사진 1장만 반영'),
-          findsOneWidget,
-        );
+        expect(find.text('첨부 2장 · AI 분석에는 첫 번째 사진 1장만 반영'), findsOneWidget);
       });
     });
 

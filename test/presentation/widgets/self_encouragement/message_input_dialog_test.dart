@@ -442,9 +442,7 @@ void main() {
     });
 
     group('반환값 (MessageInputResult)', () {
-      testWidgets('저장 시 content와 null timeCategory 반환해야 한다', (
-        tester,
-      ) async {
+      testWidgets('저장 시 content와 null timeCategory 반환해야 한다', (tester) async {
         MessageInputResult? capturedResult;
 
         await _openDialog(
@@ -464,9 +462,7 @@ void main() {
         expect(capturedResult!.timeCategory, isNull); // 전체 = null
       });
 
-      testWidgets('아침 선택 후 저장 시 morning timeCategory 반환해야 한다', (
-        tester,
-      ) async {
+      testWidgets('아침 선택 후 저장 시 morning timeCategory 반환해야 한다', (tester) async {
         MessageInputResult? capturedResult;
 
         await _openDialog(
@@ -514,9 +510,7 @@ void main() {
         expect(capturedResult!.timeCategory, 'afternoon');
       });
 
-      testWidgets('저녁 선택 후 저장 시 evening timeCategory 반환해야 한다', (
-        tester,
-      ) async {
+      testWidgets('저녁 선택 후 저장 시 evening timeCategory 반환해야 한다', (tester) async {
         MessageInputResult? capturedResult;
 
         await _openDialog(
@@ -559,9 +553,7 @@ void main() {
         expect(capturedResult, isNull);
       });
 
-      testWidgets('수정 모드에서 시간대 변경 후 저장 시 새 값 반환해야 한다', (
-        tester,
-      ) async {
+      testWidgets('수정 모드에서 시간대 변경 후 저장 시 새 값 반환해야 한다', (tester) async {
         MessageInputResult? capturedResult;
 
         await _openDialog(

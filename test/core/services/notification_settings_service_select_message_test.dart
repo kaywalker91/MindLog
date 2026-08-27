@@ -109,11 +109,7 @@ void main() {
     });
 
     test('timeCategory가 모두 null이면 전체 풀 폴백해야 한다', () {
-      final messages = [
-        createMessage(0),
-        createMessage(1),
-        createMessage(2),
-      ];
+      final messages = [createMessage(0), createMessage(1), createMessage(2)];
       final settings = createSettings();
       final now = DateTime(2026, 4, 5, 10, 0);
 
@@ -177,11 +173,7 @@ void main() {
     });
 
     test('모든 메시지 writtenScore=null이면 균등 가중치여야 한다', () {
-      final messages = [
-        createMessage(0),
-        createMessage(1),
-        createMessage(2),
-      ];
+      final messages = [createMessage(0), createMessage(1), createMessage(2)];
       final settings = createSettings(mode: MessageRotationMode.emotionAware);
 
       final counts = <String, int>{};

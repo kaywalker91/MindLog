@@ -5,6 +5,7 @@ import 'package:mindlog/data/datasources/local/sqlite_local_datasource.dart';
 import 'package:mindlog/data/datasources/remote/groq_remote_datasource.dart';
 import 'package:mindlog/data/dto/analysis_response_dto.dart';
 import 'package:mindlog/domain/entities/diary.dart';
+import 'package:mindlog/domain/entities/diary_draft.dart';
 import 'package:mindlog/domain/entities/notification_settings.dart';
 
 /// Mock SqliteLocalDataSource
@@ -247,6 +248,7 @@ class MockPreferencesLocalDataSource extends PreferencesLocalDataSource {
   String? _lastSeenAppVersion;
   String? _dismissedUpdateVersion;
   bool _onboardingCompleted = false;
+  DiaryDraft? _diaryDraft;
 
   // 상태 제어 변수
   bool shouldThrowOnGet = false;
@@ -261,6 +263,7 @@ class MockPreferencesLocalDataSource extends PreferencesLocalDataSource {
     _lastSeenAppVersion = null;
     _dismissedUpdateVersion = null;
     _onboardingCompleted = false;
+    _diaryDraft = null;
     shouldThrowOnGet = false;
     shouldThrowOnSet = false;
     errorMessage = null;
@@ -368,6 +371,30 @@ class MockPreferencesLocalDataSource extends PreferencesLocalDataSource {
       throw CacheException(errorMessage ?? 'Dismissed 버전 삭제 실패');
     }
     _dismissedUpdateVersion = null;
+  }
+
+  @override
+  Future<DiaryDraft?> getDiaryDraft() async {
+    if (shouldThrowOnGet) {
+      throw CacheException(errorMessage ?? '일기 초안 조회 실패');
+    }
+    return _diaryDraft;
+  }
+
+  @override
+  Future<void> setDiaryDraft(DiaryDraft draft) async {
+    if (shouldThrowOnSet) {
+      throw CacheException(errorMessage ?? '일기 초안 저장 실패');
+    }
+    _diaryDraft = draft;
+  }
+
+  @override
+  Future<void> clearDiaryDraft() async {
+    if (shouldThrowOnSet) {
+      throw CacheException(errorMessage ?? '일기 초안 삭제 실패');
+    }
+    _diaryDraft = null;
   }
 
   // 테스트용 헬퍼 메서드

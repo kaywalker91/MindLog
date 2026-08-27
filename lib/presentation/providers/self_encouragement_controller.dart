@@ -131,9 +131,7 @@ class SelfEncouragementController
     final current = state.valueOrNull ?? [];
     final deletedIndex = current.indexWhere((m) => m.id == id);
 
-    await ref
-        .read(deleteSelfEncouragementMessageUseCaseProvider)
-        .execute(id);
+    await ref.read(deleteSelfEncouragementMessageUseCaseProvider).execute(id);
 
     // displayOrder 재정렬
     final remaining = current.where((m) => m.id != id).toList();

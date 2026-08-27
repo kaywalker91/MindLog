@@ -64,9 +64,7 @@ void main() {
 
       // Act & Assert
       expect(() => useCase.execute(message), throwsA(isA<ValidationFailure>()));
-      verifyNever(
-        () => mockRepository.addSelfEncouragementMessage(any()),
-      );
+      verifyNever(() => mockRepository.addSelfEncouragementMessage(any()));
     });
 
     test(
@@ -102,9 +100,7 @@ void main() {
       'should throw ValidationFailure when max message count reached',
       () async {
         // Arrange
-        when(
-          () => mockRepository.getSelfEncouragementMessages(),
-        ).thenAnswer(
+        when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
           (_) async => List.generate(
             SelfEncouragementMessage.maxMessageCount, // 10
             (i) => createMessage(displayOrder: i),
@@ -118,17 +114,13 @@ void main() {
           () => useCase.execute(newMessage),
           throwsA(isA<ValidationFailure>()),
         );
-        verifyNever(
-          () => mockRepository.addSelfEncouragementMessage(any()),
-        );
+        verifyNever(() => mockRepository.addSelfEncouragementMessage(any()));
       },
     );
 
     test('should allow adding when under max count', () async {
       // Arrange
-      when(
-        () => mockRepository.getSelfEncouragementMessages(),
-      ).thenAnswer(
+      when(() => mockRepository.getSelfEncouragementMessages()).thenAnswer(
         (_) async => List.generate(
           SelfEncouragementMessage.maxMessageCount - 1, // 9
           (i) => createMessage(displayOrder: i),
@@ -141,9 +133,7 @@ void main() {
       await useCase.execute(newMessage);
 
       // Assert
-      verify(
-        () => mockRepository.addSelfEncouragementMessage(any()),
-      ).called(1);
+      verify(() => mockRepository.addSelfEncouragementMessage(any())).called(1);
     });
   });
 }

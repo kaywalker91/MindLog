@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/ai_character.dart';
 import '../../../core/services/crashlytics_service.dart';
+import '../../../domain/entities/diary_draft.dart';
 import '../../../domain/entities/notification_settings.dart';
 import '../../../domain/entities/self_encouragement_message.dart';
 
@@ -24,6 +25,7 @@ class PreferencesLocalDataSource {
       'dismissed_update_timestamp';
   static const String _lastSeenAppVersionKey = 'last_seen_app_version';
   static const String _onboardingCompletedKey = 'onboarding_completed';
+  static const String _diaryDraftKey = 'draft_diary_entry';
 
   Future<AiCharacter> getSelectedAiCharacter() async {
     final prefs = await SharedPreferences.getInstance();
@@ -259,5 +261,40 @@ class PreferencesLocalDataSource {
     }
 
     await saveSelfEncouragementMessages(reordered);
+  }
+
+  /// 저장된 일기 초안 조회
+  Future<DiaryDraft?> getDiaryDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_diaryDraftKey);
+    if (jsonString == null || jsonString.isEmpty) {
+      return null;
+    }
+
+    try {
+      final jsonMap = json.decode(jsonString) as Map<String, dynamic>;
+      return DiaryDraft.fromJson(jsonMap);
+    } catch (e, stack) {
+      // 손상된 데이터 로깅 후 제거, null 반환
+      await CrashlyticsService.recordError(
+        e,
+        stack,
+        reason: 'Corrupted diary draft JSON removed',
+      );
+      await prefs.remove(_diaryDraftKey);
+      return null;
+    }
+  }
+
+  /// 일기 초안 저장
+  Future<void> setDiaryDraft(DiaryDraft draft) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_diaryDraftKey, json.encode(draft.toJson()));
+  }
+
+  /// 일기 초안 삭제
+  Future<void> clearDiaryDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_diaryDraftKey);
   }
 }

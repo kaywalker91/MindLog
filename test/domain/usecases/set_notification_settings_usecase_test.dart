@@ -21,9 +21,9 @@ void main() {
 
     // Stateful mock: tracks the last saved settings and serves it back
     NotificationSettings stored = NotificationSettings.defaults();
-    when(
-      () => mockRepository.setNotificationSettings(any()),
-    ).thenAnswer((inv) async {
+    when(() => mockRepository.setNotificationSettings(any())).thenAnswer((
+      inv,
+    ) async {
       stored = inv.positionalArguments.first as NotificationSettings;
     });
     when(
@@ -155,9 +155,9 @@ void main() {
     group('에러 처리', () {
       test('Repository 에러 시 예외를 전파해야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.setNotificationSettings(any()),
-        ).thenAnswer((_) async => throw const Failure.cache(message: '알림 설정 저장 실패'));
+        when(() => mockRepository.setNotificationSettings(any())).thenAnswer(
+          (_) async => throw const Failure.cache(message: '알림 설정 저장 실패'),
+        );
 
         const settings = NotificationSettings(
           isReminderEnabled: true,

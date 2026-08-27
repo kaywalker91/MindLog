@@ -36,7 +36,9 @@ class FullscreenImageViewer extends StatefulWidget {
     return Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
-        barrierColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.87),
+        barrierColor: Theme.of(
+          context,
+        ).colorScheme.scrim.withValues(alpha: 0.87),
         barrierDismissible: true,
         pageBuilder: (context, animation, secondaryAnimation) {
           return FullscreenImageViewer(
@@ -134,7 +136,11 @@ class _FullscreenImageViewerState extends State<FullscreenImageViewer> {
                     color: colorScheme.shadow,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.close, color: colorScheme.onSurface, size: 24),
+                  child: Icon(
+                    Icons.close,
+                    color: colorScheme.onSurface,
+                    size: 24,
+                  ),
                 ),
               ),
             ),

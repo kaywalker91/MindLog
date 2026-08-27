@@ -41,7 +41,9 @@ class DiaryItemCard extends ConsumerWidget {
         onLongPress: () => _showLongPressMenu(context, ref),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? colorScheme.surfaceContainerLow : colorScheme.surface,
+            color: isDark
+                ? colorScheme.surfaceContainerLow
+                : colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
             border: isDark
                 ? Border.all(
@@ -69,12 +71,18 @@ class DiaryItemCard extends ConsumerWidget {
                     const SizedBox(width: 32),
                     Icon(
                       Icons.chevron_right,
-                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.78),
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.78,
+                      ),
                     ),
                   ],
                 ),
               ),
-              Positioned(top: 4, right: 4, child: _buildPinButton(context, ref)),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: _buildPinButton(context, ref),
+              ),
             ],
           ),
         ),

@@ -59,9 +59,9 @@ class MessageInputDialog extends StatefulWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).colorScheme.shadow.withValues(
-                    alpha: 0.15,
-                  ),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.shadow.withValues(alpha: 0.15),
                   blurRadius: 20,
                   offset: const Offset(0, -4),
                 ),
@@ -280,9 +280,7 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
                             child: GestureDetector(
                               onTap: () {
                                 HapticFeedback.selectionClick();
-                                setState(
-                                  () => _selectedTimeCategory = option,
-                                );
+                                setState(() => _selectedTimeCategory = option);
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
@@ -318,10 +316,8 @@ class _MessageInputDialogState extends State<MessageInputDialog> {
                                       style: theme.textTheme.labelSmall
                                           ?.copyWith(
                                             color: isSelected
-                                                ? colorScheme
-                                                      .onPrimaryContainer
-                                                : colorScheme
-                                                      .onSurfaceVariant,
+                                                ? colorScheme.onPrimaryContainer
+                                                : colorScheme.onSurfaceVariant,
                                             fontWeight: isSelected
                                                 ? FontWeight.w600
                                                 : null,

@@ -86,13 +86,16 @@ void main() {
   });
 
   group('MessageRotationMode', () {
-    test('should have random, sequential, emotionAware, and timeAware modes', () {
-      expect(MessageRotationMode.values.length, 4);
-      expect(MessageRotationMode.random, isNotNull);
-      expect(MessageRotationMode.sequential, isNotNull);
-      expect(MessageRotationMode.emotionAware, isNotNull);
-      expect(MessageRotationMode.timeAware, isNotNull);
-    });
+    test(
+      'should have random, sequential, emotionAware, and timeAware modes',
+      () {
+        expect(MessageRotationMode.values.length, 4);
+        expect(MessageRotationMode.random, isNotNull);
+        expect(MessageRotationMode.sequential, isNotNull);
+        expect(MessageRotationMode.emotionAware, isNotNull);
+        expect(MessageRotationMode.timeAware, isNotNull);
+      },
+    );
   });
 
   group('SelfEncouragementMessage timeCategory', () {

@@ -53,8 +53,9 @@ void main() {
       testWidgets('다이얼로그가 올바른 UI 요소를 표시해야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -75,8 +76,9 @@ void main() {
       testWidgets('삭제 아이콘이 표시되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -94,8 +96,9 @@ void main() {
       testWidgets('둥근 모서리가 적용되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -119,8 +122,9 @@ void main() {
       testWidgets('다이얼로그가 올바르게 표시되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -157,8 +161,9 @@ void main() {
       testWidgets('취소 버튼 탭 시 다이얼로그가 닫혀야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         await tester.pumpWidget(
@@ -193,8 +198,9 @@ void main() {
       testWidgets('삭제 버튼 탭 시 일기가 삭제되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'to-delete');
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         await tester.pumpWidget(
@@ -228,8 +234,9 @@ void main() {
       testWidgets('삭제 후 스낵바가 표시되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'snackbar-test');
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         await tester.pumpWidget(
@@ -265,8 +272,9 @@ void main() {
       testWidgets('popAfterDelete 기본값은 false이다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'default-pop');
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -286,8 +294,9 @@ void main() {
       ) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'pop-after');
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act
@@ -310,8 +319,9 @@ void main() {
       testWidgets('삭제 버튼 탭 시 true를 반환해야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'return-true');
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         bool? dialogResult;
@@ -351,8 +361,9 @@ void main() {
       testWidgets('취소 버튼 탭 시 false를 반환해야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'return-false');
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         bool? dialogResult;
@@ -394,10 +405,12 @@ void main() {
       testWidgets('삭제 실패 시 에러 스낵바가 표시되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed(id: 'error-test');
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
-        when(() => mockDiaryRepo.deleteDiary(any()))
-            .thenThrow(Exception('Database error'));
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.deleteDiary(any()),
+        ).thenThrow(Exception('Database error'));
         await container.read(diaryListControllerProvider.future);
 
         await tester.pumpWidget(
@@ -433,8 +446,9 @@ void main() {
       testWidgets('다크 모드에서 올바르게 렌더링되어야 한다', (tester) async {
         // Arrange
         final diary = DiaryFixtures.analyzed();
-        when(() => mockDiaryRepo.getAllDiaries())
-            .thenAnswer((_) async => [diary]);
+        when(
+          () => mockDiaryRepo.getAllDiaries(),
+        ).thenAnswer((_) async => [diary]);
         await container.read(diaryListControllerProvider.future);
 
         // Act

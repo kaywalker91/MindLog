@@ -1,0 +1,4 @@
+• Your writing no longer disappears if you leave mid-entry. Drafts and photos are saved automatically and restored when you return.
+• No save button needed: your entry is kept shortly after you stop typing, and the latest text is captured on home or back.
+• Drafts last 7 days, then clear automatically. [Delete] on the restore prompt also removes attached photos.
+• Applies only to entries not yet submitted. Analyzed diaries are stored as before.

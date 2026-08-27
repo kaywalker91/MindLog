@@ -21,9 +21,9 @@ void main() {
 
     // Stateful mock: tracks the last saved character and serves it back
     AiCharacter stored = AiCharacter.warmCounselor;
-    when(
-      () => mockRepository.setSelectedAiCharacter(any()),
-    ).thenAnswer((inv) async {
+    when(() => mockRepository.setSelectedAiCharacter(any())).thenAnswer((
+      inv,
+    ) async {
       stored = inv.positionalArguments.first as AiCharacter;
     });
     when(
@@ -62,9 +62,9 @@ void main() {
 
       test('Repository 에러 시 예외를 전파해야 한다', () async {
         // Arrange
-        when(
-          () => mockRepository.setSelectedAiCharacter(any()),
-        ).thenAnswer((_) async => throw const Failure.cache(message: '캐릭터 저장 실패'));
+        when(() => mockRepository.setSelectedAiCharacter(any())).thenAnswer(
+          (_) async => throw const Failure.cache(message: '캐릭터 저장 실패'),
+        );
 
         // Act & Assert
         await expectLater(

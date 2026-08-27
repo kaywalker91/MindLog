@@ -555,7 +555,9 @@ void main() {
 
       test('{name}이 없는 템플릿은 userName과 무관하게 그대로 반환되어야 한다', () {
         // index 1 → '오늘 기분이 어떠셨어요?' ({name} 없음)
-        NotificationMessages.setRandom(MockRandom()..nextInt(8)); // skip index 0
+        NotificationMessages.setRandom(
+          MockRandom()..nextInt(8),
+        ); // skip index 0
         final title = NotificationMessages.getRandomReminderTitle('지수');
         expect(title, '오늘 기분이 어떠셨어요?');
       });

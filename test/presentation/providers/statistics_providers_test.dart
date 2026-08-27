@@ -222,9 +222,7 @@ void main() {
   group('topKeywordsProvider', () {
     test('상위 10개 키워드를 조회해야 한다', () async {
       // Arrange - statisticsProvider가 반환하는 keywordFrequency 설정
-      when(
-        () => mockStatisticsRepository.getStatistics(any()),
-      ).thenAnswer(
+      when(() => mockStatisticsRepository.getStatistics(any())).thenAnswer(
         (_) async => _createStatisticsWithKeywords({
           '행복': 10,
           '감사': 8,
@@ -251,14 +249,9 @@ void main() {
 
     test('키워드가 빈도순으로 정렬되어야 한다', () async {
       // Arrange
-      when(
-        () => mockStatisticsRepository.getStatistics(any()),
-      ).thenAnswer(
-        (_) async => _createStatisticsWithKeywords({
-          '행복': 10,
-          '감사': 5,
-          '기쁨': 8,
-        }),
+      when(() => mockStatisticsRepository.getStatistics(any())).thenAnswer(
+        (_) async =>
+            _createStatisticsWithKeywords({'행복': 10, '감사': 5, '기쁨': 8}),
       );
 
       // Act
@@ -276,9 +269,7 @@ void main() {
       // Arrange
       when(
         () => mockStatisticsRepository.getStatistics(any()),
-      ).thenAnswer(
-        (_) async => _createStatisticsWithKeywords({}),
-      );
+      ).thenAnswer((_) async => _createStatisticsWithKeywords({}));
 
       // Act
       final keywords = await container.read(topKeywordsProvider.future);

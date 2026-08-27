@@ -6,6 +6,7 @@ export 'ui_state_providers.dart';
 export 'statistics_providers.dart';
 export 'user_name_controller.dart';
 export 'diary_analysis_controller.dart';
+export 'diary_draft_controller.dart';
 export 'diary_list_controller.dart';
 export 'ai_character_controller.dart';
 export 'notification_settings_controller.dart';

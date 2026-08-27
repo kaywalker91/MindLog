@@ -10,8 +10,7 @@ void setupNotificationServiceMocks() {
   NotificationSettingsService.resetForTesting();
   NotificationSettingsService.areNotificationsEnabledOverride = () async =>
       true;
-  NotificationSettingsService.canScheduleExactAlarmsOverride = () async =>
-      true;
+  NotificationSettingsService.canScheduleExactAlarmsOverride = () async => true;
   NotificationSettingsService.isIgnoringBatteryOverride = () async => true;
   NotificationSettingsService.getPendingNotificationsOverride = () async => [];
   NotificationSettingsService.scheduleDailyReminderOverride =

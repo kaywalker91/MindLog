@@ -6,7 +6,6 @@ import '../../domain/entities/statistics.dart';
 
 /// 감정 점수 라인 차트 위젯 (하늘색 단일 색조)
 class EmotionLineChart extends StatelessWidget {
-
   final List<DailyEmotion> dailyEmotions;
   final StatisticsPeriod period;
 

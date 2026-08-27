@@ -50,8 +50,9 @@ void main() {
         final result = await useCase.execute(StatisticsPeriod.week);
 
         // Assert
-        verify(() => mockRepository.getStatistics(StatisticsPeriod.week))
-            .called(greaterThan(0));
+        verify(
+          () => mockRepository.getStatistics(StatisticsPeriod.week),
+        ).called(greaterThan(0));
         expect(result.totalDiaries, 7);
       });
 
@@ -65,8 +66,9 @@ void main() {
         final result = await useCase.execute(StatisticsPeriod.month);
 
         // Assert
-        verify(() => mockRepository.getStatistics(StatisticsPeriod.month))
-            .called(greaterThan(0));
+        verify(
+          () => mockRepository.getStatistics(StatisticsPeriod.month),
+        ).called(greaterThan(0));
         expect(result.totalDiaries, 30);
       });
 
@@ -80,8 +82,9 @@ void main() {
         final result = await useCase.execute(StatisticsPeriod.all);
 
         // Assert
-        verify(() => mockRepository.getStatistics(StatisticsPeriod.all))
-            .called(greaterThan(0));
+        verify(
+          () => mockRepository.getStatistics(StatisticsPeriod.all),
+        ).called(greaterThan(0));
         expect(result.totalDiaries, 90);
       });
 
@@ -196,9 +199,7 @@ void main() {
             startDate: any(named: 'startDate'),
             endDate: any(named: 'endDate'),
           ),
-        ).thenAnswer(
-          (_) async => StatisticsFixtures.dailyEmotions(days: 7),
-        );
+        ).thenAnswer((_) async => StatisticsFixtures.dailyEmotions(days: 7));
 
         // Act
         final result = await useCase.getDailyEmotions();
@@ -286,9 +287,7 @@ void main() {
             startDate: any(named: 'startDate'),
             endDate: any(named: 'endDate'),
           ),
-        ).thenAnswer(
-          (_) async => StatisticsFixtures.dailyEmotions(days: 3),
-        );
+        ).thenAnswer((_) async => StatisticsFixtures.dailyEmotions(days: 3));
         when(
           () => mockRepository.getActivityMap(
             startDate: any(named: 'startDate'),

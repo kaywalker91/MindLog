@@ -26,8 +26,7 @@ class PerformanceTraces {
   static const String groqAnalyze = 'groq.analyze';
 
   /// 알림 설정 적용 (스케줄링 전체)
-  static const String notificationApplySettings =
-      'notification.applySettings';
+  static const String notificationApplySettings = 'notification.applySettings';
 
   /// 일기 목록 화면 첫 페인트
   static const String firstDiaryListPaint = 'first.diaryList.paint';

@@ -25,9 +25,7 @@ void main() {
     when(
       () => mockGetUseCase.execute(),
     ).thenAnswer((_) async => AiCharacter.warmCounselor);
-    when(
-      () => mockSetUseCase.execute(any()),
-    ).thenAnswer((_) async {});
+    when(() => mockSetUseCase.execute(any())).thenAnswer((_) async {});
 
     container = ProviderContainer(
       overrides: [

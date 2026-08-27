@@ -35,24 +35,21 @@ void main() {
       expect(copied.status, DiaryStatus.analyzed);
     });
 
-    test(
-      'copyWith로 analysisResult를 null로 설정할 수 있어야 한다',
-      () {
-        final original = Diary(
-          id: 'test-id',
-          content: '원본 내용',
-          createdAt: DateTime(2024, 1, 15),
-          analysisResult: AnalysisResult(
-            keywords: ['테스트'],
-            analyzedAt: DateTime(2024, 1, 15),
-          ),
-        );
+    test('copyWith로 analysisResult를 null로 설정할 수 있어야 한다', () {
+      final original = Diary(
+        id: 'test-id',
+        content: '원본 내용',
+        createdAt: DateTime(2024, 1, 15),
+        analysisResult: AnalysisResult(
+          keywords: ['테스트'],
+          analyzedAt: DateTime(2024, 1, 15),
+        ),
+      );
 
-        final cleared = original.copyWith(analysisResult: null);
+      final cleared = original.copyWith(analysisResult: null);
 
-        expect(cleared.analysisResult, isNull);
-      },
-    );
+      expect(cleared.analysisResult, isNull);
+    });
 
     test('fromJson/toJson으로 직렬화할 수 있어야 한다', () {
       final json = {
@@ -161,10 +158,7 @@ void main() {
         aiCharacterId: 'warmCounselor',
       );
 
-      final copied = original.copyWith(
-        sentimentScore: 8,
-        aiCharacterId: null,
-      );
+      final copied = original.copyWith(sentimentScore: 8, aiCharacterId: null);
 
       expect(copied.keywords, original.keywords);
       expect(copied.sentimentScore, 8);

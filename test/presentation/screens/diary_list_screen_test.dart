@@ -37,7 +37,9 @@ void main() {
     test('7개 일기가 있을 때 모두 반환해야 한다', () async {
       // Arrange - 일주일치 일기 (7개)
       final diaries = DiaryFixtures.weekOfDiaries();
-      when(() => mockRepository.getAllDiaries()).thenAnswer((_) async => diaries);
+      when(
+        () => mockRepository.getAllDiaries(),
+      ).thenAnswer((_) async => diaries);
       expect(diaries.length, 7);
 
       // Act
@@ -56,7 +58,9 @@ void main() {
           createdAt: DateTime.now().subtract(Duration(days: index)),
         );
       });
-      when(() => mockRepository.getAllDiaries()).thenAnswer((_) async => diaries);
+      when(
+        () => mockRepository.getAllDiaries(),
+      ).thenAnswer((_) async => diaries);
 
       // Act
       final result = await container.read(diaryListControllerProvider.future);
@@ -74,7 +78,9 @@ void main() {
           createdAt: DateTime.now().subtract(Duration(days: index)),
         );
       });
-      when(() => mockRepository.getAllDiaries()).thenAnswer((_) async => diaries);
+      when(
+        () => mockRepository.getAllDiaries(),
+      ).thenAnswer((_) async => diaries);
 
       // Act
       final result = await container.read(diaryListControllerProvider.future);
@@ -86,7 +92,9 @@ void main() {
     test('30개 일기가 있을 때 모두 반환해야 한다 (한 달치)', () async {
       // Arrange - 한 달치 일기 (30개)
       final diaries = DiaryFixtures.monthOfDiaries();
-      when(() => mockRepository.getAllDiaries()).thenAnswer((_) async => diaries);
+      when(
+        () => mockRepository.getAllDiaries(),
+      ).thenAnswer((_) async => diaries);
       expect(diaries.length, 30);
 
       // Act
@@ -115,7 +123,9 @@ void main() {
           createdAt: DateTime.now().subtract(Duration(days: index)),
         );
       });
-      when(() => mockRepository.getAllDiaries()).thenAnswer((_) async => diaries);
+      when(
+        () => mockRepository.getAllDiaries(),
+      ).thenAnswer((_) async => diaries);
 
       // Act
       final result = await container.read(diaryListControllerProvider.future);
@@ -132,7 +142,9 @@ void main() {
           createdAt: DateTime.now().subtract(Duration(days: index)),
         );
       });
-      when(() => mockRepository.getAllDiaries()).thenAnswer((_) async => diaries);
+      when(
+        () => mockRepository.getAllDiaries(),
+      ).thenAnswer((_) async => diaries);
 
       // Act
       final result = await container.read(diaryListControllerProvider.future);
@@ -157,7 +169,9 @@ void main() {
           createdAt: now.subtract(const Duration(days: 1)),
         ),
       ];
-      when(() => mockRepository.getAllDiaries()).thenAnswer((_) async => diaries);
+      when(
+        () => mockRepository.getAllDiaries(),
+      ).thenAnswer((_) async => diaries);
 
       // Act
       final result = await container.read(diaryListControllerProvider.future);
@@ -179,7 +193,9 @@ void main() {
           isPinned: true,
         ),
       ];
-      when(() => mockRepository.getAllDiaries()).thenAnswer((_) async => diaries);
+      when(
+        () => mockRepository.getAllDiaries(),
+      ).thenAnswer((_) async => diaries);
 
       // Act
       final result = await container.read(diaryListControllerProvider.future);
@@ -198,8 +214,9 @@ void main() {
         5,
         (i) => DiaryFixtures.analyzed(id: 'initial-$i'),
       );
-      when(() => mockRepository.getAllDiaries())
-          .thenAnswer((_) async => initialDiaries);
+      when(
+        () => mockRepository.getAllDiaries(),
+      ).thenAnswer((_) async => initialDiaries);
 
       await container.read(diaryListControllerProvider.future);
 
@@ -208,8 +225,9 @@ void main() {
         7,
         (i) => DiaryFixtures.analyzed(id: 'updated-$i'),
       );
-      when(() => mockRepository.getAllDiaries())
-          .thenAnswer((_) async => updatedDiaries);
+      when(
+        () => mockRepository.getAllDiaries(),
+      ).thenAnswer((_) async => updatedDiaries);
 
       // Act - 새로고침
       await container.read(diaryListControllerProvider.notifier).refresh();

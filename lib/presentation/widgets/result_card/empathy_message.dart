@@ -40,11 +40,7 @@ class EmpathyMessage extends StatelessWidget {
               color: AppColors.primary.withValues(alpha: 0.12),
             ),
           ),
-          child: Text(
-            message,
-            style: textStyle,
-            textAlign: TextAlign.center,
-          ),
+          child: Text(message, style: textStyle, textAlign: TextAlign.center),
         ),
 
         // 인용문 아이콘
