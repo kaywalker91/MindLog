@@ -31,15 +31,11 @@ lib/
 
 Architecture: Clean Architecture (domain/data/presentation) + Riverpod state management
 
-## Rules & Skills
+## Rules
 
 - **Rules**: `.claude/rules/` — architecture, build, workflow, layer-specific constraints
-- **Skills**: `.claude/skills/` — on-demand skill files (read when command is invoked)
-- **Skill index**: `.claude/rules/skill-catalog.md`
-- **Skill triggers (P0~P5)**: See `.claude/rules/skill-workflows.md` (Auto-invoke Triggers section)
 - **Agent Teams**: See `.claude/rules/parallel-agents.md`
 - **Debugging & Error Handling**: See `.claude/rules/architecture.md`
-- **Model strategy**: See `~/.claude/rules/model-selection-strategy.md`
 
 ## Build Commands
 

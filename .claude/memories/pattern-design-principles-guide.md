@@ -153,7 +153,7 @@ _dismissedTimestampKey  // Multiple entities use same key
 
 1. **Reusable in 3+ features** (suppress-pattern: update, tips, offers)
 2. **Well-defined structure** (Timer + Provider + cleanup)
-3. **No existing pattern covers it** (check skill-catalog.md first)
+3. **No existing pattern covers it** (기존 lib/ 구현과 memories 를 먼저 확인)
 4. **Non-trivial boilerplate** (> 50 lines to implement)
 
 ### Examples
@@ -167,7 +167,6 @@ _dismissedTimestampKey  // Multiple entities use same key
 
 ## Memory Retention
 
-- **Suppress-pattern skill**: Ready to use (`.claude/skills/suppress-pattern.md`)
-- **Periodic-timer skill**: Ready to use (`.claude/skills/periodic-timer.md`)
-- **Skill catalog**: Updated with 2 new entries
+- **Suppress-pattern / Periodic-timer 스킬**: 2026-09-01 하네스 정리로 `.claude/skills/` 삭제됨.
+  판정 기준(재사용 3회 이상이면 패턴화)만 유효하며 실행 파일은 없음.
 - **Next patterns**: Check for auth flows, caching strategies, validation chains

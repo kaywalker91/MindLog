@@ -69,7 +69,7 @@ color: AppColors.primary
 color: Colors.black  // design-ok: BlendMode.dstIn alpha mask
 ```
 
-`// design-ok: [이유]` 주석 없는 직접 사용은 `/color-migrate` 또는 `/design-audit` 대상으로 분류됨.
+`// design-ok: [이유]` 주석 없는 직접 사용은 디자인 토큰 마이그레이션 대상으로 분류됨.
 
 ---
 
