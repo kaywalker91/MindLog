@@ -15,12 +15,12 @@
   <a href="https://github.com/kaywalker91/MindLog/actions/workflows/ci.yml">
     <img src="https://github.com/kaywalker91/MindLog/actions/workflows/ci.yml/badge.svg" alt="CI"/>
   </a>
-  <a href="https://play.google.com/store/apps/details?id=com.mindlog.app">
+  <a href="https://play.google.com/store/apps/details?id=com.mindlog.mindlog">
     <img src="https://img.shields.io/badge/Google%20Play-다운로드-green?logo=google-play" alt="Google Play"/>
   </a>
   <img src="https://img.shields.io/badge/Platform-Android-blue?logo=android" alt="Platform"/>
-  <img src="https://img.shields.io/badge/Privacy-Local%20Only-success" alt="Privacy"/>
-  <img src="https://img.shields.io/badge/AI-Groq%20Llama%203.3-purple" alt="AI"/>
+  <img src="https://img.shields.io/badge/Privacy-No%20Account-success" alt="Privacy"/>
+  <img src="https://img.shields.io/badge/AI-Groq%20gpt--oss--120b-purple" alt="AI"/>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License"/>
   </a>
@@ -30,31 +30,32 @@
 
 ## 주요 기능
 
-- 🧠 **AI 감정 분석** — Groq Llama 3.3 기반 실시간 감정 분석
+- 🧠 **AI 감정 분석** — Groq(gpt-oss-120b) 기반 실시간 감정 분석
 - 💬 **공감 AI 캐릭터** — 온이, 콕이, 웃음이가 당신만의 위로 메시지를 전합니다
 - 🌱 **마음 달력** — 감정 점수가 식물의 성장으로 피어납니다
 - 📊 **감정 통계** — 감정 추이 차트, 키워드 분석, 주간 인사이트
 - 📸 **이미지 분석** — Vision API로 사진 속 감정까지 읽어냅니다
 - 🔔 **스마트 알림** — 아침 응원(Cheer Me) & 저녁 마음케어, 2채널 맞춤 알림
-- 🔒 **프라이버시 우선** — 100% 기기 내 저장, 클라우드 동기화 없음, 서버 전송 없음
+- 🔒 **프라이버시 우선** — 계정 없이 기기에 보관, 클라우드 동기화 없음. AI 분석 순간에만 암호화되어 전송됩니다.
 
 ---
 
-## 최신 업데이트 (v1.4.39)
+## 최신 업데이트 (v1.4.64)
 
-- ✅ **1,384개 테스트 모두 통과** — 철저한 테스트 커버리지로 앱 안정성 보장
-- 🔧 **CI/CD 강화** — 테스트 실패 자동 감지 및 품질 게이트 시스템
-- 📊 **배포 전 감사 시스템** — 릴리스마다 7단계 검증 자동 실행
-- 🛠️ **빌드 스크립트 개선** — 환경별 설정 자동 주입으로 배포 프로세스 간소화
+- ✅ **테스트 1,814건 통과** — 테스트 코드가 프로덕션 코드와 거의 같은 분량
+- 📝 **일기 임시저장** — 쓰던 글과 첨부 사진이 백그라운드 전환·뒤로가기·강제 종료에도 남습니다. 복원 안내 배너로 이어쓰기, 7일 보관
+- ☎️ **긴급 상담전화 109로 통일** — 2024년 1월 통합된 번호를 앱 안 6곳 전체에 반영
+- 🔐 **인증 없던 관리자 엔드포인트 제거** — 토픽 구독자 전체에 푸시를 보낼 수 있던 Cloud Functions HTTP 핸들러 3종 삭제
+- 🖼️ **Groq Vision 토큰 한도 대응** — 요청당 축소 이미지 1장만 전송하고, 한도 초과 시 텍스트 분석으로 폴백
 
 <details>
-<summary>이전 업데이트 (v1.4.38)</summary>
+<summary>이전 업데이트 (v1.4.60 – v1.4.63)</summary>
 
-- 📬 **주간 인사이트** — 매주 일요일 저녁, 한 주간의 감정을 돌아보는 알림
-- 🧠 **인지 패턴 감지** — AI가 흑백사고 등 인지 왜곡 감지 후 CBT 메시지 전송
-- 🎯 **감정 기반 메시지** — 최근 감정 상태와 비슷한 메시지 우선 전달
-- 💙 **안전 팔로업** — 위기 감지 후 24시간 뒤 안부 확인
-- 📈 **감정 트렌드 분석** — 기록이 뜸하거나 감정 변화가 있을 때 자동 알림
+- 🔒 **개인정보 처리방침 전면 재작성** — 템플릿 원문을 앱의 실제 데이터 흐름(Groq·Firebase·기기 내 저장)으로 교체
+- 🐛 **FCM `{name}` 노출 버그 수정** — 클라이언트가 아니라 서버 메시지 템플릿이 진짜 발신원이었음을 추적
+- 🧪 **공허한 테스트 제거** — 새 회귀 테스트는 수정 전 코드에서 실제로 실패하는지 확인한 뒤에만 받아들입니다
+- ♻️ **Health Check 리팩토링** — 사용자 화면 변화 없이 57파일 구조 개선
+- 📏 **전역 포맷 정리** — Dart 3.7+ tall-style 포맷터 규칙에 맞춰 53파일 재정렬
 
 </details>
 
@@ -77,9 +78,9 @@
 
 | 항목 | 정책 |
 |------|------|
-| 저장 | 기기 내 SQLite만 사용 — 외부 서버 전송 없음 |
-| AI 분석 | 익명 텍스트만 Groq API로 전송, 개인정보 미포함 |
-| 클라우드 | 동기화 없음 — 계정 없음, 서버 없음 |
+| 저장 | 기기 내 SQLite — 계정 없음, 클라우드 동기화 없음 |
+| AI 분석 | 일기 본문과 첨부 사진 1장이 분석을 위해 Groq API(미국)로 전송됩니다. 이름·이메일·계정은 함께 보내지 않습니다. |
+| 통계 | Firebase에는 감정 점수·에너지 수준·행동 제안 앞 50자가 전송됩니다 — 일기 본문은 전송되지 않습니다. |
 | 삭제 | 설정에서 즉시 완전 삭제 |
 
 자세한 내용은 [개인정보 처리방침](docs/legal/privacy-policy.md)을 참조하세요.
@@ -95,7 +96,8 @@
 | 데이터베이스 | SQLite (sqflite) | 2.3.3 |
 | Firebase | Analytics, Crashlytics, FCM | 3.8.0+ |
 | 라우팅 | go_router | 17.0.1 |
-| AI | Groq API | llama-3.3-70b-versatile |
+| AI (텍스트) | Groq API | openai/gpt-oss-120b |
+| AI (비전) | Groq API | qwen/qwen3.6-27b |
 | 차트 | fl_chart | 0.68.0 |
 
 ---

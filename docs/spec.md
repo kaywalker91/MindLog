@@ -18,7 +18,8 @@
 | Database | SQLite (sqflite) | 2.3.3 |
 | Firebase | Analytics, Crashlytics, FCM | 3.8.0+ |
 | Routing | go_router | 17.0.1 |
-| AI | Groq API | llama-3.3-70b-versatile |
+| AI (텍스트) | Groq API | openai/gpt-oss-120b |
+| AI (비전) | Groq API | qwen/qwen3.6-27b |
 | Chart | fl_chart | 0.68.0 |
 
 ---
@@ -88,7 +89,7 @@
 ## REQ-010 ~ REQ-015: AI 감정 분석
 
 ### REQ-010: AI 분석 요청
-- 일기 저장 후 Groq API (llama-3.3-70b-versatile)에 분석 요청
+- 일기 저장 후 Groq API (openai/gpt-oss-120b)에 분석 요청
 - JSON Mode 사용 (AnalyzeDiaryUseCase)
 - 분석 완료 시 `DiaryStatus.analyzed`, 실패 시 `DiaryStatus.failed`
 

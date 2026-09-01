@@ -15,12 +15,12 @@
   <a href="https://github.com/kaywalker91/MindLog/actions/workflows/ci.yml">
     <img src="https://github.com/kaywalker91/MindLog/actions/workflows/ci.yml/badge.svg" alt="CI"/>
   </a>
-  <a href="https://play.google.com/store/apps/details?id=com.mindlog.app">
+  <a href="https://play.google.com/store/apps/details?id=com.mindlog.mindlog">
     <img src="https://img.shields.io/badge/Google%20Play-Download-green?logo=google-play" alt="Google Play"/>
   </a>
   <img src="https://img.shields.io/badge/Platform-Android-blue?logo=android" alt="Platform"/>
-  <img src="https://img.shields.io/badge/Privacy-Local%20Only-success" alt="Privacy"/>
-  <img src="https://img.shields.io/badge/AI-Groq%20Llama%203.3-purple" alt="AI"/>
+  <img src="https://img.shields.io/badge/Privacy-No%20Account-success" alt="Privacy"/>
+  <img src="https://img.shields.io/badge/AI-Groq%20gpt--oss--120b-purple" alt="AI"/>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License"/>
   </a>
@@ -30,32 +30,32 @@
 
 ## Features
 
-- 🧠 **AI Emotion Analysis** — Real-time emotion detection powered by Groq Llama 3.3
+- 🧠 **AI Emotion Analysis** — Real-time emotion detection powered by Groq (gpt-oss-120b)
 - 💬 **Empathetic AI Characters** — Personalized comfort messages from AI companions
 - 🌱 **Emotion Calendar** — Visualize your emotional journey as growing plants
 - 📊 **Statistics & Trends** — Emotion charts, keyword analysis, and weekly insights
 - 📸 **Image Analysis** — Detect emotions in photos via Vision API
 - 🔔 **Smart Notifications** — Morning encouragement & evening care across 2 channels
-- 🔒 **Privacy-First** — 100% local storage, no cloud sync, no server uploads
+- 🔒 **Privacy-First** — No account, no cloud sync. Entries live on your device and go out only for the AI analysis itself.
 
 ---
 
-## Recent Updates (v1.4.42)
+## Recent Updates (v1.4.64)
 
-- ✅ **1,505 tests** all passing — expanded test coverage with UI & integration tests
-- 🎯 **Provider invalidation chain** — fixed diary list refresh bug with proper state management
-- 🧪 **FCM integration tests** — comprehensive notification flow testing (foreground/background/killed states)
-- ♻️ **UX pattern restoration** — simplified "view more" interaction with toggle buttons
-- 🗑️ **Code cleanup** — removed 370 lines of unused bottom sheet code for better maintainability
+- ✅ **1,814 tests** passing — the test suite is roughly the size of the production code
+- 📝 **Diary auto-save** — in-progress entries and attached photos now survive backgrounding, back-press, and process death; restored via a banner, kept for 7 days
+- ☎️ **Crisis hotline unified to 109** — Korea merged its suicide-prevention line in Jan 2024; all 6 call sites now match
+- 🔐 **Removed unauthenticated admin endpoints** — 3 public Cloud Functions HTTP handlers deleted (they could push to every topic subscriber)
+- 🖼️ **Groq Vision rate-limit handling** — one downscaled image per request, with text-only fallback when the token budget is exceeded
 
 <details>
-<summary>Previous Updates (v1.4.38)</summary>
+<summary>Previous Updates (v1.4.60 – v1.4.63)</summary>
 
-- 📬 **Weekly Insights** — Every Sunday evening, receive a summary of your emotional week
-- 🧠 **Cognitive Pattern Detection** — AI detects cognitive distortions and sends CBT messages
-- 🎯 **Emotion-Aware Messages** — Notifications prioritize messages matching your recent emotional state
-- 💙 **Safety Follow-up** — 24-hour check-in after crisis detection
-- 📈 **Emotion Trend Analysis** — Automatic insights when mood patterns change
+- 🔒 **Privacy policy rewritten** — replaced a generic template with the app's actual data flow (Groq, Firebase, on-device storage)
+- 🐛 **FCM `{name}` placeholder leak fixed** — traced past the client to the server-side message templates, where the real source was
+- 🧪 **Non-vacuous regression tests** — new tests are now verified to fail against the pre-fix code before being accepted
+- ♻️ **Health Check refactor** — 57 files restructured with no user-facing change
+- 📏 **Repository-wide format cleanup** — 53 files realigned to the Dart 3.7+ tall-style formatter
 
 </details>
 
@@ -78,9 +78,9 @@
 
 | Item | Policy |
 |------|--------|
-| Storage | Local SQLite only — never leaves your device |
-| AI Analysis | Anonymous text sent to Groq API, no personal data |
-| Cloud Sync | None — no accounts, no servers |
+| Storage | Local SQLite on your device — no account, no cloud sync |
+| AI Analysis | Your entry text, plus one attached photo, is sent to the Groq API (US) to be analyzed. No name, email, or account is attached. |
+| Analytics | Firebase receives the emotion score, energy level, and the first 50 characters of the action suggestion — never the entry itself. |
 | Deletion | Instant full deletion from Settings |
 
 See [Privacy Policy](docs/legal/privacy-policy.md) for details.
@@ -96,7 +96,8 @@ See [Privacy Policy](docs/legal/privacy-policy.md) for details.
 | Database | SQLite (sqflite) | 2.3.3 |
 | Firebase | Analytics, Crashlytics, FCM | 3.8.0+ |
 | Routing | go_router | 17.0.1 |
-| AI | Groq API | llama-3.3-70b-versatile |
+| AI (text) | Groq API | openai/gpt-oss-120b |
+| AI (vision) | Groq API | qwen/qwen3.6-27b |
 | Charts | fl_chart | 0.68.0 |
 
 ---

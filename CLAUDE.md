@@ -14,7 +14,8 @@ AI 감정 일기 분석 앱 — Flutter + Clean Architecture + Riverpod
 | Database | SQLite (sqflite) | 2.3.3 |
 | Firebase | Analytics, Crashlytics, FCM | 3.8.0+ |
 | Routing | go_router | 17.0.1 |
-| AI | Groq API | openai/gpt-oss-120b |
+| AI (텍스트) | Groq API | openai/gpt-oss-120b |
+| AI (비전) | Groq API | qwen/qwen3.6-27b |
 | Chart | fl_chart | 0.68.0 |
 
 ## Project Structure
