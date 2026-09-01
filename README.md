@@ -171,6 +171,14 @@ lib/
 └── main.dart
 ```
 
+### AI-assisted development, written down
+
+This project is built with AI coding assistants, and the working agreement for that is
+version-controlled rather than improvised per session. [`.claude/`](.claude/) holds the
+architecture and testing rules the assistant must follow, the automation commands used for
+recurring work, and the engineering notes written up after each non-obvious bug — including
+why a regression test that passes can still be worthless.
+
 ---
 
 ## Testing
