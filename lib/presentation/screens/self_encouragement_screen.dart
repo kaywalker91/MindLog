@@ -34,20 +34,89 @@ final cheerMePreviewProvider =
     });
 
 /// 개인 응원 메시지 관리 화면
-class SelfEncouragementScreen extends ConsumerWidget {
+class SelfEncouragementScreen extends ConsumerStatefulWidget {
   const SelfEncouragementScreen({super.key});
 
+  @override
+  ConsumerState<SelfEncouragementScreen> createState() =>
+      _SelfEncouragementScreenState();
+}
+
+class _SelfEncouragementScreenState
+    extends ConsumerState<SelfEncouragementScreen> {
   static const _hintShownKey = 'self_encouragement_hint_shown';
+  final _scaffoldKey = GlobalKey();
+  Object? _feedbackToken;
+  double _feedbackHeight = 0;
+
+  // Floating feedback sits above the FAB. Reserve its measured height so the
+  // last card can still scroll clear of both overlays, including large text.
+  // ScaffoldMessenger builds the same SnackBar in every root Scaffold (e.g. the
+  // Settings route underneath), so it must not carry a GlobalKey; measure the
+  // copy inside this screen's Scaffold instead.
+  void _measureFeedback() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      double height = 0;
+      void visit(Element element) {
+        if (element.widget is SnackBar) {
+          height = element.size?.height ?? 0;
+        } else {
+          element.visitChildElements(visit);
+        }
+      }
+
+      _scaffoldKey.currentContext?.visitChildElements(visit);
+      if ((_feedbackHeight - height).abs() > 0.5) {
+        setState(() => _feedbackHeight = height);
+      }
+    });
+  }
+
+  void _showFeedback(
+    Widget content, {
+    Duration duration = const Duration(seconds: 4),
+  }) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.removeCurrentSnackBar();
+    final token = Object();
+    _feedbackToken = token;
+    final controller = messenger.showSnackBar(
+      SnackBar(
+        content: content,
+        behavior: SnackBarBehavior.floating,
+        duration: duration,
+        onVisible: _measureFeedback,
+      ),
+    );
+    controller.closed.then((_) {
+      if (mounted && identical(_feedbackToken, token)) {
+        setState(() {
+          _feedbackToken = null;
+          _feedbackHeight = 0;
+        });
+      }
+    });
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    if (_feedbackToken != null) _measureFeedback();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final messagesAsync = ref.watch(selfEncouragementProvider);
 
+    final hasFab = messagesAsync.maybeWhen(
+      data: (messages) =>
+          messages.isNotEmpty &&
+          messages.length < SelfEncouragementMessage.maxMessageCount,
+      orElse: () => false,
+    );
+
     return AccessibilityWrapper(
       screenTitle: 'Cheer Me',
       child: Scaffold(
+        key: _scaffoldKey,
         backgroundColor: colorScheme.surface,
         appBar: AppBar(
           title: const Text('Cheer Me'),
@@ -56,37 +125,49 @@ class SelfEncouragementScreen extends ConsumerWidget {
             onPressed: () => context.pop(),
           ),
         ),
-        body: messagesAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: colorScheme.error),
-                const SizedBox(height: 16),
-                Text('메시지를 불러올 수 없습니다', style: theme.textTheme.bodyLarge),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => ref.invalidate(selfEncouragementProvider),
-                  child: const Text('다시 시도'),
-                ),
-              ],
+        body: SafeArea(
+          top: false,
+          child: messagesAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: colorScheme.error),
+                  const SizedBox(height: 16),
+                  Text('메시지를 불러올 수 없습니다', style: theme.textTheme.bodyLarge),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => ref.invalidate(selfEncouragementProvider),
+                    child: const Text('다시 시도'),
+                  ),
+                ],
+              ),
+            ),
+            data: (messages) => _MessageList(
+              messages: messages,
+              hintShownKey: _hintShownKey,
+              hasFab: hasFab,
+              feedbackHeight: _feedbackHeight,
+              onFeedback: _showFeedback,
             ),
           ),
-          data: (messages) =>
-              _MessageList(messages: messages, hintShownKey: _hintShownKey),
         ),
         // FAB는 메시지가 1개 이상일 때만 표시 (Empty State에서는 중앙 버튼만 사용)
         floatingActionButton: messagesAsync.maybeWhen(
-          data: (messages) =>
-              messages.isNotEmpty &&
-                  messages.length < SelfEncouragementMessage.maxMessageCount
+          data: (messages) => hasFab
               ? FloatingActionButton.extended(
                   onPressed: () => _showAddDialog(context, ref),
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,
                   icon: const Icon(Icons.add),
-                  label: Text('메시지 추가 (${messages.length}/10)'),
+                  tooltip: '메시지 추가 (${messages.length}/10)',
+                  label: Text(
+                    MediaQuery.sizeOf(context).width < 360 &&
+                            MediaQuery.textScalerOf(context).scale(14) > 20
+                        ? '메시지 추가'
+                        : '메시지 추가 (${messages.length}/10)',
+                  ),
                 )
               : null,
           orElse: () => null,
@@ -103,18 +184,15 @@ class SelfEncouragementScreen extends ConsumerWidget {
           .read(selfEncouragementProvider.notifier)
           .addMessage(result.content, timeCategory: result.timeCategory);
       if (success && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                Text('🎉'),
-                SizedBox(width: 8),
-                Expanded(child: Text('응원 메시지가 추가되었습니다')),
-              ],
-            ),
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 2),
+        _showFeedback(
+          const Row(
+            children: [
+              Text('🎉'),
+              SizedBox(width: 8),
+              Expanded(child: Text('응원 메시지가 추가되었습니다')),
+            ],
           ),
+          duration: const Duration(seconds: 2),
         );
       }
     }
@@ -124,8 +202,17 @@ class SelfEncouragementScreen extends ConsumerWidget {
 class _MessageList extends ConsumerStatefulWidget {
   final List<SelfEncouragementMessage> messages;
   final String hintShownKey;
+  final bool hasFab;
+  final double feedbackHeight;
+  final void Function(Widget content) onFeedback;
 
-  const _MessageList({required this.messages, required this.hintShownKey});
+  const _MessageList({
+    required this.messages,
+    required this.hintShownKey,
+    required this.hasFab,
+    required this.feedbackHeight,
+    required this.onFeedback,
+  });
 
   @override
   ConsumerState<_MessageList> createState() => _MessageListState();
@@ -198,10 +285,13 @@ class _MessageListState extends ConsumerState<_MessageList> {
                     color: colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    '좌우로 스와이프하여 수정/삭제',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                  Flexible(
+                    child: Text(
+                      '좌우로 스와이프하여 수정/삭제',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
@@ -212,7 +302,12 @@ class _MessageListState extends ConsumerState<_MessageList> {
             // 메시지 목록 (ReorderableListView)
             Expanded(
               child: ReorderableListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  0,
+                  16,
+                  (widget.hasFab ? 80 : 16) + widget.feedbackHeight,
+                ),
                 itemCount: widget.messages.length,
                 onReorder: (oldIndex, newIndex) {
                   HapticFeedback.selectionClick();
@@ -285,12 +380,7 @@ class _MessageListState extends ConsumerState<_MessageList> {
             timeCategory: result.timeCategory,
           );
       if (success && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('메시지가 수정되었습니다'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        widget.onFeedback(const Text('메시지가 수정되었습니다'));
       }
     }
   }
@@ -301,12 +391,7 @@ class _MessageListState extends ConsumerState<_MessageList> {
         .deleteMessage(message.id);
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('메시지가 삭제되었습니다'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      widget.onFeedback(const Text('메시지가 삭제되었습니다'));
     }
   }
 }

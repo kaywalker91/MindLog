@@ -215,7 +215,9 @@ class _MessageCardState extends ConsumerState<MessageCard> {
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 6),
-                                      Row(
+                                      Wrap(
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
                                         children: [
                                           Icon(
                                             Icons.schedule_outlined,

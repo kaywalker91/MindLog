@@ -44,6 +44,7 @@ class MessageInputDialog extends StatefulWidget {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
+      useSafeArea: true,
       enableDrag: true,
       builder: (context) => Theme(
         data: sheetTheme,

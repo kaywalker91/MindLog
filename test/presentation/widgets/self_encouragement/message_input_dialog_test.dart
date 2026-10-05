@@ -19,26 +19,19 @@ Widget _buildHarness({
         path: '/',
         builder: (context, state) => Builder(
           builder: (context) {
-            final data = MediaQuery.of(
-              context,
-            ).copyWith(textScaler: TextScaler.linear(textScale));
-
-            return MediaQuery(
-              data: data,
-              child: Scaffold(
-                body: Center(
-                  child: FilledButton(
-                    onPressed: () async {
-                      final result = await MessageInputDialog.show(
-                        context,
-                        initialValue: initialValue,
-                        initialTimeCategory: initialTimeCategory,
-                        isEditing: isEditing,
-                      );
-                      onResult?.call(result);
-                    },
-                    child: const Text('Open'),
-                  ),
+            return Scaffold(
+              body: Center(
+                child: FilledButton(
+                  onPressed: () async {
+                    final result = await MessageInputDialog.show(
+                      context,
+                      initialValue: initialValue,
+                      initialTimeCategory: initialTimeCategory,
+                      isEditing: isEditing,
+                    );
+                    onResult?.call(result);
+                  },
+                  child: const Text('Open'),
                 ),
               ),
             );
@@ -50,6 +43,12 @@ Widget _buildHarness({
 
   return MaterialApp.router(
     routerConfig: router,
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(
+        context,
+      ).copyWith(textScaler: TextScaler.linear(textScale)),
+      child: child!,
+    ),
     themeMode: themeMode,
     darkTheme: ThemeData.dark(useMaterial3: true),
   );
@@ -103,6 +102,65 @@ Finder _suggestionContainerByText(String suggestion) {
 
 void main() {
   group('MessageInputDialog', () {
+    for (final size in [const Size(320, 640), const Size(412, 915)]) {
+      for (final scale in [1.0, 1.3, 2.0]) {
+        for (final ime in [0.0, 280.0]) {
+          testWidgets('시트 안전 영역과 키보드 위 버튼 $size/$scale/$ime', (tester) async {
+            tester.view.viewPadding = const FakeViewPadding(
+              top: 32,
+              bottom: 48,
+            );
+            tester.view.padding = FakeViewPadding(
+              top: 32,
+              bottom: ime == 0 ? 48 : 0,
+            );
+            tester.view.viewInsets = FakeViewPadding(bottom: ime);
+            addTearDown(() {
+              tester.view.resetViewPadding();
+              tester.view.resetPadding();
+              tester.view.resetViewInsets();
+            });
+            await _openDialog(tester, viewport: size, textScale: scale);
+            final context = tester.element(find.byType(MessageInputDialog));
+            expect(MediaQuery.textScalerOf(context).scale(10), scale * 10);
+            expect(MediaQuery.viewInsetsOf(context).bottom, ime);
+            final scroll = find
+                .descendant(
+                  of: find.byType(MessageInputDialog),
+                  matching: find.byType(SingleChildScrollView),
+                )
+                .first;
+            final position = tester
+                .state<ScrollableState>(
+                  find
+                      .descendant(of: scroll, matching: find.byType(Scrollable))
+                      .first,
+                )
+                .position;
+            position.jumpTo(0);
+            await tester.pump();
+            expect(tester.getRect(scroll).top, greaterThanOrEqualTo(32));
+            expect(
+              tester.getRect(find.text('응원 메시지 작성')).top,
+              greaterThanOrEqualTo(32),
+            );
+            for (final button in [
+              find.widgetWithText(FilledButton, '저장'),
+              find.widgetWithText(OutlinedButton, '취소'),
+            ]) {
+              final rect = tester.getRect(button);
+              expect(
+                rect.bottom,
+                closeTo(size.height - (ime == 0 ? 48 : ime) - 20, 0.5),
+              );
+              expect(rect.top, greaterThanOrEqualTo(32));
+            }
+            expect(tester.takeException(), isNull);
+          });
+        }
+      }
+    }
+
     testWidgets('renders without overflow at 320x800', (tester) async {
       await _openDialog(tester, viewport: const Size(320, 800));
 

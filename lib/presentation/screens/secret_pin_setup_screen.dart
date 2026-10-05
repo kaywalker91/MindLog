@@ -122,7 +122,13 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
       builder: (context, constraints) {
         final screenWidth = MediaQuery.of(context).size.width;
         final horizontalPadding = screenWidth < 360 ? 16.0 : 20.0;
-        final minHeight = (constraints.maxHeight - 24)
+        final contentPadding = EdgeInsets.fromLTRB(
+          horizontalPadding,
+          12,
+          horizontalPadding,
+          ResponsiveUtils.bottomSafeAreaPadding(context, extra: 12),
+        );
+        final minHeight = (constraints.maxHeight - contentPadding.vertical)
             .clamp(0.0, double.infinity)
             .toDouble();
 
@@ -138,12 +144,7 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
                   ),
                 ),
           child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              horizontalPadding,
-              12,
-              horizontalPadding,
-              ResponsiveUtils.bottomSafeAreaPadding(context, extra: 12),
-            ),
+            padding: contentPadding,
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: minHeight),
               child: Center(

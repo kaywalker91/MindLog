@@ -46,6 +46,61 @@ void main() {
   });
 
   group('SecretDiaryUnlockScreen', () {
+    testWidgets('작은 화면에서 마지막 숫자와 삭제 키까지 스크롤하고 조작해야 한다', (tester) async {
+      tester.view.physicalSize = const Size(320, 480);
+      tester.view.devicePixelRatio = 1;
+      tester.view.padding = const FakeViewPadding(top: 32, bottom: 48);
+      tester.view.viewPadding = const FakeViewPadding(top: 32, bottom: 48);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(_buildHarness());
+      await tester.pumpAndSettle();
+      final zero = find.descendant(
+        of: find.byKey(const Key('secret_pin_keypad')),
+        matching: find.text('0'),
+      );
+      await tester.ensureVisible(zero);
+      await tester.pumpAndSettle();
+      expect(zero.hitTestable(), findsOneWidget);
+      expect(tester.getRect(zero).bottom, lessThanOrEqualTo(480 - 48));
+      await tester.tap(zero);
+      await tester.pump();
+      final erase = find.byIcon(Icons.backspace_outlined);
+      await tester.ensureVisible(erase);
+      await tester.tap(erase);
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    });
+    for (final inset in [0.0, 48.0]) {
+      testWidgets('하단 인셋 $inset 에서 불필요한 스크롤 없이 중앙 정렬', (tester) async {
+        tester.view.physicalSize = const Size(412, 1400);
+        tester.view.devicePixelRatio = 1;
+        tester.view.padding = FakeViewPadding(top: 32, bottom: inset);
+        tester.view.viewPadding = FakeViewPadding(top: 32, bottom: inset);
+        addTearDown(() {
+          tester.view.reset();
+        });
+        await tester.pumpWidget(_buildHarness());
+        await tester.pumpAndSettle();
+        final scroll = find.byType(SingleChildScrollView).first;
+        final position = tester
+            .state<ScrollableState>(
+              find
+                  .descendant(of: scroll, matching: find.byType(Scrollable))
+                  .first,
+            )
+            .position;
+        expect(position.maxScrollExtent, closeTo(0, 0.5));
+        final view = tester.getRect(scroll);
+        final center = find
+            .descendant(of: scroll, matching: find.byType(Center))
+            .first;
+        expect(
+          tester.getRect(center).center.dy,
+          closeTo(view.center.dy - inset / 2, 0.5),
+        );
+      });
+    }
+
     testWidgets('320~360/412+/대형 뷰포트에서 overflow 없이 렌더링', (tester) async {
       const sizes = [
         Size(320, 640),
