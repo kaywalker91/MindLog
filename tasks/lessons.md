@@ -238,3 +238,15 @@
 **근본 원인**: test/run 설치 실패가 단순 중단으로 끝날 것으로 보고 CLI의 uninstall 재시도 및 기기 저장공간을 사전 확인하지 않았다.
 **해결책**: 원본 로그와 앱 데이터 유실 가능성, 최종 설치가 테스트 APK임을 구현 핸드오프에 명시하고 사용자에게 보고했다. 복구 완료를 주장하지 않는다.
 **예방 규칙**: Android 통합 테스트는 전용 일회성 AVD 또는 별도 applicationId를 우선 사용한다. 기존 앱 데이터가 있으면 저장공간과 백업/복구 가능성을 먼저 확인하고 설치 실패 시 자동 uninstall 동작까지 고려한다.
+
+## 2026-10-05 - SnackBar에 GlobalKey를 달면 push된 화면에서 중복 키 크래시
+**무엇이 잘못됐나**: SnackBar 높이 측정용으로 `SnackBar(key: GlobalKey())`를 썼고, 설정→Cheer Me push 상태에서 피드백을 띄우면 `Multiple widgets used the same GlobalKey`. 단일 라우트 위젯 테스트 89개는 전부 통과했다.
+**근본 원인**: `ScaffoldMessenger`는 등록된 **모든 root Scaffold**에 같은 SnackBar 위젯을 빌드한다(SDK `scaffold.dart` `_updateScaffolds`). 아래 라우트도 mount 상태라 두 곳에 같은 키가 생긴다. 테스트 하네스가 실제 진입 경로(push)를 재현하지 않았다.
+**해결책**: 키는 화면 자신의 Scaffold에 두고 post-frame에 그 하위 Element에서 SnackBar 크기를 읽는다. 다른 Scaffold 위로 push한 뒤 피드백→뒤로가기 회귀 테스트 추가.
+**예방 규칙**: SnackBar/MaterialBanner 등 Messenger가 띄우는 위젯에는 GlobalKey 금지. 화면 테스트는 실제 라우터 진입 방식(push, 아래 Scaffold 존재)으로도 최소 1건 돌린다.
+
+## 2026-10-05 - 하단 SnackBar는 작은 화면에서 키패드·링크를 가린다
+**무엇이 잘못됐나**: PIN 오류 SnackBar가 320×480에서 0·삭제 키와 「비밀번호를 잊으셨나요?」 링크를 4초간 덮었다. 「아래 링크를 통해 초기화」 문구가 바로 그 링크를 가렸다.
+**근본 원인**: 기존 테스트는 800×2000 큰 화면에서 문구 존재만 확인했고, 작은 화면에서 오류 직후 hit-test를 하지 않았다.
+**해결책**: 키패드 도트 아래 인라인 오류(`Semantics(liveRegion)`), 다음 입력 시작 시 숨김.
+**예방 규칙**: 재입력이 바로 이어지는 화면의 피드백은 하단 오버레이 대신 인라인으로. 작은 화면 테스트는 "피드백 표시 직후" 조작 대상의 `hitTestable()`까지 단언한다.
