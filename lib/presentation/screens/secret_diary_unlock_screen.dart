@@ -28,6 +28,7 @@ class _SecretDiaryUnlockScreenState
   static const int _maxAttempts = 3;
   int _failCount = 0;
   int _errorCount = 0;
+  String? _errorText;
   bool _isLoading = false;
 
   bool get _showForgotPin => _failCount >= _maxAttempts;
@@ -49,20 +50,18 @@ class _SecretDiaryUnlockScreenState
           _failCount++;
           _errorCount++;
           _isLoading = false;
-        });
-        _showMessage(
-          _failCount >= _maxAttempts
+          _errorText = _failCount >= _maxAttempts
               ? 'PIN이 일치하지 않습니다. 아래 링크를 통해 초기화할 수 있습니다.'
-              : 'PIN이 일치하지 않습니다. ($_failCount/$_maxAttempts)',
-        );
+              : 'PIN이 일치하지 않습니다. ($_failCount/$_maxAttempts)';
+        });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _errorCount++;
           _isLoading = false;
+          _errorText = '오류가 발생했습니다. 다시 시도해주세요.';
         });
-        _showMessage('오류가 발생했습니다. 다시 시도해주세요.');
       }
     }
   }
@@ -180,6 +179,7 @@ class _SecretDiaryUnlockScreenState
                     title: 'PIN을 입력해주세요',
                     errorCount: _errorCount,
                     onForgotPin: _showForgotPin ? _onForgotPin : null,
+                    errorText: _errorText,
                   ),
                 ),
               ),

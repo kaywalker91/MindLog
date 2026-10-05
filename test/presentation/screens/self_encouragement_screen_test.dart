@@ -90,15 +90,17 @@ Future<_Messages> _open(
   double inset, {
   double scale = 1,
   double width = 412,
+  double height = 915,
+  double left = 0,
   bool pushed = false,
 }) async {
   SharedPreferences.setMockInitialValues({
     'self_encouragement_hint_shown': true,
   });
-  tester.view.physicalSize = Size(width, 915);
+  tester.view.physicalSize = Size(width, height);
   tester.view.devicePixelRatio = 1;
-  tester.view.padding = FakeViewPadding(top: 32, bottom: inset);
-  tester.view.viewPadding = FakeViewPadding(top: 32, bottom: inset);
+  tester.view.padding = FakeViewPadding(left: left, top: 32, bottom: inset);
+  tester.view.viewPadding = FakeViewPadding(left: left, top: 32, bottom: inset);
   addTearDown(tester.view.reset);
   final messages = _Messages(count);
   // pushed: mirror Settings -> Cheer Me, leaving another root Scaffold mounted.
@@ -334,6 +336,62 @@ void main() {
     await tester.binding.handlePopRoute();
     await _pump(tester);
     expect(find.text('base'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('가로 화면 측면 컷아웃에서 카드와 FAB가 컷아웃·하단을 피해야 한다', (tester) async {
+    await _open(tester, 9, 24, width: 915, height: 412, left: 48);
+    final fab = find.byType(FloatingActionButton);
+    expect(fab.hitTestable(), findsOneWidget);
+    expect(tester.getRect(fab).right, lessThanOrEqualTo(915));
+    expect(tester.getRect(fab).bottom, lessThanOrEqualTo(412 - 24));
+    expect(
+      tester.getRect(find.byType(MessageCard).first).left,
+      greaterThanOrEqualTo(48),
+    );
+    await _bottom(tester);
+    expect(
+      tester.getRect(find.byKey(const ValueKey('8'))).bottom,
+      lessThanOrEqualTo(tester.getRect(fab).top - 8),
+    );
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('SnackBar 표시 중 마지막 카드 재정렬과 여백 복원', (tester) async {
+    final messages = await _open(tester, 9, 48);
+    await _bottom(tester);
+    await tester.drag(
+      find.byKey(const ValueKey('dismissible_7')),
+      const Offset(-350, 0),
+    );
+    await _pump(tester);
+    await tester.tap(find.widgetWithText(TextButton, '삭제'));
+    await _pump(tester);
+    expect(find.byType(SnackBar), findsOneWidget);
+    await _bottom(tester);
+    final last = find.byKey(const ValueKey('8'));
+    final snackTop = tester.getRect(find.byType(SnackBar)).top;
+    expect(tester.getRect(last).bottom, lessThanOrEqualTo(snackTop - 8));
+    final handle = find
+        .descendant(
+          of: last,
+          matching: find.byType(ReorderableDragStartListener),
+        )
+        .first;
+    expect(handle.hitTestable(), findsOneWidget);
+    final start = tester.getCenter(handle);
+    final gesture = await tester.startGesture(start);
+    await tester.pump(const Duration(milliseconds: 100));
+    await gesture.moveTo(start - const Offset(0, 170));
+    await _pump(tester);
+    await gesture.up();
+    await _pump(tester);
+    expect(messages.moves.single.$1, 7);
+    expect(messages.moves.single.$2, lessThan(7));
+    await tester.pump(const Duration(seconds: 5));
+    await _pump(tester);
+    expect(find.byType(SnackBar), findsNothing);
+    await _bottom(tester);
+    final lastCard = find.byType(MessageCard).last;
+    expect(tester.getRect(lastCard).bottom, closeTo(915 - 48 - 80, 0.5));
     expect(tester.takeException(), isNull);
   });
 }

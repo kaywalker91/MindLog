@@ -28,6 +28,7 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
   int _step = 0;
   String _firstPin = '';
   int _errorCount = 0;
+  String? _errorText;
   bool _isLoading = false;
 
   Future<void> _onPinCompleted(String pin) async {
@@ -36,12 +37,15 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
       setState(() {
         _firstPin = pin;
         _step = 1;
+        _errorText = null;
       });
     } else {
       // 2단계: 확인 PIN과 비교
       if (pin != _firstPin) {
-        setState(() => _errorCount++);
-        _showMessage('PIN이 일치하지 않습니다. 다시 입력해주세요.');
+        setState(() {
+          _errorCount++;
+          _errorText = 'PIN이 일치하지 않습니다. 다시 입력해주세요.';
+        });
         return;
       }
       await _savePin(pin);
@@ -57,8 +61,8 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
-        _showMessage('PIN 설정 중 오류가 발생했습니다.');
         setState(() {
+          _errorText = 'PIN 설정 중 오류가 발생했습니다.';
           _isLoading = false;
           _step = 0;
           _firstPin = '';
@@ -68,18 +72,12 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
     }
   }
 
-  void _showMessage(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
-  }
-
   void _goBack() {
     if (_step == 1) {
       setState(() {
         _step = 0;
         _firstPin = '';
+        _errorText = null;
       });
     } else {
       context.pop();
@@ -201,6 +199,7 @@ class _SecretPinSetupScreenState extends ConsumerState<SecretPinSetupScreen> {
           title: _step == 0 ? '새 PIN을 입력해주세요' : 'PIN을 한 번 더 입력해주세요',
           subtitle: _step == 0 ? '4자리 숫자로 비밀일기를 보호합니다' : '입력한 PIN을 확인합니다',
           errorCount: _errorCount,
+          errorText: _errorText,
         ),
       ],
     );

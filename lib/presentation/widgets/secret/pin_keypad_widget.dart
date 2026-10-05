@@ -22,6 +22,9 @@ class PinKeypadWidget extends StatefulWidget {
   /// null이면 "비밀번호를 잊으셨나요?" 링크 미표시
   final VoidCallback? onForgotPin;
 
+  /// 도트 아래 인라인 오류 문구 (SnackBar는 작은 화면에서 키패드를 가린다)
+  final String? errorText;
+
   const PinKeypadWidget({
     super.key,
     required this.onPinCompleted,
@@ -29,6 +32,7 @@ class PinKeypadWidget extends StatefulWidget {
     this.subtitle,
     this.errorCount = 0,
     this.onForgotPin,
+    this.errorText,
   });
 
   @override
@@ -123,6 +127,19 @@ class _PinKeypadWidgetState extends State<PinKeypadWidget> {
             ],
             SizedBox(height: dotGap),
             _buildDotIndicator(),
+            if (widget.errorText != null) ...[
+              SizedBox(height: subtitleGap + 6),
+              Semantics(
+                liveRegion: true,
+                child: Text(
+                  widget.errorText!,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: colorScheme.error,
+                  ),
+                ),
+              ),
+            ],
             SizedBox(height: keypadGap),
             _buildKeypad(colorScheme, isCompact: isCompact),
             if (widget.onForgotPin != null) ...[

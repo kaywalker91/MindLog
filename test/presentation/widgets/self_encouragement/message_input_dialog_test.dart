@@ -105,60 +105,121 @@ void main() {
     for (final size in [const Size(320, 640), const Size(412, 915)]) {
       for (final scale in [1.0, 1.3, 2.0]) {
         for (final ime in [0.0, 280.0]) {
-          testWidgets('시트 안전 영역과 키보드 위 버튼 $size/$scale/$ime', (tester) async {
-            tester.view.viewPadding = const FakeViewPadding(
-              top: 32,
-              bottom: 48,
+          for (final editing in [false, true]) {
+            testWidgets(
+              '시트 안전 영역과 키보드 위 버튼 $size/$scale/$ime${editing ? '/수정' : ''}',
+              (tester) async {
+                tester.view.viewPadding = const FakeViewPadding(
+                  top: 32,
+                  bottom: 48,
+                );
+                tester.view.padding = FakeViewPadding(
+                  top: 32,
+                  bottom: ime == 0 ? 48 : 0,
+                );
+                tester.view.viewInsets = FakeViewPadding(bottom: ime);
+                addTearDown(() {
+                  tester.view.resetViewPadding();
+                  tester.view.resetPadding();
+                  tester.view.resetViewInsets();
+                });
+                await _openDialog(
+                  tester,
+                  viewport: size,
+                  textScale: scale,
+                  isEditing: editing,
+                  initialValue: editing ? '오늘도 충분히 잘하고 있어. ' * 4 : null,
+                );
+                final context = tester.element(find.byType(MessageInputDialog));
+                expect(MediaQuery.textScalerOf(context).scale(10), scale * 10);
+                expect(MediaQuery.viewInsetsOf(context).bottom, ime);
+                final scroll = find
+                    .descendant(
+                      of: find.byType(MessageInputDialog),
+                      matching: find.byType(SingleChildScrollView),
+                    )
+                    .first;
+                final position = tester
+                    .state<ScrollableState>(
+                      find
+                          .descendant(
+                            of: scroll,
+                            matching: find.byType(Scrollable),
+                          )
+                          .first,
+                    )
+                    .position;
+                position.jumpTo(0);
+                await tester.pump();
+                expect(tester.getRect(scroll).top, greaterThanOrEqualTo(32));
+                expect(
+                  tester
+                      .getRect(find.text(editing ? '메시지 수정' : '응원 메시지 작성'))
+                      .top,
+                  greaterThanOrEqualTo(32),
+                );
+                for (final button in [
+                  find.widgetWithText(FilledButton, editing ? '수정' : '저장'),
+                  find.widgetWithText(OutlinedButton, '취소'),
+                ]) {
+                  final rect = tester.getRect(button);
+                  expect(
+                    rect.bottom,
+                    closeTo(size.height - (ime == 0 ? 48 : ime) - 20, 0.5),
+                  );
+                  expect(rect.top, greaterThanOrEqualTo(32));
+                }
+                expect(tester.takeException(), isNull);
+              },
             );
-            tester.view.padding = FakeViewPadding(
-              top: 32,
-              bottom: ime == 0 ? 48 : 0,
-            );
-            tester.view.viewInsets = FakeViewPadding(bottom: ime);
-            addTearDown(() {
-              tester.view.resetViewPadding();
-              tester.view.resetPadding();
-              tester.view.resetViewInsets();
-            });
-            await _openDialog(tester, viewport: size, textScale: scale);
-            final context = tester.element(find.byType(MessageInputDialog));
-            expect(MediaQuery.textScalerOf(context).scale(10), scale * 10);
-            expect(MediaQuery.viewInsetsOf(context).bottom, ime);
-            final scroll = find
-                .descendant(
-                  of: find.byType(MessageInputDialog),
-                  matching: find.byType(SingleChildScrollView),
-                )
-                .first;
-            final position = tester
-                .state<ScrollableState>(
-                  find
-                      .descendant(of: scroll, matching: find.byType(Scrollable))
-                      .first,
-                )
-                .position;
-            position.jumpTo(0);
-            await tester.pump();
-            expect(tester.getRect(scroll).top, greaterThanOrEqualTo(32));
-            expect(
-              tester.getRect(find.text('응원 메시지 작성')).top,
-              greaterThanOrEqualTo(32),
-            );
-            for (final button in [
-              find.widgetWithText(FilledButton, '저장'),
-              find.widgetWithText(OutlinedButton, '취소'),
-            ]) {
-              final rect = tester.getRect(button);
-              expect(
-                rect.bottom,
-                closeTo(size.height - (ime == 0 ? 48 : ime) - 20, 0.5),
-              );
-              expect(rect.top, greaterThanOrEqualTo(32));
-            }
-            expect(tester.takeException(), isNull);
-          });
+          }
         }
       }
+    }
+
+    for (final editing in [false, true]) {
+      testWidgets('가로 화면 측면 컷아웃에서 시트 조작 영역 확보${editing ? ' (수정)' : ''}', (
+        tester,
+      ) async {
+        const size = Size(915, 412);
+        tester.view.viewPadding = const FakeViewPadding(
+          left: 48,
+          top: 24,
+          bottom: 24,
+        );
+        tester.view.padding = const FakeViewPadding(
+          left: 48,
+          top: 24,
+          bottom: 24,
+        );
+        addTearDown(() {
+          tester.view.resetViewPadding();
+          tester.view.resetPadding();
+        });
+        await _openDialog(
+          tester,
+          viewport: size,
+          isEditing: editing,
+          initialValue: editing ? '오늘도 충분히 잘하고 있어.' : null,
+        );
+        final title = find.text(editing ? '메시지 수정' : '응원 메시지 작성');
+        expect(tester.getRect(title).top, greaterThanOrEqualTo(24));
+        for (final button in [
+          find.widgetWithText(FilledButton, editing ? '수정' : '저장'),
+          find.widgetWithText(OutlinedButton, '취소'),
+        ]) {
+          expect(button.hitTestable(), findsOneWidget);
+          final rect = tester.getRect(button);
+          expect(rect.left, greaterThanOrEqualTo(48));
+          expect(rect.right, lessThanOrEqualTo(size.width));
+          expect(rect.bottom, lessThanOrEqualTo(size.height - 24));
+        }
+        expect(
+          tester.getRect(find.byType(TextField)).left,
+          greaterThanOrEqualTo(48),
+        );
+        expect(tester.takeException(), isNull);
+      });
     }
 
     testWidgets('renders without overflow at 320x800', (tester) async {

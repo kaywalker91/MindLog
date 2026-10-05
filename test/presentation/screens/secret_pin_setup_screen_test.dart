@@ -74,6 +74,23 @@ Future<void> _tapPin(WidgetTester tester, String pin) async {
   await tester.pump();
 }
 
+// Small viewports scroll the keypad; bring each key into the safe area first.
+Future<void> _tapPinVisible(WidgetTester tester, String pin) async {
+  for (final digit in pin.split('')) {
+    final key = find.descendant(
+      of: find.byKey(const Key('secret_pin_keypad')),
+      matching: find.text(digit),
+    );
+    await tester.ensureVisible(key);
+    await tester.pumpAndSettle();
+    expect(key.hitTestable(), findsOneWidget);
+    expect(tester.getRect(key).bottom, lessThanOrEqualTo(480 - 48));
+    await tester.tap(key);
+    await tester.pump();
+  }
+  await tester.pump();
+}
+
 int _filledDotCount(WidgetTester tester) {
   final dots = tester.widgetList<AnimatedContainer>(
     find.descendant(
@@ -121,6 +138,61 @@ void main() {
       await tester.pump();
       expect(tester.takeException(), isNull);
     });
+    for (final scale in [1.0, 2.0]) {
+      testWidgets('작은 화면 글자 $scale배에서 확인·불일치·재설정 흐름을 조작해야 한다', (tester) async {
+        tester.view.physicalSize = const Size(320, 480);
+        tester.view.devicePixelRatio = 1;
+        tester.view.padding = const FakeViewPadding(top: 32, bottom: 48);
+        tester.view.viewPadding = const FakeViewPadding(top: 32, bottom: 48);
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.view.reset);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        final repo = MockSecretPinRepository();
+        when(() => repo.setPin(any())).thenAnswer((_) async {});
+        await tester.pumpWidget(_buildHarness(mockPinRepo: repo));
+        await _openSetup(tester);
+
+        await _tapPinVisible(tester, '1234');
+        expect(find.text('PIN을 한 번 더 입력해주세요'), findsOneWidget);
+        await _tapPinVisible(tester, '1235');
+        await tester.pump(const Duration(milliseconds: 500));
+        final error = find.text('PIN이 일치하지 않습니다. 다시 입력해주세요.');
+        expect(error, findsOneWidget);
+        await tester.ensureVisible(error);
+        await tester.pumpAndSettle();
+        final errorRect = tester.getRect(error);
+        expect(errorRect.top, greaterThanOrEqualTo(32));
+        expect(errorRect.bottom, lessThanOrEqualTo(480 - 48));
+        expect(_filledDotCount(tester), 0);
+        // The error must not cover the keypad while the user retries.
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('secret_pin_content_card')),
+            matching: error,
+          ),
+          findsOneWidget,
+        );
+        for (final key in [
+          find.descendant(
+            of: find.byKey(const Key('secret_pin_keypad')),
+            matching: find.text('0'),
+          ),
+          find.byIcon(Icons.backspace_outlined),
+        ]) {
+          await tester.ensureVisible(key);
+          await tester.pumpAndSettle();
+          expect(key.hitTestable(), findsOneWidget);
+          expect(tester.getRect(key).bottom, lessThanOrEqualTo(480 - 48));
+        }
+
+        // A mismatch keeps the confirm step; one matching entry completes setup.
+        await _tapPinVisible(tester, '1234');
+        await tester.pumpAndSettle();
+        verify(() => repo.setPin(any())).called(1);
+        expect(find.text('Open Setup'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
     for (final inset in [0.0, 48.0]) {
       testWidgets('하단 인셋 $inset 에서 불필요한 스크롤 없이 중앙 정렬', (tester) async {
         tester.view.physicalSize = const Size(412, 1400);

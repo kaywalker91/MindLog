@@ -70,6 +70,75 @@ void main() {
       await tester.pump();
       expect(tester.takeException(), isNull);
     });
+    for (final scale in [1.0, 2.0]) {
+      testWidgets('작은 화면 글자 $scale배에서 실패 안내와 초기화 링크를 조작해야 한다', (tester) async {
+        tester.view.physicalSize = const Size(320, 480);
+        tester.view.devicePixelRatio = 1;
+        tester.view.padding = const FakeViewPadding(top: 32, bottom: 48);
+        tester.view.viewPadding = const FakeViewPadding(top: 32, bottom: 48);
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        addTearDown(tester.view.reset);
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        final repo = MockSecretPinRepository();
+        when(() => repo.hasPin()).thenAnswer((_) async => true);
+        when(() => repo.verifyPin(any())).thenAnswer((_) async => false);
+        await tester.pumpWidget(
+          _buildHarness(
+            overrides: [
+              verifySecretPinUseCaseProvider.overrideWithValue(
+                VerifySecretPinUseCase(repo),
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        Future<void> fail() async {
+          for (final digit in '1234'.split('')) {
+            final key = find.descendant(
+              of: find.byKey(const Key('secret_pin_keypad')),
+              matching: find.text(digit),
+            );
+            await tester.ensureVisible(key);
+            await tester.pumpAndSettle();
+            expect(key.hitTestable(), findsOneWidget);
+            expect(tester.getRect(key).bottom, lessThanOrEqualTo(480 - 48));
+            await tester.tap(key);
+            await tester.pump();
+          }
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 500));
+        }
+
+        for (var i = 0; i < 3; i++) {
+          await fail();
+        }
+        final error = find.text('PIN이 일치하지 않습니다. 아래 링크를 통해 초기화할 수 있습니다.');
+        expect(error, findsOneWidget);
+        await tester.ensureVisible(error);
+        await tester.pumpAndSettle();
+        expect(tester.getRect(error).top, greaterThanOrEqualTo(32));
+        expect(tester.getRect(error).bottom, lessThanOrEqualTo(480 - 48));
+
+        final link = find.text('비밀번호를 잊으셨나요?');
+        await tester.ensureVisible(link);
+        await tester.pumpAndSettle();
+        expect(link.hitTestable(), findsOneWidget);
+        expect(tester.getRect(link).bottom, lessThanOrEqualTo(480 - 48));
+        await tester.tap(link);
+        await tester.pumpAndSettle();
+        for (final label in ['취소', '초기화']) {
+          final button = find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text(label),
+          );
+          expect(button.hitTestable(), findsOneWidget);
+          expect(tester.getRect(button).top, greaterThanOrEqualTo(32));
+          expect(tester.getRect(button).bottom, lessThanOrEqualTo(480 - 48));
+        }
+        expect(tester.takeException(), isNull);
+      });
+    }
     for (final inset in [0.0, 48.0]) {
       testWidgets('하단 인셋 $inset 에서 불필요한 스크롤 없이 중앙 정렬', (tester) async {
         tester.view.physicalSize = const Size(412, 1400);
