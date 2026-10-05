@@ -1,5 +1,13 @@
 # 현재 작업: Android 시스템 UI — 구현 진행 후 사용자 요청으로 핸드오프 (2026-09-08)
 
+## 2026-10-05 재개순서 2 — 결합 조건 검증 (미커밋)
+
+- **결함 발견·수정: PIN 오류 SnackBar가 키패드를 가림.** 320×480(인셋 32/48)에서 1회 실패 직후 최대 스크롤에도 `0`·삭제 키 탭 불가(글자 2배는 `7` 행까지), 3회 실패 시 「아래 링크를 통해 초기화」 SnackBar(y364–480)가 그 링크(y368–389)를 4초간 덮음. 사용자 선택으로 **인라인 오류 문구**로 전환: `PinKeypadWidget.errorText`(도트 아래, `Semantics(liveRegion)`), 잠금해제 불일치/검증오류·설정 불일치/저장오류. PIN 초기화 실패는 키패드 재입력과 무관해 SnackBar 유지. 설정 화면 미사용 `_showMessage` 제거.
+  - RED 4건(메시지가 카드 밖·링크 가림) → GREEN.
+- 추가 검증: PIN 두 화면 작은화면×글자1/2 흐름(설정: 확인→불일치→재입력 완료 / 해제: 3회 실패→링크→다이얼로그 버튼 안전영역), 시트 행렬 12→24(수정 모드+긴 초기값), 가로 915×412 좌측 컷아웃 48 시트 2건·목록 1건, SnackBar 표시 중 마지막 카드 재정렬 후 여백 복원.
+- 게이트: analyze rc=0 · arch rc=0 · format 0 changed · design-audit 35건 HEAD와 동일 · **전체 1865 passed** · leakage rc=0.
+- 테스트 하네스 한계: 잠금해제 테스트는 GoRouter 없는 `MaterialApp(home:)`라 다이얼로그 `ctx.pop()` 취소 탭은 검증 불가(기존 테스트도 미탭).
+
 ## 2026-10-05 재개 — 핸드오프 재개순서 1·3 완료
 
 - **결함 발견·수정: SnackBar `GlobalKey` 중복 크래시.** `ScaffoldMessenger`는 모든 root Scaffold에 같은 SnackBar를 빌드한다(SDK `scaffold.dart` `_updateScaffolds`). 설정→Cheer Me push 시 아래 Settings Scaffold에도 빌드돼 `Multiple widgets used the same GlobalKey`. 기존 테스트는 단일 라우트라 못 잡음.
