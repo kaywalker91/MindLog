@@ -1,6 +1,16 @@
 # 현재 작업: Android 시스템 UI — 구현 진행 후 사용자 요청으로 핸드오프 (2026-09-08)
 
-## 2026-10-05 재개순서 2 — 결합 조건 검증 (미커밋)
+## 2026-10-05 재개순서 5 — Grok/Claude/agy 재리뷰 (수정 미커밋)
+
+- 라운드 `r20261005211332` (grok·claude·agy 전원 rc=0, 브랜치 전체 diff 텍스트 전용). 원본: `~/.claude/plans/harness-2026-09-01-model-rounds/r20261005211332-*.out`.
+- **채택 A (3사 공통)**: 알림 미리보기 헤더 `Wrap(spaceBetween)`이 shrink-wrap → 시각 right=198.5(기대 384) RED 재현. `SizedBox(width: infinity)`로 수정, 신규 `notification_preview_widget_test.dart`.
+- **채택 B (3사 공통)**: PIN 인라인 오류가 재입력 중에도 남음 + 동일 문구 반복 실패 시 재낭독 불확실. 첫 자리 입력 시 숨김 → 실패마다 새 live region 마운트. RED(입력 후 문구 잔존) → GREEN, `isLiveRegion` 단언 포함.
+  - 반려: `SemanticsService.announce` 추가 — SDK 문서상 deprecated, Android는 announcement 이벤트 대신 Semantics 사용 권고(`semantics_service.dart`).
+- **반려 C**: SnackBar 등장 250ms 동안 측정 0/부분값 — M3 floating은 `Align(heightFactor)`로 커지는 게 맞으나, 이 값은 스크롤 범위만 늘리고 콘텐츠를 움직이지 않아 사용자 가시 차이 없음. `onVisible`에서 전체 높이 재측정.
+- 참고 D: 일부 테스트가 상한만 단언(과잉 확보도 통과)·빈 목록 320dp·integration PIN은 약함 — 정보성 기록.
+- 게이트: analyze/arch/format 통과 · design-audit 35건 HEAD 동일 · **1868 passed** · leakage rc=0.
+
+## 2026-10-05 재개순서 2 — 결합 조건 검증 (커밋 `8febb54`)
 
 - **결함 발견·수정: PIN 오류 SnackBar가 키패드를 가림.** 320×480(인셋 32/48)에서 1회 실패 직후 최대 스크롤에도 `0`·삭제 키 탭 불가(글자 2배는 `7` 행까지), 3회 실패 시 「아래 링크를 통해 초기화」 SnackBar(y364–480)가 그 링크(y368–389)를 4초간 덮음. 사용자 선택으로 **인라인 오류 문구**로 전환: `PinKeypadWidget.errorText`(도트 아래, `Semantics(liveRegion)`), 잠금해제 불일치/검증오류·설정 불일치/저장오류. PIN 초기화 실패는 키패드 재입력과 무관해 SnackBar 유지. 설정 화면 미사용 `_showMessage` 제거.
   - RED 4건(메시지가 카드 밖·링크 가림) → GREEN.
