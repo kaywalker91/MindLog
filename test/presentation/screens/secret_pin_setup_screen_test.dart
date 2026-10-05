@@ -292,6 +292,38 @@ void main() {
       expect(_filledDotCount(tester), 0);
     });
 
+    testWidgets('불일치 문구는 재입력 시작 시 사라지고 다시 틀리면 새 live region으로 표시', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(800, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final semantics = tester.ensureSemantics();
+      final mockPinRepo = MockSecretPinRepository();
+      when(() => mockPinRepo.setPin(any())).thenAnswer((_) async {});
+      await tester.pumpWidget(_buildHarness(mockPinRepo: mockPinRepo));
+      await tester.pumpAndSettle();
+      await _openSetup(tester);
+
+      const message = 'PIN이 일치하지 않습니다. 다시 입력해주세요.';
+      await _tapPin(tester, '1234');
+      await _tapPin(tester, '1235');
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text(message), findsOneWidget);
+      expect(
+        tester.getSemantics(find.text(message)),
+        containsSemantics(label: message, isLiveRegion: true),
+      );
+
+      await _tapPin(tester, '1');
+      expect(find.text(message), findsNothing);
+
+      await _tapPin(tester, '235');
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.text(message), findsOneWidget);
+      semantics.dispose();
+    });
+
     testWidgets('확인 PIN 일치 시 저장 후 이전 화면으로 pop되어야 한다', (tester) async {
       tester.view.physicalSize = const Size(800, 2000);
       tester.view.devicePixelRatio = 1.0;

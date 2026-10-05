@@ -22,7 +22,8 @@ class PinKeypadWidget extends StatefulWidget {
   /// null이면 "비밀번호를 잊으셨나요?" 링크 미표시
   final VoidCallback? onForgotPin;
 
-  /// 도트 아래 인라인 오류 문구 (SnackBar는 작은 화면에서 키패드를 가린다)
+  /// 도트 아래 인라인 오류 문구 (SnackBar는 작은 화면에서 키패드를 가린다).
+  /// 다음 입력이 시작되면 숨긴다.
   final String? errorText;
 
   const PinKeypadWidget({
@@ -127,7 +128,9 @@ class _PinKeypadWidgetState extends State<PinKeypadWidget> {
             ],
             SizedBox(height: dotGap),
             _buildDotIndicator(),
-            if (widget.errorText != null) ...[
+            // Hide once the next attempt starts; each failure then mounts a
+            // fresh live region, so repeated identical errors are announced.
+            if (widget.errorText != null && _pin.isEmpty) ...[
               SizedBox(height: subtitleGap + 6),
               Semantics(
                 liveRegion: true,
