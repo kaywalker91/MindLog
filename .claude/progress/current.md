@@ -1,4 +1,28 @@
-# 현재 작업: 없음 — v1.4.64(일기 임시저장) 배포 완료
+# 현재 작업: Android 시스템 UI — 구현 진행 후 사용자 요청으로 핸드오프 (2026-09-08)
+
+## 2026-10-05 재개 — 핸드오프 재개순서 1·3 완료
+
+- **결함 발견·수정: SnackBar `GlobalKey` 중복 크래시.** `ScaffoldMessenger`는 모든 root Scaffold에 같은 SnackBar를 빌드한다(SDK `scaffold.dart` `_updateScaffolds`). 설정→Cheer Me push 시 아래 Settings Scaffold에도 빌드돼 `Multiple widgets used the same GlobalKey`. 기존 테스트는 단일 라우트라 못 잡음.
+  - RED: 신규 테스트 「다른 Scaffold 위로 push된 상태에서 피드백 후 뒤로 가도 예외가 없어야 한다」 rc=1(예외 4건).
+  - 수정: SnackBar 키 제거 → 화면 Scaffold에 `_scaffoldKey`, post-frame에 그 하위에서 SnackBar Element 크기 측정. 종료 판별은 토큰 객체.
+  - 돌연변이(측정값 0 고정) 시 2건 실패 → 측정 로직이 테스트로 보호됨 확인 후 원복(cmp 동일).
+- agy (a) inactive Element 우려: post-frame은 `finalizeTree` 이후라 inactive Element는 이미 unmount됨 — 위 구조 변경으로 GlobalKey 조회 자체가 사라져 해당 없음. (b) build마다 post-frame 예약은 setState가 0.5 초과 변화일 때만이라 루프 없음.
+- **quality 5단계 수동 실행**(스크립트의 format은 in-place라 `--output=none`으로 대체): analyze `--fatal-infos` rc=0 · arch-smoke strict rc=0 · format 0 changed · **design-audit rc=1, 35건 — HEAD 스냅샷도 동일 35건(파일·내용 일치) = 기존 부채, 본 브랜치 유입 0** · 전체 테스트 **1845 passed rc=0** · leakage rc=0.
+- 남은 것: 재개순서 2(PIN 확인/불일치/잠금실패 등 결합 조건), 4(Android 3버튼·실제 앱·사진 D — **에뮬레이터 데이터 보존 먼저 확인**), 5(Grok/Claude 재리뷰). 커밋·푸시 없음.
+
+**재개 시 [구현 핸드오프](../../tasks/android-system-ui-implementation-handoff-2026-09-08.md)를 먼저 읽는다.** 기존 계획의 “미착수” 기록보다 최신이다.
+
+- A/B/C 구현 및 목록 좁은 화면·SnackBar 실측 여백 보완. 앱 6파일, 기존 테스트 3파일 변경; 목록 테스트와 Android integration test 신규.
+- 관련 테스트 **89개 통과(rc=0)**. API36 제스처 integration **1개 통과(rc=0)**. 앱 전체/3버튼/실기 검증과 구분.
+- **quality 미통과(rc=1)**: integration test unnecessary_import 제거 후 재실행하지 않음. 최종 format/diff --check 통과.
+- agy/Grok/Claude 최초 검토 모두 rc=0. 최종 diff는 agy만 rc=0; Grok/Claude 응답 전 사용자 요청으로 종료(rc143). agy의 snackbar 수명 관련 의견 검증 대기, SafeArea bottom 설명은 공식/SDK 근거로 반려.
+- 사진 코드 미변경, D 계속 미확정. PIN/시트의 추가 결합 조건, 사진 가시성/대비/라이프사이클 등 남음.
+- **주의: integration APK 설치 저장공간 오류 후 Flutter CLI가 기존 에뮬레이터 앱을 자동 삭제·재설치했다. 기존 앱 데이터 유실 가능, 백업 없음. 최종 설치는 테스트 하네스 APK.** 재개 전 핸드오프 환경 변경 항목 필독.
+- 커밋·푸시 없음. 기존 계획·핸드오프·백업 파일 보존. 아래 릴리스 내용은 역사 기록.
+
+---
+
+# 이전 작업 기록 — v1.4.64(일기 임시저장) 배포 완료
 
 ## 이어받는 사람에게 (3줄 요약)
 
