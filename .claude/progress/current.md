@@ -1,4 +1,17 @@
-# 현재 작업: Android 시스템 UI — 구현 진행 후 사용자 요청으로 핸드오프 (2026-09-08)
+# 현재 작업: v1.4.65 릴리스 변경·검증 정리 (2026-10-18)
+
+**현재 요약은 [릴리스 작업 기록](../../tasks/release-1.4.65-2026-10-18.md)을 먼저 읽는다.** 사진 구현과 이전 Android 작업의 상세 기록은 아래와 각 핸드오프에 보존한다.
+
+- 사용자 요청: 미푸시 작업을 세 독자에 맞춰 CHANGELOG·GitHub Pages·update.json에 정리하고 버전업·커밋·푸시. 후속 선택으로 **main에 병합 후 푸시**를 지정했다.
+- 소스 `1.4.65+73`, update.json 최신 안내 `1.4.65`. Android 안전 영역/PIN 개선 커밋 7개와 사진 보관·텍스트 전용 분석 구현을 함께 요약했다. README·방침·명세도 현행 동작과 맞췄다.
+- 이번 `./scripts/run.sh test`: **PASS, rc=0, 1,847개**, leakage 통과. `./scripts/run.sh quality`: **FAIL, rc=1**, analyze·arch·format 통과 후 기존 디자인 35건에서 중단. HEAD 비교도 동일 35건으로 신규 위반 0건. 전체 품질 PASS로 보고하지 않는다.
+- 버전·JSON·기존 출시 안내·Pages 리소스/앵커·보호 파일 검사는 **PASS, rc=0**. Chrome 320px/데스크톱에서 카드 확인, 긴 코드 줄바꿈·글자 대비 보완. 이전 A34 검증 제품 소스 232개 해시는 현재 lib와 일치하며 이번에 실기 재실행하지 않았다.
+- Pages 게시 원본은 main:/docs, CD는 main push 사용. 커밋·푸시와 스토어 제공 상태를 구분한다. 서명/R8·Firebase·사용자 DB 업그레이드·Play 제공 상태 **UNVERIFIED**. Fastlane 출시 노트 자동 업로드는 기존처럼 비활성화 상태다.
+- 사용자 기존 `.serena/project.yml` 수정과 `.claude/settings.local.json.bak-allowwrite-20260721`은 포함/원복하지 않는다. `SafetyBlockedFailure` 및 CI/Fastlane 동작을 보존한다.
+
+---
+
+# 이전 작업: Android 시스템 UI — 구현 진행 후 사용자 요청으로 핸드오프 (2026-09-08)
 
 ## 2026-10-05 재개순서 5 — Grok/Claude/agy 재리뷰 (수정 미커밋)
 

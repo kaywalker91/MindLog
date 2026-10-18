@@ -111,9 +111,7 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
     final hasImages = _selectedImages.isNotEmpty;
     _showNetworkFeedback(
       statusType: NetworkStatusType.loading,
-      message: hasImages
-          ? 'AI가 사진과 함께 마음을 분석하고 있어요...'
-          : 'AI가 당신의 마음을 분석하고 있어요...',
+      message: 'AI가 작성한 글을 분석하고 있어요...',
     );
 
     ref

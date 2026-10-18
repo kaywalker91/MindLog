@@ -119,9 +119,10 @@ AI 응답 JSON:
 - 사용자는 AI 분석 캐릭터를 선택할 수 있다 (GetSelectedAiCharacterUseCase, SetSelectedAiCharacterUseCase)
 - 선택된 캐릭터 ID는 AnalysisResult.aiCharacterId에 저장
 
-### REQ-014: 이미지 분석 (멀티모달)
-- 일기에 이미지가 첨부된 경우 Groq Vision API로 이미지 포함 분석
-- 이미지 없으면 텍스트 전용 분석
+### REQ-014: 사진 기록과 텍스트 분석
+- 사진은 최대 5장까지 첨부·기기 저장·열람할 수 있다
+- v1.4.65부터 사진 유무와 관계없이 일기 본문만 AI 분석에 사용하며 사진·파일 경로·첨부 장수는 전송하지 않는다
+- 기존 사진·분석 결과·초안 저장 및 복원은 유지한다
 
 ### REQ-015: 안전 팔로업 알림 (Safety Followup)
 - 안전 감지 후 N시간 뒤 팔로업 알림 발송 (REQ-042와 연계)

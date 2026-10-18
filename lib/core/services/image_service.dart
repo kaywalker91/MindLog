@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -7,29 +6,11 @@ import 'package:path_provider/path_provider.dart';
 import '../constants/app_constants.dart';
 import '../errors/exceptions.dart';
 
-/// Top-level function for Isolate processing
-/// Must be outside class for compute() to work
-Future<String> _encodeToBase64InIsolate(String imagePath) async {
-  final file = File(imagePath);
-  final bytes = await file.readAsBytes();
-  final base64String = base64Encode(bytes);
-  final extension = p.extension(imagePath).toLowerCase();
-  final mimeType = switch (extension) {
-    '.png' => 'image/png',
-    '.webp' => 'image/webp',
-    '.gif' => 'image/gif',
-    '.heic' => 'image/heic',
-    _ => 'image/jpeg',
-  };
-  return 'data:$mimeType;base64,$base64String';
-}
-
 /// 이미지 처리 서비스
 ///
-/// 일기에 첨부된 이미지의 저장, 압축, 인코딩을 담당합니다.
+/// 일기에 첨부된 이미지의 로컬 저장, 압축, 읽기을 담당합니다.
 /// - 앱 디렉토리로 이미지 복사
 /// - 4MB 초과 시 자동 압축
-/// - Base64 Data URL 인코딩 (Vision API 전송용)
 /// - 일기 삭제 시 관련 이미지 정리
 class ImageService {
   const ImageService._();
@@ -132,73 +113,6 @@ class ImageService {
     }
   }
 
-  /// 이미지를 Base64 Data URL로 인코딩 (Vision API 전송용)
-  ///
-  /// [imagePath] 인코딩할 이미지 경로
-  ///
-  /// 반환: `data:image/{format};base64,{encoded_data}` 형식의 문자열
-  ///
-  /// Note: compute()로 별도 Isolate에서 실행하여 UI 스레드 블로킹 방지
-  static Future<String> encodeToBase64DataUrl(String imagePath) async {
-    try {
-      final file = File(imagePath);
-      if (!await file.exists()) {
-        throw ImageProcessingException('인코딩할 이미지 파일을 찾을 수 없습니다.');
-      }
-
-      // Isolate에서 Base64 인코딩 실행 (UI 프리징 방지)
-      return await compute(_encodeToBase64InIsolate, imagePath);
-    } catch (e) {
-      if (e is ImageProcessingException) rethrow;
-      throw ImageProcessingException('이미지 인코딩 실패: $e');
-    }
-  }
-
-  /// 여러 이미지를 Base64 Data URL 리스트로 인코딩
-  ///
-  /// [imagePaths] 인코딩할 이미지 경로 목록
-  ///
-  /// 반환: Data URL 문자열 리스트
-  ///
-  /// Note: Future.wait으로 병렬 처리하여 다중 이미지 인코딩 속도 향상
-  static Future<List<String>> encodeMultipleToBase64DataUrls(
-    List<String> imagePaths,
-  ) async {
-    // 병렬 처리로 다중 이미지 인코딩 (순차 처리 대비 ~3배 속도 향상)
-    return Future.wait(imagePaths.map((path) => encodeToBase64DataUrl(path)));
-  }
-
-  /// Vision API 전송용 단일 이미지 Base64 Data URL 인코딩
-  ///
-  /// 저장본(최대 1920px)과 별도로 API 페이로드만 768px JPEG로 축소하여
-  /// Groq 8K TPM 한도(413) 초과를 방지한다. 임시 파일은 인코딩 후 삭제한다.
-  static Future<String> encodeToBase64DataUrlForVision(String imagePath) async {
-    String? tempPath;
-    try {
-      final preparedPath = await _prepareVisionPayloadPath(imagePath);
-      if (preparedPath != imagePath) {
-        tempPath = preparedPath;
-      }
-      return await encodeToBase64DataUrl(preparedPath);
-    } catch (e) {
-      if (e is ImageProcessingException) rethrow;
-      throw ImageProcessingException('Vision API용 이미지 인코딩 실패: $e');
-    } finally {
-      if (tempPath != null) {
-        await deleteImage(tempPath);
-      }
-    }
-  }
-
-  /// Vision API 전송용 다중 이미지 Base64 Data URL 인코딩
-  static Future<List<String>> encodeMultipleForVisionApi(
-    List<String> imagePaths,
-  ) async {
-    return Future.wait(
-      imagePaths.map((path) => encodeToBase64DataUrlForVision(path)),
-    );
-  }
-
   /// 일기 관련 이미지 전체 삭제
   ///
   /// [diaryId] 일기 고유 ID
@@ -252,43 +166,6 @@ class ImageService {
   }
 
   // ===== Private Helper Methods =====
-
-  /// Vision API 전송용 임시 JPEG 생성 (원본 파일은 변경하지 않음)
-  static Future<String> _prepareVisionPayloadPath(String imagePath) async {
-    final file = File(imagePath);
-    if (!await file.exists()) {
-      throw ImageProcessingException('인코딩할 이미지 파일을 찾을 수 없습니다.');
-    }
-
-    final outPath = p.join(
-      Directory.systemTemp.path,
-      'vision_${DateTime.now().microsecondsSinceEpoch}_'
-      '${p.basenameWithoutExtension(imagePath)}.jpg',
-    );
-
-    try {
-      final compressed = await FlutterImageCompress.compressAndGetFile(
-        imagePath,
-        outPath,
-        quality: AppConstants.visionCompressQuality,
-        minWidth: AppConstants.visionImageMaxWidth,
-        minHeight: AppConstants.visionImageMaxWidth,
-        format: CompressFormat.jpeg,
-      );
-
-      // 손상·비표준 이미지는 원본 경로로 폴백 (테스트 더미 바이트 등)
-      if (compressed != null) {
-        return compressed.path;
-      }
-    } catch (e) {
-      assert(() {
-        debugPrint('Vision downscale skipped, using original: $e');
-        return true;
-      }());
-    }
-
-    return imagePath;
-  }
 
   /// 압축 파일 경로 생성
   static String _getCompressedPath(String originalPath) {

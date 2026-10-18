@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/constants/ai_character.dart';
-import '../../core/errors/exceptions.dart';
 import '../../core/errors/failures.dart';
 import '../../../domain/entities/diary.dart';
 import '../../../domain/repositories/diary_repository.dart';
@@ -50,7 +49,6 @@ class DiaryRepositoryImpl
     String diaryId, {
     required AiCharacter character,
     String? userName,
-    List<String>? imagePaths,
   }) async {
     var diaryLoaded = false;
     return guardFailureWithHook(
@@ -62,72 +60,25 @@ class DiaryRepositoryImpl
         }
         diaryLoaded = true;
 
-        // 이미지가 있으면 Vision API 사용, 없으면 텍스트 전용 API 사용
-        final effectiveImagePaths = imagePaths ?? diary.imagePaths;
-        final hasImages =
-            effectiveImagePaths != null && effectiveImagePaths.isNotEmpty;
-
-        // 캐시 키: content hash 기반 (일기 ID 무관)
-        // → 임시저장/복원/재시도/동일 내용 작성 시 cache hit
-        final cacheKey = hasImages
-            ? GroqCacheKey.forVision(
-                content: diary.content,
-                character: character,
-                imageSignatures: effectiveImagePaths,
-                userName: userName,
-              )
-            : GroqCacheKey.forText(
-                content: diary.content,
-                character: character,
-                userName: userName,
-              );
+        // 사진은 로컬 기록용이다. 첨부 여부와 관계없이 글만 분석한다.
+        final cacheKey = GroqCacheKey.forText(
+          content: diary.content,
+          character: character,
+          userName: userName,
+        );
 
         AnalysisResponseDto? analysisDto = await _readGroqCache(cacheKey);
 
         if (analysisDto == null) {
-          var cacheKeyToWrite = cacheKey;
-
-          if (hasImages) {
-            try {
-              analysisDto = await _remoteDataSource.analyzeDiaryWithImages(
-                diary.content,
-                imagePaths: effectiveImagePaths,
-                character: character,
-                userName: userName,
-              );
-            } on ApiException catch (e) {
-              // 413 TPM / 429 RPM — 사진은 저장, 분석은 텍스트만 반영
-              if (e.statusCode == 413 || e.statusCode == 429) {
-                assert(() {
-                  debugPrint('Vision API 실패(${e.statusCode}) — 텍스트 분석으로 폴백');
-                  return true;
-                }());
-                cacheKeyToWrite = GroqCacheKey.forText(
-                  content: diary.content,
-                  character: character,
-                  userName: userName,
-                );
-                analysisDto = await _readGroqCache(cacheKeyToWrite);
-                analysisDto ??= await _remoteDataSource.analyzeDiary(
-                  diary.content,
-                  character: character,
-                  userName: userName,
-                );
-              } else {
-                rethrow;
-              }
-            }
-          } else {
-            analysisDto = await _remoteDataSource.analyzeDiary(
-              diary.content,
-              character: character,
-              userName: userName,
-            );
-          }
+          analysisDto = await _remoteDataSource.analyzeDiary(
+            diary.content,
+            character: character,
+            userName: userName,
+          );
 
           // 안전: is_emergency=true 응답은 캐시하지 않음 (위기 감지는 매번 재평가)
           if (!analysisDto.isEmergency) {
-            await _writeGroqCache(cacheKeyToWrite, analysisDto);
+            await _writeGroqCache(cacheKey, analysisDto);
           }
         }
 

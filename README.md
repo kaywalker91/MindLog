@@ -34,19 +34,29 @@
 - 💬 **Empathetic AI Characters** — Personalized comfort messages from AI companions
 - 🌱 **Emotion Calendar** — Visualize your emotional journey as growing plants
 - 📊 **Statistics & Trends** — Emotion charts, keyword analysis, and weekly insights
-- 📸 **Image Analysis** — Detect emotions in photos via Vision API
+- 📸 **Photo Attachments** — Keep up to 5 photos with your diary; AI analyzes only the written text (v1.4.65+)
 - 🔔 **Smart Notifications** — Morning encouragement & evening care across 2 channels
 - 🔒 **Privacy-First** — No account, no cloud sync. Entries live on your device and go out only for the AI analysis itself.
 
 ---
 
-## Recent Updates (v1.4.64)
+## Recent Updates (v1.4.65)
+
+Source release notes; Play Store availability is tracked separately.
+
+- 📸 **Photos stay local** — keep up to 5 photos while AI analyzes only your entry text; removes the failing Vision model dependency
+- 📱 **Android layout fixes** — keep Cheer Me cards and controls clear of system bars, the keyboard, and feedback messages
+- 🔒 **PIN feedback** — inline errors leave the keypad and reset link accessible; errors clear when typing resumes
+- 🧪 **1,847 tests passing** — includes photo preservation and text-only HTTP payload checks for 0, 1, and 5 photos
+- ⚠️ **Quality status** — analysis, architecture, and formatting pass; the full quality gate fails on 35 existing design audit findings
+
+### Previous release (v1.4.64)
 
 - ✅ **1,814 tests** passing — the test suite is roughly the size of the production code
 - 📝 **Diary auto-save** — in-progress entries and attached photos now survive backgrounding, back-press, and process death; restored via a banner, kept for 7 days
 - ☎️ **Crisis hotline unified to 109** — Korea merged its suicide-prevention line in Jan 2024; all 6 call sites now match
 - 🔐 **Removed unauthenticated admin endpoints** — 3 public Cloud Functions HTTP handlers deleted (they could push to every topic subscriber)
-- 🖼️ **Groq Vision rate-limit handling** — one downscaled image per request, with text-only fallback when the token budget is exceeded
+- 🖼️ **Earlier Vision rate-limit handling** — one downscaled image with text fallback (replaced by text-only analysis in v1.4.65)
 
 <details>
 <summary>Previous Updates (v1.4.60 – v1.4.63)</summary>
@@ -79,7 +89,7 @@
 | Item | Policy |
 |------|--------|
 | Storage | Local SQLite on your device — no account, no cloud sync |
-| AI Analysis | Your entry text, plus one attached photo, is sent to the Groq API (US) to be analyzed. No name, email, or account is attached. |
+| AI Analysis | In v1.4.65+, your entry text and optional name are sent to the Groq API (US). Attached photos stay out of AI requests. Earlier versions may send one attached photo. |
 | Analytics | Firebase receives the emotion score, energy level, and the first 50 characters of the action suggestion — never the entry itself. |
 | Deletion | Instant full deletion from Settings |
 
@@ -97,7 +107,6 @@ See [Privacy Policy](docs/legal/privacy-policy.md) for details.
 | Firebase | Analytics, Crashlytics, FCM | 3.8.0+ |
 | Routing | go_router | 17.0.1 |
 | AI (text) | Groq API | openai/gpt-oss-120b |
-| AI (vision) | Groq API | qwen/qwen3.6-27b |
 | Charts | fl_chart | 0.68.0 |
 
 ---

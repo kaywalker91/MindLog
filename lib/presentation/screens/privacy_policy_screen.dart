@@ -135,7 +135,7 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '시행일: 2025년 12월 18일',
+                    '적용: v1.4.65 제공일부터',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: headerFg,
                       fontWeight: FontWeight.w600,

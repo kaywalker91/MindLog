@@ -554,61 +554,6 @@ void main() {
       });
     });
 
-    group('analyzeDiary - Vision 실패 시 텍스트 폴백', () {
-      setUp(muteDebugPrint);
-      tearDown(restoreDebugPrint);
-
-      test('Vision 413 실패 시 텍스트 분석으로 폴백해야 한다', () async {
-        final diary = Diary(
-          id: 'vision-fallback-413',
-          content: '사진이 있는 일기 내용입니다.',
-          createdAt: DateTime.now(),
-          status: DiaryStatus.pending,
-          imagePaths: const ['/tmp/photo.jpg'],
-        );
-        mockLocalDataSource.addDiary(diary);
-        mockRemoteDataSource.visionShouldThrow = true;
-        mockRemoteDataSource.visionException = ApiException(
-          message: '요청이 너무 큽니다.',
-          statusCode: 413,
-        );
-
-        final result = await repository.analyzeDiary(
-          'vision-fallback-413',
-          character: AiCharacter.warmCounselor,
-        );
-
-        expect(result.status, DiaryStatus.analyzed);
-        expect(mockRemoteDataSource.visionRequests.length, 1);
-        expect(mockRemoteDataSource.analyzeRequests.length, 1);
-      });
-
-      test('Vision 429 실패 시 텍스트 분석으로 폴백해야 한다', () async {
-        final diary = Diary(
-          id: 'vision-fallback-429',
-          content: '사진이 있는 일기 내용입니다.',
-          createdAt: DateTime.now(),
-          status: DiaryStatus.pending,
-          imagePaths: const ['/tmp/photo.jpg'],
-        );
-        mockLocalDataSource.addDiary(diary);
-        mockRemoteDataSource.visionShouldThrow = true;
-        mockRemoteDataSource.visionException = ApiException(
-          message: '요청 제한을 초과했습니다.',
-          statusCode: 429,
-        );
-
-        final result = await repository.analyzeDiary(
-          'vision-fallback-429',
-          character: AiCharacter.warmCounselor,
-        );
-
-        expect(result.status, DiaryStatus.analyzed);
-        expect(mockRemoteDataSource.visionRequests.length, 1);
-        expect(mockRemoteDataSource.analyzeRequests.length, 1);
-      });
-    });
-
     // ── P0-2: Groq 응답 캐싱 ────────────────────────────────────
     group('analyzeDiary - Groq 응답 캐싱', () {
       setUp(muteDebugPrint);
@@ -774,20 +719,20 @@ void main() {
         expect(mockLocalDataSource.groqCacheSize, 0);
       });
 
-      test('Vision 분석(이미지 포함)도 동일 imagePaths 시 cache hit', () async {
+      test('사진 순서가 달라도 동일한 글은 텍스트 cache hit', () async {
         final diary1 = Diary(
           id: 'cache-6a',
-          content: '비전 캐싱',
+          content: '사진 기록 캐싱',
           createdAt: DateTime.now(),
           status: DiaryStatus.pending,
           imagePaths: ['/img/a.jpg', '/img/b.jpg'],
         );
         final diary2 = Diary(
           id: 'cache-6b',
-          content: '비전 캐싱',
+          content: '사진 기록 캐싱',
           createdAt: DateTime.now(),
           status: DiaryStatus.pending,
-          // 순서 다름 — 키 정렬 후 동일해야 함
+          // 사진 순서가 바뀌어도 텍스트 캐시는 같다
           imagePaths: ['/img/b.jpg', '/img/a.jpg'],
         );
         mockLocalDataSource.addDiary(diary1);
@@ -802,7 +747,7 @@ void main() {
           character: AiCharacter.warmCounselor,
         );
 
-        expect(mockRemoteDataSource.visionRequests.length, 1);
+        expect(mockRemoteDataSource.analyzeRequests.length, 1);
         expect(mockRemoteDataSource.callCount, 1);
       });
 

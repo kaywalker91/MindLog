@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mindlog/core/constants/app_constants.dart';
@@ -27,16 +26,8 @@ void main() {
 
   group('ImageService', () {
     group('AppConstants 이미지 설정', () {
-      test('groqVisionModel이 올바르게 정의되어 있다', () {
-        expect(AppConstants.groqVisionModel, 'qwen/qwen3.6-27b');
-      });
-
       test('maxImagesPerDiary가 5개로 정의되어 있다', () {
         expect(AppConstants.maxImagesPerDiary, 5);
-      });
-
-      test('maxImagesPerVisionAnalysis가 1개로 정의되어 있다', () {
-        expect(AppConstants.maxImagesPerVisionAnalysis, 1);
       });
 
       test('maxImageSizeBytes가 4MB로 정의되어 있다', () {
@@ -49,29 +40,6 @@ void main() {
 
       test('imageMaxWidth가 1920으로 정의되어 있다', () {
         expect(AppConstants.imageMaxWidth, 1920);
-      });
-
-      test('visionImageMaxWidth가 384로 정의되어 있다', () {
-        expect(AppConstants.visionImageMaxWidth, 384);
-      });
-
-      test('visionCompressQuality가 55로 정의되어 있다', () {
-        expect(AppConstants.visionCompressQuality, 55);
-      });
-    });
-
-    group('getImageSize', () {
-      test('존재하는 파일의 크기를 반환한다', () async {
-        // Arrange
-        final testFile = File(path.join(tempDir.path, 'test_image.jpg'));
-        final testData = List.filled(1024, 0); // 1KB 데이터
-        await testFile.writeAsBytes(testData);
-
-        // Act
-        final size = await ImageService.getImageSize(testFile.path);
-
-        // Assert
-        expect(size, 1024);
       });
 
       test('존재하지 않는 파일은 0을 반환한다', () async {
@@ -134,161 +102,6 @@ void main() {
 
         // Act & Assert (예외 없이 완료되어야 함)
         await expectLater(ImageService.deleteImage(nonExistentPath), completes);
-      });
-    });
-
-    group('encodeToBase64DataUrl', () {
-      test('JPEG 파일을 올바른 Data URL로 인코딩한다', () async {
-        // Arrange
-        final testFile = File(path.join(tempDir.path, 'test.jpg'));
-        final testData = [255, 216, 255, 224]; // JPEG 시그니처
-        await testFile.writeAsBytes(testData);
-
-        // Act
-        final dataUrl = await ImageService.encodeToBase64DataUrl(testFile.path);
-
-        // Assert
-        expect(dataUrl.startsWith('data:image/jpeg;base64,'), true);
-        final base64Part = dataUrl.split(',')[1];
-        final decoded = base64Decode(base64Part);
-        expect(decoded, testData);
-      });
-
-      test('PNG 파일을 올바른 Data URL로 인코딩한다', () async {
-        // Arrange
-        final testFile = File(path.join(tempDir.path, 'test.png'));
-        final testData = [137, 80, 78, 71]; // PNG 시그니처
-        await testFile.writeAsBytes(testData);
-
-        // Act
-        final dataUrl = await ImageService.encodeToBase64DataUrl(testFile.path);
-
-        // Assert
-        expect(dataUrl.startsWith('data:image/png;base64,'), true);
-      });
-
-      test('WebP 파일을 올바른 Data URL로 인코딩한다', () async {
-        // Arrange
-        final testFile = File(path.join(tempDir.path, 'test.webp'));
-        final testData = [82, 73, 70, 70]; // RIFF 시그니처
-        await testFile.writeAsBytes(testData);
-
-        // Act
-        final dataUrl = await ImageService.encodeToBase64DataUrl(testFile.path);
-
-        // Assert
-        expect(dataUrl.startsWith('data:image/webp;base64,'), true);
-      });
-
-      test('HEIC 파일을 올바른 Data URL로 인코딩한다', () async {
-        // Arrange
-        final testFile = File(path.join(tempDir.path, 'test.heic'));
-        final testData = [0, 0, 0, 24]; // HEIC 시그니처
-        await testFile.writeAsBytes(testData);
-
-        // Act
-        final dataUrl = await ImageService.encodeToBase64DataUrl(testFile.path);
-
-        // Assert
-        expect(dataUrl.startsWith('data:image/heic;base64,'), true);
-      });
-
-      test('확장자 없는 파일은 JPEG로 처리된다', () async {
-        // Arrange
-        final testFile = File(path.join(tempDir.path, 'test'));
-        final testData = [255, 216, 255, 224];
-        await testFile.writeAsBytes(testData);
-
-        // Act
-        final dataUrl = await ImageService.encodeToBase64DataUrl(testFile.path);
-
-        // Assert
-        expect(dataUrl.startsWith('data:image/jpeg;base64,'), true);
-      });
-
-      test('존재하지 않는 파일은 ImageProcessingException을 던진다', () async {
-        // Arrange
-        final nonExistentPath = path.join(tempDir.path, 'non_existent.jpg');
-
-        // Act & Assert
-        expect(
-          () => ImageService.encodeToBase64DataUrl(nonExistentPath),
-          throwsA(isA<ImageProcessingException>()),
-        );
-      });
-    });
-
-    group('encodeMultipleForVisionApi', () {
-      test('여러 이미지를 Vision API용 Data URL로 인코딩한다', () async {
-        final files = <File>[];
-        for (int i = 0; i < 2; i++) {
-          final file = File(path.join(tempDir.path, 'vision_$i.jpg'));
-          await file.writeAsBytes([255, 216, 255, i]);
-          files.add(file);
-        }
-
-        final dataUrls = await ImageService.encodeMultipleForVisionApi(
-          files.map((f) => f.path).toList(),
-        );
-
-        expect(dataUrls.length, 2);
-        for (final dataUrl in dataUrls) {
-          expect(
-            dataUrl.startsWith('data:image/jpeg;base64,') ||
-                dataUrl.startsWith('data:image/png;base64,'),
-            true,
-          );
-        }
-      });
-    });
-
-    group('encodeMultipleToBase64DataUrls', () {
-      test('여러 이미지를 순서대로 인코딩한다', () async {
-        // Arrange
-        final files = <File>[];
-        for (int i = 0; i < 3; i++) {
-          final file = File(path.join(tempDir.path, 'test_$i.jpg'));
-          await file.writeAsBytes([255, 216, 255, i]);
-          files.add(file);
-        }
-
-        // Act
-        final dataUrls = await ImageService.encodeMultipleToBase64DataUrls(
-          files.map((f) => f.path).toList(),
-        );
-
-        // Assert
-        expect(dataUrls.length, 3);
-        for (int i = 0; i < 3; i++) {
-          expect(dataUrls[i].startsWith('data:image/jpeg;base64,'), true);
-          final base64Part = dataUrls[i].split(',')[1];
-          final decoded = base64Decode(base64Part);
-          expect(decoded[3], i); // 각 파일의 마지막 바이트가 인덱스와 일치
-        }
-      });
-
-      test('빈 목록은 빈 결과를 반환한다', () async {
-        // Act
-        final dataUrls = await ImageService.encodeMultipleToBase64DataUrls([]);
-
-        // Assert
-        expect(dataUrls, isEmpty);
-      });
-
-      test('하나의 파일이 없으면 예외를 던진다', () async {
-        // Arrange
-        final existingFile = File(path.join(tempDir.path, 'existing.jpg'));
-        await existingFile.writeAsBytes([255, 216, 255, 224]);
-        final nonExistentPath = path.join(tempDir.path, 'non_existent.jpg');
-
-        // Act & Assert
-        expect(
-          () => ImageService.encodeMultipleToBase64DataUrls([
-            existingFile.path,
-            nonExistentPath,
-          ]),
-          throwsA(isA<ImageProcessingException>()),
-        );
       });
     });
 

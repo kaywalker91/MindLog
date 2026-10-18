@@ -347,7 +347,8 @@ void main() {
       await pumpDiaryScreen(tester);
 
       expect(_textOf(tester), _restoredContent);
-      expect(find.textContaining('첨부 2장'), findsOneWidget);
+      expect(find.text('2/5'), findsOneWidget);
+      expect(find.text('사진은 기록용으로 보관되며, AI는 작성한 글만 분석해요.'), findsOneWidget);
     });
 
     testWidgets('i: 디바운스 만료 전 백그라운드 전환에도 초안이 즉시 저장되어야 한다', (tester) async {

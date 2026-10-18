@@ -48,7 +48,6 @@ void main() {
         any(),
         character: any(named: 'character'),
         userName: any(named: 'userName'),
-        imagePaths: any(named: 'imagePaths'),
       ),
     ).thenAnswer(
       (inv) async =>
@@ -260,7 +259,6 @@ void main() {
             any(),
             character: any(named: 'character'),
             userName: any(named: 'userName'),
-            imagePaths: any(named: 'imagePaths'),
           ),
         ).thenThrow(const Failure.api(message: 'API Error'));
 

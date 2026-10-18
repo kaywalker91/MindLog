@@ -5,6 +5,17 @@ import 'package:mindlog/data/datasources/local/groq_cache_key.dart';
 void main() {
   group('GroqCacheKey', () {
     group('forText', () {
+      test('사진 분석 종료 후에도 기존 텍스트 캐시 키를 유지한다', () {
+        expect(
+          GroqCacheKey.forText(
+            content: '오늘은 좋은 하루였다.',
+            character: AiCharacter.warmCounselor,
+            userName: '서연',
+          ),
+          '5201003737a013c85a22809f5d44209f17c794dc4f1437ff74b547a54422bc1a',
+        );
+      });
+
       test('동일한 입력은 동일한 키를 생성해야 한다', () {
         final a = GroqCacheKey.forText(
           content: '오늘은 좋은 하루였다.',
@@ -76,49 +87,6 @@ void main() {
         );
         expect(key.length, 64);
         expect(RegExp(r'^[0-9a-f]+$').hasMatch(key), isTrue);
-      });
-    });
-
-    group('forVision', () {
-      test('imageSignatures 순서는 결과 키에 영향이 없어야 한다', () {
-        final a = GroqCacheKey.forVision(
-          content: '내용',
-          character: AiCharacter.warmCounselor,
-          imageSignatures: ['hash_a', 'hash_b', 'hash_c'],
-        );
-        final b = GroqCacheKey.forVision(
-          content: '내용',
-          character: AiCharacter.warmCounselor,
-          imageSignatures: ['hash_c', 'hash_a', 'hash_b'],
-        );
-        expect(a, equals(b));
-      });
-
-      test('imageSignatures가 다르면 다른 키를 만들어야 한다', () {
-        final a = GroqCacheKey.forVision(
-          content: '내용',
-          character: AiCharacter.warmCounselor,
-          imageSignatures: ['hash_1'],
-        );
-        final b = GroqCacheKey.forVision(
-          content: '내용',
-          character: AiCharacter.warmCounselor,
-          imageSignatures: ['hash_2'],
-        );
-        expect(a, isNot(equals(b)));
-      });
-
-      test('forText 키와 forVision 키는 달라야 한다 (model 다름)', () {
-        final text = GroqCacheKey.forText(
-          content: '내용',
-          character: AiCharacter.warmCounselor,
-        );
-        final vision = GroqCacheKey.forVision(
-          content: '내용',
-          character: AiCharacter.warmCounselor,
-          imageSignatures: const [],
-        );
-        expect(text, isNot(equals(vision)));
       });
     });
   });

@@ -19,12 +19,11 @@ abstract class DiaryRepository {
   /// [diaryId] 분석할 일기 ID
   /// [character] AI 캐릭터
   /// [userName] 사용자 이름 (선택)
-  /// [imagePaths] 분석에 포함할 이미지 경로 목록 (선택 - Vision API 사용)
+  /// 첨부 사진은 로컬에 보관하고, 일기 본문만 AI 분석에 사용합니다.
   Future<Diary> analyzeDiary(
     String diaryId, {
     required AiCharacter character,
     String? userName,
-    List<String>? imagePaths,
   });
 
   /// 일기 전체 업데이트 (상태 및 분석 결과 포함)

@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.65] - 2026-10-18
+
+> **사진은 기록으로 보관하고 AI는 글만 분석하도록 전환. Android 안전 영역과 PIN 오류 피드백도 개선.**
+> `origin/main` 이후 Android UI 개선 커밋 7개와 사진 분석 경로의 로컬 변경을 함께 정리한 릴리스다. 앱 버전은 `1.4.64+72` → `1.4.65+73`.
+
+### Changed
+
+- **사진 저장과 AI 분석의 책임 분리**:
+  - 기존 사진 분석 모델 `qwen/qwen3.6-27b`에서 HTTP 404 / `model_not_found`가 관측되던 경로를 제거했다. 사진 첨부 여부와 관계없이 `openai/gpt-oss-120b`의 텍스트 분석을 사용한다.
+  - `DiaryRepository.analyzeDiary()`와 구현체에서 `imagePaths` 인자를 제거했다. `AnalyzeDiaryUseCase.execute()`의 사진 인자는 로컬 복사·저장을 위해 유지하며, 분석 요청에는 본문·캐릭터·선택한 이름만 전달한다. 사진 바이트·파일 경로·첨부 장수는 HTTP payload에 넣지 않는다.
+  - 일기당 사진 최대 5장, 저장용 압축, 앱 전용 폴더 복사, 초안 복원, 갤러리·전체화면 열람을 유지한다. 기존 사진·분석 결과를 읽는 동작은 데이터를 수정하거나 재분석하지 않는다.
+- **텍스트 캐시로 분석 경로 통합**:
+  - 첨부 유무와 관계없이 `GroqCacheKey.forText()`를 사용해 같은 본문·캐릭터·이름의 결과를 재사용한다. 사진만 달라져도 별도 API 호출이 필요하지 않다.
+  - 기존 텍스트 캐시 직렬화와 `PromptConstants.version=v1`을 유지한다. 과거 Vision 캐시는 새 분석에서 사용하지 않으며 일괄 삭제하지도 않는다. DB 스키마는 8로 유지한다.
+  - `is_emergency=true` 응답의 캐시 제외 정책을 유지한다. `SafetyBlockedFailure`와 위기 대응 계약은 변경하지 않았다.
+- **사용자 안내와 공개 설명 정합성**:
+  - 사진 선택 영역과 분석 로딩 문구를 “사진은 기록용, 분석은 글만”으로 통일했다.
+  - 앱 내 방침 asset, 공개 개인정보 처리방침 HTML/Markdown, README, 명세·계획의 현행 동작을 갱신했다. 사진 미전송은 v1.4.65 제공일부터 적용하며 이전 버전·과거 전송 이력에는 소급하지 않는다. 설정한 이름 또는 애칭의 전송도 명시했다.
+  - `docs/update.json`은 사용자용 출시 안내, GitHub Pages는 문제·해결·검증 중심의 채용담당자용 설명으로 작성했다. 최소 지원 버전과 강제 업데이트 정책은 유지한다. Pages 업데이트 카드의 본문·태그 대비를 높이고 작은 화면의 긴 코드 줄 넘침을 수정했다.
+
+### Fixed
+
+- **Cheer Me 목록의 시스템 바·FAB·SnackBar 가림**:
+  - 화면 본문에 `SafeArea(top: false)`를 적용하고 FAB 표시 조건과 목록 하단 여백을 같은 기준으로 계산한다. SnackBar의 실제 높이를 추가로 확보하고 종료 시 여백을 복원해 마지막 카드도 조작할 수 있게 했다.
+  - `ScaffoldMessenger`가 여러 root Scaffold에 같은 SnackBar를 표시하는 환경에서 `GlobalKey`가 중복되던 크래시를 수정했다. 키는 화면의 Scaffold에 두고 해당 화면 안의 SnackBar를 post-frame에 측정한다. 피드백 교체·화면 이탈은 토큰으로 구분한다.
+  - 좁은 화면과 글자 크기 2배에서 FAB 라벨을 줄이고 안내·메타정보를 `Flexible`/`Wrap`으로 배치했다. 알림 미리보기 헤더에는 전체 폭 제약을 줘 시간 표시의 우측 정렬을 복구했다.
+- **응원 메시지 입력 시트와 PIN 화면의 인셋 계산**: 시트에 `useSafeArea: true`를 적용하고 기존 키보드 여백을 유지한다. PIN 설정·잠금해제 화면은 실제 content padding을 최소 높이 계산에 반영해 불필요한 스크롤과 하단 잘림을 줄였다.
+- **PIN 오류 피드백**: 작은 화면에서 키패드·초기화 링크를 덮던 SnackBar를 키패드 도트 아래 인라인 오류로 바꿨다. `Semantics(liveRegion: true)`로 오류를 알리고 다음 입력 시작 시 숨겨 반복 실패에도 새 오류 영역이 만들어지게 했다.
+
+### Removed
+
+- Vision 전용 모델·이미지 전송 상수, `analyzeDiaryWithImages()`, Vision 프롬프트·캐시 키, 전송용 Base64 인코딩·다운스케일과 413/429 전용 폴백 분기를 제거했다. 로컬 사진 저장에 필요한 처리는 유지한다.
+- Vision 전용 프롬프트 테스트와 에뮬레이터 스모크를 제거하고 텍스트 HTTP 계약·사진 보존 회귀 검사로 대체했다.
+
+### Tests & Verification
+
+- `diary_text_only_analysis_test.dart`: 사진 0/1/5장과 실제 Repository→RemoteDataSource의 최종 HTTP body를 검사한다. 문자열 메시지·정확한 payload 구조·사진 바이트/경로 부재, 사진별 텍스트 캐시 재사용, 실패 후 재시도, 없는 사진 파일, 기존 분석 결과 보존, 과거 Vision 캐시 분리, 위기 응답 캐시 제외를 검증한다.
+- `diary_photo_text_analysis_smoke_test.dart`: 실제 Android SQLite 플러그인과 파일 저장을 사용하고 HTTP만 mock 처리해 사진 0/1/5장 계약을 검사하도록 구성했다.
+- Android UI 회귀 테스트: 작은 화면·글자 크기 2배·측면 인셋·시트 수정 모드·SnackBar 도중 재정렬·설정 화면 위로 push 후 복귀·PIN 오류 직후 탭 가능 여부·미리보기 정렬을 추가했다.
+- 이전 Galaxy A34 검증은 별도 debug 패키지에서 합성 사진 1/5장과 실제 Groq HTTP 200, 결과·사진 보존·뷰어 왕복을 확인한 기록이다. 이번 릴리스 문서 작업에서 실기 검증을 새로 실행한 것은 아니다. 상세 조건은 [실기 검증 기록](tasks/photo-text-analysis-a34-verification-2026-10-18.md)을 따른다.
+- 이번 작업의 `./scripts/run.sh quality`는 **FAIL, rc=1**: 정적 분석·strict 아키텍처·포맷 통과 후 기존 디자인 감사 35건에서 중단했다. 전체 품질 PASS로 간주하지 않는다. `./scripts/run.sh test`는 **PASS, rc=0, 1,847개**, 테스트 로그 누수 검사도 통과했다. 문서·보존 검사 상세는 [릴리스 작업 기록](tasks/release-1.4.65-2026-10-18.md)에 남긴다.
+- 배포 서명/R8 release 빌드, Firebase 부트스트랩, 실제 사용자 DB 업그레이드, Play Store 제공 상태는 **UNVERIFIED**다. 커밋·푸시는 스토어 배포 완료를 의미하지 않는다.
+
+---
+
 ## [1.4.64] - 2026-08-28
 
 > **작성 도중 앱을 벗어나면 글이 통째로 사라지던 구간을 없앴다 — 제출 이전(pre-submit) 자동 임시저장 도입.**

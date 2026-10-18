@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/constants/ai_character.dart';
-import '../../../core/services/image_service.dart';
 import '../../dto/analysis_response_dto.dart';
 import '../../dto/analysis_response_parser.dart';
 import '../../../core/constants/app_constants.dart';
@@ -24,15 +23,10 @@ class GroqRemoteDataSource {
 
   /// 응답 파싱을 별도 isolate로 오프로드하는 임계치 (UTF-16 code units)
   ///
-  /// Vision 응답(1500토큰, ~4KB+)에서 메인 isolate jank를 방지하기 위한 분기.
+  /// 큰 분석 응답(~4KB+)에서 메인 isolate jank를 방지하기 위한 분기.
   /// 이하 응답은 isolate spawn 비용이 더 크므로 메인에서 직접 파싱한다.
   @visibleForTesting
   static const int isolateParsingThresholdChars = 4096;
-
-  /// Vision API 전송 이미지 상한 — [AppConstants.maxImagesPerVisionAnalysis] 위임
-  @visibleForTesting
-  static int get maxImagesPerVisionRequest =>
-      AppConstants.maxImagesPerVisionAnalysis;
 
   final String _apiKey;
   final String _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
@@ -122,217 +116,6 @@ class GroqRemoteDataSource {
       }
     }
     throw NetworkException('알 수 없는 네트워크 오류가 발생했습니다.');
-  }
-
-  /// 이미지가 포함된 일기 분석 (Vision API 사용)
-  ///
-  /// [content] 일기 텍스트 내용
-  /// [imagePaths] 첨부된 이미지 경로 목록
-  /// [character] AI 캐릭터
-  /// [userName] 사용자 이름 (선택)
-  Future<AnalysisResponseDto> analyzeDiaryWithImages(
-    String content, {
-    required List<String> imagePaths,
-    required AiCharacter character,
-    String? userName,
-  }) async {
-    if (_circuitBreaker != null) {
-      return _circuitBreaker.run(
-        () => _analyzeDiaryWithImagesRetry(
-          content,
-          imagePaths: imagePaths,
-          character: character,
-          userName: userName,
-        ),
-      );
-    }
-    return _analyzeDiaryWithImagesRetry(
-      content,
-      imagePaths: imagePaths,
-      character: character,
-      userName: userName,
-    );
-  }
-
-  /// 이미지 포함 분석 (재시도 로직)
-  Future<AnalysisResponseDto> _analyzeDiaryWithImagesRetry(
-    String content, {
-    required List<String> imagePaths,
-    required AiCharacter character,
-    String? userName,
-  }) async {
-    int attempt = 0;
-    Duration currentDelay = _initialDelay;
-
-    while (attempt < _maxRetries) {
-      try {
-        return await _analyzeDiaryWithImagesOnce(
-          content,
-          imagePaths: imagePaths,
-          character: character,
-          userName: userName,
-        );
-      } on SocketException catch (e) {
-        attempt++;
-        if (attempt >= _maxRetries) {
-          throw NetworkException('네트워크 연결에 실패했습니다. ($_maxRetries번 재시도): $e');
-        }
-        _printRetryMessage(attempt, '네트워크 연결 오류', currentDelay);
-        await _sleep(currentDelay);
-        currentDelay = _calculateNextDelay(currentDelay);
-      } on TimeoutException catch (e) {
-        attempt++;
-        if (attempt >= _maxRetries) {
-          throw NetworkException('요청 시간이 초과되었습니다. ($_maxRetries번 재시도): $e');
-        }
-        _printRetryMessage(attempt, '요청 시간 초과', currentDelay);
-        await _sleep(currentDelay);
-        currentDelay = _calculateNextDelay(currentDelay);
-      } on RateLimitException catch (e) {
-        attempt++;
-        if (attempt >= _maxRetries) {
-          throw ApiException(message: e.message, statusCode: 429);
-        }
-        final retryDelay = e.retryAfter ?? currentDelay;
-        _printRetryMessage(attempt, '요청 제한(Rate Limit)', retryDelay);
-        await _sleep(retryDelay);
-        currentDelay = _calculateNextDelay(retryDelay);
-        continue;
-      } on ApiException {
-        rethrow;
-      } catch (e) {
-        rethrow;
-      }
-    }
-    throw NetworkException('알 수 없는 네트워크 오류가 발생했습니다.');
-  }
-
-  /// 이미지 포함 단일 분석 실행 (Vision API)
-  Future<AnalysisResponseDto> _analyzeDiaryWithImagesOnce(
-    String content, {
-    required List<String> imagePaths,
-    required AiCharacter character,
-    String? userName,
-  }) async {
-    if (_apiKey.isEmpty) {
-      throw ApiException(
-        message:
-            'API 키가 설정되지 않았습니다. '
-            '--dart-define=GROQ_API_KEY=... 또는 ./scripts/run.sh로 주입해주세요.',
-      );
-    }
-
-    // Groq 8K TPM — 복수 이미지 시 413. 저장(5장)과 별도로 대표 1장만 전송.
-    final visionImagePaths = imagePaths.length > maxImagesPerVisionRequest
-        ? imagePaths.sublist(0, maxImagesPerVisionRequest)
-        : imagePaths;
-
-    try {
-      final prompt = PromptConstants.createAnalysisPromptWithImages(
-        content,
-        attachedImageCount: imagePaths.length,
-        analyzedImageCount: visionImagePaths.length,
-        character: character,
-        userName: userName,
-      );
-
-      // Vision API 전송용 다운스케일 후 Base64 인코딩 (8K TPM 413 방지)
-      final imageDataUrls = await ImageService.encodeMultipleForVisionApi(
-        visionImagePaths,
-      );
-
-      // Vision API 메시지 구성
-      final userContent = <Map<String, dynamic>>[
-        {'type': 'text', 'text': prompt},
-        ...imageDataUrls.map(
-          (dataUrl) => {
-            'type': 'image_url',
-            'image_url': {'url': dataUrl},
-          },
-        ),
-      ];
-
-      final response = await _client
-          .post(
-            Uri.parse(_baseUrl),
-            headers: {
-              'Authorization': 'Bearer $_apiKey',
-              'Content-Type': 'application/json',
-            },
-            body: jsonEncode({
-              'model': AppConstants.groqVisionModel,
-              'messages': [
-                {
-                  'role': 'system',
-                  'content': PromptConstants.systemInstructionForVision(
-                    character,
-                  ),
-                },
-                {'role': 'user', 'content': userContent},
-              ],
-              'temperature': 0.7,
-              'max_completion_tokens': 2048,
-              // qwen3.6은 기본 thinking 모드 — 추론 토큰이 completion 예산을
-              // 소진해 json_object 검증 실패(400 json_validate_failed) 방지
-              'reasoning_effort': 'none',
-              'response_format': {'type': 'json_object'},
-            }),
-          )
-          .timeout(_httpTimeout);
-
-      if (response.statusCode != 200) {
-        if (response.statusCode == 429) {
-          final retryAfter = _parseRetryAfterHeader(
-            response.headers['retry-after'],
-          );
-          throw RateLimitException(
-            message: _sanitizeErrorMessage(429),
-            retryAfter: retryAfter,
-          );
-        }
-
-        final errorMessage = _sanitizeErrorMessage(response.statusCode);
-        throw ApiException(
-          message: errorMessage,
-          statusCode: response.statusCode,
-        );
-      }
-
-      final data =
-          jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
-      final choices = data['choices'] as List<dynamic>?;
-      if (choices == null || choices.isEmpty) {
-        throw ApiException(message: 'Groq Vision API 응답이 비어있습니다.');
-      }
-
-      final choice = choices[0] as Map<String, dynamic>;
-      final message = choice['message'] as Map<String, dynamic>;
-      final messageContent = message['content'] as String;
-
-      try {
-        final jsonResult = await parseAnalysisResponse(messageContent);
-
-        assert(() {
-          debugPrint('🖼️ [DEBUG] Vision API response:');
-          debugPrint(messageContent);
-          return true;
-        }());
-
-        return AnalysisResponseDto.fromJson(jsonResult);
-      } catch (e) {
-        debugPrint('❌ [DEBUG] Vision API parse error: $e');
-        throw ApiException(message: '응답 파싱 실패');
-      }
-    } catch (e) {
-      if (e is ApiException ||
-          e is NetworkException ||
-          e is RateLimitException ||
-          e is SocketException ||
-          e is TimeoutException) {
-        rethrow;
-      }
-      throw ApiException(message: 'Groq Vision 분석 중 오류: $e');
-    }
   }
 
   /// 단일 분석 실행
@@ -468,8 +251,8 @@ class GroqRemoteDataSource {
       400 => 'Groq API 오류: 잘못된 요청 형식입니다.',
       401 => 'Groq API 오류: API 키 인증에 실패했습니다.',
       403 => 'Groq API 오류: 접근 권한이 없습니다.',
-      // Groq는 단일 요청이 TPM 한도를 초과하면 413(rate_limit_exceeded) 반환
-      413 => 'Groq API 오류: 요청이 너무 큽니다. 사진 수를 줄여 다시 시도해주세요.',
+      // 단일 요청이 TPM 한도를 초과하면 413 반환
+      413 => 'Groq API 오류: 요청이 너무 큽니다. 글을 줄여 다시 시도해주세요.',
       429 => 'Groq API 오류: 요청 제한을 초과했습니다. 잠시 후 다시 시도해주세요.',
       500 => 'Groq API 오류: 서버 내부 오류가 발생했습니다.',
       502 => 'Groq API 오류: 서버 게이트웨이 오류가 발생했습니다.',
@@ -522,7 +305,7 @@ class GroqRemoteDataSource {
 
   /// AI 응답 JSON 파싱 — 큰 응답은 isolate로 오프로드해 jank 방지.
   ///
-  /// Vision 응답(>4KB)에서 메인 isolate가 점유되면 UI 프레임이 끊긴다.
+  /// 큰 분석 응답(>4KB)에서 메인 isolate가 점유되면 UI 프레임이 끊긴다.
   /// 임계치 이하는 isolate spawn 비용 회피 위해 메인에서 직접 파싱.
   /// `compute()` 자체가 실패해도 (드물게 isolate spawn 불가) 메인 fallback.
   static Future<Map<String, dynamic>> parseAnalysisResponse(

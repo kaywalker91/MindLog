@@ -113,13 +113,12 @@ class AnalyzeDiaryUseCase {
         return emergencyDiary;
       }
 
-      // 3. AI 분석 요청 (응급 상황이 아닌 경우, 유저 이름 및 이미지 전달)
+      // 3. AI 분석 요청 (사진은 로컬에 보관하고 본문과 유저 이름만 전달)
       final diaryId = diary.id;
       final analyzedDiary = await _repository.analyzeDiary(
         diaryId,
         character: character,
         userName: userName,
-        imagePaths: processedImagePaths,
       );
 
       // AI 응답에서도 응급 상황 체크 (이중 안전망)

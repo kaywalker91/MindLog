@@ -49,7 +49,6 @@ void main() {
         any(),
         character: any(named: 'character'),
         userName: any(named: 'userName'),
-        imagePaths: any(named: 'imagePaths'),
       ),
     ).thenAnswer((_) async => DiaryFixtures.analyzed());
     when(
@@ -81,7 +80,6 @@ void main() {
           any(),
           character: any(named: 'character'),
           userName: any(named: 'userName'),
-          imagePaths: any(named: 'imagePaths'),
         ),
       ).thenAnswer((_) async => analyzedDiary);
       when(
@@ -124,7 +122,6 @@ void main() {
           any(),
           character: any(named: 'character'),
           userName: any(named: 'userName'),
-          imagePaths: any(named: 'imagePaths'),
         ),
       ).thenAnswer((_) async => results[callIndex++]);
 
@@ -161,7 +158,6 @@ void main() {
           any(),
           character: any(named: 'character'),
           userName: any(named: 'userName'),
-          imagePaths: any(named: 'imagePaths'),
         ),
       ).thenAnswer((_) async => analyzedDiary);
 
@@ -349,7 +345,6 @@ void main() {
           any(),
           character: any(named: 'character'),
           userName: any(named: 'userName'),
-          imagePaths: any(named: 'imagePaths'),
         ),
       ).called(1);
     });
@@ -374,7 +369,6 @@ void main() {
           any(),
           character: any(named: 'character'),
           userName: any(named: 'userName'),
-          imagePaths: any(named: 'imagePaths'),
         ),
       ).thenThrow(Exception('API Error'));
 

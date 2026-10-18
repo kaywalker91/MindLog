@@ -412,58 +412,25 @@ class MockPreferencesLocalDataSource extends PreferencesLocalDataSource {
 class MockGroqRemoteDataSource extends GroqRemoteDataSource {
   // 상태 제어 변수
   bool shouldThrow = false;
-  bool visionShouldThrow = false;
   String? errorMessage;
   AnalysisResponseDto? mockResponse;
   Exception? customException;
-  Exception? visionException;
 
   // 호출 추적
   final List<Map<String, dynamic>> analyzeRequests = [];
-  final List<Map<String, dynamic>> visionRequests = [];
 
-  /// 텍스트/Vision 분석 호출 합산 횟수
-  int get callCount => analyzeRequests.length + visionRequests.length;
+  /// 텍스트 분석 호출 횟수
+  int get callCount => analyzeRequests.length;
 
   MockGroqRemoteDataSource() : super('mock-api-key');
 
   /// 상태 초기화
   void reset() {
     shouldThrow = false;
-    visionShouldThrow = false;
     errorMessage = null;
     mockResponse = null;
     customException = null;
-    visionException = null;
     analyzeRequests.clear();
-    visionRequests.clear();
-  }
-
-  @override
-  Future<AnalysisResponseDto> analyzeDiaryWithImages(
-    String content, {
-    required List<String> imagePaths,
-    required AiCharacter character,
-    String? userName,
-  }) async {
-    visionRequests.add({
-      'content': content,
-      'imagePaths': imagePaths,
-      'character': character,
-      'userName': userName,
-    });
-
-    if (visionShouldThrow || shouldThrow) {
-      if (visionException != null) {
-        throw visionException!;
-      }
-      if (customException != null) {
-        throw customException!;
-      }
-      throw ApiException(message: errorMessage ?? 'API Error');
-    }
-
-    return mockResponse ?? _defaultResponse();
   }
 
   @override
