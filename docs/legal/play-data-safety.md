@@ -120,12 +120,12 @@ Play 의 Data safety 는 패키지당 하나이며 "the sum of your app's data c
 
 - Play Console 의 **프로덕션·오픈·비공개 테스트 트랙 어디에도 v1.4.64(versionCode 72) 이하 아티팩트가 배포 중이지 않고**, 프로덕션 v1.4.65 단계적 출시가 **100%** 일 때만 Photos 를 해제한다.
 - 그 전까지는 Photos(선택)를 유지한다 — 과다 신고는 위반이 아니지만 과소 신고는 위반이다.
-- **2026-11-20 확인**: Play Console「최신 버전 및 번들」에서 프로덕션 1.4.65(73) 전체 출시, 내부 테스트 1.4.65, versionCode 72 이하 번들 전부 *비활성*. 조건 충족으로 Photos 해제. 이 시점 데이터 유형 신고: 위치 1·개인 정보 1·건강 1·앱 활동 2·앱 정보 및 성능 2·기기 ID 1·사진 및 동영상 0
+- **2026-11-20 확인**: Play Console「최신 버전 및 번들」에서 프로덕션 1.4.65(73) 전체 출시, 내부 테스트 1.4.65, versionCode 72 이하 번들 전부 *비활성*. 조건 충족으로 Photos 해제(2026-11-20 검토 제출, 스토어 설명·개인정보처리방침 URL과 함께 3건). 이 시점 데이터 유형 신고: 위치 1·개인 정보 1·건강 1·앱 활동 2·앱 정보 및 성능 2·기기 ID 1·사진 및 동영상 0
 - 버전별 차이는 Data safety 가 아니라 스토어 설명("앱 정보")에 적는다(Play 안내: "You can use the 'About this app' section to share version-specific information").
 
 ### 3-7. 스토어 설명과의 일관성 (2026-11-20 발견)
 
-(2026-11-20 Play Console 임시보관함 저장, 검토 제출 전) Play 게시 설명의 「🔒 개인정보 보호 — 모든 일기는 기기에만 저장되며, 서버로 전송되지 않습니다.」는 v1.4.62 이전부터 남아 있던 문구로, 실제 동작(일기 글·이름/애칭 → Groq)과 Data safety 신고 모두와 모순된다. 교체 문안은 `android/fastlane/metadata/android/ko/full_description.txt`. Fastlane 은 `skip_upload_metadata: true` 이므로 **Play Console 에서 직접 붙여 넣어야 반영된다.**
+(2026-11-20 Play Console 검토 제출, 게시 개요 상태「검토 중인 변경사항」) Play 게시 설명의 「🔒 개인정보 보호 — 모든 일기는 기기에만 저장되며, 서버로 전송되지 않습니다.」는 v1.4.62 이전부터 남아 있던 문구로, 실제 동작(일기 글·이름/애칭 → Groq)과 Data safety 신고 모두와 모순된다. 교체 문안은 `android/fastlane/metadata/android/ko/full_description.txt`. Fastlane 은 `skip_upload_metadata: true` 이므로 **Play Console 에서 직접 붙여 넣어야 반영된다.**
 
 ---
 
@@ -161,7 +161,7 @@ Data safety 만으로는 끝나지 않는다.
 
 - [ ] **Health apps declaration** — 정신·행동 건강 범주
 - [ ] **앱 액세스 권한** — 계정 없음 + 비밀일기 PIN 안내문 유지 (versionCode 64 거부 이력, 영문 500자 이내)
-- [x] **개인정보처리방침 URL** (2026-11-20 Console 저장, 검토 제출 전) — 2026-11-20 확인 시 Play 게시 링크는 여전히 Google Sites(`sites.google.com/view/mindlogprivacypolicy`). GitHub Pages(`kaywalker91.github.io/MindLog/privacy-policy.html`, HTTP 200, v1.4.65 개정안 반영)로 교체
-- [x] **스토어 설명** — 「서버로 전송되지 않습니다」 문구를 3-7 교체 문안으로 변경(2026-11-20 임시보관함 저장, 검토 제출 전).
+- [x] **개인정보처리방침 URL** (2026-11-20 검토 제출) — 2026-11-20 확인 시 Play 게시 링크는 여전히 Google Sites(`sites.google.com/view/mindlogprivacypolicy`). GitHub Pages(`kaywalker91.github.io/MindLog/privacy-policy.html`, HTTP 200, v1.4.65 개정안 반영)로 교체
+- [x] **스토어 설명** — 「서버로 전송되지 않습니다」 문구를 3-7 교체 문안으로 변경(2026-11-20 검토 제출).
 - [ ] **스토어 설명** — 비의료기기·비진단 면책 문구 추가 (현재 없음)
 - [ ] **새로운 기능(출시 노트)** — Play 게시본에 따옴표·쉼표가 그대로 노출됨(`"…", "…"`). 다음 출시 노트는 줄바꿈 목록으로 입력
