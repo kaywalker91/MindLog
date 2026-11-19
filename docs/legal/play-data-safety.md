@@ -5,6 +5,10 @@ Play Console 은 코드로 관리할 수 없으므로, **무엇을 왜 그렇게
 다음 갱신 때 처음부터 다시 조사하지 않기 위한 문서이며, 심사 문의 대응 근거로도 쓴다.
 
 - 작성 기준일: **2026-08-25** (앱 v1.4.62 / versionCode 70)
+- 재검토: **2026-11-20** (앱 v1.4.65 / versionCode 73, Play 게시 페이지 기준 2026-10-19 업데이트) — v1.4.65 부터 사진 미전송. 아래 Photos 행과 3-6 참조
+
+> **v1.4.65 실제 전송 항목** (코드·테스트 근거, 4항): Groq 요청 본문 = 캐릭터별 system 프롬프트 + 일기 글 + (설정 시) 이름/애칭. 사진 바이트·경로·장수 미포함.
+> 근거: `test/data/repositories/diary_text_only_analysis_test.dart`, `test/data/datasources/remote/groq_remote_datasource_test.dart` (2026-11-20 재실행 46/46 PASS). 2026-10-18 Galaxy A34 실기 검증은 별도 패키지 debug 빌드(동일 `lib/` 해시)였다 — [기록](../../tasks/photo-text-analysis-a34-verification-2026-10-18.md). **Play 배포본의 네트워크 캡처는 아직 하지 않았다.**
 - 대응 개인정보 처리방침: [`privacy-policy.md`](privacy-policy.md) · 웹 <https://kaywalker91.github.io/MindLog/privacy-policy.html>
 
 **근거 문서** (작성 시점에 직접 확인)
@@ -38,7 +42,7 @@ Play Console 은 코드로 관리할 수 없으므로, **무엇을 왜 그렇게
 |---|---|---|---|---|---|---|
 | Personal info | **Name** | 예 | 아니오 | **선택** | App functionality, Personalization | 이용자가 설정한 이름/애칭. 설정 시 Groq 프롬프트에 포함되어 전송 |
 | Health and fitness | **Health info** | 예 | 아니오 | 필수 | App functionality, Analytics | 감정 점수(`sentiment_score`), 에너지 수준(`energy_level`) |
-| Photos and videos | **Photos** | 예 | 아니오 | **선택** | App functionality | 일기 첨부 사진 중 **첫 1장**만 분석용으로 전송 |
+| ~~Photos and videos~~ | ~~Photos~~ | **아니오** (2026-11-20 해제) | — | — | — | v1.4.64 이하만 첨부 사진 중 첫 1장을 전송했음. v1.4.65 는 전송하지 않음. 해제 근거는 3-6 |
 | App activity | **Other user-generated content** | 예 | 아니오 | 필수 | App functionality, Analytics | 일기 본문 텍스트, AI 행동 제안 문구 앞 50자 |
 | App activity | **App interactions** | 예 | 아니오 | 필수 | Analytics | 화면 조회, 통계 조회 기간, 리마인더 설정 시각, 캐릭터 변경 |
 | App info and performance | **Crash logs** | 예 | 아니오 | 필수 | Analytics | Crashlytics 스택 트레이스·앱 상태 |
@@ -110,6 +114,19 @@ Groq 로 보낸 일기 본문·사진을 개발자가 서버에 보관하지는 
 
 > ⚠️ 다이얼로그 문구가 "이름을 입력하세요" / "AI 상담사가 이름을 불러드려요" 라서 실명 입력을 유도한다. 의도가 애칭이라면 문구를 애칭으로 바꾸는 편이 수집 범위를 줄인다. **다만 Play 의 Name 정의는 "first or last name, **or nickname**" 이므로 애칭으로 바꿔도 신고 의무는 그대로다.**
 
+### 3-6. Photos 를 언제 "수집 안 함"으로 바꾸는가
+
+Play 의 Data safety 는 패키지당 하나이며 "the sum of your app's data collection and sharing across all its versions **currently distributed on Google Play**" 를 기술해야 한다(테스트 트랙 포함, 내부 테스트만 예외). 따라서
+
+- Play Console 의 **프로덕션·오픈·비공개 테스트 트랙 어디에도 v1.4.64(versionCode 72) 이하 아티팩트가 배포 중이지 않고**, 프로덕션 v1.4.65 단계적 출시가 **100%** 일 때만 Photos 를 해제한다.
+- 그 전까지는 Photos(선택)를 유지한다 — 과다 신고는 위반이 아니지만 과소 신고는 위반이다.
+- **2026-11-20 확인**: Play Console「최신 버전 및 번들」에서 프로덕션 1.4.65(73) 전체 출시, 내부 테스트 1.4.65, versionCode 72 이하 번들 전부 *비활성*. 조건 충족으로 Photos 해제. 이 시점 데이터 유형 신고: 위치 1·개인 정보 1·건강 1·앱 활동 2·앱 정보 및 성능 2·기기 ID 1·사진 및 동영상 0
+- 버전별 차이는 Data safety 가 아니라 스토어 설명("앱 정보")에 적는다(Play 안내: "You can use the 'About this app' section to share version-specific information").
+
+### 3-7. 스토어 설명과의 일관성 (2026-11-20 발견)
+
+(2026-11-20 Play Console 임시보관함 저장, 검토 제출 전) Play 게시 설명의 「🔒 개인정보 보호 — 모든 일기는 기기에만 저장되며, 서버로 전송되지 않습니다.」는 v1.4.62 이전부터 남아 있던 문구로, 실제 동작(일기 글·이름/애칭 → Groq)과 Data safety 신고 모두와 모순된다. 교체 문안은 `android/fastlane/metadata/android/ko/full_description.txt`. Fastlane 은 `skip_upload_metadata: true` 이므로 **Play Console 에서 직접 붙여 넣어야 반영된다.**
+
 ---
 
 ## 4. 코드 근거
@@ -117,7 +134,7 @@ Groq 로 보낸 일기 본문·사진을 개발자가 서버에 보관하지는 
 | 신고 항목 | 코드 위치 |
 |---|---|
 | 일기 본문 → Groq | `lib/data/datasources/remote/groq_remote_datasource.dart:367-374` |
-| 사진 1장 → Groq | `lib/data/datasources/remote/groq_remote_datasource.dart:240, 249-250` |
+| ~~사진 1장 → Groq~~ (v1.4.64 이하) | v1.4.65: `groq_remote_datasource.dart` 의 `analyzeDiary(content, character, userName)` — 이미지 인자 없음, `messages` content 는 문자열 |
 | 이름/애칭 → Groq | `lib/core/constants/prompt_constants.dart:361-367` · `lib/domain/usecases/analyze_diary_usecase.dart:73, 121` |
 | 저장 = 분석 (전송 회피 경로 없음) | `lib/presentation/screens/diary_screen.dart:64-93` (`_onSubmit` → `_startAnalysis`) |
 | 감정 점수·에너지 수준 → Analytics | `lib/core/services/analytics_service.dart:69-79` |
@@ -144,5 +161,7 @@ Data safety 만으로는 끝나지 않는다.
 
 - [ ] **Health apps declaration** — 정신·행동 건강 범주
 - [ ] **앱 액세스 권한** — 계정 없음 + 비밀일기 PIN 안내문 유지 (versionCode 64 거부 이력, 영문 500자 이내)
-- [ ] **개인정보처리방침 URL** — 현재 Google Sites. GitHub Pages(`kaywalker91.github.io/MindLog/privacy-policy.html`)로 이전 예정
+- [x] **개인정보처리방침 URL** (2026-11-20 Console 저장, 검토 제출 전) — 2026-11-20 확인 시 Play 게시 링크는 여전히 Google Sites(`sites.google.com/view/mindlogprivacypolicy`). GitHub Pages(`kaywalker91.github.io/MindLog/privacy-policy.html`, HTTP 200, v1.4.65 개정안 반영)로 교체
+- [x] **스토어 설명** — 「서버로 전송되지 않습니다」 문구를 3-7 교체 문안으로 변경(2026-11-20 임시보관함 저장, 검토 제출 전).
 - [ ] **스토어 설명** — 비의료기기·비진단 면책 문구 추가 (현재 없음)
+- [ ] **새로운 기능(출시 노트)** — Play 게시본에 따옴표·쉼표가 그대로 노출됨(`"…", "…"`). 다음 출시 노트는 줄바꿈 목록으로 입력
