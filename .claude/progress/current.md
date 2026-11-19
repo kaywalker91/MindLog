@@ -1,3 +1,20 @@
+# 현재 작업: Play 개인정보 표기 정합화 (2026-11-20)
+
+- 발견: Play 스토어 설명의 「모든 일기는 기기에만 저장되며, 서버로 전송되지 않습니다.」가 실제 동작(일기 글·이름/애칭 → Groq, v1.4.65부터 사진 미전송)과 Data safety·처리방침과 모순. Play 처리방침 링크는 구 Google Sites.
+- 실제 전송 근거: 배포 커밋 `7c8f63f` 이후 `lib/`·`android/` 변경 없음, 요청 본문 검사 테스트 46/46 PASS(mcp run_tests; `fvm flutter test`는 샌드박스에서 엔진 stamp 쓰기 실패). **Play 배포본 네트워크 캡처는 UNVERIFIED.**
+- Play Console(Mac Chrome, kaywalker 개발자 계정)에서 사용자 저장·제출: 스토어 설명(ko), 처리방침 URL → GitHub Pages, Data safety Photos 해제(프로덕션 1.4.65 전체 출시·versionCode≤72 비활성 확인). 2026-11-20 상태 「검토 중인 변경사항」 3건.
+- 커밋: 브랜치 `docs/play-privacy-disclosure` — `e91bb80`, `09dc9be`. **push 미실행**(auto mode 분류기 거부). main 병합 시 fastlane txt 변경이 CD paths-ignore에 안 걸려 내부 트랙 배포가 돈다 → 다음 버전업 릴리스와 함께 병합 권장.
+- 주의: Claude in Chrome에 Windows 브라우저가 함께 연결돼 있었다. 브라우저 작업 전 `list_connected_browsers`로 Mac 선택 확인.
+
+## 다음 단계
+1. Play 검토 결과 확인(승인 시 스토어 페이지에서 새 설명·링크·데이터 보안 사진 미표시 확인)
+2. 사용자 승인 후 `git push -u origin docs/play-privacy-disclosure`, 병합은 다음 릴리스와 함께
+3. 백로그: 비의료기기 면책 문구, 출시 노트 따옴표 노출, 영문 listing, 배포본 전송 캡처 검증
+
+마지막 업데이트: 2026-11-20
+
+---
+
 # 현재 작업: v1.4.65 릴리스 변경·검증 정리 (2026-10-18)
 
 **현재 요약은 [릴리스 작업 기록](../../tasks/release-1.4.65-2026-10-18.md)을 먼저 읽는다.** 사진 구현과 이전 Android 작업의 상세 기록은 아래와 각 핸드오프에 보존한다.
